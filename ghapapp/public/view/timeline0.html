@@ -1,0 +1,377 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no"/>
+    <title>TLCMap Timeline</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+/*
+      #timeSlider {
+        width: 400px; 
+      }
+*/
+      #infoDiv {
+        height: 353px;
+        padding: 10px;
+        width: 280px;
+      }
+
+      #infoDiv span {
+        color: #F9C653;
+        font-size: 12pt;
+        font-weight: bolder;
+      }
+	  
+	        #timeSlider {
+        position: absolute;
+        left: 5%;
+        right: 5%;
+        bottom: 20px;
+      }
+	  
+    </style>
+	
+	<script>
+	var asdf = new Date(1892,04,12);
+	//alert("date " + asdf.getTime());
+	</script>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.18/"></script>
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/GeoJSONLayer",
+        "esri/config",
+        "esri/widgets/TimeSlider",
+        "esri/widgets/Expand",
+        "esri/widgets/Legend"
+      ], function(Map, MapView, GeoJSONLayer, esriConfig, TimeSlider, Expand, Legend) {
+        let layerView;
+
+
+        var renderer = {
+          type: "simple",
+          field: "mag",
+          symbol: {
+            type: "simple-marker",
+            color: "orange",
+            outline: {
+              color: "white"
+            }
+          }
+        };
+
+        var urlParams = new URLSearchParams(window.location.search);
+        
+	      var urltoload = urlParams.get("load");
+
+      //  var urltoload = 'http://localhost:8090/view/cflayer.json';
+
+
+// intercept the geojson data after it is fetched so that we can parse
+// the ISO-8601 string values to epoch timestamp before the GeoJSONLayer is created.
+
+
+esriConfig.request.interceptors.push({
+  urls: urltoload,
+  after: function(response) {
+   //if (response.url?.valueOf().toLowerCase().includes("earthquakes")) {
+      const geojson = response.data;
+      geojson.features.forEach((feature) => {
+        const unixSDate = Date.parse(feature.properties.datestart);
+        const unixEDate = Date.parse(feature.properties.dateend);
+        feature.properties.unixSDate = unixSDate;
+        feature.properties.unixDDate = unixEDate;
+      });
+    //}
+  }
+});
+
+
+
+
+
+        const layer = new GeoJSONLayer({
+          url: urltoload,
+          copyright: "TLCMap and Bill Pascoe - using ArcGIS JSAPI",
+          title: "TLCMap Timeline",
+          fields: [
+            {
+              "name": "unixSDate",
+              "alias": "unixSDate",
+              "type": "date"
+            },{
+              "name": "unixEDate",
+              "alias": "unixEDate",
+              "type": "date"
+            }
+          ],
+          // set the CSVLayer's timeInfo based on the date field
+          timeInfo: {
+            startField: "unixSDate", //"datestart", // name of the date field
+			      endField: "unixEDate",//"dateend", "dateend", //
+            interval: {
+              // set time interval to one day
+              unit: "years",
+              value: 1
+            }
+          },
+          popupTemplate: {
+            title: "<strong>{Site_Name}</strong>",
+            content: [
+              {
+                type: "fields",
+                fieldInfos: [
+                  {
+                    fieldName: "Site_Name",
+                    label: "Site Name",
+                    visible: true
+                  },
+                  {
+                    fieldName: "ByVictim",
+                    label: "Victims",
+                    visible: true
+                  },
+                  {
+                    fieldName: "ByAttacker",
+                    label: "Attackers",
+                    visible: true
+                  },
+                  {
+                    fieldName: "ByDate",
+                    label: "Date range",
+                    visible: true
+                  },
+                  {
+                    fieldName: "Language_Group",
+                    label: "Language Group",
+                    visible: true
+                  }
+                ]
+              }
+            ],
+		        renderer: renderer
+          }
+        });
+
+
+
+
+
+        
+// The function used for the PopupTemplate
+function getInfo(feature) {
+  try {
+  var graphic, attributes, content;
+  graphic = feature.graphic;
+  attributes = graphic.attributes;
+
+
+
+  title = attributes["Site_Name"];//(attributes["name"])? attributes["name"] : "TLCMap Place";
+	content = "<table id='tlcmproperties'>";
+	
+
+    if (attributes["description"]) {
+	    content = content + "<tr><td>Description</td><td>" + attributes["description"] + "</td></tr>";
+    }
+	
+  var specialatts = ["OBJECTID","id","title","name","description","layer","TLCMapLinkBack","TLCMapDataset"]; // for ignoring in loop that displays all the data incl. extended data
+  var specialdisplay = {
+    "placename":"Place Name",
+    "StartDate":"Date Start",
+    "EndDate":"Date End",
+    "datestart":"Date Start",
+    "dateend":"Date End",
+    "latitude":"Latitude",
+    "longitude":"Longitude",
+    "state":"State",
+    "lga":"LGA",
+    "feature_term":"Feature Term",
+    "original_data_source":"Source",
+    "linkback":"Link Back",
+    "type":"Type"
+
+  }; // match keys to more human friendly display labels
+  
+
+  //console.log(attributes);
+
+  // Add all the cannonical attributes with nice labels, if they exist
+  for (display in specialdisplay) {
+    if (!attributes[display] && attributes[display] !== 0) { continue;}
+      disval = attributes[display];
+      if (disval.startsWith("http")) { 
+        disval = "<a href='" + disval + "'>" + disval + "</a>";
+      }
+      content = content + "<tr><td>" + specialdisplay[display] + "</td><td>" + disval + "</td></tr>";
+    
+  }
+  
+
+  for (const key in attributes) {
+
+    // skip display of special core atts
+      if (specialdisplay[key]) {
+        continue;}
+    
+
+
+    if (!attributes[key] && attributes[key] !== 0) {continue;} // ignore null or empty, but allow value of 0.
+
+
+ 
+  // skip things that are to be ignored
+	if (specialatts.includes(key)) {continue;} // don't display things to ignore or handled sepera
+
+	var val = attributes[key].toString();
+
+	if (val.startsWith("http")) { 
+		val = "<a href='" + val + "'>" + val + "</a>";
+	}
+
+  
+
+	content = content + "<tr><td>" + key + "</td><td>" + val + "</td></tr>";
+ 
+  }
+
+   
+
+
+  content = content + "</table>";
+
+  content = content + "<p><a href='" + attributes["TLCMapLinkBack"] + "'>TLCMap Record: " + attributes["id"] + "</a> | ";
+  content = content + "<a href='" + attributes["TLCMapDataset"] + "'>TLCMap Layer</a></p>";
+
+
+  return content;
+  } catch (err) {
+    return console.log("Error: " + key + " could getinfo " + err + " " + content);
+  }
+}
+
+
+
+
+
+
+        const map = new Map({
+          basemap: "hybrid",
+          layers: [layer]
+        });
+
+        var view = new MapView({
+          map: map,
+          container: "viewDiv",
+          zoom: 4,
+          center: [134.989574,-26.014209]
+        });
+
+        // create a new time slider widget
+        // set other properties when the layer view is loaded
+        // by default timeSlider.mode is "time-window" - shows
+        // data falls within time range
+        const timeSlider = new TimeSlider({
+          container: "timeSlider",
+          playRate: 350,
+          stops: {
+            interval: {
+              value: 1,
+              unit: "years"
+            }
+          }
+        });
+	//	timeSlider.layout = "wide";
+        view.ui.add(timeSlider);
+
+        // wait till the layer view is loaded
+        view.whenLayerView(layer).then(function(lv) {
+          layerView = lv;
+
+          // start time of the time slider - 5/25/2019
+          const start = new Date(1779,12,31);
+		  const end = new Date(1990,12,31);
+          // set time slider's full extent to
+          // 5/25/5019 - until end date of layer's fullTimeExtent
+          timeSlider.fullTimeExtent = {
+            start: start,
+            end: end
+          };
+
+          // Values property is set so that timeslider
+          // widget show the first day. We are setting
+          // the thumbs positions.
+          timeSlider.values = [start, end];
+        });
+
+        // watch for time slider timeExtent change
+        timeSlider.watch("timeExtent", function() {
+          // only show ones that happened up until the end of
+          // timeSlider's current time extent.
+          layer.definitionExpression =
+            "unixEDate <= " + timeSlider.timeExtent.end.getTime();
+
+          // now gray out ones passed by the slider
+          layerView.effect = {
+            filter: {
+              timeExtent: timeSlider.timeExtent,
+              geometry: view.extent
+            },
+            excludedEffect: "grayscale(20%) opacity(23%)"
+          };
+
+
+			
+        });
+
+        // add a legend
+        const legendExpand = new Expand({
+          collapsedIconClass: "esri-icon-collapse",
+          expandIconClass: "esri-icon-expand",
+          expandTooltip: "Legend",
+          view: view,
+          content: new Legend({
+            view: view
+          }),
+          expanded: false
+        });
+		
+		
+        view.ui.add(legendExpand, "top-left");
+
+        const infoDiv = document.getElementById("infoDiv");
+        const infoDivExpand = new Expand({
+          collapsedIconClass: "esri-icon-collapse",
+          expandIconClass: "esri-icon-expand",
+          expandTooltip: "Expand info",
+          view: view,
+          content: infoDiv,
+          expanded: true
+        });
+        view.ui.add(infoDivExpand, "top-right");
+      });
+    </script>
+
+
+
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <div id="timeSlider"></div>
+    <div id="infoDiv" class="esri-widget">
+      <h3>TLCMap</h3>
+    </div>
+  </body>
+</html>
