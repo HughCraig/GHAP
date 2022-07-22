@@ -18,4 +18,14 @@ class SubjectKeyword extends Model
     public function datasets() {
         return $this->belongsToMany(DataSet::class, 'dataset_subject_keyword')->withPivot('dataset_id','subject_keyword_id');
     }
+
+    /**
+     * The collections which have the subject keywords.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function collections()
+    {
+        return $this->belongsToMany('TLCMap\Models\Collection', 'collection_subject_keyword', 'subject_keyword_id', 'collection_id');
+    }
 }

@@ -188,6 +188,7 @@ These grants were administered by the lead institution on the applications, the 
                 <a class="w3-bar-item w3-button w3-mobile" href="{{ url('/') }}" title="Search and find placenames and cultural layers.">Search</a>
 
             <a href="{{route('publicdatasets')}}" class="w3-bar-item w3-button w3-mobile" data-toggle="tooltip" title="Layers contributed by research community.">Browse Layers</a>
+            <a href="{{url('publiccollections')}}" class="w3-bar-item w3-button w3-mobile" data-toggle="tooltip" title="Multilayers contributed by research community.">Browse Multilayers</a>
             <a href="/guides/ghap/" class="w3-bar-item w3-button w3-mobile">Help</a>
 				
 				
@@ -195,11 +196,13 @@ These grants were administered by the lead institution on the applications, the 
                     <a class="w3-bar-item w3-button w3-mobile" href="{{ route('login') }}">{{ __('Login') }}</a>
                 
 			<a class="w3-bar-item w3-button w3-mobile" href="/guides/ghap/#contribute" style="background-color:#F29469;">Create Layer</a>
+                    <a class="w3-bar-item w3-button w3-mobile" href="/guides/ghap/#contribute" style="background-color:#F29469;">Create Multilayer</a>
                 </div>
             @else
                 <a class="w3-bar-item w3-button w3-mobile" href="{{ url('/') }}"  title="Search and find placenames and cultural layers.">Search</a>
                 
             <a href="{{route('publicdatasets')}}" class="w3-bar-item w3-button w3-mobile" data-toggle="tooltip" title="Layers contributed by research community.">Browse Layers</a>
+            <a href="{{url('publiccollections')}}" class="w3-bar-item w3-button w3-mobile" data-toggle="tooltip" title="Multilayers contributed by research community.">Browse Multilayers</a>
             <a href="/guides/ghap/" class="w3-bar-item w3-button w3-mobile">Help</a>
                  <!--Logout-->
                  <div class=" w3-mobile w3-right">
@@ -207,7 +210,8 @@ These grants were administered by the lead institution on the applications, the 
                         onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         {{ __('Logout') }}
                     </a>
-		<a class="w3-bar-item w3-button w3-mobile" href="{{url('myprofile/mydatasets/newdataset')}}" style="background-color:#F29469;">Create Layer</a>
+                    <a class="w3-bar-item w3-button w3-mobile" href="{{url('myprofile/mydatasets/newdataset')}}" style="background-color:#F29469;">Create Layer</a>
+                    <a class="w3-bar-item w3-button w3-mobile" href="{{url('myprofile/mycollections/newcollection')}}" style="background-color:#F29469;">Create Multilayer</a>
                 </div>
 
                 <!-- MyProfile -->
@@ -215,6 +219,7 @@ These grants were administered by the lead institution on the applications, the 
                     <a href="{{url('myprofile')}}" class="nav-link-but"><button class="w3-button"> Account ({{ substr(Auth::user()->name, 0, 16) }}) <i class="fa fa-caret-down"></i></button></a>
                     <div class="w3-dropdown-content w3-bar-block w3-dark-grey">
                         <a href="{{url('myprofile/mydatasets')}}" class="w3-bar-item w3-button w3-mobile">My Layers</a>
+                        <a href="{{url('myprofile/mycollections')}}" class="w3-bar-item w3-button w3-mobile">My Multilayers</a>
                         <a href="{{url('myprofile/mysearches')}}" class="w3-bar-item w3-button w3-mobile">My Searches</a>
                         <a href="{{url('myprofile/mydatasets')}}" class="w3-bar-item w3-button w3-mobile">My Collaborators</a>    
                     </div>

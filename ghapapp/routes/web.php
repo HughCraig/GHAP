@@ -38,6 +38,13 @@ Route::any('publicdatasets/{id}/csv', 'DatasetController@viewPublicCSV')->name('
 Route::any('publicdatasets/{id}/csv/download', 'DatasetController@downloadPublicCSV')->name('downloadpublicdatasetcsv');
 
 /**
+ * Public collection pages.
+ */
+Route::get('publiccollections', 'CollectionController@viewPublicCollections');
+Route::get('publiccollections/{id}', 'CollectionController@viewPublicCollection');
+Route::get('publiccollections/{id}/json', 'CollectionController@viewPublicJson');
+
+/**
  * User Pages
  * The User Controller passes through 'auth' and 'verified' middleware for all functions
  * We perform this manually for DatasetController functions
@@ -57,7 +64,7 @@ Route::any('myprofile/mydatasets/join/{link?}', 'AjaxController@ajaxjoindataset'
 Route::any('myprofile/edit', 'User\UserController@editUserPage')->name('editUserPage'); 
 Route::any('myprofile/edit/info', 'User\UserController@editUserInfo')->name('editUserInfo'); 
 Route::any('myprofile/edit/password', 'User\UserController@editUserPassword')->name('editUserPassword'); 
-Route::any('myprofile/edit/email', 'User\UserController@editUserEmail')->name('editUserEmail'); 
+Route::any('myprofile/edit/email', 'User\UserController@editUserEmail')->name('editUserEmail');
 
 Route::any('myprofile/mydatasets/{id}/kml',  ['middleware' => ['auth','verified'], 'uses' =>'DatasetController@viewPrivateKML'])->name('viewdatasetkml');
 Route::any('myprofile/mydatasets/{id}/kml/download',  ['middleware' => ['auth','verified'], 'uses' =>'DatasetController@downloadPrivateKML'])->name('downloaddatasetkml');
@@ -66,6 +73,16 @@ Route::any('myprofile/mydatasets/{id}/json/download',  ['middleware' => ['auth',
 Route::any('myprofile/mydatasets/{id}/csv',  ['middleware' => ['auth','verified'], 'uses' =>'DatasetController@viewPrivateCSV'])->name('viewdatasetcsv');
 Route::any('myprofile/mydatasets/{id}/csv/download',  ['middleware' => ['auth','verified'], 'uses' =>'DatasetController@downloadPrivateCSV'])->name('downloaddatasetcsv');
 
+/**
+ * User collection CRUD pages
+ */
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('myprofile/mycollections', 'CollectionController@viewMyCollections');
+    Route::get('myprofile/mycollections/newcollection', 'CollectionController@newCollection');
+    Route::post('myprofile/mycollections/newcollection/create', 'CollectionController@createNewCollection');
+    Route::get('myprofile/mycollections/{id}', 'CollectionController@viewMyCollection');
+    Route::post('myprofile/mycollections/{id}/edit', 'CollectionController@editCollection');
+});
 
 
 /**
@@ -109,6 +126,20 @@ Route::middleware(['auth','verified'])->group(function () { //must be logged in 
     Route::post('ajaxdeletecollaborator', 'AjaxController@ajaxdeletecollaborator');
 
     Route::post('ajaxemailsharelink', 'AjaxController@ajaxemailsharelink');
+
+    /**
+     * Services for collection operations.
+     */
+    Route::post('ajaxdeletecollection', 'CollectionController@ajaxDeleteCollection');
+    Route::post('ajaxremovecollectiondataset', 'CollectionController@ajaxRemoveCollectionDataset');
+    Route::post('ajaxaddcollectiondataset', 'CollectionController@ajaxAddCollectionDataset');
+
+    /**
+     * Services used for add collection datasets.
+     */
+    Route::get('ajax/collections/{collection_id}/datasets/addable/public', 'CollectionController@ajaxGetPublicDatasetOptions');
+    Route::get('ajax/collections/{collection_id}/datasets/addable/user', 'CollectionController@ajaxGetUserDatasetOptions');
+    Route::get('ajax/collections/{collection_id}/datasets/addable/{dataset_id}/info', 'CollectionController@ajaxGetDatasetInfo');
 });
 
 

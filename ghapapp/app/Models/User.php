@@ -43,6 +43,14 @@ class User extends \Eloquent implements Authenticatable, CanResetPasswordContrac
     }
 
     /**
+     * User owned collections.
+     */
+    public function collections()
+    {
+        return $this->hasMany('TLCMap\Models\Collection', 'owner');
+    }
+
+    /**
      * Define this user's datasetrole in the dataset
      * Hard coded datasetroles are: OWNER, COLLABORATOR, VIEWER
      */

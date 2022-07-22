@@ -58,6 +58,14 @@ class Dataset extends Model
         return $this->hasMany(CollabLink::class);
     }
 
+    /**
+     * The collections that belong to the dataset.
+     */
+    public function collections()
+    {
+        return $this->belongsToMany('TLCMap\Models\Collection', 'collection_dataset', 'dataset_id', 'collection_id');
+    }
+
     public function addData($data) {
         if (is_array($data)) return $this->addDataItems($data);
         return $this->addDataItem($data);
