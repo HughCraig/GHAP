@@ -13,12 +13,13 @@ class CreateDatasetSubjectkeywordTable extends Migration
      */
     public function up()
     {
-        Schema::connection('mysql2')->create('dataset_subject_keyword', function (Blueprint $table) {
-            $table->unsignedBigInteger('dataset_id');
-            $table->foreign('dataset_id')->references('id')->on('dataset')->onDelete('cascade');
+        Schema::connection('pgsql2')->create('dataset_subject_keyword', function (Blueprint $table) {
+            $table->unsignedBigInteger('dataset_id')->index();
+            $table->unsignedBigInteger('subject_keyword_id')->index();
 
-            $table->unsignedBigInteger('subject_keyword_id');
-            $table->foreign('subject_keyword_id')->references('id')->on('subject_keyword')->onDelete('cascade');
+//            Foreign key definitions if it's needed.
+//            $table->foreign('dataset_id')->references('id')->on('dataset')->onDelete('cascade');
+//            $table->foreign('subject_keyword_id')->references('id')->on('subject_keyword')->onDelete('cascade');
         });
     }
 
@@ -29,7 +30,6 @@ class CreateDatasetSubjectkeywordTable extends Migration
      */
     public function down()
     {
-        
-        Schema::connection('mysql2')->dropIfExists('dataset_subject_keyword');
+        Schema::connection('pgsql2')->dropIfExists('dataset_subject_keyword');
     }
 }

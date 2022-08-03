@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateUserDatasetDsroleTable extends Migration
+class CreateRecordtypeTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,10 @@ class CreateUserDatasetDsroleTable extends Migration
      */
     public function up()
     {
-        Schema::connection('mysql2')->create('user_dataset_dsrole', function (Blueprint $table) {
+        Schema::connection('pgsql2')->create('recordtype', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedInteger('user_dataset_id');
-            $table->unsignedInteger('dsrole_id');
-            $table->timestamps();
+            $table->string('type', 100);
+            $table->text('description')->nullable();
         });
     }
 
@@ -28,6 +27,7 @@ class CreateUserDatasetDsroleTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_dataset_dsrole');
+        Schema::connection('pgsql2')->dropIfExists('recordtype');
     }
 }
+
