@@ -21,15 +21,15 @@ var shapetype = 'bbox'
 
 
 var osmUrl = 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token={accessToken}',
-    osmAttrib = 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' 
+    osmAttrib = 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, '
         + '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-    osm = L.tileLayer(osmUrl, { 
+    osm = L.tileLayer(osmUrl, {
         id: 'mapbox.streets',
         accessToken: 'pk.eyJ1IjoiYmVub3oxMSIsImEiOiJjazNpMmsyeGIwM3ZnM2JwaW9mdG9sdWl1In0.RrwSfVxBLJhqSK3aTsEaNw',
-        maxZoom: 18, 
+        maxZoom: 18,
         attribution: osmAttrib
     }),
-    map = new L.Map('ausmap', { center: new L.LatLng(-25.753079327995454, 136.08262044870537), zoom: 4 }),
+    map = new L.Map('ausmap', {center: new L.LatLng(-25.753079327995454, 136.08262044870537), zoom: 4}),
     drawnItems = L.featureGroup().addTo(map);
 
 /* Setup additional layers */
@@ -56,11 +56,10 @@ L.control.layers(
         "Google Satellite": L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
             attribution: 'google'
         })
-    }, 
-    {  }, 
-    { position: 'topleft', collapsed: false }
+    },
+    {},
+    {position: 'topleft', collapsed: false}
 ).addTo(map);
-
 
 
 /* Add the draw controls to the map  */
@@ -72,7 +71,7 @@ var drawControl = new L.Control.Draw({
         }
     },
     draw: {
-        polygon : {
+        polygon: {
             allowIntersection: false, // Restricts shapes to simple polygons
             drawError: {
                 color: '#ff0000', // Color the shape will turn when intersects
@@ -82,8 +81,8 @@ var drawControl = new L.Control.Draw({
                 color: polygonCol //color of the shape itself
             }
         },
-        polyline : false,
-        circle :  {
+        polyline: false,
+        circle: {
             allowIntersection: false, // Restricts shapes to simple polygons
             drawError: {
                 color: '#ff0000', // Color the shape will turn when intersects
@@ -93,8 +92,8 @@ var drawControl = new L.Control.Draw({
                 color: circleCol
             }
         },
-        marker : false,
-        circlemarker : false,
+        marker: false,
+        circlemarker: false,
         rectangle: {
             allowIntersection: false,
             showArea: true,
@@ -142,8 +141,7 @@ map.on('draw:deleted', function (event) {
 });
 
 
-
-/* Add a pin for UON */ 
+/* Add a pin for UON */
 /*
 L.marker([-32.8945, 151.6976]).addTo(map)
 .bindPopup('University of Newcastle, Australia')
@@ -157,7 +155,7 @@ function setInputs(shape) {
     resetAllInputs()
     if (myshape instanceof L.Rectangle) setRectangleInputs(shape)
     else if (myshape instanceof L.Polygon) setPolygonInputs(shape)
-    else if (myshape instanceof L.Circle) setCircleInputs(shape) 
+    else if (myshape instanceof L.Circle) setCircleInputs(shape)
 }
 
 function setRectangleInputs(shape) {
@@ -165,19 +163,27 @@ function setRectangleInputs(shape) {
 
     var pointsArr = shape.toGeoJSON().geometry.coordinates[0]; //returns a 2d array where first dimension is a point and second is array(longitude, latitude)
     var minlong = pointsArr[0][0];
-    var maxlong = pointsArr[2][0]; 
+    var maxlong = pointsArr[2][0];
 
     if (maxlong - minlong >= 360) {
         minlong = -180
         maxlong = 180
     }
     else {
-        while (maxlong > 180) {maxlong -= 360;}
-        while (maxlong < -180) {maxlong += 360;}
-        while (minlong > 180) {minlong -= 360;}
-        while (minlong < -180) {minlong += 360;}
+        while (maxlong > 180) {
+            maxlong -= 360;
+        }
+        while (maxlong < -180) {
+            maxlong += 360;
+        }
+        while (minlong > 180) {
+            minlong -= 360;
+        }
+        while (minlong < -180) {
+            minlong += 360;
+        }
     }
-    
+
 
     $("#minlong").val(minlong);
     $("#minlat").val(pointsArr[0][1]);
@@ -197,10 +203,10 @@ function setPolygonInputs(shape) {
 
     var pointsArr = shape.toGeoJSON().geometry.coordinates[0] //returns a 2d array, where first dimension is a point and second is array(longitude, latitude)
     var out = ""
-    for (var i=0; i<pointsArr.length; i++) { 
+    for (var i = 0; i < pointsArr.length; i++) {
         out += pointsArr[i][0] + " " + pointsArr[i][1] + ", "
     }
-    $("#polygoninput").val(out.substring(0,out.length-2));
+    $("#polygoninput").val(out.substring(0, out.length - 2));
 }
 
 function resetPolygonInputs() {
@@ -232,7 +238,7 @@ function deleteShape() {
     if (myshape) {
         map.removeLayer(myshape);
         drawnItems.removeLayer(myshape);
-     }
+    }
 }
 
 function changeShapeType(type) { //string: polygon bbox or circle
@@ -246,7 +252,7 @@ function changeShapeType(type) { //string: polygon bbox or circle
 /* FORM BUTTONS */
 
 /* DRAW BUTTON CLICKED */
-$('#mapdraw').click(function() { 
+$('#mapdraw').click(function () {
     if (shapetype == 'bbox') {
         $.ajax({
             type: 'POST',
@@ -257,36 +263,37 @@ $('#mapdraw').click(function() {
                 maxlong: $("#maxlong").val(),
                 maxlat: $("#maxlat").val()
             },
-            success: function(data) {
+            success: function (data) {
                 var minlong = parseFloat(data.minlong);
                 var minlat = parseFloat(data.minlat);
                 var maxlong = parseFloat(data.maxlong);
                 var maxlat = parseFloat(data.maxlat);
-    
+
                 //update the inputs to use the new numbers?
                 $("#minlong").val(minlong);
                 $("#minlat").val(minlat);
                 $("#maxlong").val(maxlong);
                 $("#maxlat").val(maxlat);
-                
-                if (minlong > maxlong) {maxlong += 360} //go over 180 but only for the visual
-    
+
+                if (minlong > maxlong) {
+                    maxlong += 360
+                } //go over 180 but only for the visual
+
                 /* Delete old shape */
                 deleteShape()
-    
-                /* Draw the polygon, if the bbox is filled out*/ 
+
+                /* Draw the polygon, if the bbox is filled out*/
                 if (minlong != null && maxlong != null && minlat != null && maxlat != null
-                    && minlong != "" && maxlong != "" && minlat != "" && maxlat != "")
-                {
-                    myshape = L.rectangle([[minlat, minlong],[maxlat, minlong],[maxlat,maxlong],[minlat,maxlong]], {color: bboxCol});
-    
+                    && minlong != "" && maxlong != "" && minlat != "" && maxlat != "") {
+                    myshape = L.rectangle([[minlat, minlong], [maxlat, minlong], [maxlat, maxlong], [minlat, maxlong]], {color: bboxCol});
+
                     drawnItems.addLayer(myshape)
                 }
             },
-            error: function(xhr, textStatus, errorThrown) {
+            error: function (xhr, textStatus, errorThrown) {
                 alert(xhr.responseText); //error message with error info
             }
-        }); 
+        });
     }
 
     else if (shapetype == 'polygon') { //long lat
@@ -296,9 +303,9 @@ $('#mapdraw').click(function() {
         var pointstrarr = polystr.val().split(',') //["0 0", "0 100", "100 100", "100 0", "0 0"]
         var pointsarr = []
 
-        for (var i=0; i < pointstrarr.length; i++) {
+        for (var i = 0; i < pointstrarr.length; i++) {
             var point = pointstrarr[i].trim().split(' ')
-            pointsarr.push([point[1],point[0]])
+            pointsarr.push([point[1], point[0]])
         }
 
         /* Delete old shape */
@@ -317,17 +324,17 @@ $('#mapdraw').click(function() {
         /* Delete old shape */
         deleteShape()
 
-        myshape = L.circle([lat,long], {radius: rad, color: circleCol})
+        myshape = L.circle([lat, long], {radius: rad, color: circleCol})
         drawnItems.addLayer(myshape)
     }
- });
+});
 
- /* SELECTOR CHANGED */
- $('#mapselector').change(function() {
+/* SELECTOR CHANGED */
+$('#mapselector').change(function () {
     var op = $('#mapselector option:selected').val()
     var type = op.substr(0, op.indexOf('option'))
     changeShapeType(type)
- })
+})
 
 
 /* Popup with lat/long where user clicks*/

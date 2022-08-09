@@ -1,139 +1,139 @@
 <html>
-  <head>
-    <meta charset="utf-8" />
+<head>
+    <meta charset="utf-8"/>
     <meta
-      name="viewport"
-      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+        name="viewport"
+        content="initial-scale=1,maximum-scale=1,user-scalable=no"
     />
     <title>TimeSlider widget | Sample | ArcGIS API for JavaScript 4.22</title>
     <link
-      rel="stylesheet"
-      href="https://js.arcgis.com/4.22/esri/themes/light/main.css"
+        rel="stylesheet"
+        href="https://js.arcgis.com/4.22/esri/themes/light/main.css"
     />
     <script src="https://js.arcgis.com/4.22/"></script>
 
     <style>
-      html,
-      body,
-      #viewDiv {
-        padding: 0;
-        margin: 0;
-        height: 100%;
-        width: 100%;
-      }
+        html,
+        body,
+        #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
 
-      #timeSlider {
-        position: absolute;
-        left: 5%;
-        right: 5%;
-        bottom: 20px;
-      }
+        #timeSlider {
+            position: absolute;
+            left: 5%;
+            right: 5%;
+            bottom: 20px;
+        }
 
-      #titleDiv {
-        padding: 10px;
-        font-weight: 36;
-        text-align: center;
-      }
+        #titleDiv {
+            padding: 10px;
+            font-weight: 36;
+            text-align: center;
+        }
     </style>
     <script>
-      require([
-        "esri/Map",
-        "esri/views/MapView",
-        "esri/layers/GeoJSONLayer",
-        "esri/widgets/TimeSlider",
-        "esri/widgets/Expand",
-        "esri/widgets/Legend"
-      ], (Map, MapView, GeoJSONLayer, TimeSlider, Expand, Legend) => {
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/GeoJSONLayer",
+            "esri/widgets/TimeSlider",
+            "esri/widgets/Expand",
+            "esri/widgets/Legend"
+        ], (Map, MapView, GeoJSONLayer, TimeSlider, Expand, Legend) => {
 
-        
-                // set the timeInfo on GeoJSONLayer at the time initialization
-                const layer = new GeoJSONLayer({
-          url: "http://localhost:8090/ghap/publicdatasets/126/json",
-          copyright: "USGS Earthquakes",
-          title: "USGS Earthquakes",
-          // set the CSVLayer's timeInfo based on the date field
-          timeInfo: {
-            startField: "time", // name of the date field
-            interval: {
-              // set time interval to one day
-              unit: "hours",
-              value: 1
-            }
-          },
-          renderer: {
-            type: "simple",
-            field: "name",
-            symbol: {
-              type: "simple-marker",
-              color: "orange",
-              outline: null
-            }
-          },
-          popupTemplate: {
-            title: "{name}",
-            content: [
-              {
-                type: "fields",
-                fieldInfos: [
-                  {
-                    fieldName: "name",
-                    label: "name",
-                    visible: true
-                  },
-                  {
-                    fieldName: "latitude",
-                    label: "lat",
-                    visible: true
-                  }
-                ]
-              }
-            ]
-          }
+
+            // set the timeInfo on GeoJSONLayer at the time initialization
+            const layer = new GeoJSONLayer({
+                url: "http://localhost:8090/ghap/publicdatasets/126/json",
+                copyright: "USGS Earthquakes",
+                title: "USGS Earthquakes",
+                // set the CSVLayer's timeInfo based on the date field
+                timeInfo: {
+                    startField: "time", // name of the date field
+                    interval: {
+                        // set time interval to one day
+                        unit: "hours",
+                        value: 1
+                    }
+                },
+                renderer: {
+                    type: "simple",
+                    field: "name",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "orange",
+                        outline: null
+                    }
+                },
+                popupTemplate: {
+                    title: "{name}",
+                    content: [
+                        {
+                            type: "fields",
+                            fieldInfos: [
+                                {
+                                    fieldName: "name",
+                                    label: "name",
+                                    visible: true
+                                },
+                                {
+                                    fieldName: "latitude",
+                                    label: "lat",
+                                    visible: true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            });
+
+            const map = new Map({
+                basemap: "hybrid",
+                layers: [layer]
+            });
+
+            const view = new MapView({
+                map: map,
+                container: "viewDiv",
+                zoom: 4,
+                center: [-100, 30]
+            });
+
+            // time slider widget initialization
+            const timeSlider = new TimeSlider({
+                container: "timeSlider",
+                view: view,
+                timeVisible: true, // show the time stamps on the timeslider
+                loop: true
+            });
+
+
+            // add the UI for a title
+            view.ui.add("titleDiv", "top-right");
+
+            view.whenLayerView(layer).then((lv) => {
+                // around up the full time extent to full hour
+                timeSlider.fullTimeExtent =
+                    layer.timeInfo.fullTimeExtent.expandTo("hours");
+                timeSlider.stops = {
+                    interval: layer.timeInfo.interval
+                };
+            });
+
+
         });
-
-        const map = new Map({
-          basemap: "hybrid",
-          layers: [layer]
-        });
-
-        const view = new MapView({
-          map: map,
-          container: "viewDiv",
-          zoom: 4,
-          center: [-100, 30]
-        });
-
-        // time slider widget initialization
-        const timeSlider = new TimeSlider({
-          container: "timeSlider",
-          view: view,
-          timeVisible: true, // show the time stamps on the timeslider
-          loop: true
-        });
-
-        
-        // add the UI for a title
-        view.ui.add("titleDiv", "top-right");
-
-        view.whenLayerView(layer).then((lv) => {
-          // around up the full time extent to full hour
-          timeSlider.fullTimeExtent =
-            layer.timeInfo.fullTimeExtent.expandTo("hours");
-          timeSlider.stops = {
-            interval: layer.timeInfo.interval
-          };
-        });
-
-
-      });
     </script>
-  </head>
+</head>
 
-  <body>
-    <div id="viewDiv"></div>
-    <div id="timeSlider"></div>
-    <div id="titleDiv" class="esri-widget">
-      <div id="titleText">TLCMap Timeline<br>(note: short time spans may not work effectively)</div>
-    </div>
-  </body>
+<body>
+<div id="viewDiv"></div>
+<div id="timeSlider"></div>
+<div id="titleDiv" class="esri-widget">
+    <div id="titleText">TLCMap Timeline<br>(note: short time spans may not work effectively)</div>
+</div>
+</body>
 </html>

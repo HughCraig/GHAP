@@ -11,34 +11,33 @@ $.ajaxSetup({
  */
 
 /* Delete data SET button */
-$("main").on('click','[name="delete_dataset_button"]', function() { 
-    if(confirm('Are you sure you want to delete this dataset?')) 
-    {
+$("main").on('click', '[name="delete_dataset_button"]', function () {
+    if (confirm('Are you sure you want to delete this dataset?')) {
         var id = this.id.split("_")[3]; //id will be delete_dataitem_button_##, we jst want the number
-        var row_id = '#row_id_'+id; //get the id of the row to be deleted, id will be row_id_##
+        var row_id = '#row_id_' + id; //get the id of the row to be deleted, id will be row_id_##
         $.ajax({
             type: 'POST',
             url: ajaxdeletedataset,
             data: {
                 id: id
             },
-            success: function(result) {
+            success: function (result) {
                 $(row_id).remove();
                 //jQuery datatable updating
-                $('#datasettable').DataTable().row( row_id ).remove().draw();
+                $('#datasettable').DataTable().row(row_id).remove().draw();
             },
-            error: function(xhr, textStatus, errorThrown) {
+            error: function (xhr, textStatus, errorThrown) {
                 alert(xhr.responseText); //error message with error info
             }
-        }); 
+        });
     }
- });
+});
 
 
- /*
- *  SHOW JOIN DATASET CONTROLS
- */
-$("main").on('click','#show_join_controls_button', function() { 
+/*
+*  SHOW JOIN DATASET CONTROLS
+*/
+$("main").on('click', '#show_join_controls_button', function () {
     $('#join_controls').removeClass('hideme');
     $('#join_link_input').focus();
 });
@@ -46,28 +45,28 @@ $("main").on('click','#show_join_controls_button', function() {
 /*
  *  HIDE JOIN DATASET CONTROLS
  */
-$("main").on('click','#hide_join_controls_button', function() { 
+$("main").on('click', '#hide_join_controls_button', function () {
     $('#join_controls').addClass('hideme');
 });
 
 /*
  *  JOIN DATASET
  */
-$("main").on('click','#join_link_button', function() { 
+$("main").on('click', '#join_link_button', function () {
     var sharelink = $('#join_link_input').val();
     $.ajax({
         type: 'POST',
         url: ajaxjoindataset,
         data: {
-             sharelink: sharelink
+            sharelink: sharelink
         },
-        success: function(result) {
+        success: function (result) {
             //Show some kind of success message
             $("#notification_box").addClass("notification-success");
             $("#notification_message").text('Successfully joined dataset!');
-            setTimeout(function(){
+            setTimeout(function () {
                 $("#notification_box").removeClass("notification-success");
-              },4000);
+            }, 4000);
 
             //Some magic to make it appear in the datasets
             var newrow = $('#datasettable').DataTable().row.add([
@@ -83,24 +82,23 @@ $("main").on('click','#join_link_button', function() {
             ]).draw().node();
 
             //Green fade in for row
-            $( newrow ).css( 'background-color', '#AAFFAA' ).animate( {'background-color': 'inherit'} , 5000);
+            $(newrow).css('background-color', '#AAFFAA').animate({'background-color': 'inherit'}, 5000);
 
             //hide the join dataset control
             $('#join_controls').addClass('hideme');
         },
-        error: function(xhr, textStatus, errorThrown) {
+        error: function (xhr, textStatus, errorThrown) {
             alert(xhr.responseText); //error message with error info
         }
-    }); 
+    });
 });
 
 /*
  *  LEAVE DATASET
  */
-$("main").on('click','[name="leave_dataset_button"]', function() { 
+$("main").on('click', '[name="leave_dataset_button"]', function () {
     var parent_row = jQuery(this).parent().parent();
-    if(confirm('Are you sure you want to leave this dataset?')) 
-    {
+    if (confirm('Are you sure you want to leave this dataset?')) {
         var id = this.id.split("_")[3]; //id will be leave_dataset_button_##, we just want the number
         $.ajax({
             type: 'POST',
@@ -108,20 +106,20 @@ $("main").on('click','[name="leave_dataset_button"]', function() {
             data: {
                 id: id
             },
-            success: function(result) {
+            success: function (result) {
                 //Show some kind of success message
                 $("#notification_box").addClass("notification-success");
                 $("#notification_message").text('Successfully left dataset!');
-                setTimeout(function(){
+                setTimeout(function () {
                     $("#notification_box").removeClass("notification-success");
-                },4000);
+                }, 4000);
 
                 //Some magic to make it disappear in the datasets
-                $('#datasettable').DataTable().row( parent_row ).remove().draw();
+                $('#datasettable').DataTable().row(parent_row).remove().draw();
             },
-            error: function(xhr, textStatus, errorThrown) {
+            error: function (xhr, textStatus, errorThrown) {
                 alert(xhr.responseText); //error message with error info
             }
-        }); 
+        });
     }
 });

@@ -11,7 +11,8 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Auth\MustVerifyEmail;
 
-class User extends \Eloquent implements Authenticatable, CanResetPasswordContract, MustVerifyEmailContract {
+class User extends \Eloquent implements Authenticatable, CanResetPasswordContract, MustVerifyEmailContract
+{
     use AuthenticableTrait, CanResetPassword;
     use MustVerifyEmail, Notifiable;
     protected $connection = 'pgsql2';
@@ -22,24 +23,25 @@ class User extends \Eloquent implements Authenticatable, CanResetPasswordContrac
 
     public $timestamps = true;
 
-    protected $fillable = array('id','name','email','email_verfied_at', 'password', 'remember_token',
-        'updated_at','created_at','is_active');
+    protected $fillable = array('id', 'name', 'email', 'email_verfied_at', 'password', 'remember_token',
+        'updated_at', 'created_at', 'is_active');
 
     /**
      * Define a many to 1 relationship (users have 1 role, 1 role has many users)
      */
     public function roles()
     {
-	    // postgres seems to require table names to be fully qualified with db name, so trying to specify the joining table here.
-        return $this->belongsToMany(Role::class, 'tlcmap.role_user')->withPivot('id','role_id','user_id');
+        // postgres seems to require table names to be fully qualified with db name, so trying to specify the joining table here.
+        return $this->belongsToMany(Role::class, 'tlcmap.role_user')->withPivot('id', 'role_id', 'user_id');
     }
 
     /**
      * Define a dataset relationship
      * 1 user has many datasets, many datasets have many users
      */
-    public function datasets() {
-        return $this->belongsToMany(Dataset::class, 'tlcmap.user_dataset')->withPivot('id','user_id','dsrole','dataset_id','created_at','updated_at');
+    public function datasets()
+    {
+        return $this->belongsToMany(Dataset::class, 'tlcmap.user_dataset')->withPivot('id', 'user_id', 'dsrole', 'dataset_id', 'created_at', 'updated_at');
     }
 
     /**
@@ -54,55 +56,59 @@ class User extends \Eloquent implements Authenticatable, CanResetPasswordContrac
      * Define this user's datasetrole in the dataset
      * Hard coded datasetroles are: OWNER, COLLABORATOR, VIEWER
      */
-    public function addDsrole($datasetid,$datasetrole) {
-        $this->datasets()->attach($datasetid,['datasetrole' => $datasetrole]);
+    public function addDsrole($datasetid, $datasetrole)
+    {
+        $this->datasets()->attach($datasetid, ['datasetrole' => $datasetrole]);
     }
 
     /**
      * Get this user's datasetrole for the dataset with this id
      */
-    public function getDsrole($datasetid) {
+    public function getDsrole($datasetid)
+    {
         $this->datasets()->find($datasetid)->datasetrole;
     }
 
 
     /**
-    * Check if the User has any of the defined roles
-    * @param string|array $roles
-    */
+     * Check if the User has any of the defined roles
+     * @param string|array $roles
+     */
     public function authorizeRoles($roles)
     {
-    if (is_array($roles)) {
-        return $this->hasAnyRole($roles) ||
-            abort(403, 'Error 403 - Forbidden.');
-    }
-    return $this->hasRole($roles) ||
+        if (is_array($roles)) {
+            return $this->hasAnyRole($roles) ||
+                abort(403, 'Error 403 - Forbidden.');
+        }
+        return $this->hasRole($roles) ||
             abort(403, 'Error 403 - Forbidden.');
     }
 
     /**
-    * Check multiple roles
-    * @param array $roles
-    */
+     * Check multiple roles
+     * @param array $roles
+     */
     public function hasAnyRole($roles)
     {
         return null !== $this->roles()->whereIn('name', $roles)->first();
     }
 
     /**
-    * Check one role
-    * @param string $role
-    */
+     * Check one role
+     * @param string $role
+     */
     public function hasRole($role)
     {
         return null !== $this->roles()->where('name', $role)->first();
     }
 
-    public function isActive() {
+    public function isActive()
+    {
         return $this->is_active;
     }
 
-    public function hasConfirmed() {
+    public function hasConfirmed()
+    {
         return $this->email_verfied_at === null ? false : true;
     }
 

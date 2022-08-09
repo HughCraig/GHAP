@@ -15,7 +15,9 @@
  * Home and search pages
  */
 //Route::any('/', function () {return redirect('');});
-Route::any('/home', function () {return redirect('');})->name('home');
+Route::any('/home', function () {
+    return redirect('');
+})->name('home');
 Route::any('', 'HomeController@index')->name('index');
 Route::any('file', 'GazetteerController@searchFromFile')->name('searchFromFile'); //search from file
 Route::any('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->name('searchFromKmlPolygon'); //search from file
@@ -23,7 +25,7 @@ Route::any('places/{id?}', 'GazetteerController@search')->name('places'); //show
 Route::any('search', 'GazetteerController@search')->name('search')->middleware('checkmaxpaging');
 Route::any('maxpaging', 'GazetteerController@maxPagingMessage')->name('maxPagingMessage');
 Route::any('maxpagingredirect', 'GazetteerController@maxPagingRedirect')->name('maxPagingRedirect');
-Route::post('bulkfileparser', 'GazetteerController@bulkFileParser'); 
+Route::post('bulkfileparser', 'GazetteerController@bulkFileParser');
 
 /**
  * Public dataset pages
@@ -49,29 +51,29 @@ Route::get('publiccollections/{id}/json', 'CollectionController@viewPublicJson')
  * The User Controller passes through 'auth' and 'verified' middleware for all functions
  * We perform this manually for DatasetController functions
  */
-Route::any('myprofile', 'User\UserController@userProfile')->name('myProfile'); 
+Route::any('myprofile', 'User\UserController@userProfile')->name('myProfile');
 Route::any('myprofile/mydatasets', 'User\UserController@userDatasets')->name('myDatasets'); //Only let users view own dataset
-Route::any('myprofile/mysearches', 'User\UserController@userSavedSearches')->name('mySearches'); 
-Route::any('myprofile/mysearches/delete', 'User\UserController@deleteUserSavedSearches'); 
-Route::any('myprofile/mydatasets/newdataset', 'User\UserController@newDatasetPage'); 
+Route::any('myprofile/mysearches', 'User\UserController@userSavedSearches')->name('mySearches');
+Route::any('myprofile/mysearches/delete', 'User\UserController@deleteUserSavedSearches');
+Route::any('myprofile/mydatasets/newdataset', 'User\UserController@newDatasetPage');
 Route::any('myprofile/mydatasets/newdataset/create', 'User\UserController@createNewDataset');
 Route::any('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
-Route::any('myprofile/mydatasets/{id}/collaborators', 'User\UserController@userEditCollaborators'); 
-Route::any('myprofile/mydatasets/{id}/collaborators/destroysharelink', 'User\UserController@userDestroyShareLink'); 
+Route::any('myprofile/mydatasets/{id}/collaborators', 'User\UserController@userEditCollaborators');
+Route::any('myprofile/mydatasets/{id}/collaborators/destroysharelink', 'User\UserController@userDestroyShareLink');
 Route::post('bulkadddataitem', 'User\UserController@bulkAddDataItem'); //not ajax as it is too much data
-Route::any('myprofile/mydatasets/{id}/edit', 'User\UserController@userEditDataset'); 
+Route::any('myprofile/mydatasets/{id}/edit', 'User\UserController@userEditDataset');
 Route::any('myprofile/mydatasets/join/{link?}', 'AjaxController@ajaxjoindataset'); //Join a dataset by link
-Route::any('myprofile/edit', 'User\UserController@editUserPage')->name('editUserPage'); 
-Route::any('myprofile/edit/info', 'User\UserController@editUserInfo')->name('editUserInfo'); 
-Route::any('myprofile/edit/password', 'User\UserController@editUserPassword')->name('editUserPassword'); 
+Route::any('myprofile/edit', 'User\UserController@editUserPage')->name('editUserPage');
+Route::any('myprofile/edit/info', 'User\UserController@editUserInfo')->name('editUserInfo');
+Route::any('myprofile/edit/password', 'User\UserController@editUserPassword')->name('editUserPassword');
 Route::any('myprofile/edit/email', 'User\UserController@editUserEmail')->name('editUserEmail');
 
-Route::any('myprofile/mydatasets/{id}/kml',  ['middleware' => ['auth','verified'], 'uses' =>'DatasetController@viewPrivateKML'])->name('viewdatasetkml');
-Route::any('myprofile/mydatasets/{id}/kml/download',  ['middleware' => ['auth','verified'], 'uses' =>'DatasetController@downloadPrivateKML'])->name('downloaddatasetkml');
-Route::any('myprofile/mydatasets/{id}/json',  ['middleware' => ['auth','verified'], 'uses' =>'DatasetController@viewPrivateJSON'])->name('viewdatasetjson');
-Route::any('myprofile/mydatasets/{id}/json/download',  ['middleware' => ['auth','verified'], 'uses' =>'DatasetController@downloadPrivateJSON'])->name('downloaddatasetjson');
-Route::any('myprofile/mydatasets/{id}/csv',  ['middleware' => ['auth','verified'], 'uses' =>'DatasetController@viewPrivateCSV'])->name('viewdatasetcsv');
-Route::any('myprofile/mydatasets/{id}/csv/download',  ['middleware' => ['auth','verified'], 'uses' =>'DatasetController@downloadPrivateCSV'])->name('downloaddatasetcsv');
+Route::any('myprofile/mydatasets/{id}/kml', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@viewPrivateKML'])->name('viewdatasetkml');
+Route::any('myprofile/mydatasets/{id}/kml/download', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@downloadPrivateKML'])->name('downloaddatasetkml');
+Route::any('myprofile/mydatasets/{id}/json', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@viewPrivateJSON'])->name('viewdatasetjson');
+Route::any('myprofile/mydatasets/{id}/json/download', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@downloadPrivateJSON'])->name('downloaddatasetjson');
+Route::any('myprofile/mydatasets/{id}/csv', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@viewPrivateCSV'])->name('viewdatasetcsv');
+Route::any('myprofile/mydatasets/{id}/csv/download', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@downloadPrivateCSV'])->name('downloaddatasetcsv');
 
 /**
  * User collection CRUD pages
@@ -107,7 +109,7 @@ Route::any('places/download/', 'GazetteerController@getDownload');
  */
 Route::post('ajaxbbox', 'AjaxController@ajaxbbox'); //Does not need to be logged in
 
-Route::middleware(['auth','verified'])->group(function () { //must be logged in for these
+Route::middleware(['auth', 'verified'])->group(function () { //must be logged in for these
     Route::post('ajaxsavesearch', 'AjaxController@ajaxsavesearch');
     Route::post('ajaxsubsearch', 'AjaxController@ajaxsubsearch');
     Route::post('ajaxdeletesearch', 'AjaxController@ajaxdeletesearch');

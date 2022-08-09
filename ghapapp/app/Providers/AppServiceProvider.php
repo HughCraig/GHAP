@@ -15,9 +15,9 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         // Previously was EMPTY
-        $this->app->bind('path.public', function() {
-            return base_path().'/public/ghap';
-          });
+        $this->app->bind('path.public', function () {
+            return base_path() . '/public/ghap';
+        });
     }
 
     /**
@@ -27,14 +27,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        Blade::if('admin', function () {            
-            if (auth()->user() && auth()->user()->hasAnyRole(['ADMIN','SUPER_ADMIN'])) {
+        Blade::if ('admin', function () {
+            if (auth()->user() && auth()->user()->hasAnyRole(['ADMIN', 'SUPER_ADMIN'])) {
                 return 1;
             }
             return 0;
         });
 
-        Blade::if('superadmin', function () {            
+        Blade::if ('superadmin', function () {
             if (auth()->user() && auth()->user()->hasRole('SUPER_ADMIN')) {
                 return 1;
             }

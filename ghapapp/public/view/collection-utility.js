@@ -98,7 +98,7 @@ class CollectionUtility {
      *   The interval unit.
      */
     static getTimelineIntervalUnit(start, end) {
-        const fulltimespan = Math.abs(start.getTime()/1000 - end.getTime()/1000);
+        const fulltimespan = Math.abs(start.getTime() / 1000 - end.getTime() / 1000);
         let tunit = "minutes";
         tunit = (fulltimespan > 864000) ? "days" : tunit; //  than 10 days
         tunit = (fulltimespan > 31540000) ? "months" : tunit; //  than a year

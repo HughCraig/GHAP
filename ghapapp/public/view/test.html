@@ -1,54 +1,52 @@
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no"/>
     <title>KMLLayer | Sample | ArcGIS API for JavaScript 4.18</title>
 
     <style>
-      html,
-      body,
-      #viewDiv {
-        padding: 0;
-        margin: 0;
-        height: 100%;
-        width: 100%;
-      }
+        html,
+        body,
+        #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
     </style>
 
-    <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/themes/light/main.css" />
+    <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/themes/light/main.css"/>
     <script src="https://js.arcgis.com/4.18/"></script>
 
     <script>
-      require(["esri/Map", "esri/views/MapView", "esri/layers/KMLLayer", "esri/widgets/ScaleBar"], function(
-        Map,
-        MapView,
-        KMLLayer,
-        ScaleBar
-      ) {
-        var layer = new KMLLayer({
-          // major earthquakes for latest 30 days from USGS
-          url: "https://tlcmap.org/ghap/publicdatasets/87/kml"
-        });
+        require(["esri/Map", "esri/views/MapView", "esri/layers/KMLLayer", "esri/widgets/ScaleBar"], function (Map,
+                                                                                                               MapView,
+                                                                                                               KMLLayer,
+                                                                                                               ScaleBar) {
+            var layer = new KMLLayer({
+                // major earthquakes for latest 30 days from USGS
+                url: "https://tlcmap.org/ghap/publicdatasets/87/kml"
+            });
 
-        var map = new Map({
-          basemap: "dark-gray-vector",
-          layers: [layer]
-        });
+            var map = new Map({
+                basemap: "dark-gray-vector",
+                layers: [layer]
+            });
 
-        var view = new MapView({
-          container: "viewDiv",
-          map: map
-        });
+            var view = new MapView({
+                container: "viewDiv",
+                map: map
+            });
 
-        var scalebar = new ScaleBar({
-          view: view
+            var scalebar = new ScaleBar({
+                view: view
+            });
+            view.ui.add(scalebar, "bottom-left");
         });
-        view.ui.add(scalebar, "bottom-left");
-      });
     </script>
-  </head>
+</head>
 
-  <body>
-    <div id="viewDiv"></div>
-  </body>
+<body>
+<div id="viewDiv"></div>
+</body>
 </html>

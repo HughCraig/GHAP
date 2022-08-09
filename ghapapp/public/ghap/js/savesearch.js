@@ -7,7 +7,7 @@ $.ajaxSetup({
 });
 
 /* Use AJAX to get values from form */
-$('#save_search_button').click(function() { 
+$('#save_search_button').click(function () {
     $.ajax({
         type: 'POST',
         url: ajaxsavesearch,
@@ -16,18 +16,18 @@ $('#save_search_button').click(function() {
             searchquery: $("#save_search_query").val(),
             count: $("#save_search_count").val()
         },
-        success: function(data) {
+        success: function (data) {
             $("#saveSearchModalButton").hide();
             $("#save_search_name").hide();
             $("#save_search_message").show();
         },
-        error: function(xhr, textStatus, errorThrown) {
+        error: function (xhr, textStatus, errorThrown) {
             alert(xhr.responseText); //error message with error info
         }
-    }); 
- });
+    });
+});
 
- function copyLink(id, button, param) {
+function copyLink(id, button, param) {
     if (param === undefined) param = 'anps_id'
     var body = document.getElementsByTagName('body')[0];
     var text = location.protocol + '//' + location.host + '/ghap/search?' + param + "=" + id; //ideally should update with the page???
@@ -39,10 +39,10 @@ $('#save_search_button').click(function() {
     document.execCommand('copy');
     body.removeChild(tempInput);
 
-    var oldcolor =  $(button).addClass("green-background");
-    setTimeout(function(){
+    var oldcolor = $(button).addClass("green-background");
+    setTimeout(function () {
         $(button).removeClass("green-background", 1000);
-    },800);
+    }, 800);
 
     //Show some kind of success message
     // $("#notification_box").addClass("notification-success");
@@ -52,15 +52,15 @@ $('#save_search_button').click(function() {
     // },4000);
 
     document.execCommand("copy");
- }
+}
 
- function backLink(id, param) {
+function backLink(id, param) {
     if (param === undefined) param = 'anps_id';
     return location.protocol + '//' + location.host + location.pathname + "?" + param + "=" + id;
- }
+}
 
- function temporalEarthLink(id, param) {
+function temporalEarthLink(id, param) {
     if (param === undefined) param = 'anps_id';
     link = encodeURIComponent(link + "&format=kml");
-    window.open("http\:\/\/tlcmap.org/te/?file="+link);
- }
+    window.open("http\:\/\/tlcmap.org/te/?file=" + link);
+}

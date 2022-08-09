@@ -1,25 +1,28 @@
 html,
 body,
 #viewDiv {
-        padding: 0;
-        margin: 0;
-        height: 100%;
-        width: 100%;
-      }
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+
 td {
-        vertical-align: top;
-      }
+    vertical-align: top;
+}
 
 #infoDiv {
-        padding: 20px;
-        z-index: 1;
-        background-color: white;
-        opacity: 0.9;
-        font-family: Arial, Helvetica, sans-serif;
-        min-width: 200px;
-      }
+    padding: 20px;
+    z-index: 1;
+    background-color: white;
+    opacity: 0.9;
+    font-family: Arial, Helvetica, sans-serif;
+    min-width: 200px;
+}
+
 img.mdicon {
-    margin:1em; display: block;
+    margin: 1em;
+    display: block;
     margin-left: auto;
     margin-right: auto;
     width: 50px;

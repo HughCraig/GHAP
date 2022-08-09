@@ -4,7 +4,7 @@
     let leg = 0; // just to keep track fo where we are in the journey
     let flyview;
 
-    const fly = function() {
+    const fly = function () {
         // don't keep flying if you're at the end... or maybe make it loop.. or go back
         if (leg > flyfeatures.length) {
             return;
@@ -14,7 +14,7 @@
 
         flyview.goTo(
             {
-                center: [lng,lat],
+                center: [lng, lat],
                 zoom: 13,
                 tilt: 75
             },
@@ -27,7 +27,7 @@
             fly();
         }).catch((error) => {
             console.error(error);
-        }).catch(function(error) {
+        }).catch(function (error) {
             if (error.name != "AbortError") {
                 console.error(error);
             }
@@ -121,7 +121,7 @@
             // Create the map view instance.
             const view = new MapView({
                 container: "viewDiv",
-                center: [131.034742,-25.345113],
+                center: [131.034742, -25.345113],
                 zoom: 4,
                 map: map
             });
@@ -132,7 +132,7 @@
             for (let i = 0; i < layers.length; i++) {
                 layerQueryPromises.push(layers[i].queryExtent());
                 let featureQuery = layers[i].createQuery();
-                featureQuery.outFields = [ "name", "id", "latitude", "longitude" ];
+                featureQuery.outFields = ["name", "id", "latitude", "longitude"];
                 featureQueryPromises.push(layers[i].queryFeatures(featureQuery));
             }
 
@@ -195,7 +195,7 @@
             // Action handler of going to full extent.
             layerList.on("trigger-action", function (event) {
                 if (event.action.id === 'full-extent') {
-                    event.item.layer.queryExtent().then(function (result){
+                    event.item.layer.queryExtent().then(function (result) {
                         view.goTo(result.extent);
                     });
                 }

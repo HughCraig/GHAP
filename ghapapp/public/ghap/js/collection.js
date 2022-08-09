@@ -19,12 +19,12 @@ $(document).ready(function () {
                 data: {
                     id: id
                 },
-                success: function(result) {
+                success: function (result) {
                     $(row_id).remove();
                     //jQuery datatable updating
-                    $('#collectionsTable').DataTable().row( row_id ).remove().draw();
+                    $('#collectionsTable').DataTable().row(row_id).remove().draw();
                 },
-                error: function(xhr, textStatus, errorThrown) {
+                error: function (xhr, textStatus, errorThrown) {
                     alert(xhr.responseText); //error message with error info
                 }
             });
@@ -44,12 +44,12 @@ $(document).ready(function () {
                     id: collectionID,
                     datasetID: datasetID
                 },
-                success: function(result) {
+                success: function (result) {
                     $(row_id).remove();
                     //jQuery datatable updating
-                    $('#collectionsTable').DataTable().row( row_id ).remove().draw();
+                    $('#collectionsTable').DataTable().row(row_id).remove().draw();
                 },
-                error: function(xhr, textStatus, errorThrown) {
+                error: function (xhr, textStatus, errorThrown) {
                     alert(xhr.responseText); //error message with error info
                 }
             });

@@ -129,7 +129,7 @@ class CollectionController extends Controller
         $description = $request->description;
 
         $isValid = true;
-        if (!$collectionName || !$description ) {
+        if (!$collectionName || !$description) {
             $isValid = false;
         }
 
@@ -158,8 +158,8 @@ class CollectionController extends Controller
         if (!empty($request->tags)) {
             $tags = explode(",,;", $request->tags);
             //for each tag in the subjects array(?), get or create a new subjectkeyword
-            foreach($tags as $tag) {
-                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower( $tag )]);
+            foreach ($tags as $tag) {
+                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower($tag)]);
                 array_push($keywords, $subjectkeyword);
             }
         }
@@ -188,7 +188,7 @@ class CollectionController extends Controller
             'warning' => $request->warning,
         ]);
 
-        foreach($keywords as $keyword) {
+        foreach ($keywords as $keyword) {
             $collection->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
         }
 
@@ -228,7 +228,7 @@ class CollectionController extends Controller
         $description = $request->description;
 
         $isValid = true;
-        if (!$collectionName || !$description ) {
+        if (!$collectionName || !$description) {
             $isValid = false;
         }
 
@@ -263,8 +263,8 @@ class CollectionController extends Controller
         if (!empty($request->tags)) {
             $tags = explode(",,;", $request->tags);
             //for each tag in the subjects array(?), get or create a new subjectkeyword
-            foreach($tags as $tag) {
-                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower( $tag )]);
+            foreach ($tags as $tag) {
+                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower($tag)]);
                 array_push($keywords, $subjectkeyword);
             }
         }
@@ -296,7 +296,7 @@ class CollectionController extends Controller
 
         // Re-attach all keywords.
         $collection->subjectKeywords()->detach();
-        foreach($keywords as $keyword) {
+        foreach ($keywords as $keyword) {
             $collection->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
         }
 

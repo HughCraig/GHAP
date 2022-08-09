@@ -15,8 +15,9 @@ class SubjectKeyword extends Model
         'id', 'keyword'
     ];
 
-    public function datasets() {
-        return $this->belongsToMany(DataSet::class, 'dataset_subject_keyword')->withPivot('dataset_id','subject_keyword_id');
+    public function datasets()
+    {
+        return $this->belongsToMany(DataSet::class, 'dataset_subject_keyword')->withPivot('dataset_id', 'subject_keyword_id');
     }
 
     /**

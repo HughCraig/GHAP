@@ -1,297 +1,300 @@
-
 <html>
-    <head>
-      <meta charset="utf-8" />
-      <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no"/>
-      <title>Colonial Frontier Massacres, Australia, 1780 to 1930, v3</title>
-  
-      <style>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no"/>
+    <title>Colonial Frontier Massacres, Australia, 1780 to 1930, v3</title>
+
+    <style>
         html,
         body,
         #viewDiv {
-          padding: 0;
-          margin: 0;
-          height: 100%;
-          width: 100%;
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
         }
-  /*
-        #timeSlider {
-          width: 400px; 
-        }
-  */
-        #infoDiv {
-          height: 353px;
-          padding: 10px;
-          width: 280px;
-        }
-  
-        #infoDiv span {
-          color: #F9C653;
-          font-size: 12pt;
-          font-weight: bolder;
-        }
-        
-              #timeSlider {
-          position: absolute;
-          left: 5%;
-          right: 5%;
-          bottom: 20px;
-        }
-        
-      </style>
-      
-      <script>
-      var asdf = new Date(1892,04,12);
-      //alert("date " + asdf.getTime());
-      </script>
-  
-      <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/themes/light/main.css" />
-      <script src="https://js.arcgis.com/4.18/"></script>
-      <script>
-        require([
-          "esri/Map",
-          "esri/views/MapView",
-          "esri/layers/GeoJSONLayer",
-          "esri/widgets/TimeSlider",
-          "esri/config",
-          "esri/widgets/Expand",
-          "esri/widgets/Legend"
-        ], function(Map, MapView, GeoJSONLayer, TimeSlider, esriConfig, Expand, Legend) {
-          let layerView;
-  
-          var urltoload = "http://localhost:8090/view/cflayerdate.json";
-  
 
-          esriConfig.request.interceptors.push({
-            urls: urltoload,
-            after: function(response) {
-            //if (response.url?.valueOf().toLowerCase().includes("earthquakes")) {
-                const geojson = response.data;
-                geojson.features.forEach((feature) => {
-                    const unixSDate = Date.parse(feature.properties.DateStart);
-                    const unixEDate = Date.parse(feature.properties.DateEnd);
-                    feature.properties.unixSDate = unixSDate;
-                    feature.properties.unixDDate = unixEDate;
-                });
-                //}
-            }
+        /*
+              #timeSlider {
+                width: 400px;
+              }
+        */
+        #infoDiv {
+            height: 353px;
+            padding: 10px;
+            width: 280px;
+        }
+
+        #infoDiv span {
+            color: #F9C653;
+            font-size: 12pt;
+            font-weight: bolder;
+        }
+
+        #timeSlider {
+            position: absolute;
+            left: 5%;
+            right: 5%;
+            bottom: 20px;
+        }
+
+    </style>
+
+    <script>
+        var asdf = new Date(1892, 04, 12);
+        //alert("date " + asdf.getTime());
+    </script>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/themes/light/main.css"/>
+    <script src="https://js.arcgis.com/4.18/"></script>
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/GeoJSONLayer",
+            "esri/widgets/TimeSlider",
+            "esri/config",
+            "esri/widgets/Expand",
+            "esri/widgets/Legend"
+        ], function (Map, MapView, GeoJSONLayer, TimeSlider, esriConfig, Expand, Legend) {
+            let layerView;
+
+            var urltoload = "http://localhost:8090/view/cflayerdate.json";
+
+
+            esriConfig.request.interceptors.push({
+                urls: urltoload,
+                after: function (response) {
+                    //if (response.url?.valueOf().toLowerCase().includes("earthquakes")) {
+                    const geojson = response.data;
+                    geojson.features.forEach((feature) => {
+                        const unixSDate = Date.parse(feature.properties.DateStart);
+                        const unixEDate = Date.parse(feature.properties.DateEnd);
+                        feature.properties.unixSDate = unixSDate;
+                        feature.properties.unixDDate = unixEDate;
+                    });
+                    //}
+                }
             });
 
 
-  const renderer = {
-          type: "unique-value",  // autocasts as new UniqueValueRenderer()
-            field: "Victim",
-            defaultSymbol: {
-                type: "simple-marker",
-                color: "#00ff00",
-                style: "diamond",
-                size: 8,
-                outline: {
-                  color: "black"
-                }
-              },
-            uniqueValueInfos: [{
-              // All features with value of "North" will be blue
-              value: "Aboriginal People",
-              symbol: {
-                type: "simple-marker",  // autocasts as new SimpleFillSymbol()
-                color: "#ffff04",
-                style: "circle",
-                size: 8,
-                outline: {
-                  color: "black"
-                }
-              }
-            }, {
-              // All features with value of "East" will be green
-              value: "Colonisers",
-              symbol: {
-                type: "simple-marker",  // autocasts as new SimpleFillSymbol()
-                color: "#00ffff",
-                style: "square",
-                size: 8,
-                outline: {
-                  color: "black"
-                }
-              }
-            }]
-        };
-  
-  
-          const layer = new GeoJSONLayer({
-            url: urltoload,
-            copyright: "Colonial Frontier Massacres Team",
-            title: "Colonial Frontier Massacres in Australia",
-            fields: [
-                {
-                "name": "unixSDate",
-                "alias": "unixSDate",
-                "type": "date"
-                },{
-                "name": "unixEDate",
-                "alias": "unixEDate",
-                "type": "date"
-                }
-            ],
-            // set the CSVLayer's timeInfo based on the date field
-            timeInfo: {
-              startField: "unixSDate", // name of the date field
-              endField: "unixEDate",
-              interval: {
-                // set time interval to one day
-                unit: "years",
-                value: 1
-              }
-            },
-            popupTemplate: {
-              title: "<strong>{Site_Name}</strong> (<a href='https://c21ch.newcastle.edu.au/colonialmassacres/detail.php?r={idcfm}'>details...</a>)",
-              content: [
-                {
-                  type: "fields",
-                  fieldInfos: [
-                    {
-                      fieldName: "Site_Name",
-                      label: "Site Name",
-                      visible: true
-                    },
-                    {
-                      fieldName: "ByVictim",
-                      label: "Victims",
-                      visible: true
-                    },
-                    {
-                      fieldName: "ByAttacker",
-                      label: "Attackers",
-                      visible: true
-                    },
-                    {
-                      fieldName: "ByDate",
-                      label: "Date range",
-                      visible: true
-                    },
-                    {
-                      fieldName: "Language_Group",
-                      label: "Language Group",
-                      visible: true
+            const renderer = {
+                type: "unique-value",  // autocasts as new UniqueValueRenderer()
+                field: "Victim",
+                defaultSymbol: {
+                    type: "simple-marker",
+                    color: "#00ff00",
+                    style: "diamond",
+                    size: 8,
+                    outline: {
+                        color: "black"
                     }
-                  ]
-                }
-              ]
-            },
-            renderer: renderer
-          });
-  
-          const map = new Map({
-            basemap: "hybrid",
-            layers: [layer]
-          });
-  
-          var view = new MapView({
-            map: map,
-            container: "viewDiv",
-            zoom: 4,
-            center: [134.989574,-26.014209]
-          });
-  
-          // create a new time slider widget
-          // set other properties when the layer view is loaded
-          // by default timeSlider.mode is "time-window" - shows
-          // data falls within time range
-          const timeSlider = new TimeSlider({
-            container: "timeSlider",
-            playRate: 350,
-            stops: {
-              interval: {
-                value: 1,
-                unit: "years"
-              }
-            }
-          });
-      //	timeSlider.layout = "wide";
-          view.ui.add(timeSlider);
-  
-          // wait till the layer view is loaded
-          view.whenLayerView(layer).then(function(lv) {
-            layerView = lv;
-  
-            // start time of the time slider - 5/25/2019
-            const start = new Date(1779,12,31);
-            const end = new Date(1929,12,31);
-            // set time slider's full extent to
-            // 5/25/5019 - until end date of layer's fullTimeExtent
-            timeSlider.fullTimeExtent = {
-              start: start,
-              end: end
+                },
+                uniqueValueInfos: [{
+                    // All features with value of "North" will be blue
+                    value: "Aboriginal People",
+                    symbol: {
+                        type: "simple-marker",  // autocasts as new SimpleFillSymbol()
+                        color: "#ffff04",
+                        style: "circle",
+                        size: 8,
+                        outline: {
+                            color: "black"
+                        }
+                    }
+                }, {
+                    // All features with value of "East" will be green
+                    value: "Colonisers",
+                    symbol: {
+                        type: "simple-marker",  // autocasts as new SimpleFillSymbol()
+                        color: "#00ffff",
+                        style: "square",
+                        size: 8,
+                        outline: {
+                            color: "black"
+                        }
+                    }
+                }]
             };
-  
-            // Values property is set so that timeslider
-            // widget show the first day. We are setting
-            // the thumbs positions.
-            timeSlider.values = [start, end];
-          });
-  
-          // watch for time slider timeExtent change
-          timeSlider.watch("timeExtent", function() {
-            // only show ones that happened up until the end of
-            // timeSlider's current time extent.
-            layer.definitionExpression =
-              "unixEDate <= " + timeSlider.timeExtent.end.getTime();
-  
-            // now gray out ones passed by the slider
-            layerView.effect = {
-              filter: {
-                timeExtent: timeSlider.timeExtent,
-                geometry: view.extent
-              },
-              excludedEffect: "grayscale(20%) opacity(23%)"
-            };
-  
-  
-              
-          });
-  
-          // add a legend
-          const legendExpand = new Expand({
-            collapsedIconClass: "esri-icon-collapse",
-            expandIconClass: "esri-icon-expand",
-            expandTooltip: "Legend",
-            view: view,
-            content: new Legend({
-              view: view
-            }),
-            expanded: false
-          });
-          
-          
-          view.ui.add(legendExpand, "top-left");
-  
-          const statsDiv = document.getElementById("statsDiv");
-          const infoDiv = document.getElementById("infoDiv");
-          const infoDivExpand = new Expand({
-            collapsedIconClass: "esri-icon-collapse",
-            expandIconClass: "esri-icon-expand",
-            expandTooltip: "Expand info",
-            view: view,
-            content: infoDiv,
-            expanded: true
-          });
-          view.ui.add(infoDivExpand, "top-right");
-        });
-      </script>
 
-  
-    </head>
-  
-    <body>
-      <div id="viewDiv"></div>
-      <div id="timeSlider"></div>
-      <div id="infoDiv" class="esri-widget">
-        <h3>Colonial Frontier Massacres, Australia, 1780 to 1930</h3>
-        <p>Please read the <a href="https://c21ch.newcastle.edu.au/colonialmassacres/introduction.php">Introduction</a> and more information about this map.</p>
-      <p>NB: Points are imprecise to approx. 250m. Sources rarely provide an exact location and some incidents took place over a broad area.</p>
-       <p>Please be advised that the <i>Colonial Frontier Massacre Map</i> undergoes regular revision. Massacre Site information may modified, removed or added to as part of revision. See <a href="./changes.php">Updates and Changes</a>.</p>
-        <div id="statsDiv" class="esri-widget"></div>
-      </div>
-    </body>
-  </html>
+
+            const layer = new GeoJSONLayer({
+                url: urltoload,
+                copyright: "Colonial Frontier Massacres Team",
+                title: "Colonial Frontier Massacres in Australia",
+                fields: [
+                    {
+                        "name": "unixSDate",
+                        "alias": "unixSDate",
+                        "type": "date"
+                    }, {
+                        "name": "unixEDate",
+                        "alias": "unixEDate",
+                        "type": "date"
+                    }
+                ],
+                // set the CSVLayer's timeInfo based on the date field
+                timeInfo: {
+                    startField: "unixSDate", // name of the date field
+                    endField: "unixEDate",
+                    interval: {
+                        // set time interval to one day
+                        unit: "years",
+                        value: 1
+                    }
+                },
+                popupTemplate: {
+                    title: "<strong>{Site_Name}</strong> (<a href='https://c21ch.newcastle.edu.au/colonialmassacres/detail.php?r={idcfm}'>details...</a>)",
+                    content: [
+                        {
+                            type: "fields",
+                            fieldInfos: [
+                                {
+                                    fieldName: "Site_Name",
+                                    label: "Site Name",
+                                    visible: true
+                                },
+                                {
+                                    fieldName: "ByVictim",
+                                    label: "Victims",
+                                    visible: true
+                                },
+                                {
+                                    fieldName: "ByAttacker",
+                                    label: "Attackers",
+                                    visible: true
+                                },
+                                {
+                                    fieldName: "ByDate",
+                                    label: "Date range",
+                                    visible: true
+                                },
+                                {
+                                    fieldName: "Language_Group",
+                                    label: "Language Group",
+                                    visible: true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                renderer: renderer
+            });
+
+            const map = new Map({
+                basemap: "hybrid",
+                layers: [layer]
+            });
+
+            var view = new MapView({
+                map: map,
+                container: "viewDiv",
+                zoom: 4,
+                center: [134.989574, -26.014209]
+            });
+
+            // create a new time slider widget
+            // set other properties when the layer view is loaded
+            // by default timeSlider.mode is "time-window" - shows
+            // data falls within time range
+            const timeSlider = new TimeSlider({
+                container: "timeSlider",
+                playRate: 350,
+                stops: {
+                    interval: {
+                        value: 1,
+                        unit: "years"
+                    }
+                }
+            });
+            //	timeSlider.layout = "wide";
+            view.ui.add(timeSlider);
+
+            // wait till the layer view is loaded
+            view.whenLayerView(layer).then(function (lv) {
+                layerView = lv;
+
+                // start time of the time slider - 5/25/2019
+                const start = new Date(1779, 12, 31);
+                const end = new Date(1929, 12, 31);
+                // set time slider's full extent to
+                // 5/25/5019 - until end date of layer's fullTimeExtent
+                timeSlider.fullTimeExtent = {
+                    start: start,
+                    end: end
+                };
+
+                // Values property is set so that timeslider
+                // widget show the first day. We are setting
+                // the thumbs positions.
+                timeSlider.values = [start, end];
+            });
+
+            // watch for time slider timeExtent change
+            timeSlider.watch("timeExtent", function () {
+                // only show ones that happened up until the end of
+                // timeSlider's current time extent.
+                layer.definitionExpression =
+                    "unixEDate <= " + timeSlider.timeExtent.end.getTime();
+
+                // now gray out ones passed by the slider
+                layerView.effect = {
+                    filter: {
+                        timeExtent: timeSlider.timeExtent,
+                        geometry: view.extent
+                    },
+                    excludedEffect: "grayscale(20%) opacity(23%)"
+                };
+
+
+            });
+
+            // add a legend
+            const legendExpand = new Expand({
+                collapsedIconClass: "esri-icon-collapse",
+                expandIconClass: "esri-icon-expand",
+                expandTooltip: "Legend",
+                view: view,
+                content: new Legend({
+                    view: view
+                }),
+                expanded: false
+            });
+
+
+            view.ui.add(legendExpand, "top-left");
+
+            const statsDiv = document.getElementById("statsDiv");
+            const infoDiv = document.getElementById("infoDiv");
+            const infoDivExpand = new Expand({
+                collapsedIconClass: "esri-icon-collapse",
+                expandIconClass: "esri-icon-expand",
+                expandTooltip: "Expand info",
+                view: view,
+                content: infoDiv,
+                expanded: true
+            });
+            view.ui.add(infoDivExpand, "top-right");
+        });
+    </script>
+
+
+</head>
+
+<body>
+<div id="viewDiv"></div>
+<div id="timeSlider"></div>
+<div id="infoDiv" class="esri-widget">
+    <h3>Colonial Frontier Massacres, Australia, 1780 to 1930</h3>
+    <p>Please read the <a href="https://c21ch.newcastle.edu.au/colonialmassacres/introduction.php">Introduction</a> and
+        more information about this map.</p>
+    <p>NB: Points are imprecise to approx. 250m. Sources rarely provide an exact location and some incidents took place
+        over a broad area.</p>
+    <p>Please be advised that the <i>Colonial Frontier Massacre Map</i> undergoes regular revision. Massacre Site
+        information may modified, removed or added to as part of revision. See <a href="./changes.php">Updates and
+            Changes</a>.</p>
+    <div id="statsDiv" class="esri-widget"></div>
+</div>
+</body>
+</html>
   

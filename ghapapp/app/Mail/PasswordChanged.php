@@ -19,7 +19,7 @@ class PasswordChanged extends Mailable
      *
      * @return void
      */
-    public function __construct(string $name) 
+    public function __construct(string $name)
     {
         $this->name = $name;
         $app_url = env('APP_URL');

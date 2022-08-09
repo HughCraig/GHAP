@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(document).ready(function () {
 
     /**
      * Sanitize for html output.
@@ -6,7 +6,7 @@ $(document).ready(function() {
      * @param {string} value
      *   Raw value.
      */
-    const sanitize = function(value) {
+    const sanitize = function (value) {
         const map = {
             '&': '&amp;',
             '<': '&lt;',
@@ -33,7 +33,7 @@ $(document).ready(function() {
         $('#datasetSelect').prop("disabled", true);
         $.ajax({
             url: `${uiServiceRoot}/${scope}`,
-            success: function(results) {
+            success: function (results) {
                 if (Array.isArray(results) && results.length > 0) {
                     // Add options.
                     for (let i = 0; i < results.length; i++) {
@@ -43,7 +43,7 @@ $(document).ready(function() {
                 }
                 $('#datasetSelect').prop("disabled", false);
             },
-            error: function(xhr, textStatus, errorThrown) {
+            error: function (xhr, textStatus, errorThrown) {
                 alert(xhr.responseText);
             }
         });
@@ -95,13 +95,13 @@ $(document).ready(function() {
             $('#datasetSelect').prop("disabled", true);
             $.ajax({
                 url: `${uiServiceRoot}/${e.params.data.id}/info`,
-                success: function(data) {
+                success: function (data) {
                     if (data) {
                         refreshDatasetInfoContent(data);
                     }
                     $('#datasetSelect').prop("disabled", false);
                 },
-                error: function(xhr, textStatus, errorThrown) {
+                error: function (xhr, textStatus, errorThrown) {
                     alert(xhr.responseText);
                 }
             });
@@ -128,12 +128,12 @@ $(document).ready(function() {
                     id: collectionID,
                     datasetID: datasetID
                 },
-                success: function(result) {
+                success: function (result) {
                     // Reload the page once the dataset is added. Ideally only the table could be refreshed as the
                     // response contains the required data to add the new row.
                     location.reload();
                 },
-                error: function(xhr, textStatus, errorThrown) {
+                error: function (xhr, textStatus, errorThrown) {
                     alert(xhr.responseText); //error message with error info
                 }
             });

@@ -85,7 +85,7 @@
             // Create the map view instance.
             const view = new MapView({
                 container: "viewDiv",
-                center: [131.034742,-25.345113],
+                center: [131.034742, -25.345113],
                 zoom: 4,
                 map: map
             });
@@ -141,7 +141,7 @@
             // Action handler of going to full extent.
             layerList.on("trigger-action", function (event) {
                 if (event.action.id === 'full-extent') {
-                    event.item.layer.queryExtent().then(function (result){
+                    event.item.layer.queryExtent().then(function (result) {
                         view.goTo(result.extent);
                     });
                 }

@@ -24,10 +24,11 @@ use Illuminate\Support\Collection;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class SearchHelper 
+class SearchHelper
 {
-    public static function sortBySimilarity($fuzzyname, $string_collection) {
-        
+    public static function sortBySimilarity($fuzzyname, $string_collection)
+    {
+
     }
 
     public static function paginate($items, $perPage, $baseUrl = null, $page = null, $options = [])
@@ -44,6 +45,6 @@ class SearchHelper
             $lap->setPath($baseUrl);
         }
         return $lap;
-    
+
     }
 }
