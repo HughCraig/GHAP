@@ -47,33 +47,33 @@ Route::get('publiccollections/{id}', 'CollectionController@viewPublicCollection'
 Route::get('publiccollections/{id}/json', 'CollectionController@viewPublicJson');
 
 /**
- * User Pages
- * The User Controller passes through 'auth' and 'verified' middleware for all functions
- * We perform this manually for DatasetController functions
+ * User Pages.
  */
-Route::any('myprofile', 'User\UserController@userProfile')->name('myProfile');
-Route::any('myprofile/mydatasets', 'User\UserController@userDatasets')->name('myDatasets'); //Only let users view own dataset
-Route::any('myprofile/mysearches', 'User\UserController@userSavedSearches')->name('mySearches');
-Route::any('myprofile/mysearches/delete', 'User\UserController@deleteUserSavedSearches');
-Route::any('myprofile/mydatasets/newdataset', 'User\UserController@newDatasetPage');
-Route::any('myprofile/mydatasets/newdataset/create', 'User\UserController@createNewDataset');
-Route::any('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
-Route::any('myprofile/mydatasets/{id}/collaborators', 'User\UserController@userEditCollaborators');
-Route::any('myprofile/mydatasets/{id}/collaborators/destroysharelink', 'User\UserController@userDestroyShareLink');
-Route::post('bulkadddataitem', 'User\UserController@bulkAddDataItem'); //not ajax as it is too much data
-Route::any('myprofile/mydatasets/{id}/edit', 'User\UserController@userEditDataset');
-Route::any('myprofile/mydatasets/join/{link?}', 'AjaxController@ajaxjoindataset'); //Join a dataset by link
-Route::any('myprofile/edit', 'User\UserController@editUserPage')->name('editUserPage');
-Route::any('myprofile/edit/info', 'User\UserController@editUserInfo')->name('editUserInfo');
-Route::any('myprofile/edit/password', 'User\UserController@editUserPassword')->name('editUserPassword');
-Route::any('myprofile/edit/email', 'User\UserController@editUserEmail')->name('editUserEmail');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::any('myprofile', 'User\UserController@userProfile')->name('myProfile');
+    Route::any('myprofile/mydatasets', 'User\UserController@userDatasets')->name('myDatasets'); //Only let users view own dataset
+    Route::any('myprofile/mysearches', 'User\UserController@userSavedSearches')->name('mySearches');
+    Route::any('myprofile/mysearches/delete', 'User\UserController@deleteUserSavedSearches');
+    Route::any('myprofile/mydatasets/newdataset', 'User\UserController@newDatasetPage');
+    Route::any('myprofile/mydatasets/newdataset/create', 'User\UserController@createNewDataset');
+    Route::any('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
+    Route::any('myprofile/mydatasets/{id}/collaborators', 'User\UserController@userEditCollaborators');
+    Route::any('myprofile/mydatasets/{id}/collaborators/destroysharelink', 'User\UserController@userDestroyShareLink');
+    Route::post('bulkadddataitem', 'User\UserController@bulkAddDataItem'); //not ajax as it is too much data
+    Route::any('myprofile/mydatasets/{id}/edit', 'User\UserController@userEditDataset');
+    Route::any('myprofile/edit', 'User\UserController@editUserPage')->name('editUserPage');
+    Route::any('myprofile/edit/info', 'User\UserController@editUserInfo')->name('editUserInfo');
+    Route::any('myprofile/edit/password', 'User\UserController@editUserPassword')->name('editUserPassword');
+    Route::any('myprofile/edit/email', 'User\UserController@editUserEmail')->name('editUserEmail');
+    Route::any('myprofile/mydatasets/join/{link?}', 'AjaxController@ajaxjoindataset'); //Join a dataset by link
 
-Route::any('myprofile/mydatasets/{id}/kml', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@viewPrivateKML'])->name('viewdatasetkml');
-Route::any('myprofile/mydatasets/{id}/kml/download', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@downloadPrivateKML'])->name('downloaddatasetkml');
-Route::any('myprofile/mydatasets/{id}/json', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@viewPrivateJSON'])->name('viewdatasetjson');
-Route::any('myprofile/mydatasets/{id}/json/download', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@downloadPrivateJSON'])->name('downloaddatasetjson');
-Route::any('myprofile/mydatasets/{id}/csv', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@viewPrivateCSV'])->name('viewdatasetcsv');
-Route::any('myprofile/mydatasets/{id}/csv/download', ['middleware' => ['auth', 'verified'], 'uses' => 'DatasetController@downloadPrivateCSV'])->name('downloaddatasetcsv');
+    Route::any('myprofile/mydatasets/{id}/kml', 'DatasetController@viewPrivateKML')->name('viewdatasetkml');
+    Route::any('myprofile/mydatasets/{id}/kml/download', 'DatasetController@downloadPrivateKML')->name('downloaddatasetkml');
+    Route::any('myprofile/mydatasets/{id}/json', 'DatasetController@viewPrivateJSON')->name('viewdatasetjson');
+    Route::any('myprofile/mydatasets/{id}/json/download', 'DatasetController@downloadPrivateJSON')->name('downloaddatasetjson');
+    Route::any('myprofile/mydatasets/{id}/csv', 'DatasetController@viewPrivateCSV')->name('viewdatasetcsv');
+    Route::any('myprofile/mydatasets/{id}/csv/download', 'DatasetController@downloadPrivateCSV')->name('downloaddatasetcsv');
+});
 
 /**
  * User collection CRUD pages
@@ -92,11 +92,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
  * The Admin Controller passes through 'auth' and 'verified' middleware for all functions AND checks user is admin
  * Each method manually checks for ADMIN/SUPER_ADMIN itself, will display 403 if not of sufficient role
  */
-Route::any('admin', 'Auth\AdminController@adminHome'); //Only let ADMIN or SUPER_ADMIN access this page
-Route::any('admin/users', 'Auth\AdminController@userManagement'); //Only let SUPER_ADMIN access this page
-Route::any('admin/users/{email}', 'Auth\AdminController@viewUser'); //Only let  SUPER_ADMIN access this page
-Route::any('admin/users/{email}/activateDeactivateUser', 'Auth\AdminController@activateDeactivateUser'); //Only let SUPER_ADMIN access this page
-Route::any('admin/users/{email}/updateUserRole', 'Auth\AdminController@updateUserRole'); //Only let SUPER_ADMIN access this page
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::any('admin', 'Auth\AdminController@adminHome'); //Only let ADMIN or SUPER_ADMIN access this page
+    Route::any('admin/users', 'Auth\AdminController@userManagement'); //Only let SUPER_ADMIN access this page
+    Route::any('admin/users/{email}', 'Auth\AdminController@viewUser'); //Only let  SUPER_ADMIN access this page
+    Route::any('admin/users/{email}/activateDeactivateUser', 'Auth\AdminController@activateDeactivateUser'); //Only let SUPER_ADMIN access this page
+    Route::any('admin/users/{email}/updateUserRole', 'Auth\AdminController@updateUserRole'); //Only let SUPER_ADMIN access this page
+});
 
 /**
  * Misc Functions
@@ -156,4 +158,4 @@ Route::get('verify', 'Auth\VerificationController@showPage');
 /**
  * Output gaz as lpf
  */
-Route::get('outputgazaslpf', 'LPFController@gazToLPF');
+Route::get('outputgazaslpf', 'LPFController@gazToLPF')->middleware('auth');

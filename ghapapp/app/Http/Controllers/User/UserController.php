@@ -57,12 +57,6 @@ class UserController extends Controller
         ["lat", "lng"]
     ];
 
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('verified');
-    }
-
     public function userProfile(Request $request)
     {
         return view('user.userprofile');

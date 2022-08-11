@@ -8,16 +8,6 @@ use Illuminate\Support\Facades\DB;
 class HomeController extends Controller
 {
     /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        //$this->middleware('auth'); //Home screen does not need auth
-    }
-
-    /**
      * Loads up the home page featuring a search bar, etc
      * Pre-loads all the LGA names, states, and count for use in the form (states dropdown, LGA autocomplete, etc)
      *

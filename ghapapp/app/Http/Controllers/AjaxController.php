@@ -21,16 +21,6 @@ use TLCMap\Http\Helpers\GeneralFunctions;
 class AjaxController extends Controller
 {
     /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        //$this->middleware('auth'); //ONLY needs this if you want it to return an error for non logged in users
-    }
-
-    /**
      * Get values from form
      * Check they are all present, all numbers, and that mins arent > maxs
      * Return the values in response, or error message

@@ -19,12 +19,6 @@ class AdminController extends Controller
     |
     */
 
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('verified');
-    }
-
     public function adminHome(Request $request)
     {
         $request->user()->authorizeRoles(['ADMIN', 'SUPER_ADMIN']); //Current logged in user is admin/super admin

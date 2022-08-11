@@ -29,11 +29,6 @@ use Storage;
 
 class LPFController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth'); //only let logged in users access'
-    }
-
     /*
      *  The main function of this controller.
      *  Outputs the Gazetteer table in an JSON-LD LPF compliant format - So it may be imported into Recogito.
