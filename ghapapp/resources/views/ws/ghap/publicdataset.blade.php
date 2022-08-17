@@ -1,32 +1,20 @@
 @extends('templates.layout')
 
+@push('scripts')
+    <script src="{{ asset('js/publicdataset.js') }}"></script>
+    <script src="{{ asset('js/savesearch.js') }}"></script>
+@endpush
+
 @section('content')
-    <script>
-      $(document).ready( function () {
-            $("#dataitemtable").dataTable({
-                orderClasses: false,
-                bPaginate: true,
-                bFilter: true,
-                bInfo: false,
-                bSortable: true,
-                bRetrieve: true,
-                aaSorting: [[ 0, "asc" ]], 
-                "pageLength": 25,
-                aoColumnDefs: [{ "aTargets": [ 13 ], "bSortable": false, "bSearchable": false }]
-            }); 
-        });
-    </script>
 
     <h2>Layer</h2>
-    <!--
-    <a href="{{route('publicdatasets')}}" class="btn btn-primary">All Layers</a>
-    -->
+
     <div class="mt-4 mb-1"><p>Note: Layers are contributed from many sources by many people or derived by computer 
-                and are the responsibility of the contributor.
-                Layers may be incomplete and locations and dates may be imprecise.
-                Check the layer for details about the source. Absence in TLCMap does not indicate absence in reality. 
-                Use of TLCMap may inform heritage research but is not a substitute for established formal and legal processes and consultation.</p>
-            </div>
+        and are the responsibility of the contributor.
+        Layers may be incomplete and locations and dates may be imprecise.
+        Check the layer for details about the source. Absence in TLCMap does not indicate absence in reality.
+        Use of TLCMap may inform heritage research but is not a substitute for established formal and legal processes and consultation.</p>
+    </div>
     <!-- Export/Download -->
     <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -39,10 +27,8 @@
         </div>
     </div>
 
-    
-
-        <!-- Web Services Feed -->
-        <div class="dropdown">
+    <!-- Web Services Feed -->
+    <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             WS Feed
         </button>
@@ -51,7 +37,7 @@
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv">CSV</a>
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/json">GeoJSON</a>
         </div>
-        </div>
+    </div>
 
     <!-- Visualise-->
     <div class="dropdown">
@@ -76,9 +62,9 @@
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <tr><th class="w-25">Name</th><td>{{$ds->name}}</td></tr>
-		    <tr style="height: 50px; overflow: auto"><th>Description</th><td>{{$ds->description}}</td></tr>
-		    <tr><th>Type</th><td>{{$ds->type}}</td></tr>
-<tr style="height: 50px; overflow: auto"><th>Content Warning</th><td>{{$ds->warning}}</td></tr>
+		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{{$ds->description}}</td></tr>
+		            <tr><th>Type</th><td>{{$ds->type}}</td></tr>
+                    <tr style="height: 50px; overflow: auto"><th>Content Warning</th><td>{{$ds->warning}}</td></tr>
                     <tr><th>Contributor</th><td>{{$ds->ownerName()}}</td></tr>
                     <tr><th>Entries</th><td id="dscount">{{count($ds->dataitems)}}</td></tr>
                     <tr><th>Allow ANPS?</th><td id="dspublic">@if($ds->allowanps)Yes @else No @endif</td></tr>
@@ -132,18 +118,8 @@
 
     <!-- Dataitem Table -->
 
-
     <div class="container">
 
-
-  <!--
-    <table id="dataitemtable" class="display" style="width:100%">
-  
-        <thead class="w3-black"><tr>
-            <th>Title</th><th>Placename</th><th>Type</th><th>Description</th><th>Latitude</th><th>Longitude</th><th>Date Start</th><th>Date End</th><th>State</th><th>Feature Term</th><th>LGA</th><th>Parish</th><th>Source</th><th>URL</th><th>Visualise</th><th>Created</th><th>Updated</th>
-        </tr></thead>
-        <tbody>
-    -->
         @foreach($ds->dataitems as $data)
 
 
@@ -152,23 +128,18 @@
             <div class="col">
 
                 <dl>
-<!--
-	    <tr id="row_id_{{$data->id}}">
-    -->
 
+                    <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('t{{base_convert($data->id,10,16)}}',this,'id')">C</button>
+                    <a href="{{env('APP_URL')}}/search?id=t{{base_convert($data->id,10,16)}}">
+                    @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif</a>
+                    </h4>
+                    <dl>
+                    @if(isset($data->placename))<dt>Placename</dt><dd>{{$data->placename}}</dd>@endif
+                    <dl>
 
-
-    <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('t{{base_convert($data->id,10,16)}}',this,'id')">C</button>
-                <a href="{{env('APP_URL')}}/search?id=t{{base_convert($data->id,10,16)}}">
-                @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif</a>
-                </h4>
-                <dl>
-                @if(isset($data->placename))<dt>Placename</dt><dd>{{$data->placename}}</dd>@endif
-                <dl>
-                
-                @if(isset($data->recordtype_id))<dt>Type</dt><dd>{{$data->recordtype->type}}</dd>
-                @elseif(isset($data->dataset->recordtype_id))<dt>Type</dt><dd>{{$data->dataset->recordtype->type}}</dd>
-                @endif
+                    @if(isset($data->recordtype_id))<dt>Type</dt><dd>{{$data->recordtype->type}}</dd>
+                    @elseif(isset($data->dataset->recordtype_id))<dt>Type</dt><dd>{{$data->dataset->recordtype->type}}</dd>
+                    @endif
 
                 
                     <div class="dropdown">
@@ -184,7 +155,6 @@
                         
                         </div>
                     </div>
-                
 
             </div>
             <div class="col">
@@ -192,37 +162,28 @@
                 <h4>Details</h4>
 
                 @if(isset($data->latitude))<dt>Latitude</dt><dd>{{$data->latitude}}</dd>@endif
-            @if(isset($data->longitude))<dt>Longitude</dt><dd>{{$data->longitude}}</dd>@endif
-            @if(isset($data->start))<dt>Start Date</dt><dd>{{$data->start}}</dd>@endif
-            @if(isset($data->end))<dt>End Date</dt><dd>{{$data->end}}</dd>@endif
+                @if(isset($data->longitude))<dt>Longitude</dt><dd>{{$data->longitude}}</dd>@endif
+                @if(isset($data->start))<dt>Start Date</dt><dd>{{$data->start}}</dd>@endif
+                @if(isset($data->end))<dt>End Date</dt><dd>{{$data->end}}</dd>@endif
 
-            @if(isset($data->state_code))<dt>State</dt><dd>{{$data->state_code}}</dd>@endif
-            @if(isset($data->lga_name))<dt>LGA</dt><dd>{{$data->lga_name}}</dd>@endif
-            @if(isset($data->parish))<dt>Parish</dt><dd>{{$data->parish}}</dd>@endif
-            @if(isset($data->feature_term))<dt>Feature Term</dt><dd>{{$data->feature_term}}</dd>@endif
+                @if(isset($data->state_code))<dt>State</dt><dd>{{$data->state_code}}</dd>@endif
+                @if(isset($data->lga_name))<dt>LGA</dt><dd>{{$data->lga_name}}</dd>@endif
+                @if(isset($data->parish))<dt>Parish</dt><dd>{{$data->parish}}</dd>@endif
+                @if(isset($data->feature_term))<dt>Feature Term</dt><dd>{{$data->feature_term}}</dd>@endif
 
-
-            
-
-
-                    </div>
+            </div>
             <div class="col">
 
-            <h4>Description</h4>
-            @if(isset($data->description))
-                    <div>{!!$data->description!!}</div>@endif
-
-
-            @if(isset($data->extended_data))
-                </div>
-                <div class="col">
-                <h4>Extended Data</h4>
-                {!!$data->extDataAsHTML()!!}
-            @endif
-
-
-
-
+                <h4>Description</h4>
+                @if(isset($data->description))
+                    <div>{!!$data->description!!}</div>
+                @endif
+                @if(isset($data->extended_data))
+                    </div>
+                    <div class="col">
+                    <h4>Extended Data</h4>
+                    {!!$data->extDataAsHTML()!!}
+                @endif
             </div>
             <div class="col">
                 <h4>Sources</h4>
@@ -238,11 +199,10 @@
             </div>
 
         @endforeach
-<!-- end bootstrap container -->
-</div>
+    <!-- end bootstrap container -->
+    </div>
 
 
     <a href="{{ route('publicdatasets') }}" class="mb-3 btn btn-primary">All Layers</a>
-    <script src="http://localhost:8090/ghap/js/savesearch.js"></script> <!-- for copy link -->
 
 @endsection

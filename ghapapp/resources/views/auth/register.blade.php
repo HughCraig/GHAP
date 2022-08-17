@@ -1,12 +1,6 @@
 @extends('templates.layout')
 
 @section('content')
-<script>
-    //Bootstrap tooltips
-    $(function () {
-        $('[data-toggle="tooltip"]').tooltip()
-    });
-</script>
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">

@@ -1,5 +1,9 @@
 @extends('templates.layout')
 
+@push('scripts')
+    <script src="{{ asset('js/viewuser.js') }}"></script>
+@endpush
+
 @section('content')
     <h2>User Management</h2>
     <a href="{{ url('/admin/users') }}" class="mb-3 btn btn-primary">Back</a><br>
@@ -12,7 +16,7 @@
         @if($user->roles[0]['name'] != 'SUPER_ADMIN')
             <form method="POST" action="{{ url()->full() }}/updateUserRole">
                 @csrf
-                <select name="selectRole" id="selectRole">
+                <select name="selectRole" id="selectRole" data-role="{{ $user->roles[0]['name'] }}">
                     <option value="REGULAR">REGULAR</option>
                     <option value="ADMIN">ADMIN</option>
                 </select>
@@ -38,13 +42,4 @@
             </form>
         </tr>
     </table>
-
-    <script>
-        //Select option for role by current DB value
-        $("#selectRole option").each(function(){
-            if($(this).val() == "{!! $user->roles[0]['name'] !!}" ){ 
-                $(this).attr("selected","selected");    
-            }
-        });
-    </script>
 @endsection

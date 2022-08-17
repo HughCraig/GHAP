@@ -1,18 +1,17 @@
 @extends('templates.layout')
 
-@section('content')
+@push('styles')
     <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
-    <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
-
     <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
-    <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
+@endpush
 
-    <script>
-        //Bootstrap tooltips
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        });
-    </script>
+@push('scripts')
+    <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
+    <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
+    <script src="{{ asset('js/usernewcollection.js') }}"></script>
+@endpush
+
+@section('content')
 
     <h2>{{ Auth::user()->name }}'s New Multilayer</h2>
     @include('templates.misc.contentdisclaimer')
@@ -145,22 +144,6 @@
                             To: <input type="text" class="mb-2 w3-white form-control input-group-addon"
                                        name="temporalto" id="temporalto" autocomplete="off">
                         </div>
-                        <script type="text/javascript">
-                            $(function () {
-                                $('#temporalfromdiv').datepicker({
-                                    format: 'yyyy-mm-dd',
-                                    todayBtn: true,
-                                    forceParse: false,
-                                    keyboardNavigation: false
-                                });
-                                $('#temporaltodiv').datepicker({
-                                    format: 'yyyy-mm-dd',
-                                    todayBtn: true,
-                                    forceParse: false,
-                                    keyboardNavigation: false
-                                });
-                            });
-                        </script>
                     </div>
 
                     Date Created
@@ -178,23 +161,4 @@
         </form>
     </div>
     <div class="mt-4 m-0 row"><a href="{{url('myprofile/mycollections')}}" class="mb-3 btn btn-primary">Back</a></div>
-
-    <script>
-        //Initiate jQuery tagsInput function AND Adjust the settings for the tags field
-        $('#tags').tagsInput({
-            'height': '50px',
-            'width': '100%',
-            'interactive': true,
-            'defaultText': 'add a tag',
-            'delimiter': [',', ';'],   // Or a string with a single delimiter. Ex: ';'
-            'removeWithBackspace': true,
-            'minChars': 0,
-            'maxChars': 0, // if not provided there is no limit
-            'placeholderColor': '#666666',
-            'overflow': 'auto'
-        });
-
-        //Make it look like the other inputs
-        $('#tags_tagsinput').addClass('form-control').addClass('mb-2')
-    </script>
 @endsection

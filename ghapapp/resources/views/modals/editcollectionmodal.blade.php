@@ -1,8 +1,16 @@
-<script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
-<link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
+@push('styles')
+    <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
+    <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
+@endpush
 
-<link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
-<script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
+@push('scripts')
+    <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
+    <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
+    <script>
+        const currentKeywords = {!! $collection->subjectKeywords !!};
+    </script>
+    <script src="{{ asset('/js/editcollectionmodal.js') }}"></script>
+@endpush
 
 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editCollectionModal">Edit Multilayer</button>
 <!-- MODAL popup -->
@@ -53,10 +61,9 @@
                                   class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                                   title="TLCMap is intended for making information public, but you can set it to private while you work on it if you want. Some visualisations may not work while set to private."></span>
                             <select id="public" name="public" class="mb-4 w3-white form-control">
-                                <option value="0">Private</option>
-                                <option value="1">Public</option>
+                                <option value="0"{{ $collection->public ? '' : ' selected' }}>Private</option>
+                                <option value="1"{{ $collection->public ? ' selected' : '' }}>Public</option>
                             </select>
-                            <script>document.getElementById("public").selectedIndex = {{($collection->public) ? '1' : '0' }}</script>
 
                             Creator
                             <span tabindex="0" data-html="true" data-animation="true"
@@ -157,22 +164,6 @@
                                                class="mb-2 w3-white form-control input-group-addon" name="temporalto"
                                                id="temporalto" autocomplete="off">
                                 </div>
-                                <script type="text/javascript">
-                                    $(function () {
-                                        $('#temporalfromdiv').datepicker({
-                                            format: 'yyyy-mm-dd',
-                                            todayBtn: true,
-                                            forceParse: false,
-                                            keyboardNavigation: false
-                                        });
-                                        $('#temporaltodiv').datepicker({
-                                            format: 'yyyy-mm-dd',
-                                            todayBtn: true,
-                                            forceParse: false,
-                                            keyboardNavigation: false
-                                        });
-                                    });
-                                </script>
                             </div>
 
                             Date Created
@@ -197,27 +188,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    //Initiate jQuery tagsInput function AND Adjust the settings for the tags field
-    $('#tags').tagsInput({
-        'height': '50px',
-        'width': '100%',
-        'interactive': true,
-        'defaultText': 'add a tag',
-        'delimiter': [',', ';'],   // Or a string with a single delimiter. Ex: ';'
-        'removeWithBackspace': true,
-        'minChars': 0,
-        'maxChars': 0, // if not provided there is no limit
-        'placeholderColor': '#666666',
-        'overflow': 'auto'
-    });
-
-    //Make it look like the other inputs
-    $('#tags_tagsinput').addClass('form-control').addClass('mb-2')
-
-    //prefill the form with the keywords associated with this dataset
-    $.each({!! $collection->subjectKeywords !!}, function (index, value) {
-        $('#tags').addTag(value.keyword);
-    });
-</script>

@@ -1,28 +1,16 @@
 @extends('templates.layout')
 
-@section('content')
+@push('scripts')
     <script>
-      //Put the relative URL of our ajax functions into global vars for use in external .js files
-      var ajaxdeletedataset = "{{url('ajaxdeletedataset')}}";
-      var ajaxjoindataset = "{{url('ajaxjoindataset')}}";
-      var ajaxleavedataset = "{{url('ajaxleavedataset')}}";
-
-      $(document).ready( function () {
-            $("#datasettable").dataTable({
-                orderClasses: false,
-                bPaginate: true,
-                bFilter: true,
-                bInfo: false,
-                bSortable: true,
-                bRetrieve: true,
-                aaSorting: [[ 0, "asc" ]], 
-                aoColumnDefs: [
-                    { "aTargets": [ 7,8 ], "bSortable": false, "bSearchable": false }, 
-                ],
-                "pageLength": 25
-            }); 
-        });
+        //Put the relative URL of our ajax functions into global vars for use in external .js files
+        var ajaxdeletedataset = "{{url('ajaxdeletedataset')}}";
+        var ajaxjoindataset = "{{url('ajaxjoindataset')}}";
+        var ajaxleavedataset = "{{url('ajaxleavedataset')}}";
     </script>
+    <script src="{{ asset('/js/dataset.js') }}"></script>
+@endpush
+
+@section('content')
 
     <h2>{{ Auth::user()->name }}'s Layers</h2>
     <a href="{{url('myprofile')}}" class="mb-3 btn btn-primary">Back</a><br>
@@ -64,7 +52,7 @@
         @endforeach
         </tbody>
     </table>
-    <script src="{{ asset('/js/dataset.js') }}"></script>
+
     <a href="{{url('myprofile')}}" class="mb-3 btn btn-primary">Back</a>
     <div class="notification" id="notification_box"><span id="notification_message" class="align-middle notification_message"></span></div>
 @endsection

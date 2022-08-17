@@ -1,25 +1,11 @@
 @extends('templates.layout')
 
-@section('content')
-   <script>
-      $(function () {
-         $('[data-toggle="tooltip"]').tooltip()
-      });
+@push('scripts')
+    <script src="{{ asset('/js/collablink.js') }}"></script>
+@endpush
 
-      $(document).ready( function () {
-         $("#collabtable").dataTable({
-               orderClasses: false,
-               bPaginate: true,
-               bFilter: true,
-               bInfo: false,
-               bSortable: true,
-               bRetrieve: true,
-               aaSorting: [[ 0, "asc" ]], 
-               aoColumnDefs: [{ "aTargets": [ 3,4 ], "bSortable": false, "bSearchable": false }],
-               "pageLength": 25
-         }); 
-      });
-   </script>
+@section('content')
+   
    <h2>Edit Collaborators</h2>
    <!-- Dataset info -->
    <div class="row">
@@ -88,5 +74,4 @@
     </table>
     <a href="{{substr( (url()->full()), 0, strrpos( (url()->full()), '/' ) )}}" class="mb-3 btn btn-primary">Back</a><!-- cutting off the end of the url so we keep the dataset id -->
     <div class="notification" id="notification_box"><span id="notification_message" class="align-middle notification_message"></span></div>
-    <script src="{{ asset('/js/collablink.js') }}"></script>
 @endsection

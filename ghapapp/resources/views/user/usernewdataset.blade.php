@@ -1,18 +1,19 @@
 @extends('templates.layout')
 
-@section('content')
+@push('styles')
     <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
-    <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
-
     <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
-    <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
+@endpush
 
-    <script>
-    //Bootstrap tooltips
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        });
-    </script>
+@push('scripts')
+    <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
+    <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
+    <script src="{{ asset('js/usernewdataset.js') }}"></script>
+    <script src="{{ asset('/js/dataitem.js') }}"></script> <!-- So we can quickly reuse the URL validation code -->
+    <script src="{{ asset('/js/form.js') }}"></script> <!-- So we can quickly reuse the date regex check code -->
+@endpush
+
+@section('content')
 
     <h2>{{ Auth::user()->name }}'s New Layer</h2>
     @include('templates.misc.contentdisclaimer')
@@ -22,27 +23,29 @@
             @csrf
             <div class="row">
                 <div class="col-lg p-5">
-                    *Layer name<input type="text" class="mb-2 w3-white form-control" name="dsn" required />
+                    *Layer name
+                    <input type="text" class="mb-2 w3-white form-control" name="dsn" required />
+
                     Subject (keywords) 
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
                         title="Type and press enter to create keywords describing this layer."></span>
                         <input id="tags" name="tags" type="text" class="smallerinputs mb-2 w3-white form-control" />
-		    *Description 
-            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
-                        title="A short paragraph summarising this information and its context. Anything not covered by other fields can be added here."></span>
-            <textarea rows="3" maxlength="500" class="w-100 mb-2 w3-white form-control" name="description" required ></textarea>
 
-            
+                    *Description
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                title="A short paragraph summarising this information and its context. Anything not covered by other fields can be added here."></span>
+                    <textarea rows="3" maxlength="500" class="w-100 mb-2 w3-white form-control" name="description" required ></textarea>
 
-Record Type 
-<span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
-                        title="A general indication of the type of information in this layer. Eg: is it list of placenames, a journey, or biographical information about a person? 
-                        If it is mixed, use 'other'. This may be used to refine searches and display icons on maps of search results."></span>
-<select class="w3-white form-control" id="recordtype" name="recordtype">
-@foreach($recordtypes as $type)
-<option label="{{$type}}">{{$type}}</option>
-@endforeach
-</select>
+                    Record Type
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                            title="A general indication of the type of information in this layer. Eg: is it list of placenames, a journey, or biographical information about a person?
+                                            If it is mixed, use 'other'. This may be used to refine searches and display icons on maps of search results."></span>
+                    <select class="w3-white form-control" id="recordtype" name="recordtype">
+                        @foreach($recordtypes as $type)
+                            <option label="{{$type}}">{{$type}}</option>
+                        @endforeach
+                    </select>
+
                     Content Warning 
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
                         title="Anything the viewer should be aware of before viewing information in this layer. TLCMap will attempt to show this information before or while it is shown.
@@ -53,7 +56,9 @@ Record Type
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
                         title="TLCMap is intended for making information public, but you can set it to private while you work on it if you want. Some visualisations may not work while set to private."></span>
                     <select id="public" name="public" class="mb-4 w3-white form-control"><option value="0">Private</option><option value="1" selected="selected">Public</option></select>
-                    Allow ANPS to collect this data? <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
+
+                    Allow ANPS to collect this data?
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="The TLCMap Gazetteer was based on information collected and compiled by Australian National Placenames Survey, who keep records on historical and other placenames, 
                         not just the official ones. If your information includes placenames, we'd like to provide them back to them to help their research and record keeping."></span> <select id="allowanps" name = "allowanps" class="mb-4 w3-white form-control"><option value="0">No</option><option value="1">Yes</option></select>
                 </div>
@@ -65,7 +70,9 @@ Record Type
                         As there are many possibilities for who should be credited as creator/s in different situations - you can decide was is appropriate."></span>
                         <input type="text" class="mb-2 w3-white form-control" name="creator"/>
                     
-                    Publisher<input type="text" class="mb-2 w3-white form-control" name="publisher"/>
+                    Publisher
+                    <input type="text" class="mb-2 w3-white form-control" name="publisher"/>
+
                     Contact
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
                         title="For if people have questions, comments about this information."></span>
@@ -88,12 +95,14 @@ Record Type
                         title="The URL linking to the website that hosts this information, its origin, the archive, public entry point, or otherwise. This should be the URL only so it can be linked."> </span>
                     <input type="text" class="mb-4 w3-white form-control" name="source_url"/>
 
-                    Language <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
+                    Language
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="What language is this layer in? Use the two digit language code where possible. Eg: 'EN' for English."></span>
                         <input type="text" class=" mb-2 w3-white form-control" name="language"/> 
                 </div>
                 <div class="col-lg p-5">
-                    Spatial Coverage <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
+                    Spatial Coverage
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="The latitude and longitude of the 'bounding box' including all points."></span>
                     <div class="border p-3 mb-3">
                         from latitude: <input type="text" class="mb-2 w3-white form-control" name="latitudefrom"/>
@@ -101,10 +110,13 @@ Record Type
                         to latitude: <input type="text" class="mb-2 w3-white form-control" name="latitudeto"/>
                         to longitude: <input type="text" class="mb-2 w3-white form-control" name="longitudeto"/>
                     </div>
-                    License <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
+
+                    License
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="What usage licence applies to this. Eg: open data is often under a <a href='https://creativecommons.org/licenses/' target='_blank'>Creative Commons</a> CC BY or CC BY-NC licence. If you created this information you can decide the licence. 
                         If you obtained from another source and are using under that licence, you can put that licence."></span>
                         <input type="text" class="mb-2 w3-white form-control" name="license"/>
+
                     Usage Rights 
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
                         title="If not covered by the licence, what are the rights that apply to use of this information.
@@ -112,7 +124,8 @@ Record Type
                         <input type="text" class="mb-2 w3-white form-control" name="rights"/>  
                 </div>
                 <div class="col-lg p-5">
-                    Temporal Coverage <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
+                    Temporal Coverage
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="What is the first and last date date of this information?"></span>
                     <div class="border p-3 mb-3">
                         <div class="input-group date" id="temporalfromdiv">
@@ -121,13 +134,8 @@ Record Type
                         <div class="input-group date" id="temporaltodiv">
                             To: <input type="text" class="mb-2 w3-white form-control input-group-addon" name="temporalto" id="temporalto" autocomplete="off">
                         </div>
-                        <script type="text/javascript">
-                        $(function () {
-                                $('#temporalfromdiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
-                                $('#temporaltodiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
-                            });
-                        </script>
                     </div>
+
                     Date Created 
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
                         title="When was the information information in this layer collected/researched/created?"></span>
@@ -141,24 +149,4 @@ Record Type
     </div>
     <div class="mt-4 m-0 row"><a href="{{url('myprofile/mydatasets')}}" class="mb-3 btn btn-primary">Back</a></div>
 
-    <script>
-        //Initiate jQuery tagsInput function AND Adjust the settings for the tags field
-        $('#tags').tagsInput({
-            'height':'50px',
-            'width':'100%',
-            'interactive':true,
-            'defaultText':'add a tag',
-            'delimiter': [',',';'],   // Or a string with a single delimiter. Ex: ';'
-            'removeWithBackspace' : true,
-            'minChars' : 0,
-            'maxChars' : 0, // if not provided there is no limit
-            'placeholderColor' : '#666666',
-            'overflow' : 'auto'
-        });
-
-        //Make it look like the other inputs
-        $('#tags_tagsinput').addClass('form-control').addClass('mb-2')
-    </script>
-    <script src="{{ asset('/js/dataitem.js') }}"></script> <!-- So we can quickly reuse the URL validation code -->
-    <script src="{{ asset('/js/form.js') }}"></script> <!-- So we can quickly reuse the date regex check code -->
 @endsection

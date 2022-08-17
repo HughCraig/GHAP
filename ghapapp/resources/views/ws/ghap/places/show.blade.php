@@ -1,11 +1,16 @@
 @extends('templates.layout')
 
+@push('scripts')
+    <script>
+        //Put the relative URL of our ajax functions into global vars for use in external .js files
+        var ajaxsavesearch = "{{url('ajaxsavesearch')}}";
+    </script>
+    <script src="{{ asset('/js/subsearch.js') }}"></script>
+    <script src="{{ asset('/js/savesearch.js') }}"></script>
+@endpush
+
 @section('content')
-<script>
-    //Put the relative URL of our ajax functions into global vars for use in external .js files
-    var ajaxsavesearch = "{{url('ajaxsavesearch')}}";
-</script>
-<script src="{{ asset('/js/subsearch.js') }}"></script>
+
     <div>
         <h2>Search Results</h2>
         @if(isset($details))
@@ -18,28 +23,28 @@
 
 
                 <!-- Export/Download -->
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Download
-        </button>
-        <div class="dropdown-menu" aria-labelledby="downloadDropdown">
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=kml&download=on">KML</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=csv&download=on">CSV</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=json&download=on">GeoJSON</a>
-        </div>
-    </div>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Download
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="downloadDropdown">
+                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=kml&download=on">KML</a>
+                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=csv&download=on">CSV</a>
+                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=json&download=on">GeoJSON</a>
+                    </div>
+                </div>
 
-    <!-- Web Services Feed -->
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            WS Feed
-        </button>
-        <div class="dropdown-menu" aria-labelledby="wsfeedDropdown">
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=kml">KML</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=csv">CSV</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=json">GeoJSON</a>
-        </div>
-        </div>
+                <!-- Web Services Feed -->
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        WS Feed
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="wsfeedDropdown">
+                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=kml">KML</a>
+                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=csv">CSV</a>
+                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=json">GeoJSON</a>
+                    </div>
+                </div>
 
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -47,15 +52,10 @@
                     </button>
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                         <a class="dropdown-item grab-hover" onclick="window.open('/view/3d.html?load='+encodeURIComponent(downloadurl+'&format=json'));">3D Viewer</a>
-                        
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/cluster.html?load='+encodeURIComponent(downloadurl+'&format=json'));">Cluster</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/journey.html?line=route&load='+encodeURIComponent(downloadurl+'&format=json'));">Journey Route</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/werekata.html?&load='+encodeURIComponent(downloadurl+'&format=json'));">Werekata Flight by Route</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/te/?file='+encodeURIComponent(downloadurl+'&format=kml'));">Temporal Earth</a>
-
-
-            
-
+                        <a class="dropdown-item grab-hover" onclick="window.open('/view/cluster.html?load='+encodeURIComponent(downloadurl+'&format=json'));">Cluster</a>
+                        <a class="dropdown-item grab-hover" onclick="window.open('/view/journey.html?line=route&load='+encodeURIComponent(downloadurl+'&format=json'));">Journey Route</a>
+                        <a class="dropdown-item grab-hover" onclick="window.open('/view/werekata.html?&load='+encodeURIComponent(downloadurl+'&format=json'));">Werekata Flight by Route</a>
+                        <a class="dropdown-item grab-hover" onclick="window.open('/te/?file='+encodeURIComponent(downloadurl+'&format=kml'));">Temporal Earth</a>
                     </div>
                 </div>
                 
@@ -84,36 +84,35 @@
                 
             </div>
             @endguest
-            <script src="{{ asset('/js/savesearch.js') }}"></script>
-            
 
         </form>
-            <div class="form-group row">
-                <div class="col-xs-4">
-                    <div class="p-3 w3-pale-blue">
-                        Displaying <b>{{ count($details) }}</b>
-                        @if(count($details) != 1)
-                            results
-                        @else
-                            result
-                        @endif 
-                        from a total of <b>{{ $details->total() }}</b>:
-                    </div>
+
+        <div class="form-group row">
+            <div class="col-xs-4">
+                <div class="p-3 w3-pale-blue">
+                    Displaying <b>{{ count($details) }}</b>
+                    @if(count($details) != 1)
+                        results
+                    @else
+                        result
+                    @endif
+                    from a total of <b>{{ $details->total() }}</b>:
                 </div>
             </div>
+        </div>
 
         
         <div id="datasettable_wrapper" class="dataTables_wrapper no-footer mb-2">
 
             <div id="datasettable_filter" class="dataTables_filter" style="padding-right: 20px;">
                 @if( app('request')->input('subquery') )
-                <script>var cancelSearch = window.location.href.replace(/&?\??subquery=.*/, '');</script>
-                <button class="btn btn-secondary" onclick="location.href=cancelSearch">Cancel Sub-query</button>
+                    <script>var cancelSearch = window.location.href.replace(/&?\??subquery=.*/, '');</script>
+                    <button class="btn btn-secondary" onclick="location.href=cancelSearch">Cancel Sub-query</button>
                 @else
-                <label>
-                    Sub-query:<input id="subsearchInput" type="search" style="padding: 6px;" class="" placeholder="Search within results..." aria-controls="datasettable">
-                    <button type="button" class="btn btn-primary" id="subsearchButton" onclick="subsearch()"><i class="fa fa-search"></i></button>
-                </label>
+                    <label>
+                        Sub-query:<input id="subsearchInput" type="search" style="padding: 6px;" class="" placeholder="Search within results..." aria-controls="datasettable">
+                        <button type="button" class="btn btn-primary" id="subsearchButton" onclick="subsearch()"><i class="fa fa-search"></i></button>
+                    </label>
                 @endif
             </div>
         </div>
@@ -121,10 +120,9 @@
         <div id="searchresults" style="max-width:100%;">
             @include('templates.table')
             @if(count($details) == 0)
-            <div class="text-center font-weight-bold">No Results Found!</div>
+                <div class="text-center font-weight-bold">No Results Found!</div>
             @endif
-        <div>
-        @else
+        </div>
         @endif
 
         @if(isset($message))

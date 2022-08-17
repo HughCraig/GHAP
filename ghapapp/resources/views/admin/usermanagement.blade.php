@@ -1,24 +1,10 @@
 @extends('templates.layout')
 
+@push('scripts')
+    <script src="{{ asset('js/usermanagement.js') }}"></script>
+@endpush
+
 @section('content')
-
-    <script>
-      $(document).ready( function () {
-            $("#usertable").dataTable({
-                orderClasses: false,
-                bPaginate: true,
-                bFilter: true,
-                bInfo: false,
-                bSortable: true,
-                bRetrieve: true,
-                aaSorting: [[ 0, "asc" ]], 
-                aoColumnDefs: [
-                ],
-                "pageLength": 25
-            }); 
-        });
-    </script>
-
     <h2>User Management</h2>
     <a href="{{ url('/admin') }}" class="mb-3 btn btn-primary">Back</a><br>
     <table id="usertable" class="display" style="width:100%">
@@ -26,8 +12,8 @@
         <tbody>
         @foreach($users as $user)
         <tr>
-            <td><a href="/admin/users/{{ $user->id }}">{{ $user->id }}</td>
-            <td><a href="/admin/users/{{ $user->id }}">{{ $user->email }}<a></td>
+            <td><a href="/admin/users/{{ $user->id }}">{{ $user->id }}</a></td>
+            <td><a href="/admin/users/{{ $user->id }}">{{ $user->email }}</a></td>
             <td>{{ $user->name }}</td>
             <td>
                 @for($i = 0; $i < count($user->roles); $i++)

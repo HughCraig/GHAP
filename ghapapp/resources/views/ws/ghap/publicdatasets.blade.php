@@ -1,20 +1,10 @@
 @extends('templates.layout')
 
+@push('scripts')
+    <script src="{{ asset('js/publicdatasets.js') }}"></script>
+@endpush
+
 @section('content')
-    <script>
-      $(document).ready( function () {
-            $("#datasettable").dataTable({
-                orderClasses: false,
-                bPaginate: true,
-                bFilter: true,
-                bInfo: false,
-                bSortable: true,
-                bRetrieve: true,
-                aaSorting: [[ 0, "asc" ]], 
-                "pageLength": 25
-            }); 
-        });
-    </script>
 
     <h2>Layers</h2>
     <a href="{{route('index')}}" class="mb-3 btn btn-primary">Back</a><br>
@@ -31,22 +21,22 @@
                 <td>{{$ds->created_at}}</td>
                 <td>{{$ds->updated_at}}</td>
                 <td>
-    <!-- Visualise-->
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        🌏 View Maps...
-        </button>
-        <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/3d.html?load={{url()->full()}}/{{$ds->id}}/json')">3D Viewer</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/cluster.html?load={{url()->full()}}/{{$ds->id}}/json')">Cluster</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/journey.html?line=route&load={{url()->full()}}/{{$ds->id}}/json')">Journey Route</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/journey.html?line=time&load={{url()->full()}}/{{$ds->id}}/json')">Journey Times</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/timeline.html?load={{url()->full()}}/{{$ds->id}}/json?sort=start')">Timeline</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/werekata.html?&load={{url()->full()}}/{{$ds->id}}/json')">Werekata Flight by Route</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/werekata.html?sort=start&load={{url()->full()}}/{{$ds->id}}/json')">Werekata Flight by Time</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/te/?file={{url()->full()}}/{{$ds->id}}/kml')">Temporal Earth</a>
-        </div>
-    </div>
+                    <!-- Visualise-->
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        🌏 View Maps...
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
+                            <a class="dropdown-item grab-hover" onclick="window.open('/view/3d.html?load={{url()->full()}}/{{$ds->id}}/json')">3D Viewer</a>
+                            <a class="dropdown-item grab-hover" onclick="window.open('/view/cluster.html?load={{url()->full()}}/{{$ds->id}}/json')">Cluster</a>
+                            <a class="dropdown-item grab-hover" onclick="window.open('/view/journey.html?line=route&load={{url()->full()}}/{{$ds->id}}/json')">Journey Route</a>
+                            <a class="dropdown-item grab-hover" onclick="window.open('/view/journey.html?line=time&load={{url()->full()}}/{{$ds->id}}/json')">Journey Times</a>
+                            <a class="dropdown-item grab-hover" onclick="window.open('/view/timeline.html?load={{url()->full()}}/{{$ds->id}}/json?sort=start')">Timeline</a>
+                            <a class="dropdown-item grab-hover" onclick="window.open('/view/werekata.html?&load={{url()->full()}}/{{$ds->id}}/json')">Werekata Flight by Route</a>
+                            <a class="dropdown-item grab-hover" onclick="window.open('/view/werekata.html?sort=start&load={{url()->full()}}/{{$ds->id}}/json')">Werekata Flight by Time</a>
+                            <a class="dropdown-item grab-hover" onclick="window.open('/te/?file={{url()->full()}}/{{$ds->id}}/kml')">Temporal Earth</a>
+                        </div>
+                    </div>
                 </td>
             </tr>
         @endforeach

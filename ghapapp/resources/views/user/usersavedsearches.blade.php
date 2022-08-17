@@ -1,28 +1,15 @@
 @extends('templates.layout')
 
-@section('content')
+@push('scripts')
     <script>
-      //Put the relative URL of our ajax functions into global vars for use in external .js files
-      var ajaxdeletesearch = "{{url('ajaxdeletesearch')}}";
-
-      $(document).ready( function () {
-            $("#savedsearchestable").dataTable({
-                orderClasses: false,
-                bPaginate: true,
-                bFilter: true,
-                bInfo: false,
-                bSortable: true,
-                bRetrieve: true,
-                aaSorting: [[ 0, "asc" ]], 
-                aoColumnDefs: [
-                    { "aTargets": [ 4 ], "bSortable": false, "bSearchable": false }, 
-                    { "aTargets": [ 1,3,4 ], "bSearchable": false }
-                ],
-                "pageLength": 25
-            }); 
-        });
+        //Put the relative URL of our ajax functions into global vars for use in external .js files
+        var ajaxdeletesearch = "{{url('ajaxdeletesearch')}}";
     </script>
+    <script src="{{ asset('js/usersavedsearches.js') }}"></script>
+    <script src="{{ asset('/js/deletesearch.js') }}"></script>
+@endpush
 
+@section('content')
     <h2>{{ Auth::user()->name }}'s Saved Searches</h2>
     <a href="{{url('myprofile')}}" class="mb-3 btn btn-primary">Back</a><br>
     <a href="{{url('/')}}" class="mb-3 btn btn-primary">Create a new search</a>
@@ -39,7 +26,6 @@
             <td><button name="delete_search_button" id="delete_search_button_{{$search->id}}" type="Submit">Delete</button></td></tr>
         @endforeach
         </tbody>
-        <script src="{{ asset('/js/deletesearch.js') }}"></script>
     </table>
     <a href="{{url('myprofile')}}" class="mb-3 btn btn-primary">Back</a> 
 @endsection

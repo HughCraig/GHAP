@@ -1,30 +1,15 @@
 @extends('templates.layout')
 
-@section('content')
+@push('scripts')
     <script>
         //Put the relative URL of our ajax functions into global vars for use in external .js files
         const removeCollectionDatasetService = "{{url('ajaxremovecollectiondataset')}}";
-
-        //Bootstrap tooltips
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        });
-
-        //dataTable init + settings
-        $(document).ready( function () {
-            $("#datasetsTable").dataTable({
-                orderClasses: false,
-                bPaginate: true,
-                bFilter: true,
-                bInfo: false,
-                bSortable: true,
-                bRetrieve: true,
-                aaSorting: [[ 0, "asc" ]], 
-                aoColumnDefs: [{ "aTargets": [ 9 ], "bSortable": false, "bSearchable": false }],
-                "pageLength": 25
-            }); 
-        });
     </script>
+    <script src="{{ asset('js/userviewcollection.js') }}"></script>
+    <script src="{{ asset('/js/collection.js') }}"></script>
+@endpush
+
+@section('content')
 
     <h2>View Multilayer</h2>
 
@@ -167,6 +152,5 @@
             </tbody>
         </table>
     @endif
-    <script src="{{ asset('/js/collection.js') }}"></script>
     <a href="{{url('myprofile/mycollections')}}" class="mb-3 btn btn-primary">Back</a>
 @endsection

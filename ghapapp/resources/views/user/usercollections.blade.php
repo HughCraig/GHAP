@@ -1,25 +1,14 @@
 @extends('templates.layout')
 
-@section('content')
+@push('scripts')
     <script>
         const deleteCollectionService = "{{url('ajaxdeletecollection')}}";
-
-        $(document).ready(function () {
-            $("#collectionsTable").dataTable({
-                orderClasses: false,
-                bPaginate: true,
-                bFilter: true,
-                bInfo: false,
-                bSortable: true,
-                bRetrieve: true,
-                aaSorting: [[0, "asc"]],
-                aoColumnDefs: [
-                    {"aTargets": [6], "bSortable": false, "bSearchable": false},
-                ],
-                "pageLength": 25
-            });
-        });
     </script>
+    <script src="{{ asset('js/usercollections.js') }}"></script>
+    <script src="{{ asset('/js/collection.js') }}"></script>
+@endpush
+
+@section('content')
 
     <h2>{{ $user->name }}'s Multilayers</h2>
     
@@ -60,7 +49,7 @@
         @endforeach
         </tbody>
     </table>
-    <script src="{{ asset('/js/collection.js') }}"></script>
+
     <a href="{{url('myprofile')}}" class="mb-3 btn btn-primary">Back</a>
     <div class="notification" id="notification_box">
         <span id="notification_message" class="align-middle notification_message"></span>

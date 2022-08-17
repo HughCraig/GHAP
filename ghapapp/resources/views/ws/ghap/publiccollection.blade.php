@@ -1,20 +1,10 @@
 @extends('templates.layout')
 
+@push('scripts')
+    <script src="{{ asset('js/publiccollection.js') }}"></script>
+@endpush
+
 @section('content')
-    <script>
-      $(document).ready( function () {
-            $("#datasetsTable").dataTable({
-                orderClasses: false,
-                bPaginate: true,
-                bFilter: true,
-                bInfo: false,
-                bSortable: true,
-                bRetrieve: true,
-                aaSorting: [[ 0, "asc" ]],
-                "pageLength": 25
-            }); 
-        });
-    </script>
 
     <h2>Multilayer</h2>
 
@@ -139,6 +129,5 @@
     @endif
 
     <a href="{{ url('publiccollections') }}" class="mt-3 mb-3 btn btn-primary">All Multilayers</a>
-    <script src="http://localhost:8090/ghap/js/savesearch.js"></script> <!-- for copy link -->
 
 @endsection
