@@ -23,6 +23,9 @@
         // Initiate the color generator.
         const colorGen = new LegendColorGenerator();
 
+        // Initiate collection legend.
+        const legend = new CollectionLegend();
+
         // Map of layer ID to layer data.
         const layerDataMap = {};
 
@@ -139,6 +142,7 @@
                 const datasets = data.datasets;
                 for (let i = 0; i < datasets.length; i++) {
                     const color = colorGen.generate();
+                    legend.addItem(datasets[i].name, color);
                     const layer = new GeoJSONLayer({
                         id: datasets[i].id,
                         url: datasets[i].jsonURL,
@@ -264,6 +268,7 @@
 
             // Display collection metadata.
             CollectionUtility.createCollectionMetadataDisplay($(infoDiv), data);
+            legend.render($(infoDiv));
 
             // Create the basemap gallery widget with expand.
             const basemapGallery = new BasemapGallery({
