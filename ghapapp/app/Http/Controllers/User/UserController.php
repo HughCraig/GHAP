@@ -423,7 +423,7 @@ class UserController extends Controller
                 //Call the function to create all the new data items from this array
                 $this->createDataitems($arr, $ds_id);
 
-            } else if (strcasecmp($ext, 'json') == 0) {
+            } else if (strcasecmp($ext, 'json') == 0 || strcasecmp($ext, 'geojson') == 0) {
                 //TODO extendeddata
                 $arr = $this->geoJSONToArray($file);
                 if (!is_array($arr)) return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid date format in file on line ' . $arr);

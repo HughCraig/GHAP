@@ -26,14 +26,14 @@
                 <div class="mb-4">Check the <a href="/guides/ghap/#contribute" target="_blank">guide</a> for more information on creating and uploading CSV, KML, and GeoJSON files.</div>
                 <div class="border p-4">
                     Select file to upload (.csv .kml or .json):
-                    <input type="file" id="fileToUpload" name="fileToUpload" required>
+                    <input type="file" id="fileToUpload" name="fileToUpload" accept=".csv,.kml,.json,.geojson,application/json,application/vnd.google-earth.kml+xml,text/csv" required>
                 </div>
                 <p>For KML uploads only:</p>
                 <div><label for="overwriteStyle">Append existing style data with the style data in this KML?</label> <input type="checkbox" id="overwriteStyle" name="appendStyle" checked></div>
                 <div><label for="overwriteJourney">Overwrite existing journey (Track) data with the journey data in this KML?</label> <input type="checkbox" id="overwriteJourney" name="overwriteJourney" checked></div>
             </div>
             <div class="modal-footer">
-                <input class="btn btn-primary" type="submit" value="Upload File" name="submit" accept=".csv,.kml,.json,.geojson,application/json,application/vnd.google-earth.kml+xml,text/csv">
+                <input class="btn btn-primary" type="submit" value="Upload File" name="submit">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </form>
