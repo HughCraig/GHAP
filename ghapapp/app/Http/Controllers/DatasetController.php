@@ -2,6 +2,7 @@
 
 namespace TLCMap\Http\Controllers;
 
+use Illuminate\Support\Collection;
 use TLCMap\Models\Dataset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -358,8 +359,8 @@ class DatasetController extends Controller
         $features = array();
         $metadata = array('layerid' => $dataset->id, 'name' => $dataset->name, 'description' => $dataset->description, 'warning' => $dataset->warning, 'ghap_url' => $request->url());
 
-
-        $dataitems = $dataset->dataitems;
+        // Infill any blank start/end dates.
+        $dataitems = $this->infillDataitemDates($dataset->dataitems);
 
         if (isset($_GET["sort"])) {
             // $dataitems = $dataset->dataitems()->whereNotNull("enddate")->whereNotNull("datestart");
@@ -525,6 +526,26 @@ class DatasetController extends Controller
         return json_encode($allfeatures, JSON_PRETTY_PRINT);
     }
 
+    /**
+     * Infill start/end dates for dataitems.
+     *
+     * This method will infill the empty start/end date of a dataitem with its end/start date.
+     *
+     * @param Collection $items
+     *   The dateitems.
+     * @return Collection
+     *   The dateitems with dates infilled.
+     */
+    private function infillDataitemDates($items) {
+        foreach ($items as &$item) {
+            if (!empty($item->datestart) && empty($item->dateend)) {
+                $item->dateend = $item->datestart;
+            } elseif (empty($item->datestart) && !empty($item->dateend)) {
+                $item->datestart = $item->dateend;
+            }
+        }
+        return $items;
+    }
 
     /**
      * Return a generated csv
