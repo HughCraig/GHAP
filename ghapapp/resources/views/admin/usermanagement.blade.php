@@ -12,8 +12,8 @@
         <tbody>
         @foreach($users as $user)
         <tr>
-            <td><a href="/admin/users/{{ $user->id }}">{{ $user->id }}</a></td>
-            <td><a href="/admin/users/{{ $user->id }}">{{ $user->email }}</a></td>
+            <td><a href="{{ url('/admin/users') }}/{{ $user->id }}">{{ $user->id }}</a></td>
+            <td><a href="{{ url('/admin/users') }}/{{ $user->id }}">{{ $user->email }}</a></td>
             <td>{{ $user->name }}</td>
             <td>
                 @for($i = 0; $i < count($user->roles); $i++)
