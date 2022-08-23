@@ -251,7 +251,8 @@
                 expanded: true
             });
             view.ui.add(layerListExpand, {
-                position: "bottom-right"
+                position: "top-left",
+                index: 0
             });
 
             // Create the expand widget to contain the metadata block.

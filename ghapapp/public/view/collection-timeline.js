@@ -161,7 +161,8 @@
                 expanded: true
             });
             view.ui.add(layerListExpand, {
-                position: "top-left"
+                position: "top-left",
+                index: 0
             });
 
             // time slider widget initialization
