@@ -132,6 +132,12 @@
                             <input type="text" class="mb-4 w3-white form-control" name="source_url"
                                    value="{{$collection->source_url}}"/>
 
+                            Linkback
+                            <span tabindex="0" data-html="true" data-animation="true"
+                                  class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                  title="The URL linking to the project website. This should be the URL only so it can be linked."> </span>
+                            <input type="text" class="mb-4 w3-white form-control" name="linkback" value="{{$collection->linkback}}"/>
+
                             Spatial Coverage
                             <span tabindex="0" data-html="true" data-animation="true"
                                   class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"

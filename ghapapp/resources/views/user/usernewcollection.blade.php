@@ -93,6 +93,11 @@
                           title="The URL linking to the website that hosts this information, its origin, the archive, public entry point, or otherwise. This should be the URL only so it can be linked."> </span>
                     <input type="text" class="mb-4 w3-white form-control" name="source_url"/>
 
+                    Linkback
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                          title="The URL linking to the project website. This should be the URL only so it can be linked."> </span>
+                    <input type="text" class="mb-4 w3-white form-control" name="linkback"/>
+
                     Language
                     <span tabindex="0" data-html="true" data-animation="true"
                            class="glyphicon glyphicon-question-sign" data-toggle="tooltip"

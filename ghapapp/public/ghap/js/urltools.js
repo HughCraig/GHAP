@@ -31,15 +31,18 @@ $(function () {
         if (link && $(this).hasClass("external_url_clickable")) window.open(link);
     }); //search result links
 
-    //Source for the dataset itself
-    if (isValidURL($('#source_url').text())) {
-        $('#source_url').addClass("external_url_clickable");
-        $('#source_url').on("click", function () {
-            window.open($('#source_url').text());
-        })
-    } else {
-        $('#source_url').addClass("forceinvalid");
-    }
+    //Source and Linkback for the dataset itself
+    $('#source_url, #linkback').each(function () {
+        const linkURL = $(this).text();
+        if (isValidURL(linkURL)) {
+            $(this).addClass("external_url_clickable");
+            $(this).on("click", function () {
+                window.open(linkURL);
+            })
+        } else {
+            $(this).addClass("forceinvalid");
+        }
+    });
 
     //Source for the doi
     if (isValidDOI($('#doi').text())) {

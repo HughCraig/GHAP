@@ -79,6 +79,7 @@ class CollectionController extends Controller
                     'name' => $dataset->name,
                     'description' => $dataset->description,
                     'warning' => $dataset->warning,
+                    'linkback' => $dataset->linkback,
                     'url' => url("publicdatasets/{$dataset->id}"),
                     'jsonURL' => url("publicdatasets/{$dataset->id}/json"),
                 ];
@@ -175,6 +176,7 @@ class CollectionController extends Controller
             'citation' => $request->citation,
             'doi' => $request->doi,
             'source_url' => $request->source_url,
+            'linkback' => $request->linkback,
             'latitude_from' => $request->latitudefrom,
             'longitude_from' => $request->longitudefrom,
             'latitude_to' => $request->latitudeto,
@@ -280,6 +282,7 @@ class CollectionController extends Controller
             'citation' => $request->citation,
             'doi' => $request->doi,
             'source_url' => $request->source_url,
+            'linkback' => $request->linkback,
             'latitude_from' => $request->latitudefrom,
             'longitude_from' => $request->longitudefrom,
             'latitude_to' => $request->latitudeto,

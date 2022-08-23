@@ -72,6 +72,7 @@
                     <tr><th>Citation</th><td>{{$collection->citation}}</td></tr>
                     <tr><th>DOI</th><td id="doi">{{$collection->doi}}</td></tr>
                     <tr><th>Source URL</th><td id="source_url">{{$collection->source_url}}</td></tr>
+                    <tr><th>Linkback</th><td id="linkback">{{$collection->linkback}}</td></tr>
                     <tr><th>Date From</th><td>{{$collection->temporal_from}}</td></tr>
                     <tr><th>Date To</th><td>{{$collection->temporal_to}}</td></tr>
                 </table>

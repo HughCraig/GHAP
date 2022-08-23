@@ -12,8 +12,8 @@ class Dataset extends Model
     public $incrementing = true;
 
     protected $fillable = [
-        'id', 'name', 'description', 'creator', 'public', 'allowanps', 'publisher', 'contact', 'citation', 'doi', 'source_url', 'latitude_from',
-        'longitude_from', 'latitude_to', 'longitude_to', 'language', 'license', 'rights',
+        'id', 'name', 'description', 'creator', 'public', 'allowanps', 'publisher', 'contact', 'citation', 'doi',
+        'source_url', 'linkback', 'latitude_from', 'longitude_from', 'latitude_to', 'longitude_to', 'language', 'license', 'rights',
         'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning'
     ];
 

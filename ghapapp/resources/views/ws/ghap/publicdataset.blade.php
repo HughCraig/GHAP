@@ -94,6 +94,7 @@
                     <tr><th>Citation</th><td>{{$ds->citation}}</td></tr>
                     <tr><th>DOI</th><td id="doi">{{$ds->doi}}</td></tr>
                     <tr><th>Source URL</th><td id="source_url">{{$ds->source_url}}</td></tr>
+                    <tr><th>Linkback</th><td id="linkback">{{$ds->linkback}}</td></tr>
                     <tr><th>Date From</th><td>{{$ds->temporal_from}}</td></tr>
                     <tr><th>Date To</th><td>{{$ds->temporal_to}}</td></tr> 
                 </table>

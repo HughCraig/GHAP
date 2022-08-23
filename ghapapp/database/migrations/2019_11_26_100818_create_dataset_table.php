@@ -25,6 +25,7 @@ class CreateDatasetTable extends Migration
             $table->text('citation')->nullable();
             $table->text('doi')->nullable();
             $table->text('source_url')->nullable();
+            $table->text('linkback')->nullable();
             $table->double('latitude_from')->nullable();
             $table->double('longitude_from')->nullable();
             $table->double('latitude_to')->nullable();
