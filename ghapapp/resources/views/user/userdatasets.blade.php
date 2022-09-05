@@ -15,7 +15,6 @@
     <h2>{{ Auth::user()->name }}'s Layers</h2>
     <a href="{{url('myprofile')}}" class="mb-3 btn btn-primary">Back</a><br>
     <a href="{{url('myprofile/mydatasets/newdataset')}}" class="mb-3 btn btn-primary">Create Layer</a>
-    <button class="mb-3 btn btn-primary" id='show_join_controls_button'>Collaborate on a Layer</button>
     <div id='join_controls' class="meddiv hideme">
         <label for="join_link_input">To join, enter the link of the dataset you received in an email:</label>
         <input class="form-control w3-white" type="text" id="join_link_input">

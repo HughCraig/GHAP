@@ -229,8 +229,6 @@
                     <a href="{{url('myprofile/mycollections')}}" class="w3-bar-item w3-button w3-mobile">My
                         Multilayers</a>
                     <a href="{{url('myprofile/mysearches')}}" class="w3-bar-item w3-button w3-mobile">My Searches</a>
-                    <a href="{{url('myprofile/mydatasets')}}" class="w3-bar-item w3-button w3-mobile">My
-                        Collaborators</a>
                 </div>
             </div>
 
