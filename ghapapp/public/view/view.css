@@ -56,3 +56,9 @@ img.mdicon {
 #flybutton {
     background-color: #F29469;
 }
+
+.warning-message {
+    background-color: #ffcc00;
+    padding: 5px;
+    margin-bottom: 1em;
+}

@@ -19,7 +19,7 @@ class CollectionUtility {
             container.append(`<p>${CollectionUtility.sanitize(properties.description)}</p>`);
         }
         if (properties.warning) {
-            container.append(`<p>${CollectionUtility.sanitize(properties.warning)}</p>`);
+            container.append(`<div class="warning-message"><strong>Warning</strong><br />${CollectionUtility.sanitize(properties.warning)}</div>`);
         }
         container.append('<div class="legend-container"></div>');
         let linksHtml = '<p><a href="/guides/views/" target="_blank">Help</a> | <a href="/guides/views/#shareview" target="_blank">Share</a>';
