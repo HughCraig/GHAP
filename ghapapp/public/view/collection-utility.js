@@ -21,6 +21,7 @@ class CollectionUtility {
         if (properties.warning) {
             container.append(`<p>${CollectionUtility.sanitize(properties.warning)}</p>`);
         }
+        container.append('<div class="legend-container"></div>');
         let linksHtml = '<p><a href="/guides/views/" target="_blank">Help</a> | <a href="/guides/views/#shareview" target="_blank">Share</a>';
         if (properties.linkback) {
             linksHtml += ` | <a href="${properties.linkback}" target="_blank">Linkback</a>`;

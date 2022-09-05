@@ -269,7 +269,7 @@
 
             // Display collection metadata.
             CollectionUtility.createCollectionMetadataDisplay($(infoDiv), data);
-            legend.render($(infoDiv));
+            legend.render($(infoDiv).find('.legend-container'));
 
             // Create the basemap gallery widget with expand.
             const basemapGallery = new BasemapGallery({
