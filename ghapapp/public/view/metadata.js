@@ -7,7 +7,12 @@ $(document).ready(function () {
             if (data.metadata.warning) {
                 $('#infoDiv').append('<p>' + data.metadata.warning + '</p>');
             }
-            $('#infoDiv').append('<p><a href="/guides/views/" target="_blank">Help</a> | <a href="/guides/views/#shareview" target="_blank">Share</a></p></p>');
+            let linksHtml = '<p><a href="/guides/views/" target="_blank">Help</a> | <a href="/guides/views/#shareview" target="_blank">Share</a>';
+            if (data.metadata.linkback) {
+                linksHtml += ` | <a href="${data.metadata.linkback}" target="_blank">Linkback</a>`;
+            }
+            linksHtml += '</p>';
+            $('#infoDiv').append(linksHtml);
             console.log("Metadata done " + data);
         });
     } catch {

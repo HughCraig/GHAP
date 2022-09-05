@@ -21,7 +21,12 @@ class CollectionUtility {
         if (properties.warning) {
             container.append(`<p>${CollectionUtility.sanitize(properties.warning)}</p>`);
         }
-        container.append(`<p><a href="/guides/views/" target="_blank">Help</a> | <a href="/guides/views/#shareview" target="_blank">Share</a></p></p>`);
+        let linksHtml = '<p><a href="/guides/views/" target="_blank">Help</a> | <a href="/guides/views/#shareview" target="_blank">Share</a>';
+        if (properties.linkback) {
+            linksHtml += ` | <a href="${properties.linkback}" target="_blank">Linkback</a>`;
+        }
+        linksHtml += '</p>';
+        container.append(linksHtml);
     }
 
     /**
