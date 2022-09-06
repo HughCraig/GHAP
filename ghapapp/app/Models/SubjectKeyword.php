@@ -27,6 +27,6 @@ class SubjectKeyword extends Model
      */
     public function collections()
     {
-        return $this->belongsToMany('TLCMap\Models\Collection', 'collection_subject_keyword', 'subject_keyword_id', 'collection_id');
+        return $this->belongsToMany('TLCMap\Models\Collection', 'tlcmap.collection_subject_keyword', 'subject_keyword_id', 'collection_id');
     }
 }

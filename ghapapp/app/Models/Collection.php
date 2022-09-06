@@ -32,7 +32,7 @@ class Collection extends Model
      */
     public function datasets()
     {
-        return $this->belongsToMany('TLCMap\Models\Dataset', 'collection_dataset', 'collection_id', 'dataset_id');
+        return $this->belongsToMany('TLCMap\Models\Dataset', 'tlcmap.collection_dataset', 'collection_id', 'dataset_id');
     }
 
     /**
@@ -50,6 +50,6 @@ class Collection extends Model
      */
     public function subjectKeywords()
     {
-        return $this->belongsToMany('TLCMap\Models\SubjectKeyword', 'collection_subject_keyword', 'collection_id', 'subject_keyword_id');
+        return $this->belongsToMany('TLCMap\Models\SubjectKeyword', 'tlcmap.collection_subject_keyword', 'collection_id', 'subject_keyword_id');
     }
 }

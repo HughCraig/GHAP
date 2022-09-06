@@ -69,7 +69,7 @@ class Dataset extends Model
      */
     public function collections()
     {
-        return $this->belongsToMany('TLCMap\Models\Collection', 'collection_dataset', 'dataset_id', 'collection_id');
+        return $this->belongsToMany('TLCMap\Models\Collection', 'tlcmap.collection_dataset', 'dataset_id', 'collection_id');
     }
 
     public function addData($data)
