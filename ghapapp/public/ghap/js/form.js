@@ -72,6 +72,12 @@ function continueSearchForm(names = null) {
         return alert('"Date To" field is NOT in a valid format!');
     }
 
+    // Validate ANPS ID.
+    if ($('#input-select-box').val() === 'anps_id' && !/^\d+$/.test($('#input').val())) {
+        $('#input').addClass('is-invalid');
+        return alert('ANPS ID should be a number');
+    }
+
     //change the input depending on form settings
     var selectBox = document.getElementById("input-select-box"); //the select box to choose between name/anps_id
     var inputName = selectBox.options[selectBox.selectedIndex].value; //the value selected for search type (containsname fuzzyname name anps_id)
