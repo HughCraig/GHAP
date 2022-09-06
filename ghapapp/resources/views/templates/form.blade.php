@@ -18,7 +18,11 @@
 
 <!-- whole search and filter form -->
 <div class="searchForm">
-
+    {{--
+        The CSRF token is only used for the bulk search file upload, and it's retrieved by the frontend JS.
+        So put the CSRF token outside the form to prevent the token appearing in the URL query string.
+    --}}
+    @csrf
     <form action="search" autocomplete="off" method="GET" role="search" id="searchForm" name="searchForm" enctype="multipart/form-data">
         <!-- Search bar -->
         <div id="mainsearchdiv" class="d-flex justify-content-center flex-fill">
@@ -177,7 +181,6 @@
                         </p>
 
                         <div class="d-inline-flex justify-content-center">
-                            @csrf
                             <input type="file" name="bulkfileinput" id="bulkfileinput" class="d-inline-block ">
                             <button type="button" class="btn btn-danger" id="bulkfileCancel" hidden>&times;</button>
                         </div>
