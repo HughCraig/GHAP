@@ -1,0 +1,7 @@
+# Disable directory listing.
+Options -Indexes
+
+# Unset the X-Frame-Options from the header to prevent the iframe embed rejected.
+<IfModule mod_headers.c>
+    Header always unset X-Frame-Options
+</IfModule>
