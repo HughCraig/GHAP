@@ -20,7 +20,7 @@ class EmailChangedWebmaster extends Mailable
      *
      * @return void
      */
-    public function __construct(string $old_email,string $new_email)
+    public function __construct(string $old_email, string $new_email)
     {
         $this->webmaster_email = env('WEBMASTER_EMAIL');
         $this->old_email = $old_email;

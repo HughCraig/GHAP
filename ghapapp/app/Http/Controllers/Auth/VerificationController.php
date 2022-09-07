@@ -27,7 +27,8 @@ class VerificationController extends Controller
      */
     protected $redirectTo = '/';
 
-    public function showPage() {
+    public function showPage()
+    {
         return view('auth.verify');
     }
 

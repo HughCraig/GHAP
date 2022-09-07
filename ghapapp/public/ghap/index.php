@@ -21,8 +21,7 @@ define('LARAVEL_START', microtime(true));
 |
 */
 
-//require 'C:\xampp\laravel\ghap_1_5/vendor/autoload.php';
-require '/var/www/laravel/ghap_P/vendor/autoload.php';
+require __DIR__ . '/../../vendor/autoload.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -36,8 +35,7 @@ require '/var/www/laravel/ghap_P/vendor/autoload.php';
 |
 */
 
-//$app = require_once 'C:\xampp\laravel\ghap_1_5/bootstrap/app.php';
-$app = require_once '/var/www/laravel/ghap_P/bootstrap/app.php';
+$app = require_once __DIR__ . '/../../bootstrap/app.php';
 
 /*
 |--------------------------------------------------------------------------

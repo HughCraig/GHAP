@@ -13,9 +13,9 @@ class CreateCollablinkTable extends Migration
      */
     public function up()
     {
-        Schema::connection('mysql2')->create('collablink', function (Blueprint $table) {
+        Schema::connection('pgsql2')->create('collablink', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('dataset_id');
+            $table->unsignedBigInteger('dataset_id');
             $table->string('link');
             $table->string('dsrole');
             $table->timestamps();
@@ -29,6 +29,6 @@ class CreateCollablinkTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('collablink');
+        Schema::connection('pgsql2')->dropIfExists('collablink');
     }
 }

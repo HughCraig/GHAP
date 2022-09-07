@@ -8,15 +8,16 @@ class CreateRoleTable extends Migration
 {
     public function up()
     {
-      Schema::connection('mysql2')->create('role', function (Blueprint $table) {
-        $table->increments('id');
-        $table->string('name');
-        $table->string('description');
-        $table->timestamps();
-      });
+        Schema::connection('pgsql2')->create('role', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->string('description');
+            $table->timestamps();
+        });
     }
+
     public function down()
     {
-      Schema::dropIfExists('role');
+        Schema::connection('pgsql2')->dropIfExists('role');
     }
 }

@@ -1,3 +1,7 @@
+@push('scripts')
+    <script src="{{ asset('js/contentdisclaimer.js') }}"></script>
+@endpush
+
 <div class="disclaimer-div" name="disclaimer-div">
     <h4>Note:</h4>
     <p class="mb-2" name="dropdown-arrow" onclick="disclaimerDrop()">⮟ hide</p>
@@ -13,20 +17,3 @@
         </ul>
     </div>
 </div>
-<script>
-    function disclaimerDrop() {
-        var ds = document.getElementsByName("disclaimer-div");
-        for (var i=0; i<ds.length; i++) {
-            var x = ds[i].getElementsByTagName("div")[0];
-            var arrow = ds[i].getElementsByTagName("p")[0];
-            if (x.className.indexOf(" hidden") == -1) {
-                x.className += " hidden";
-                arrow.innerHTML = "⮞ show"
-            }
-            else {
-                x.className = x.className.replace(" hidden", "");
-                arrow.innerHTML = "⮟ hide"
-            }
-        }  
-    }
-</script>

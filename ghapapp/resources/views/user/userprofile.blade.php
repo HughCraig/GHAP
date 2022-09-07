@@ -17,7 +17,6 @@
         </table>
         <div class="ml-4 btn-group">
             <div class="row"><a href="{{url('myprofile/mydatasets')}}" class="mb-3 btn btn-primary btn-block">My Layers</a></div>
-            <div class="row"><a href="#" class="mb-3 btn btn-primary btn-block">My Collaborators</a></div>
             <div class="row"> <a href="{{url('myprofile/mysearches')}}" class="mb-3 btn btn-primary btn-block">My Searches</a></div>
         </div>
     </div>  

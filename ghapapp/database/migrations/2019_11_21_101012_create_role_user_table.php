@@ -13,14 +13,15 @@ class CreateRoleUserTable extends Migration
 {
     public function up()
     {
-      Schema::connection('mysql2')->create('role_user', function (Blueprint $table) {
-        $table->increments('id');
-        $table->integer('role_id')->unsigned();
-        $table->text('user_email');
-      });
+        Schema::connection('pgsql2')->create('role_user', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('role_id')->index();
+            $table->unsignedBigInteger('user_id')->index();
+        });
     }
+
     public function down()
     {
-      Schema::dropIfExists('role_user');
+        Schema::connection('pgsql2')->dropIfExists('role_user');
     }
 }

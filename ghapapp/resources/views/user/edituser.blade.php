@@ -1,31 +1,10 @@
 @extends('templates.layout')
 
-@section('content')
-    <script> 
-        //https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_tabs
-        function openTab(evt, tabName) {
-        var i, tabcontent, tablinks;
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
-        }
-        tablinks = document.getElementsByClassName("tablinks");
-        for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-        document.getElementById(tabName).style.display = "block";
-        evt.currentTarget.className += " active";
-        }
-        //initially open the first tab
-        //document.getElementById("general_tab").click();
-    </script>
+@push('scripts')
+    <script src="{{ asset('js/edituser.js') }}"></script>
+@endpush
 
-    <script>
-        //Bootstrap tooltips
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        });
-    </script>
+@section('content')
 
     <h3>Editing user <strong>{{Auth::user()->name}}</strong></h3>
     <div class="tab">
@@ -48,7 +27,6 @@
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
                         </span>
-                        <script>document.getElementById("general_tab").click();</script>
                     @enderror
                 </div>
             </div>
@@ -75,7 +53,6 @@
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
                         </span>
-                        <script>document.getElementById("password_tab").click();</script>
                     @enderror
                 </div>
             </div>
@@ -87,7 +64,6 @@
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
                         </span>
-                        <script>document.getElementById("password_tab").click();</script>
                     @enderror
                 </div>
             </div>
@@ -121,7 +97,6 @@
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
                         </span>
-                        <script>document.getElementById("email_tab").click();</script>
                     @enderror
                 </div>
             </div>
@@ -139,7 +114,6 @@
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
                         </span>
-                        <script>document.getElementById("email_tab").click();</script>
                     @enderror
                 </div>
             </div>
@@ -149,12 +123,4 @@
     </div>
         
     <a href="{{ url()->previous() }}" class="btn btn-primary mt-3">Back</a>
-
-    @if (!$errors->any())
-        <!-- No errors found, open general tab -->
-        <script>document.getElementById("general_tab").click();</script>
-    @endif
-
-    
-
 @endsection

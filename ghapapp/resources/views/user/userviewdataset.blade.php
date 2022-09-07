@@ -1,76 +1,23 @@
 @extends('templates.layout')
 
-@section('content')
+@push('scripts')
     <script>
         //Put the relative URL of our ajax functions into global vars for use in external .js files
         var ajaxadddataitem = "{{url('ajaxadddataitem')}}";
         var ajaxeditdataitem = "{{url('ajaxeditdataitem')}}";
         var ajaxdeletedataitem = "{{url('ajaxdeletedataitem')}}";
 
-        //Bootstrap tooltips
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        });
-
-        //dataTable init + settings
-        $(document).ready( function () {
-            $("#dataitemtable").dataTable({
-                orderClasses: false,
-                bPaginate: true,
-                bFilter: true,
-                bInfo: false,
-                bSortable: true,
-                bRetrieve: true,
-                aaSorting: [[ 0, "asc" ]], 
-                aoColumnDefs: [{ "aTargets": [ 13,16,17 ], "bSortable": false, "bSearchable": false }],
-                "pageLength": 25
-            }); 
-        });
-
-        //LGA autocomplete
-        $(document).ready(function(){
-            var lgas = {!! $lgas !!};
-            $( "#addlga, [name='lga']" ).autocomplete({
-                source: function(request, response) {
-                    var results = $.ui.autocomplete.filter(lgas, request.term);
-                    response(results.slice(0, 20)); //return only 20 results
-                }
-            }); 
-            $( "#addlga, [name='lga']" ).autocomplete( "option", "appendTo", ".eventInsForm" );
-        });
-
-        //feature_term autocomplete
-        $(document).ready(function(){
-            var feature_terms = {!! $feature_terms !!};
-            $( "#addfeatureterm, [name='feature_term']" ).autocomplete({
-                source: function(request, response) {
-                    var results = $.ui.autocomplete.filter(feature_terms, request.term);
-                    response(results.slice(0, 20)); //return only 20 results
-                }
-            }); 
-            $( "#addfeatureterm, [name='feature_term']" ).autocomplete( "option", "appendTo", ".eventInsForm" );
-        });
-
-	//parish autocomplete
-	/*
-        $(document).ready(function(){
-            var parishes = {!! $parishes !!};
-            $( "#addparish, [name='parish']" ).autocomplete({
-                source: function(request, response) {
-                    var results = $.ui.autocomplete.filter(parishes, request.term);
-                    response(results.slice(0, 20)); //return only 20 results
-                }
-            }); 
-            $( "#addparish, [name='parish']" ).autocomplete( "option", "appendTo", ".eventInsForm" );
-        });
-	 */
+        var lgas = {!! $lgas !!};
+        var feature_terms = {!! $feature_terms !!};
     </script>
+    <script src="{{ asset('js/userviewdataset.js') }}"></script>
+    <!-- for description fields -->
+    <script src="/ghap/js/tinymce/tinymce.min.js"></script>
+    <script src="/ghap/js/wysiwyger.js"></script>
+    <script src="{{ asset('/js/dataitem.js') }}"></script>
+@endpush
 
-
-<!-- for description fields -->
-<script src="/ghap/js/tinymce/tinymce.min.js"></script>
-<script src="/ghap/js/wysiwyger.js"></script>
-
+@section('content')
 
     <h2>View Layer</h2>
     <a href="{{url('myprofile/mydatasets')}}" class="btn btn-primary">Back</a>
@@ -83,12 +30,14 @@
         <!-- Edit Dataset Modal Button-->
         @include('modals.editdatasetmodal')
     @else
-    
-    <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
+        @push('styles')
+            <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
+            <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
+        @endpush
 
-    <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
-    <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
-
+        @push('scripts')
+            <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
+        @endpush
     @endif
 
     <!-- Export/Download -->
@@ -103,8 +52,8 @@
         </div>
     </div>
 
-        <!-- Web Services Feed -->
-        <div class="dropdown">
+    <!-- Web Services Feed -->
+    <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="wsfeedDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             WS Feed
         </button>
@@ -113,7 +62,7 @@
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv">CSV</a>
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/json">GeoJSON</a>
         </div>
-        </div>
+    </div>
 
     <!-- Visualise-->
     <div class="dropdown">
@@ -139,15 +88,9 @@
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <tr><th class="w-25">Name</th><td>{{$ds->name}}</td></tr>
-		    <tr style="height: 50px; overflow: auto"><th>Description</th><td>{{$ds->description}}</td></tr>
-
-
-
-<tr style="height: 50px; overflow: auto"><th>Type</th>
-<td>{{$ds->recordtype->type}}</td></tr>
-
-<tr><th>Content Warning</th><td>{{$ds->warning}}</td></tr>
-
+		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{{$ds->description}}</td></tr>
+                    <tr style="height: 50px; overflow: auto"><th>Type</th><td>{{$ds->recordtype->type}}</td></tr>
+                    <tr><th>Content Warning</th><td>{{$ds->warning}}</td></tr>
                     <tr><th>Your Role</th><td>{{$ds->pivot->dsrole}}</td></tr>
                     <tr><th>Contributor</th><td>{{$ds->ownerName()}} @if($ds->owner() == $user->id) (You) @endif</td></tr>
                     <tr><th>Entries</th><td id="dscount">{{count($ds->dataitems)}}</td></tr>
@@ -179,6 +122,7 @@
                     <tr><th>Citation</th><td>{{$ds->citation}}</td></tr>
                     <tr><th>DOI</th><td id="doi">{{$ds->doi}}</td></tr>
                     <tr><th>Source URL</th><td id="source_url">{{$ds->source_url}}</td></tr>
+                    <tr><th>Linkback</th><td id="linkback">{{$ds->linkback}}</td></tr>
                     <tr><th>Date From</th><td>{{$ds->temporal_from}}</td></tr>
                     <tr><th>Date To</th><td>{{$ds->temporal_to}}</td></tr>
                 </table>
@@ -208,7 +152,6 @@
 
         <!-- MODAL Bulk Add Dataset button -->
         @include('modals.bulkaddtodatasetmodal')
-    @else
     @endif
     
     <!-- Dataitem Table -->
@@ -221,7 +164,7 @@
             <tr id="row_id_{{$data->id}}">
                 <td data-order="{{$data->title}}" data-search="{{$data->title}}">
                     <input class="inputastd" type="text" id="title" name="title" disabled="true" value="{{$data->title}}" oldvalue="{{$data->title}}"></td>
-		<td data-order="{{$data->placename}}" data-search="{{$data->placename}}">
+		        <td data-order="{{$data->placename}}" data-search="{{$data->placename}}">
                     <input class="inputastd" type="text" id="placename" name="placename" disabled="true" value="{{$data->placename}}" oldvalue="{{$data->placename}}"></td> 
                 <td data-order="{{$data->recordtype->type}}" data-search="{{$data->recordtype->type}}">
                     <select class="inputastd" type="text" id="recordtype" name="recordtype" disabled="true" value="{{$data->recordtype->type}}" oldvalue="{{$data->recordtype->type}}">
@@ -251,14 +194,6 @@
                 <td data-order="{{$data->dateend}}" data-search="{{$data->dateend}}">
                     <div class="input-group date" name="editdateenddiv">
                         <input type="text" class="inputastd input-group-addon" id="dateend" name="dateend" disabled="true" value="{{$data->dateend}}" oldvalue="{{$data->dateend}}" autocomplete="off"/></div></td>
-
-                <script type="text/javascript">
-                $(function () {
-                        $('[name="editdatestartdiv"]').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
-                        $('[name="editdateenddiv"]').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
-                    });
-                </script>
-
 
                 <td data-order="{{$data->state}}" data-search="{{$data->state}}">
                     <select class="inputastd" type="text" id="state" name="state" disabled="true" value="{{$data->state}}" oldvalue="{{$data->state}}">
@@ -310,5 +245,4 @@
         </tbody>
     </table>
     <a href="{{url('myprofile/mydatasets')}}" class="mb-3 btn btn-primary">Back</a>
-    <script src="{{ asset('/js/dataitem.js') }}"></script>
 @endsection

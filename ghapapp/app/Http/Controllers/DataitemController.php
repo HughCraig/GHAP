@@ -30,7 +30,7 @@ class DataitemController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -41,7 +41,7 @@ class DataitemController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \TLCMap\Dataitem  $di
+     * @param  \TLCMap\Dataitem $di
      * @return \Illuminate\Http\Response
      */
     public function show(Dataitem $di)
@@ -52,7 +52,7 @@ class DataitemController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \TLCMap\Dataitem  $di
+     * @param  \TLCMap\Dataitem $di
      * @return \Illuminate\Http\Response
      */
     public function edit(Dataitem $di)
@@ -63,8 +63,8 @@ class DataitemController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \TLCMap\Dataitem  $di
+     * @param  \Illuminate\Http\Request $request
+     * @param  \TLCMap\Dataitem $di
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Dataitem $di)
@@ -75,7 +75,7 @@ class DataitemController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \TLCMap\Dataitem  $di
+     * @param  \TLCMap\Dataitem $di
      * @return \Illuminate\Http\Response
      */
     public function destroy(Dataitem $di)

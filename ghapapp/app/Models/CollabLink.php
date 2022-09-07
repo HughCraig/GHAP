@@ -19,7 +19,8 @@ class CollabLink extends Model
      * Define a dataset relationship
      * 1 dataset has many collab links, 1 collab link has 1 dataset
      */
-    public function dataset() {
+    public function dataset()
+    {
         return $this->belongsTo(Dataset::class);
     }
 }

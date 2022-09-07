@@ -13,7 +13,7 @@ class CreateSubjectkeywordTable extends Migration
      */
     public function up()
     {
-        Schema::connection('mysql2')->create('subject_keyword', function (Blueprint $table) {
+        Schema::connection('pgsql2')->create('subject_keyword', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('keyword');
         });
@@ -26,6 +26,6 @@ class CreateSubjectkeywordTable extends Migration
      */
     public function down()
     {
-        Schema::connection('mysql2')->dropIfExists('subject_keyword');
+        Schema::connection('pgsql2')->dropIfExists('subject_keyword');
     }
 }

@@ -1,0 +1,19 @@
+/* Styles of collection legend */
+.collection-legend .collection-legend-item {
+    padding-bottom: 0.5em;
+    display: flex;
+}
+
+.collection-legend-item .collection-legend-color {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+    flex-shrink: 0;
+}
+
+.collection-legend-item .collection-legend-name {
+    display: inline-block;
+    line-height: normal;
+}

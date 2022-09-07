@@ -9,7 +9,7 @@ class Dsrole extends Model
     protected $connection = 'pgsql2';
     protected $table = "tlcmap.dsrole";
 
-    protected $fillable = [ 
+    protected $fillable = [
         'id', 'name', 'description'
     ];
 }

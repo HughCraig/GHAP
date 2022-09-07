@@ -34,11 +34,10 @@ class RegisterController extends Controller
 
     public function showRegistrationForm()
     {
-        if(!session()->has('url.intended'))
-        {
+        if (!session()->has('url.intended')) {
             session(['url.intended' => url()->previous()]);
         }
-        return view('auth.register');    
+        return view('auth.register');
     }
 
     /**
@@ -54,24 +53,24 @@ class RegisterController extends Controller
     /**
      * Get a validator for an incoming registration request.
      *
-     * @param  array  $data
+     * @param  array $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
     protected function validator(array $data)
     {
-        $notin = array_merge(explode(' ',strtolower($data['name'])), explode('@',strtolower($data['email']))); //cannot match username, or any part of the email address
+        $notin = array_merge(explode(' ', strtolower($data['name'])), explode('@', strtolower($data['email']))); //cannot match username, or any part of the email address
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:pgsql2.tlcmap.user'],
             'password' => [
                 'required', 'string', 'min:8', 'max:16', 'confirmed', //8+ chars, must match the password-confirm box
-                'regex:/[a-z]/','regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/', //must contain 1 of each: lowercase uppercase number and special character
+                'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/', //must contain 1 of each: lowercase uppercase number and special character
                 'not_regex:/(.)\1{4,}/', //must not contain any repeating char 4 or more times
-                function($attribute, $value, $fail) use ($notin) {
-                  $v = strtolower($value);
-                  foreach($notin as $n) {
-                    if (strpos($v,$n) !== false) $fail('Password cannot contain any part of your name or email!');
-                  }
+                function ($attribute, $value, $fail) use ($notin) {
+                    $v = strtolower($value);
+                    foreach ($notin as $n) {
+                        if (strpos($v, $n) !== false) $fail('Password cannot contain any part of your name or email!');
+                    }
                 }
             ],
         ]);
@@ -80,7 +79,7 @@ class RegisterController extends Controller
     /**
      * Create a new user instance after a valid registration.
      *
-     * @param  array  $data
+     * @param  array $data
      * @return \TLCMap\User
      */
     protected function create(array $data)
@@ -89,7 +88,7 @@ class RegisterController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-        ]); 
+        ]);
 
         $user->roles()->attach(Role::where('name', 'REGULAR')->first());
         return $user;

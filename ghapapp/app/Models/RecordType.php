@@ -14,7 +14,8 @@ class RecordType extends Model
         'id', 'type'
     ];
 
-    public static function types() {
+    public static function types()
+    {
         return RecordType::all()->pluck('type');
     }
 

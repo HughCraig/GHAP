@@ -19,7 +19,7 @@ class EmailChangedNew extends Mailable
      *
      * @return void
      */
-    public function __construct(string $old_email, string $new_email) 
+    public function __construct(string $old_email, string $new_email)
     {
         $this->old_email = $old_email;
         $this->new_email = $new_email;

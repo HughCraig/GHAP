@@ -13,12 +13,12 @@ class CreateSavedSearchTable extends Migration
      */
     public function up()
     {
-        Schema::connection('mysql2')->create('saved_search', function (Blueprint $table) {
+        Schema::connection('pgsql2')->create('saved_search', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->text('email');
+            $table->unsignedBigInteger('user_id')->index();
             $table->text('query');
-            $table->integer('count');
-            $table->text('name');
+            $table->unsignedBigInteger('count');
+            $table->text('name')->nullable();
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ class CreateSavedSearchTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('saved_search');
+        Schema::connection('pgsql2')->dropIfExists('saved_search');
     }
 }

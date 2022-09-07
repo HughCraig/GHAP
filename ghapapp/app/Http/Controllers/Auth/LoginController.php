@@ -41,20 +41,20 @@ class LoginController extends Controller
 
     public function showLoginForm()
     {
-        if(!session()->has('url.intended'))
-        {
+        if (!session()->has('url.intended')) {
             session(['url.intended' => url()->previous()]);
         }
-        return view('auth.login');    
+        return view('auth.login');
     }
 
     /**
      * Override the login function so we can check is_active
      * https://stackoverflow.com/questions/31015606/login-only-if-user-is-active-using-laravel
      */
-    public function login(\Illuminate\Http\Request $request) {
+    public function login(\Illuminate\Http\Request $request)
+    {
         $this->validateLogin($request);
-    
+
         // If the class is using the ThrottlesLogins trait, we can automatically throttle
         // the login attempts for this application. We'll key this by the username and
         // the IP address of the client making these requests into this application.
@@ -62,11 +62,11 @@ class LoginController extends Controller
             $this->fireLockoutEvent($request);
             return $this->sendLockoutResponse($request);
         }
-    
+
         // This section is the only change
         if ($this->guard()->validate($this->credentials($request))) {
             $user = $this->guard()->getLastAttempted();
-    
+
             // Make sure the user is active
             if ($user->is_active && $this->attemptLogin($request)) {
                 // Send the normal successful login response
@@ -82,12 +82,12 @@ class LoginController extends Controller
                     ->withMessage('Account has been deactivated');
             }
         }
-    
+
         // If the login attempt was unsuccessful we will increment the number of attempts
         // to login and redirect the user back to the login form. Of course, when this
         // user surpasses their maximum number of attempts they will get locked out.
         $this->incrementLoginAttempts($request);
-    
+
         return $this->sendFailedLoginResponse($request);
     }
 }

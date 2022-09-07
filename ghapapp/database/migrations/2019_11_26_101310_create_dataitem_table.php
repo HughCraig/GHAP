@@ -13,9 +13,37 @@ class CreateDataitemTable extends Migration
      */
     public function up()
     {
-        Schema::connection('mysql2')->create('dataitem', function (Blueprint $table) {
+        Schema::connection('pgsql2')->create('dataitem', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->unsignedBigInteger('dataset_id')->index()->nullable();
+            $table->text('title');
+            $table->unsignedBigInteger('recordtype_id')->index()->nullable()->default(1);
+            $table->text('description')->nullable();
+            $table->double('latitude');
+            $table->double('longitude');
+            $table->text('datestart')->nullable();
+            $table->text('dateend')->nullable();
+            $table->text('state')->nullable();
+            $table->text('feature_term')->nullable();
+            $table->text('lga')->nullable();
+            $table->text('source')->nullable();
+            $table->text('external_url')->nullable();
+            $table->text('extended_data')->nullable();
+            $table->text('kml_style_url')->nullable();
+            $table->text('placename')->nullable();
             $table->timestamps();
+
+//            Foreign key definitions if it's needed.
+//            $table->foreign('recordtype_id')
+//                ->references('id')
+//                ->on('recordtype')
+//                ->onDelete('SET NULL')
+//                ->onUpdate('RESTRICT');
+//            $table->foreign('dataset_id')
+//                ->references('id')
+//                ->on('dataset')
+//                ->onDelete('CASCADE')
+//                ->onUpdate('CASCADE');
         });
     }
 
@@ -26,6 +54,6 @@ class CreateDataitemTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('dataitem');
+        Schema::connection('pgsql2')->dropIfExists('dataitem');
     }
 }
