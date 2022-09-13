@@ -681,3 +681,86 @@ span.glyphicon a {
 div#searchresults {
     max-width: 100%;
 }
+
+/* GHAP site styles */
+div.header {
+    background-color: #f4f6f4;
+    height: 160px;
+}
+
+div#mainnav {
+    font-family: 'Open Sans', Arial Black, Helvetica, sans-serif;
+    font-weight: 900;
+    font-size: 18pt;
+    margin: 0 20% 0 20%;
+    height: 160px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-site-logo svg,
+.secondary-site-logo svg {
+    width: 128px;
+    height: 128px;
+}
+
+.main-site-logo svg path,
+.secondary-site-logo svg path {
+    fill: #013300;
+}
+
+.main-site-logo svg:hover path,
+.secondary-site-logo svg:hover path {
+    fill: #FF9A66;
+}
+
+.main-nav-content {
+    flex: 1;
+    margin-left: 2em;
+    margin-right: 2em;
+}
+
+.site-name {
+    text-align: center;
+    color: #17331C;
+    margin-bottom: 0.5em;
+    font-size: 1.2em;
+}
+
+.main-menu {
+    display: flex;
+    justify-content: space-between;
+}
+
+.main-menu a {
+    color: #17331C;
+    text-decoration: none;
+}
+
+.main-menu a:hover {
+    color: #F29469;
+}
+
+.main-menu span.active {
+    color: #F29469;
+}
+
+.secondary-nav {
+    background-color: #17331C;
+    color: #ffffff;
+    min-height: 38px;
+    margin-bottom: 1em;
+}
+
+.secondary-nav a.active {
+    background-color: #F29469;
+}
+
+.tlcmapcontainer .container {
+    width: 100%;
+}
+
+#helpVideoModal .modal-dialog {
+    padding-top: 5%;
+}

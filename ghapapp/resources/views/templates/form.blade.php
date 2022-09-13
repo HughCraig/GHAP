@@ -10,6 +10,8 @@
         var parishes = {!! $parishes !!};
         var feature_terms = {!! $feature_terms !!};
     </script>
+    <!-- js-cookie library for cookie usages -->
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
     <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
     <script src="{{ asset('js/searchform.js') }}"></script>
     <!-- TLCMap js file for the leaflet map -->
@@ -25,7 +27,7 @@
     @csrf
     <form action="search" autocomplete="off" method="GET" role="search" id="searchForm" name="searchForm" enctype="multipart/form-data">
         <!-- Search bar -->
-        <div id="mainsearchdiv" class="d-flex justify-content-center flex-fill">
+        <div id="mainsearchdiv" class="d-flex justify-content-center flex-fill mb-4">
 
             <div class="row">
                 <div class="col-sm-auto">
@@ -39,7 +41,7 @@
                         <option value="anps_id">anps_id</option>
                     </select>
                 </div>
-                <div class="col-smauto">
+                <div class="col-smauto pt-2">
                     <label data-toggle="tooltip" title="Search ANPS aggregated gazetteer of 'official' place names.">
                         Gazetteer
                         <input type="checkbox" id="searchausgaz" name="searchausgaz" checked>
@@ -55,29 +57,24 @@
                         Search <i class="fa fa-search"></i>
                     </button>
                 </div>
-                <div class="col-sm-auto">
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign"
-                          data-toggle="tooltip" data-placement="right"
-                          style="font-size: 32px;"
-                          title="Find results within the gazetteer and/or community contributed humanities information. Try 'contains', 'fuzzy' or 'exact'. Or use filters below, simply select an area on the map, or combine searches and filters. Max 50,000 results per page or file export.">
-                    </span>
+                @if (!empty($helpVideoURL))
+                    <div class="col-sm-auto pt-2">
+                        <a href="#" data-toggle="modal" data-target="#helpVideoModal"><i class="fa fa-question-circle-o"></i></a>
+                    </div>
+                @endif
+                <div class="col-sm-auto pt-2 ml-lg-5">
+                    <a id="advancedSearchButton" href="#advancedaccordion" data-toggle="collapse">Advanced Search <i class="fa fa-chevron-down"></i></a>
                 </div>
             </div>
         </div>
 
 
         <!-- Advanced Search and Filter -->
-        <div class="d-flex justify-content-center w3-light-grey ">
-            <div class="row">
-                <a href="#advancedaccordion" data-toggle="collapse">Advanced Search and Filter</a>
-            </div>
-        </div>
         <div id="advancedaccordion" class="collapse">
-            <div class="d-flex justify-content-center w3-light-grey">
-
+            <div class="d-flex justify-content-center w3-light-grey p-4">
                 <!-- Filters -->
                 <div class="row">
-                    <div class="col-sm-auto filter-div" style="max-width:500px; margin-bottom: 1em;">
+                    <div class="col-lg-4 filter-div">
                         <p class="h3">Filters</p>
                         <p>Note: this may find some but not necessarily all as records may not be tagged
                             comprehensively, and state records differ.</p>
@@ -165,113 +162,104 @@
                         </div>
                     </div>
 
-                    <!-- Bulk search placenames from file -->
-                    <div class="col-sm-auto ">
-                        <h3>Search for a list of place names</h3>
-                        <!-- help hover button -->
-                        <p>
-                            Select a file containing a list of place names to upload
-                            <span tabindex="0" data-html="true"
-                                data-animation="true"
-                                class="glyphicon glyphicon-question-sign"
-                                data-toggle="tooltip"
-                                data-placement="right"
-                                title="File must have placenames either one per line or seperated by commas.">
-                            </span>
-                        </p>
+                    <!-- Map Area Search -->
+                    <div class="col-lg-4">
+                        <div class="filter-div flex-fill">
+                            <p class="h3">Specify map area</p>
+                            <p>Pick a shape at the left of the map to draw an area to search in, or enter details:</p>
+                            <select id="mapselector" class="h4 m-0 mt-2 mb-3 text-center">
+                                <option id="bboxoption" value="bboxoption">Bounding Box</option>
+                                <option id="polygonoption" value="polygonoption">Polygon</option>
+                                <option id="circleoption" value="circleoption">Circle</option>
+                            </select>
+                            <div id="bboxdiv">
+                                <input type="hidden" id="bbox" name="bbox" value="">
 
-                        <div class="d-inline-flex justify-content-center">
-                            <input type="file" name="bulkfileinput" id="bulkfileinput" class="d-inline-block ">
-                            <button type="button" class="btn btn-danger" id="bulkfileCancel" hidden>&times;</button>
+                                <p class="mb-0">Longitude</p>
+                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                    <input type="text" class="w3-white form-control p-2" id="minlong" placeholder="min long">
+                                    <p class="mr-2 ml-2 text-decoration-none">to</p>
+                                    <input type="text" class="w3-white form-control p-2" id="maxlong" placeholder="max long">
+                                </div>
+
+                                <p class="mb-0">Latitude</p>
+                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                    <input type="text" class="w3-white form-control p-2" id="minlat" placeholder="min lat">
+                                    <p class="mr-2 ml-2 text-decoration-none">to</p>
+                                    <input type="text" class="w3-white form-control p-2" id="maxlat" placeholder="max lat">
+                                </div>
+
+                            </div>
+
+                            <div id="polygondiv" class="hidden">
+                                <input type="hidden" id="polygon" name="polygon" value="">
+                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                    Points
+                                    <input type="text" class="w3-white form-control p-2 ml-2" id="polygoninput" placeholder="0 0, 0 100, 100 100, 100 0, 0 0">
+                                </div>
+                            </div>
+
+                            <div id="circlediv" class="hidden">
+                                <input type="hidden" id="circle" name="circle" value="">
+                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                    Centre&nbsp;Lng:
+                                    <input type="text" class="w3-white form-control p-2 ml-2" id="circlelong" placeholder="longitude">
+                                </div>
+                                <div></div>
+                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                    Lat:
+                                    <input type="text" class="w3-white form-control p-2 ml-2" id="circlelat" placeholder="latitude">
+                                </div>
+                                <div></div>
+                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                    Radius(m)
+                                    <input type="text" class="w3-white form-control p-2 ml-2" id="circlerad" placeholder="Radius in metres">
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary mt-3" id="mapdraw" type="button">Draw</button>
                         </div>
                     </div>
-                    <!-- END Bulk search placenames from file -->
+                    <!-- End map Area Search -->
 
+                    <div class="col-lg-4">
+                        <!-- Bulk search placenames from file -->
+                        <div class="bulk-placename-search">
+                            <h3>Search for a list of place names</h3>
+                            <!-- help hover button -->
+                            <p>
+                                Select a file containing a list of place names to upload
+                                <span tabindex="0" data-html="true"
+                                      data-animation="true"
+                                      class="glyphicon glyphicon-question-sign"
+                                      data-toggle="tooltip"
+                                      data-placement="right"
+                                      title="File must have placenames either one per line or seperated by commas.">
+                            </span>
+                            </p>
 
-                    <!-- Search KML polygon from file -->
-                    <div class="col-sm-auto ">
-                        <h3>Search within a KML polygon</h3>
-                        <!-- MODAL Search within kml polygon from file
-                    NB: the popup content for this is below. It can't be here as it contains a form element, which would create bad form nesting. -->
-                        <p>Upload KML file to search within polygon.</p>
-                        <button type="button" class="d-inline-block border border-dark" data-toggle="modal" data-target="#kmlPolygonSearchModal">
-                            Choose File
-                        </button>
+                            <div class="d-inline-flex justify-content-center">
+                                <input type="file" name="bulkfileinput" id="bulkfileinput" class="d-inline-block pl-0">
+                                <button type="button" class="btn btn-danger" id="bulkfileCancel" hidden>&times;</button>
+                            </div>
+                        </div>
+                        <!-- END Bulk search placenames from file -->
+
+                        <!-- Search KML polygon from file -->
+                        <div class="kml-search">
+                            <h3>Search within a KML polygon</h3>
+                            <!-- MODAL Search within kml polygon from file
+                        NB: the popup content for this is below. It can't be here as it contains a form element, which would create bad form nesting. -->
+                            <p>Upload KML file to search within polygon.</p>
+                            <button type="button" class="d-inline-block border border-dark" data-toggle="modal" data-target="#kmlPolygonSearchModal">
+                                Choose File
+                            </button>
+                        </div>
+                        <!-- END KML polygon from file -->
                     </div>
-                    <!-- END KML polygon from file -->
-
                 </div>
             </div>
         </div>
         <!-- END Advanced Search and Filter -->
-
-
-        <!-- Map Area Search -->
-        <div id="mapareadiv" class="d-flex flex-fill align-items-stretch">
-
-            <div class="filter-div flex-fill" style="max-width: 320px; margin-right: 1em;">
-                <p class="h3 m-2 mb-3 text-center">Map Area Search</p>
-                <p>Pick a shape at the left of the map to draw an area to search in, or enter details:</p>
-                <select id="mapselector" class="h4 m-0 mt-2 mb-3 text-center">
-                    <option id="bboxoption" value="bboxoption">Bounding Box</option>
-                    <option id="polygonoption" value="polygonoption">Polygon</option>
-                    <option id="circleoption" value="circleoption">Circle</option>
-                </select>
-                <div id="bboxdiv">
-                    <input type="hidden" id="bbox" name="bbox" value="">
-
-                    <p class="text-center mb-0">Longitude</p>
-                    <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                        <input type="text" class="w3-white form-control p-2" id="minlong" placeholder="min long">
-                        <p class="mr-2 ml-2 text-decoration-none">to</p>
-                        <input type="text" class="w3-white form-control p-2" id="maxlong" placeholder="max long">
-                    </div>
-
-                    <p class="text-center mb-0">Latitude</p>
-                    <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                        <input type="text" class="w3-white form-control p-2" id="minlat" placeholder="min lat">
-                        <p class="mr-2 ml-2 text-decoration-none">to</p>
-                        <input type="text" class="w3-white form-control p-2" id="maxlat" placeholder="max lat">
-                    </div>
-
-                </div>
-
-                <div id="polygondiv" class="hidden">
-                    <input type="hidden" id="polygon" name="polygon" value="">
-                    <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                        Points
-                        <input type="text" class="w3-white form-control p-2 ml-2" id="polygoninput" placeholder="0 0, 0 100, 100 100, 100 0, 0 0">
-                    </div>
-                </div>
-
-                <div id="circlediv" class="hidden">
-                    <input type="hidden" id="circle" name="circle" value="">
-                    <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                        Centre
-                    </div>
-                    <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                        Lng:
-                        <input type="text" class="w3-white form-control p-2 ml-2" id="circlelong" placeholder="longitude">
-                    </div>
-                    <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                        Lat:
-                        <input type="text" class="w3-white form-control p-2 ml-2" id="circlelat" placeholder="latitude">
-                    </div>
-                    <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                        Radius(m)
-                        <input type="text" class="w3-white form-control p-2 ml-2" id="circlerad" placeholder="Radius in metres">
-                    </div>
-                </div>
-                <button class="btn btn-secondary mt-3" id="mapdraw" type="button">Draw</button>
-            </div>
-
-
-            <div class="filter-div flex-fill" style="width=100%;height:100%;">
-                <!-- Leaflet Map -->
-                <div id="ausmap" class="flex-fill" style="height:65vh;margin-bottom:20px;min-width:300px;"></div>
-            </div>
-        </div>
-        <!-- END Map Area Search -->
 
         <!--  not sure why these hidden fields are here, but suspect there is some funk where js sets this according to user selection from drop down. -->
         <input type="hidden" id="names" name="names">
@@ -279,6 +267,14 @@
         <input type="hidden" id="containsnames" name="containsnames">
     </form>
 
+    <!-- Map Area Search -->
+    <div id="mapareadiv" class="d-flex flex-fill align-items-stretch mt-4">
+        <div class="filter-div flex-fill" style="width:100%;height:100%;">
+            <!-- Leaflet Map -->
+            <div id="ausmap" class="flex-fill" style="height:65vh;margin-bottom:20px;min-width:300px;"></div>
+        </div>
+    </div>
+    <!-- END Map Area Search -->
 
     <!-- MODAL popup -->
     <!-- NB: this is the pop up content for a button above that opens it. This content needs to be place here outside of the main form, because it contains a form element
@@ -313,5 +309,17 @@
         </div>
     </div>
 
+    @if (!empty($helpVideoURL))
+        <!-- GHAP help video modal -->
+        <div id="helpVideoModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="embed-responsive embed-responsive-16by9">
+                        <iframe class="embed-responsive-item" src="{{ $helpVideoURL }}" title="GHAP Help Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
 <!-- whole search and filter form -->

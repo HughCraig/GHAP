@@ -44,6 +44,13 @@ class HomeController extends Controller
         // $states = DB::table('gazetteer.register')->select('state_code')->distinct()->groupby('state_code')->get();
         $count = DB::table('gazetteer.register')->count(); //count of all register entries
 
-        return view('ws.ghap.places.index', ['lgas' => $lgas, 'feature_terms' => $feature_terms, 'parishes' => $parishes, 'states' => $states, 'count' => $count]);
+        return view('ws.ghap.places.index', [
+            'lgas' => $lgas,
+            'feature_terms' => $feature_terms,
+            'parishes' => $parishes,
+            'states' => $states,
+            'count' => $count,
+            'helpVideoURL' => config('app.help_video_url'),
+        ]);
     }
 }

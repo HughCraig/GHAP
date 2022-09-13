@@ -42,4 +42,32 @@ $(document).ready(function () {
         forceParse: false,
         keyboardNavigation: false
     });
+
+    // Change the advance search button icon on expand/collapse.
+    $('#advancedaccordion').on('show.bs.collapse', function () {
+        $('#advancedSearchButton').find('i.fa')
+            .removeClass('fa-chevron-down')
+            .addClass('fa-chevron-up');
+    });
+    $('#advancedaccordion').on('hide.bs.collapse', function () {
+        $('#advancedSearchButton').find('i.fa')
+            .removeClass('fa-chevron-up')
+            .addClass('fa-chevron-down');
+    });
+
+    // Check whether the help video is loaded.
+    if ($('#helpVideoModal').length > 0) {
+        // Show help video at the first time visit.
+        const helpVideoPlayed = Cookies.get('helpVideoPlayed');
+        if (!helpVideoPlayed) {
+            // Set the cookie expires after 100 years, as never expires.
+            Cookies.set('helpVideoPlayed', '1', {expires: 365 * 100});
+            $('#helpVideoModal').modal('show');
+        }
+
+        // Pause the help video when the modal is closed.
+        $('#helpVideoModal').on('hidden.bs.modal', function () {
+            $('#helpVideoModal').find('iframe')[0].contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*')
+        });
+    }
 });

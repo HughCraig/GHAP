@@ -6,6 +6,17 @@ return [
     'maxpaging' => env('MAX_PAGING', false),
     'defaultpaging' => env('DEFAULT_PAGING', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Help video URL
+    |--------------------------------------------------------------------------
+    |
+    | The URL of the help video in search form. If it's from YouTube, remember to add rel=0&enablejsapi=1 query string
+    | at the end of the embed URL to hide more videos and enable some more functions. Omit this variable will completely
+    | disable the help video feature.
+    |
+    */
+    'help_video_url' => env('HELP_VIDEO_URL', null),
 
     /*
     |--------------------------------------------------------------------------

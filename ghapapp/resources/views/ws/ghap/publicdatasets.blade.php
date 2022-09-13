@@ -4,10 +4,18 @@
     <script src="{{ asset('js/publicdatasets.js') }}"></script>
 @endpush
 
+@section('secondary_nav')
+    <a href="{{ url('publicdatasets') }}" class="w3-bar-item w3-button w3-mobile active" data-toggle="tooltip"
+       title="Layers contributed by research community.">Layers</a>
+    <a href="{{ url('publiccollections') }}" class="w3-bar-item w3-button w3-mobile" data-toggle="tooltip"
+       title="Multilayers contributed by research community.">Multilayers</a>
+@endsection
+
 @section('content')
 
     <h2>Layers</h2>
-    <a href="{{route('index')}}" class="mb-3 btn btn-primary">Back</a><br>
+    <a href="{{route('index')}}" class="mb-3 btn btn-primary">Back</a>
+    <a href="{{url('myprofile/mydatasets/newdataset')}}" class="mb-3 btn btn-primary">Create Layer</a><br>
 
     <table id="datasettable" class="display" style="width:100%">
         <thead class="w3-black"><tr><th>Name</th><th>Size</th><th>Type</th><th>Content Warning</th><th>Created</th><th>Updated</th><th>View Map</th></tr></thead>

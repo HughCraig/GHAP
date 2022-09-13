@@ -43,10 +43,10 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 
     <!-- GHAP CSS -->
-    <link rel="stylesheet" href="/ghap/css/ghap.css">
+    <link rel="stylesheet" href="{{ asset('css/ghap.css') }}">
 
     <!-- TLCMap CSS -->
-    <link rel="stylesheet" href="/css/tlcmap.css">
+    <link rel="stylesheet" href="{{ asset('css/tlcmap_base.css') }}">
 
     <!-- Leafletjs 1.6 css -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
@@ -117,139 +117,64 @@
     <!-- NAVBAR -->
     <div class="header">
 
-        <div id="mainnav" class="">
-            <a href="/"><img src="/img/tlcmaplogo.jpg" id="mainlogo"
-                             alt="Logo, dark lines on white, like several layers of mountains or a line graph."
-                             style="width:128px; display: inline-block;"></a>
+        <div id="mainnav" class="main-nav">
+            <div class="main-site-logo">
+                <a href="{{ url('/') }}">
+                    @include('templates/misc/ghap_logo')
+                </a>
+            </div>
 
-            <div class="w3-dropdown-hover w3-mobile">
-                <a href="#">TOOLS</a>
-                <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
-                    <a href="/tools/" class="w3-bar-item w3-button"
-                       style="border-left: 4px solid #FACC99; background-color: #FACC99;">Overview</a>
-                    <div class="subnav">
-                        <a href="/ghap/" class="w3-bar-item w3-button">Gazetteer</a>
-                        <a href="/quicktools/" class="w3-bar-item w3-button">Quick Tools</a>
+            <div class="main-nav-content">
+                <div class="site-name">
+                    Gazetteer of Historical Australian Places
+                </div>
+                <div class="main-menu">
+                    <div class="main-menu-item">
+                        <a href="{{ url('/') }}">Search Gazetteer</a>
                     </div>
-                    <a href="/tools/#partner" class="w3-bar-item w3-button"
-                       style="border-left: 4px solid #FACC99; background-color: #FACC99;">Partner Tools</a>
-
-                    <div class="subnav">
-                        <a href="/te/" target="_blank" class="w3-bar-item w3-button"> Temporal Earth</a>
-                        <a href="https://heuristnetwork.org/" target="_blank" class="w3-bar-item w3-button"> Heurist</a>
-                        <a href="https://huni.net.au/" target="_blank" class="w3-bar-item w3-button"> HuNI</a>
-                        <a href="https://uts-eresearch.github.io/describo/" target="_blank"
-                           class="w3-bar-item w3-button">RO-Crate</a>
+                    <div class="main-menu-item">
+                        <a href="{{ url('publicdatasets') }}">Browse layers</a>
                     </div>
+                    <div class="main-menu-item">
+                        <a href="https://tlcmap.org/guides/ghap/">Help</a>
+                    </div>
+                    @guest
+                        <div class="main-menu-item">
+                            <a href="{{ url('login') }}">Log in</a>
+                        </div>
+                    @else
+                        <div class="main-menu-item w3-dropdown-hover w3-mobile">
+                            <a href="{{ url('myprofile') }}">Account <i class="fa fa-caret-down"></i></a>
+                            <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
+                                <a href="{{ url('myprofile/mydatasets') }}" class="w3-bar-item w3-button">My layers</a>
+                                <a href="{{ url('myprofile/mycollections') }}" class="w3-bar-item w3-button">My multilayers</a>
+                                <a href="{{ url('myprofile/mysearches') }}" class="w3-bar-item w3-button">My searches</a>
+                                {{-- Custom directive 'admin' to check wether the user has the admin role. --}}
+                                @admin
+                                    <a href="{{ url('admin') }}" class="w3-bar-item w3-button">Admin</a>
+                                @endadmin
+                            </div>
+                        </div>
+                        <div class="main-menu-item">
+                            <a href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                @csrf
+                            </form>
+                        </div>
+                    @endguest
                 </div>
             </div>
-
-            <div class="w3-dropdown-hover w3-mobile">
-                <a href="#">GUIDES</a>
-                <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
-                    <a href="/guides/welcome.php" class="w3-bar-item w3-button">Beginners</a>
-                    <a href="/guides/faqs.php" class="w3-bar-item w3-button">FAQs</a>
-                    <a href="/guides/tutorials.php" class="w3-bar-item w3-button">Tutorials</a>
-                    <a href="/guides/dev.php" class="w3-bar-item w3-button">Developers</a>
-                </div>
-            </div>
-
-            <div class="w3-dropdown-hover w3-mobile">
-                <a href="#">EXAMPLES</a>
-                <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
-                    <a href="/workflow/" class="w3-bar-item w3-button">Workflow</a>
-                    <a href="/projects/" class="w3-bar-item w3-button">Projects</a>
-                    <a href="/themes/" class="w3-bar-item w3-button">Themes</a>
-                </div>
-            </div>
-
-            <div class="w3-dropdown-hover w3-mobile">
-                <a href="#">ABOUT</a>
-                <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
-                    <a href="/about/devstrategy.php" class="w3-bar-item w3-button">Development</a>
-                    <a href="/about/ci.php" class="w3-bar-item w3-button">Chief Investigators</a>
-                    <a href="/about/partners.php" class="w3-bar-item w3-button">Partners</a>
-                    <a href="/about/contact.php" class="w3-bar-item w3-button">Contact</a>
-                </div>
+            <div class="secondary-site-logo">
+                <a href="https://tlcmap.org/">
+                    @include('templates/misc/tlcmap_logo')
+                </a>
             </div>
         </div>
     </div>
 
     <!-- Start Navbar -->
-    <div class="w3-bar" style="background-color: #17331C; color: #ffffff;">
-
-        @guest
-            <a class="w3-bar-item w3-button w3-mobile" href="{{ url('/') }}"
-               title="Search and find placenames and cultural layers.">Search</a>
-
-            <a href="{{route('publicdatasets')}}" class="w3-bar-item w3-button w3-mobile" data-toggle="tooltip"
-               title="Layers contributed by research community.">Browse Layers</a>
-            <a href="{{url('publiccollections')}}" class="w3-bar-item w3-button w3-mobile" data-toggle="tooltip"
-               title="Multilayers contributed by research community.">Browse Multilayers</a>
-            <a href="/guides/ghap/" class="w3-bar-item w3-button w3-mobile">Help</a>
-
-
-            <div class=" w3-right">
-                <a class="w3-bar-item w3-button w3-mobile" href="{{ route('login') }}">{{ __('Login') }}</a>
-
-                <a class="w3-bar-item w3-button w3-mobile" href="/guides/ghap/#contribute"
-                   style="background-color:#F29469;">Create Layer</a>
-                <a class="w3-bar-item w3-button w3-mobile" href="/guides/ghap/#contribute"
-                   style="background-color:#F29469;">Create Multilayer</a>
-            </div>
-        @else
-            <a class="w3-bar-item w3-button w3-mobile" href="{{ url('/') }}"
-               title="Search and find placenames and cultural layers.">Search</a>
-
-            <a href="{{route('publicdatasets')}}" class="w3-bar-item w3-button w3-mobile" data-toggle="tooltip"
-               title="Layers contributed by research community.">Browse Layers</a>
-            <a href="{{url('publiccollections')}}" class="w3-bar-item w3-button w3-mobile" data-toggle="tooltip"
-               title="Multilayers contributed by research community.">Browse Multilayers</a>
-            <a href="/guides/ghap/" class="w3-bar-item w3-button w3-mobile">Help</a>
-            <!--Logout-->
-            <div class=" w3-mobile w3-right">
-                <a class="w3-bar-item w3-button w3-mobile" href="{{ route('logout') }}"
-                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                    {{ __('Logout') }}
-                </a>
-                <a class="w3-bar-item w3-button w3-mobile" href="{{url('myprofile/mydatasets/newdataset')}}"
-                   style="background-color:#F29469;">Create Layer</a>
-                <a class="w3-bar-item w3-button w3-mobile" href="{{url('myprofile/mycollections/newcollection')}}"
-                   style="background-color:#F29469;">Create Multilayer</a>
-            </div>
-
-            <!-- MyProfile -->
-            <div class=" w3-dropdown-hover w3-mobile w3-right">
-                <a href="{{url('myprofile')}}" class="nav-link-but">
-                    <button class="w3-button"> Account ({{ substr(Auth::user()->name, 0, 16) }}) <i
-                            class="fa fa-caret-down"></i></button>
-                </a>
-                <div class="w3-dropdown-content w3-bar-block w3-dark-grey">
-                    <a href="{{url('myprofile/mydatasets')}}" class="w3-bar-item w3-button w3-mobile">My Layers</a>
-                    <a href="{{url('myprofile/mycollections')}}" class="w3-bar-item w3-button w3-mobile">My
-                        Multilayers</a>
-                    <a href="{{url('myprofile/mysearches')}}" class="w3-bar-item w3-button w3-mobile">My Searches</a>
-                </div>
-            </div>
-
-            @admin
-                <!-- Admin -->
-                <div class=" w3-dropdown-hover w3-mobile w3-right">
-                    <a class="nav-link-but" href='/admin'>
-                        <button class="w3-button">Admin <i class="fa fa-caret-down"></i></button>
-                    </a>
-                    <div class="w3-dropdown-content w3-bar-block w3-dark-grey">
-                        <a href="{{url('admin/users')}}" class="w3-bar-item w3-button w3-mobile">Manage Users</a>
-                        <a href="{{url('admin')}}" class="w3-bar-item w3-button w3-mobile">ABC</a>
-                        <a href="{{url('admin')}}" class="w3-bar-item w3-button w3-mobile">123</a>
-                    </div>
-                </div>
-            @endadmin
-
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                @csrf
-            </form>
-        @endguest
+    <div class="secondary-nav w3-bar">
+        @yield('secondary_nav')
     </div>
     <!-- End Navbar -->
 
@@ -297,10 +222,8 @@
 <!-- begin footer -->
 
 <div class="footer">
-    <img src="/img/footmnt.png"><img src="/img/foottile.png">
+    <img src="{{ asset('img/footmnt.png') }}"><img src="{{ asset('img/foottile.png') }}">
 </div>
-
-<script src="/js/tlcmapnav.js"></script>
 
 <!-- Other JS -->
 @stack('scripts')
