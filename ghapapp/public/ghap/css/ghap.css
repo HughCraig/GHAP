@@ -705,12 +705,18 @@ div#mainnav {
     height: 128px;
 }
 
-.main-site-logo svg path,
+.main-site-logo svg path {
+    fill: #FF9A66;
+}
+
 .secondary-site-logo svg path {
     fill: #013300;
 }
 
-.main-site-logo svg:hover path,
+.main-site-logo svg:hover path {
+    fill: #013300;
+}
+
 .secondary-site-logo svg:hover path {
     fill: #FF9A66;
 }
