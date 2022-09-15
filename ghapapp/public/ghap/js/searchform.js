@@ -55,6 +55,14 @@ $(document).ready(function () {
             .addClass('fa-chevron-down');
     });
 
+    // Expand the advanced search tab if it's specified in the URL fragment
+    if (window.location.hash === '#advancedsearch') {
+        $('#advancedaccordion').collapse('show');
+        $('#advancedSearchButton').find('i.fa')
+            .removeClass('fa-chevron-down')
+            .addClass('fa-chevron-up');
+    }
+
     // Check whether the help video is loaded.
     if ($('#helpVideoModal').length > 0) {
         // Show help video at the first time visit.

@@ -19,7 +19,7 @@
             <div>
                 <script> var downloadurl = window.location.href.replace(/&?\??paging=[0-9]*/, '').replace(/&?\??page=[0-9]*/, '').replace('+', '%20'); </script>
 
-                <a href="{{route('index')}}" class="btn btn-secondary tlcmgreen" role="button" id="advancedsearch" title="Search within an area, exact or fuzzy matching and filter by attributes.">Advanced Search</a>
+                <a href="{{route('index')}}#advancedsearch" class="btn btn-secondary tlcmgreen" role="button" id="advancedsearch" title="Search within an area, exact or fuzzy matching and filter by attributes.">Advanced Search</a>
 
 
                 <!-- Export/Download -->
