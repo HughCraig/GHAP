@@ -164,60 +164,58 @@
 
                     <!-- Map Area Search -->
                     <div class="col-lg-4">
-                        <div class="filter-div flex-fill">
-                            <p class="h3">Specify map area</p>
-                            <p>Pick a shape at the left of the map to draw an area to search in, or enter details:</p>
-                            <select id="mapselector" class="h4 m-0 mt-2 mb-3 text-center">
-                                <option id="bboxoption" value="bboxoption">Bounding Box</option>
-                                <option id="polygonoption" value="polygonoption">Polygon</option>
-                                <option id="circleoption" value="circleoption">Circle</option>
-                            </select>
-                            <div id="bboxdiv">
-                                <input type="hidden" id="bbox" name="bbox" value="">
+                        <p class="h3">Specify map area</p>
+                        <p>Pick a shape at the left of the map to draw an area to search in, or enter details:</p>
+                        <select id="mapselector" class="h4 m-0 mt-2 mb-3 text-center">
+                            <option id="bboxoption" value="bboxoption">Bounding Box</option>
+                            <option id="polygonoption" value="polygonoption">Polygon</option>
+                            <option id="circleoption" value="circleoption">Circle</option>
+                        </select>
+                        <div id="bboxdiv">
+                            <input type="hidden" id="bbox" name="bbox" value="">
 
-                                <p class="mb-0">Longitude</p>
-                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                                    <input type="text" class="w3-white form-control p-2" id="minlong" placeholder="min long">
-                                    <p class="mr-2 ml-2 text-decoration-none">to</p>
-                                    <input type="text" class="w3-white form-control p-2" id="maxlong" placeholder="max long">
-                                </div>
-
-                                <p class="mb-0">Latitude</p>
-                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                                    <input type="text" class="w3-white form-control p-2" id="minlat" placeholder="min lat">
-                                    <p class="mr-2 ml-2 text-decoration-none">to</p>
-                                    <input type="text" class="w3-white form-control p-2" id="maxlat" placeholder="max lat">
-                                </div>
-
+                            <p class="mb-0">Longitude</p>
+                            <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                <input type="text" class="w3-white form-control p-2" id="minlong" placeholder="min long">
+                                <p class="mr-2 ml-2 text-decoration-none">to</p>
+                                <input type="text" class="w3-white form-control p-2" id="maxlong" placeholder="max long">
                             </div>
 
-                            <div id="polygondiv" class="hidden">
-                                <input type="hidden" id="polygon" name="polygon" value="">
-                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                                    Points
-                                    <input type="text" class="w3-white form-control p-2 ml-2" id="polygoninput" placeholder="0 0, 0 100, 100 100, 100 0, 0 0">
-                                </div>
+                            <p class="mb-0">Latitude</p>
+                            <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                <input type="text" class="w3-white form-control p-2" id="minlat" placeholder="min lat">
+                                <p class="mr-2 ml-2 text-decoration-none">to</p>
+                                <input type="text" class="w3-white form-control p-2" id="maxlat" placeholder="max lat">
                             </div>
 
-                            <div id="circlediv" class="hidden">
-                                <input type="hidden" id="circle" name="circle" value="">
-                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                                    Centre&nbsp;Lng:
-                                    <input type="text" class="w3-white form-control p-2 ml-2" id="circlelong" placeholder="longitude">
-                                </div>
-                                <div></div>
-                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                                    Lat:
-                                    <input type="text" class="w3-white form-control p-2 ml-2" id="circlelat" placeholder="latitude">
-                                </div>
-                                <div></div>
-                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                                    Radius(m)
-                                    <input type="text" class="w3-white form-control p-2 ml-2" id="circlerad" placeholder="Radius in metres">
-                                </div>
-                            </div>
-                            <button class="btn btn-secondary mt-3" id="mapdraw" type="button">Draw</button>
                         </div>
+
+                        <div id="polygondiv" class="hidden">
+                            <input type="hidden" id="polygon" name="polygon" value="">
+                            <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                Points
+                                <input type="text" class="w3-white form-control p-2 ml-2" id="polygoninput" placeholder="0 0, 0 100, 100 100, 100 0, 0 0">
+                            </div>
+                        </div>
+
+                        <div id="circlediv" class="hidden">
+                            <input type="hidden" id="circle" name="circle" value="">
+                            <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                Centre&nbsp;Lng:
+                                <input type="text" class="w3-white form-control p-2 ml-2" id="circlelong" placeholder="longitude">
+                            </div>
+                            <div></div>
+                            <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                Lat:
+                                <input type="text" class="w3-white form-control p-2 ml-2" id="circlelat" placeholder="latitude">
+                            </div>
+                            <div></div>
+                            <div class="rTableRow d-inline-flex" style="line-height:32px;">
+                                Radius(m)
+                                <input type="text" class="w3-white form-control p-2 ml-2" id="circlerad" placeholder="Radius in metres">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary mt-3" id="mapdraw" type="button">Draw</button>
                     </div>
                     <!-- End map Area Search -->
 
