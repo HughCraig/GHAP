@@ -130,9 +130,6 @@
                 </div>
                 <div class="main-menu">
                     <div class="main-menu-item">
-                        <a href="{{ url('/') }}">Search Gazetteer</a>
-                    </div>
-                    <div class="main-menu-item">
                         <a href="{{ url('publicdatasets') }}">Browse layers</a>
                     </div>
                     <div class="main-menu-item">
