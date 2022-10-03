@@ -4,13 +4,6 @@
     <script src="{{ asset('js/publicdatasets.js') }}"></script>
 @endpush
 
-@section('secondary_nav')
-    <a href="{{ url('publicdatasets') }}" class="w3-bar-item w3-button w3-mobile active" data-toggle="tooltip"
-       title="Layers contributed by research community.">Layers</a>
-    <a href="{{ url('publiccollections') }}" class="w3-bar-item w3-button w3-mobile" data-toggle="tooltip"
-       title="Multilayers contributed by research community.">Multilayers</a>
-@endsection
-
 @section('content')
 
     <h2>Layers</h2>

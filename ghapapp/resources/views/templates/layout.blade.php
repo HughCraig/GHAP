@@ -129,36 +129,24 @@
                     Gazetteer of Historical Australian Places
                 </div>
                 <div class="main-menu">
-                    <div class="main-menu-item">
-                        <a href="{{ url('publicdatasets') }}">Browse layers</a>
+                    <div class="w3-dropdown-hover" style="display:none;"></div>
+                    <div class="main-menu-item w3-dropdown-hover w3-mobile">
+                        <a href="#">Browse Layers <i class="fa fa-caret-down"></i></a>
+                        <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
+                            <a href="{{ url('publicdatasets') }}" class="w3-bar-item w3-button">Layers</a>
+                            <a href="{{ url('publiccollections') }}" class="w3-bar-item w3-button">Multilayers</a>
+                        </div>
                     </div>
                     <div class="main-menu-item">
-                        <a href="https://tlcmap.org/guides/ghap/">Help</a>
+                        <a href="#">About</a>
                     </div>
-                    @guest
-                        <div class="main-menu-item">
-                            <a href="{{ url('login') }}">Log in</a>
+                    <div class="main-menu-item w3-dropdown-hover w3-mobile">
+                        <a href="#">Help <i class="fa fa-caret-down"></i></a>
+                        <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
+                            <a href="#" class="w3-bar-item w3-button">Get started</a>
+                            <a href="https://tlcmap.org/guides/ghap/" class="w3-bar-item w3-button">Guide</a>
                         </div>
-                    @else
-                        <div class="main-menu-item w3-dropdown-hover w3-mobile">
-                            <a href="{{ url('myprofile') }}">Account <i class="fa fa-caret-down"></i></a>
-                            <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
-                                <a href="{{ url('myprofile/mydatasets') }}" class="w3-bar-item w3-button">My layers</a>
-                                <a href="{{ url('myprofile/mycollections') }}" class="w3-bar-item w3-button">My multilayers</a>
-                                <a href="{{ url('myprofile/mysearches') }}" class="w3-bar-item w3-button">My searches</a>
-                                {{-- Custom directive 'admin' to check wether the user has the admin role. --}}
-                                @admin
-                                    <a href="{{ url('admin') }}" class="w3-bar-item w3-button">Admin</a>
-                                @endadmin
-                            </div>
-                        </div>
-                        <div class="main-menu-item">
-                            <a href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                                @csrf
-                            </form>
-                        </div>
-                    @endguest
+                    </div>
                 </div>
             </div>
             <div class="secondary-site-logo">
@@ -171,7 +159,26 @@
 
     <!-- Start Navbar -->
     <div class="secondary-nav w3-bar">
-        @yield('secondary_nav')
+        @guest
+            <div class=" w3-mobile w3-right">
+                <a class="w3-bar-item w3-button w3-mobile" href="{{ url('login') }}">Log in</a>
+            </div>
+        @else
+            <a class="w3-bar-item w3-button w3-mobile" href="{{ url('myprofile') }}">My profile ({{ Auth::user()->name }})</a>
+            <a class="w3-bar-item w3-button w3-mobile" href="{{ url('myprofile/mydatasets') }}">My layers</a>
+            <a class="w3-bar-item w3-button w3-mobile" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
+            <a class="w3-bar-item w3-button w3-mobile" href="{{ url('myprofile/mysearches') }}">My searches</a>
+            {{-- Custom directive 'admin' to check wether the user has the admin role. --}}
+            @admin
+                <a class="w3-bar-item w3-button w3-mobile" href="{{ url('admin') }}">Admin</a>
+            @endadmin
+            <div class=" w3-mobile w3-right">
+                <a class="w3-bar-item w3-button w3-mobile" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+            </div>
+        @endguest
     </div>
     <!-- End Navbar -->
 
