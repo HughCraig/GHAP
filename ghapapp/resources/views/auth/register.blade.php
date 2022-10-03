@@ -61,12 +61,17 @@
                             </div>
                         </div>
 
+                        <div class="form-group row">
+                            <div class="col-md-6 offset-md-4">
+                                I accept the <a href="https://tlcmap.org/cou/" target="_blank">TLCMap Conditions of Use</a> <input type="checkbox" id="cou" name="cou" required>
+                            </div>
+                        </div>
+
                         <div class="form-group row mb-0">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary">
                                     {{ __('Register') }}
                                 </button>
-                                </span>
                             </div>
                         </div>
                     </form>

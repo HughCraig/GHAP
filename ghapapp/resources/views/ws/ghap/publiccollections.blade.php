@@ -5,7 +5,17 @@
 @endpush
 
 @section('content')
-    <h2>Multilayers</h2>
+    <h2>
+        Multilayers
+        <span tabindex="0" data-html="true"
+              data-animation="true"
+              class="glyphicon glyphicon-question-sign"
+              data-toggle="tooltip"
+              data-placement="right"
+              style="font-size:16px"
+              title="Multilayers are contributed by many authors. They may be incomplete or imprecise. Check the multilayer for details about the source.">
+        </span>
+    </h2>
     <a href="{{route('index')}}" class="mb-3 btn btn-primary">Back</a>
     <a href="{{url('myprofile/mycollections/newcollection')}}" class="mb-3 btn btn-primary">Create Multilayer</a><br>
 

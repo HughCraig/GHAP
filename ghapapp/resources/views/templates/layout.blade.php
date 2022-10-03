@@ -106,6 +106,7 @@
 
     <!-- TLCMap js-->
     <script type="text/javascript" src="{{ asset('/js/tablesort.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/tooltips.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/form.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/autocomplete.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/urltools.js') }}"></script>

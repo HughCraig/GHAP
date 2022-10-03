@@ -6,7 +6,18 @@
 
 @section('content')
 
-    <h2>Layers</h2>
+    <h2>
+        Layers
+        <span tabindex="0" data-html="true"
+              data-animation="true"
+              class="glyphicon glyphicon-question-sign"
+              data-toggle="tooltip"
+              data-placement="right"
+              style="font-size:16px"
+              title="Layers are contributed by many authors. They may be incomplete or imprecise. Check the layer for details about the source.">
+        </span>
+    </h2>
+
     <a href="{{route('index')}}" class="mb-3 btn btn-primary">Back</a>
     <a href="{{url('myprofile/mydatasets/newdataset')}}" class="mb-3 btn btn-primary">Create Layer</a><br>
 

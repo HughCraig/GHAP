@@ -1,7 +1,4 @@
 $(document).ready( function () {
-    // Bootstrap tooltips.
-    $('[data-toggle="tooltip"]').tooltip();
-
     // Init datatable.
     $("#datasetsTable").dataTable({
         orderClasses: false,

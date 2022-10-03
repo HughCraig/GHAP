@@ -1,7 +1,4 @@
 $(document).ready( function () {
-    //Bootstrap tooltips.
-    $('[data-toggle="tooltip"]').tooltip();
-
     // Datepickers.
     $('#temporalfromdiv').datepicker({
         format: 'yyyy-mm-dd',

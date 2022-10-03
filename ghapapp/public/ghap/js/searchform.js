@@ -26,9 +26,6 @@ $(document).ready(function () {
     });
     $("#addfeatureterm, [name='feature_term']").autocomplete("option", "appendTo", ".eventInsForm");
 
-    //Bootstrap tooltips.
-    $('[data-toggle="tooltip"]').tooltip();
-
     // Datepickers.
     $('#datefrom').datepicker({
         format: 'yyyy-mm-dd',

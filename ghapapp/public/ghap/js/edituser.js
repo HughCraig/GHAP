@@ -14,9 +14,6 @@ function openTab(evt, tabName) {
 }
 
 $(document).ready(function () {
-    // Bootstrap tooltips.
-    $('[data-toggle="tooltip"]').tooltip();
-
     // Active tab based on the error existence.
     if ($('#General').find('.invalid-feedback').length > 0) {
         document.getElementById("general_tab").click();

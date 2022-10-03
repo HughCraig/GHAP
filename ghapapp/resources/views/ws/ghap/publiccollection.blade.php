@@ -8,16 +8,6 @@
 
     <h2>Multilayer</h2>
 
-    <div class="mt-4 mb-1">
-        <p>
-            Note: Layers are contributed from many sources by many people or derived by computer
-            and are the responsibility of the contributor.
-            Layers may be incomplete and locations and dates may be imprecise.
-            Check the layer for details about the source. Absence in TLCMap does not indicate absence in reality.
-            Use of TLCMap may inform heritage research but is not a substitute for established formal and legal processes and consultation.
-        </p>
-    </div>
-
     <!-- Visualise-->
     <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

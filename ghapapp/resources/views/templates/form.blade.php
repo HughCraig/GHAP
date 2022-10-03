@@ -75,9 +75,17 @@
                 <!-- Filters -->
                 <div class="row">
                     <div class="col-lg-4 filter-div">
-                        <p class="h3">Filters</p>
-                        <p>Note: this may find some but not necessarily all as records may not be tagged
-                            comprehensively, and state records differ.</p>
+                        <p class="h3">
+                            Filters
+                            <span tabindex="0" data-html="true"
+                                  data-animation="true"
+                                  class="glyphicon glyphicon-question-sign"
+                                  data-toggle="tooltip"
+                                  data-placement="right"
+                                  style="font-size:16px"
+                                  title="Some records may not be comprehensively tagged. Tags for records may differ between states.">
+                            </span>
+                        </p>
                         <div class="row align-items-center my-auto" data-toggle="tooltip" title="Local Government Area.">
                             <div class="col-sm-4">LGA:</div>
                             <div class="col-sm-8">
@@ -164,8 +172,17 @@
 
                     <!-- Map Area Search -->
                     <div class="col-lg-4">
-                        <p class="h3">Specify map area</p>
-                        <p>Pick a shape at the left of the map to draw an area to search in, or enter details:</p>
+                        <p class="h3">
+                            Specify map area
+                            <span tabindex="0" data-html="true"
+                                  data-animation="true"
+                                  class="glyphicon glyphicon-question-sign"
+                                  data-toggle="tooltip"
+                                  data-placement="right"
+                                  style="font-size:16px"
+                                  title="Pick a shape to draw on the map, or enter coordinates.">
+                            </span>
+                        </p>
                         <select id="mapselector" class="h4 m-0 mt-2 mb-3 text-center">
                             <option id="bboxoption" value="bboxoption">Bounding Box</option>
                             <option id="polygonoption" value="polygonoption">Polygon</option>
@@ -222,18 +239,17 @@
                     <div class="col-lg-4">
                         <!-- Bulk search placenames from file -->
                         <div class="bulk-placename-search">
-                            <h3>Search for a list of place names</h3>
-                            <!-- help hover button -->
-                            <p>
-                                Select a file containing a list of place names to upload
+                            <h3>
+                                Search for a list of place names
                                 <span tabindex="0" data-html="true"
                                       data-animation="true"
                                       class="glyphicon glyphicon-question-sign"
                                       data-toggle="tooltip"
                                       data-placement="right"
-                                      title="File must have placenames either one per line or seperated by commas.">
-                            </span>
-                            </p>
+                                      style="font-size:16px"
+                                      title="Upload a file containing a list of place names, either one per line or separated by commas.">
+                                </span>
+                            </h3>
 
                             <div class="d-inline-flex justify-content-center">
                                 <input type="file" name="bulkfileinput" id="bulkfileinput" class="d-inline-block pl-0">
@@ -244,10 +260,19 @@
 
                         <!-- Search KML polygon from file -->
                         <div class="kml-search">
-                            <h3>Search within a KML polygon</h3>
+                            <h3>
+                                Search within a KML polygon
+                                <span tabindex="0" data-html="true"
+                                      data-animation="true"
+                                      class="glyphicon glyphicon-question-sign"
+                                      data-toggle="tooltip"
+                                      data-placement="right"
+                                      style="font-size:16px"
+                                      title="Upload a KML file specifying a polygon.">
+                                </span>
+                            </h3>
                             <!-- MODAL Search within kml polygon from file
                         NB: the popup content for this is below. It can't be here as it contains a form element, which would create bad form nesting. -->
-                            <p>Upload KML file to search within polygon.</p>
                             <button type="button" class="d-inline-block border border-dark" data-toggle="modal" data-target="#kmlPolygonSearchModal">
                                 Choose File
                             </button>
