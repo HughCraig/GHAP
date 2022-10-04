@@ -15,8 +15,10 @@
 
 @section('content')
 
-    <h2>{{ Auth::user()->name }}'s New Layer</h2>
-    @include('templates.misc.contentdisclaimer')
+    <h2>
+        {{ Auth::user()->name }}'s New Layer
+        @include('templates.misc.contentdisclaimer')
+    </h2>
     <p class="h4">See the <a href="https://www.tlcmap.org/guides/ghap/#contribute" target="_blank">Guide</a> for help and instructions on creating and adding to layers.</p>
     <div class="container-fluid border">
         <form method="POST" id="new_dataset_form" action="{{url()->full()}}/create">

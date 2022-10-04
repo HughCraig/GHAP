@@ -7,14 +7,16 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="exampleModalLabel">Upload File</h3>
+                <h3 class="modal-title" id="exampleModalLabel">
+                    Upload File
+                    @include('templates.misc.contentdisclaimer')
+                </h3>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <form action="{{url('bulkadddataitem')}}" method="post" enctype="multipart/form-data">
             <div class="modal-body">
-                @include('templates.misc.contentdisclaimer')
                 @csrf
                 <input type="hidden" name="ds_id" id="ds_id" value="{{$ds->id}}" />
                 <div class="mb-4">

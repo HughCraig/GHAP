@@ -13,8 +13,10 @@
 
 @section('content')
 
-    <h2>{{ Auth::user()->name }}'s New Multilayer</h2>
-    @include('templates.misc.contentdisclaimer')
+    <h2>
+        {{ Auth::user()->name }}'s New Multilayer
+        @include('templates.misc.contentdisclaimer', ['infoType' => 'multilayer'])
+    </h2>
     <p class="h4">See the <a href="https://www.tlcmap.org/guides/ghap/#contribute" target="_blank">Guide</a> for help
         and instructions on creating and adding to multilayers.</p>
     <div class="container-fluid border">

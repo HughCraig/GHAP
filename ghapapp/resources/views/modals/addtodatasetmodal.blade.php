@@ -8,13 +8,15 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title" id="exampleModalLabel">Add to layer</h3>
+            <h3 class="modal-title" id="exampleModalLabel">
+                Add to layer
+                @include('templates.misc.contentdisclaimer')
+            </h3>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
             </button>
         </div>
         <div class="modal-body">
-            @include('templates.misc.contentdisclaimer')
             <div class="row">
                 <div class="col-lg-6">
                     <label for="addtitle">Title</label><label class="text-danger">*</label>

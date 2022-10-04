@@ -18,17 +18,19 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="exampleModalLabel">Edit Multilayer</h3>
+                <h3 class="modal-title" id="exampleModalLabel">
+                    Edit Multilayer
+                    @include('templates.misc.contentdisclaimer', ['infoType' => 'multilayer'])
+                </h3>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
 
-            <form method="POST" id="edit_dataset_form" action="{{url()->full()}}/edit">
+            <form method="POST" id="edit_dataset_form" action="{]{url()->full()}}/edit">
                 <div class="modal-body">
                     @csrf
-                    @include('templates.misc.contentdisclaimer')
                     <div class="row">
                         <div class="col-lg-6">
                             Multilayer name<label class="text-danger">*</label>

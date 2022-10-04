@@ -632,6 +632,7 @@ input[type=text] {
 
 .tooltip-inner {
     max-width: 1200px;
+    text-align: left;
 }
 
 /*

@@ -21,7 +21,10 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="exampleModalLabel">Edit Layer</h3>
+                <h3 class="modal-title" id="exampleModalLabel">
+                    Edit Layer
+                    @include('templates.misc.contentdisclaimer')
+                </h3>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -31,7 +34,6 @@
             <form method="POST" id="edit_dataset_form" action="{{url()->full()}}/edit">
                 <div class="modal-body">
                     @csrf
-                    @include('templates.misc.contentdisclaimer')
                     <div class="row">
                         <div class="col-lg-6">
                             Layer name<label class="text-danger">*</label>
