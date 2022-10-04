@@ -470,7 +470,7 @@ input[type=submit] {
     margin-bottom: 0;
 }
 
-.disclaimer-div p, li {
+.disclaimer-div p, .disclaimer-div li {
     font-size: 0.8em;
     margin-bottom: 0.2rem;
     margin-left: 1rem;

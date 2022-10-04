@@ -18,6 +18,7 @@ Route::get('/home', function () {
     return redirect('');
 })->name('home');
 Route::get('', 'HomeController@index')->name('index');
+Route::get('about', 'HomeController@aboutPage')->name('about');
 Route::post('file', 'GazetteerController@searchFromFile')->name('searchFromFile'); //search from file
 Route::post('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->name('searchFromKmlPolygon'); //search from file
 Route::get('places/{id?}', 'GazetteerController@search')->name('places'); //shows places with optional id, if no id is given it uses all results before applying filters

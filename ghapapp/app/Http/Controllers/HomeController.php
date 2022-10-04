@@ -53,4 +53,12 @@ class HomeController extends Controller
             'helpVideoURL' => config('app.help_video_url'),
         ]);
     }
+
+    /**
+     * About page.
+     */
+    public function aboutPage()
+    {
+        return view('ws.ghap.about');
+    }
 }
