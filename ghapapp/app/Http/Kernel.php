@@ -62,6 +62,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'checkmaxpaging' => \TLCMap\Http\Middleware\CheckMaxPaging::class,
+        'cors' => \TLCMap\Http\Middleware\Cors::class,
     ];
 
     /**

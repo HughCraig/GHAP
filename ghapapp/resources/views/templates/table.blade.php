@@ -62,28 +62,33 @@
                             🌏 View Place In...
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            @if(isset($line->anps_id))
-                                <a class="dropdown-item grab-hover"
-                                    onclick="window.open(`/3d/places.html?load={{env('APP_URL')}}/search?id%3Da{{base_convert($line->anps_id,10,16)}}%26format%3Djson`)">
-                                    3D Viewer
-                                </a>
-                            @elseif(isset($line->dataitem_id))
-                                <a class="dropdown-item grab-hover"
-                                    onclick="window.open(`/3d/places.html?load={{env('APP_URL')}}/search?id%3Dt{{base_convert($line->dataitem_id,10,16)}}%26format%3Djson`)">
-                                    3D Viewer
-                                </a>
+                            @if (!empty(config('app.views_root_url')))
+                                @if(isset($line->anps_id))
+                                    <a class="dropdown-item grab-hover"
+                                        onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3Da{{base_convert($line->anps_id,10,16)}}%26format%3Djson`)">
+                                        3D Viewer
+                                    </a>
+                                @elseif(isset($line->dataitem_id))
+                                    <a class="dropdown-item grab-hover"
+                                        onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3Dt{{base_convert($line->dataitem_id,10,16)}}%26format%3Djson`)">
+                                        3D Viewer
+                                    </a>
+                                @endif
                             @endif
 
-                            @if(isset($line->anps_id))
-                                <a class="dropdown-item grab-hover"
-                                    onclick="temporalEarthLink('a{{base_convert($line->anps_id,10,16)}}','id')">
-                                    Temporal Earth
-                                </a>
-                            @elseif(isset($line->dataitem_id))
-                                <a class="dropdown-item grab-hover"
-                                    onclick="temporalEarthLink('t{{base_convert($line->dataitem_id,10,16)}}', 'id')">
-                                    Temporal Earth</a>
+                            @if (!empty(config('app.views_temporal_earth_url')))
+                                @if(isset($line->anps_id))
+                                    <a class="dropdown-item grab-hover"
+                                        onclick="temporalEarthLink('a{{base_convert($line->anps_id,10,16)}}','id')">
+                                        Temporal Earth
+                                    </a>
+                                @elseif(isset($line->dataitem_id))
+                                    <a class="dropdown-item grab-hover"
+                                        onclick="temporalEarthLink('t{{base_convert($line->dataitem_id,10,16)}}', 'id')">
+                                        Temporal Earth</a>
+                                @endif
                             @endif
+
                             @if(isset($line->tlcm_latitude))
                                 <a class="dropdown-item" target="_blank"
                                     href="https://www.google.com/maps/search/?api=1&query={{$line->tlcm_latitude}},{{$line->tlcm_longitude}}"

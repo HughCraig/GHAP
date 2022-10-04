@@ -33,22 +33,26 @@
         </div>
     </div>
 
-    <!-- Visualise-->
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        🌏 View Maps...
-        </button>
-        <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/3d.html?load={{url()->full()}}/json')">3D Viewer</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/cluster.html?load={{url()->full()}}/json')">Cluster</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/journey.html?line=route&load={{url()->full()}}/json')">Journey Route</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/journey.html?line=time&load={{url()->full()}}/json')">Journey Times</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/timeline.html?load={{url()->full()}}/json?sort=start')">Timeline</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/werekata.html?load={{url()->full()}}/json')">Werekata Flight by Route</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/view/werekata.html?sort=start&load={{url()->full()}}/json')">Werekata Flight by Time</a>
-            <a class="dropdown-item grab-hover" onclick="window.open('/te/?file={{url()->full()}}/kml')">Temporal Earth</a>
+    @if (!empty(config('app.views_root_url')))
+        <!-- Visualise-->
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            🌏 View Maps...
+            </button>
+            <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load={{url()->full()}}/json')">3D Viewer</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load={{url()->full()}}/json')">Cluster</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?line=route&load={{url()->full()}}/json')">Journey Route</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?line=time&load={{url()->full()}}/json')">Journey Times</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load={{url()->full()}}/json?sort=start')">Timeline</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load={{url()->full()}}/json')">Werekata Flight by Route</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?sort=start&load={{url()->full()}}/json')">Werekata Flight by Time</a>
+                @if (!empty(config('app.views_temporal_earth_url')))
+                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url()->full()}}/kml')">Temporal Earth</a>
+                @endif
+            </div>
         </div>
-    </div>
+    @endif
 
     <!-- Quick Info -->
     <div class="row mt-3">
@@ -142,8 +146,10 @@
                         🌏 View Maps...
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item grab-hover" 
-                                onclick="window.open(`/3d/places.html?load={{env('APP_URL')}}/search?id%3Dt{{base_convert($data->id,10,16)}}%26format%3Djson`)">3D Viewer</a>
+                            @if (!empty(config('app.views_root_url')))
+                                <a class="dropdown-item grab-hover"
+                                    onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3Dt{{base_convert($data->id,10,16)}}%26format%3Djson`)">3D Viewer</a>
+                            @endif
                             <a class="dropdown-item grab-hover" onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{$data->latitude}},{{$data->longitude}}')">Google Maps</a>
                             @if(isset($data->placename)) <a class="dropdown-item grab-hover" target="_blank" href="https://trove.nla.gov.au/search?keyword={{$data->placename}}">Trove Search</a>
                                 @else<a class="dropdown-item grab-hover" target="_blank" href="https://trove.nla.gov.au/search?keyword={{$data->title}}">Trove Search</a>@endif

@@ -22,7 +22,7 @@ Route::get('about', 'HomeController@aboutPage')->name('about');
 Route::post('file', 'GazetteerController@searchFromFile')->name('searchFromFile'); //search from file
 Route::post('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->name('searchFromKmlPolygon'); //search from file
 Route::get('places/{id?}', 'GazetteerController@search')->name('places'); //shows places with optional id, if no id is given it uses all results before applying filters
-Route::get('search', 'GazetteerController@search')->name('search')->middleware('checkmaxpaging');
+Route::get('search', 'GazetteerController@search')->name('search')->middleware('checkmaxpaging', 'cors');
 Route::get('maxpaging', 'GazetteerController@maxPagingMessage')->name('maxPagingMessage');
 Route::get('maxpagingredirect', 'GazetteerController@maxPagingRedirect')->name('maxPagingRedirect');
 Route::post('bulkfileparser', 'GazetteerController@bulkFileParser');
@@ -32,11 +32,11 @@ Route::post('bulkfileparser', 'GazetteerController@bulkFileParser');
  */
 Route::get('publicdatasets', 'DatasetController@viewPublicDatasets')->name('publicdatasets');
 Route::get('publicdatasets/{id}', 'DatasetController@viewPublicDataset')->name('publicdataset');
-Route::get('publicdatasets/{id}/kml', 'DatasetController@viewPublicKML')->name('viewpublicdatasetkml');
+Route::get('publicdatasets/{id}/kml', 'DatasetController@viewPublicKML')->name('viewpublicdatasetkml')->middleware('cors');
 Route::get('publicdatasets/{id}/kml/download', 'DatasetController@downloadPublicKML')->name('downloadpublicdatasetkml');
-Route::get('publicdatasets/{id}/json', 'DatasetController@viewPublicJSON')->name('viewpublicdatasetjson');
+Route::get('publicdatasets/{id}/json', 'DatasetController@viewPublicJSON')->name('viewpublicdatasetjson')->middleware('cors');
 Route::get('publicdatasets/{id}/json/download', 'DatasetController@downloadPublicJSON')->name('downloadpublicdatasetjson');
-Route::get('publicdatasets/{id}/csv', 'DatasetController@viewPublicCSV')->name('viewpublicdatasetcsv');
+Route::get('publicdatasets/{id}/csv', 'DatasetController@viewPublicCSV')->name('viewpublicdatasetcsv')->middleware('cors');
 Route::get('publicdatasets/{id}/csv/download', 'DatasetController@downloadPublicCSV')->name('downloadpublicdatasetcsv');
 
 /**
@@ -44,7 +44,7 @@ Route::get('publicdatasets/{id}/csv/download', 'DatasetController@downloadPublic
  */
 Route::get('publiccollections', 'CollectionController@viewPublicCollections');
 Route::get('publiccollections/{id}', 'CollectionController@viewPublicCollection');
-Route::get('publiccollections/{id}/json', 'CollectionController@viewPublicJson');
+Route::get('publiccollections/{id}/json', 'CollectionController@viewPublicJson')->middleware('cors');
 
 /**
  * User Pages.
