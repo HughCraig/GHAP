@@ -140,7 +140,7 @@
                         </div>
                     </div>
                     <div class="main-menu-item">
-                        <a href="#">About</a>
+                        <a href="{{ url('about') }}">About</a>
                     </div>
                     <div class="main-menu-item w3-dropdown-hover w3-mobile">
                         <a href="#">Help <i class="fa fa-caret-down"></i></a>
