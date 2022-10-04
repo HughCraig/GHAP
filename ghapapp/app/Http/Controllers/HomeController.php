@@ -50,7 +50,6 @@ class HomeController extends Controller
             'parishes' => $parishes,
             'states' => $states,
             'count' => $count,
-            'helpVideoURL' => config('app.help_video_url'),
         ]);
     }
 

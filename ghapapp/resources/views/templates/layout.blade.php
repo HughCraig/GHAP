@@ -110,6 +110,7 @@
     <script type="text/javascript" src="{{ asset('/js/form.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/autocomplete.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/urltools.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/help-video.js') }}"></script>
 
 </head>
 
@@ -144,7 +145,9 @@
                     <div class="main-menu-item w3-dropdown-hover w3-mobile">
                         <a href="#">Help <i class="fa fa-caret-down"></i></a>
                         <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
-                            <a href="#" class="w3-bar-item w3-button">Get started</a>
+                            @if (!empty(config('app.help_video_url')))
+                                <a href="#" data-toggle="modal" data-target="#helpVideoModal" class="w3-bar-item w3-button">Get started</a>
+                            @endif
                             <a href="https://tlcmap.org/guides/ghap/" class="w3-bar-item w3-button">Guide</a>
                         </div>
                     </div>
@@ -229,6 +232,19 @@
 <div class="footer">
     <img src="{{ asset('img/footmnt.png') }}"><img src="{{ asset('img/foottile.png') }}">
 </div>
+
+@if (!empty(config('app.help_video_url')))
+    <!-- GHAP help video modal -->
+    <div id="helpVideoModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe class="embed-responsive-item" src="{{ config('app.help_video_url') }}" title="GHAP Help Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
 
 <!-- Other JS -->
 @stack('scripts')

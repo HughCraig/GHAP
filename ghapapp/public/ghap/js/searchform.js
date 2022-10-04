@@ -69,10 +69,5 @@ $(document).ready(function () {
             Cookies.set('helpVideoPlayed', '1', {expires: 365 * 100});
             $('#helpVideoModal').modal('show');
         }
-
-        // Pause the help video when the modal is closed.
-        $('#helpVideoModal').on('hidden.bs.modal', function () {
-            $('#helpVideoModal').find('iframe')[0].contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*')
-        });
     }
 });

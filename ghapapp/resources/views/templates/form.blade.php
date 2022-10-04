@@ -57,11 +57,6 @@
                         Search <i class="fa fa-search"></i>
                     </button>
                 </div>
-                @if (!empty($helpVideoURL))
-                    <div class="col-sm-auto pt-2">
-                        <a href="#" data-toggle="modal" data-target="#helpVideoModal"><i class="fa fa-question-circle-o"></i></a>
-                    </div>
-                @endif
                 <div class="col-sm-auto pt-2 ml-lg-5">
                     <a id="advancedSearchButton" href="#advancedaccordion" data-toggle="collapse">Advanced Search <i class="fa fa-chevron-down"></i></a>
                 </div>
@@ -331,18 +326,5 @@
             </div>
         </div>
     </div>
-
-    @if (!empty($helpVideoURL))
-        <!-- GHAP help video modal -->
-        <div id="helpVideoModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="embed-responsive embed-responsive-16by9">
-                        <iframe class="embed-responsive-item" src="{{ $helpVideoURL }}" title="GHAP Help Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
 </div>
 <!-- whole search and filter form -->
