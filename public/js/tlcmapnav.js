@@ -2,14 +2,6 @@
 $(document).ready(function () {
     //$("div#mainnav a[href*='" + location.pathname + "']").removeClass("w3-orange");
     $("div#mainnav a[href='" + location.pathname + "']").addClass("navselectedpage");
-
-
-    $("img#mainlogo").mouseover(function () {
-        this.src = "/img/tlcmaplogoorange.jpg"
-    }).mouseout(function () {
-        this.src = "/img/tlcmaplogo.jpg"
-    });
-
 });
 
 function w3_open() {
