@@ -4,6 +4,13 @@
 
 /*@import "app.css";*/
 
+/* large tables were cut off at right, such as on edit layer page, blocking the edit and delete button for rows. 
+Needed this to force correct behaviour of scrolling when page is too big. */
+html {
+    max-width: 100%;
+    overflow: auto;
+}
+
 /* Inputs in the edit dataitem section on EDIT MODE */
 .editingtd, select.inputastd.editingtd, .input-group .inputastd.editingtd {
     border: 1px solid #8c9faf;
