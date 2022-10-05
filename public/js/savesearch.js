@@ -30,7 +30,7 @@ $('#save_search_button').click(function () {
 function copyLink(id, button, param) {
     if (param === undefined) param = 'anps_id'
     var body = document.getElementsByTagName('body')[0];
-    var text = location.protocol + '//' + location.host + '/ghap/search?' + param + "=" + id; //ideally should update with the page???
+    var text = location.protocol + '//' + location.host + '/search?' + param + "=" + id; //ideally should update with the page???
 
     var tempInput = document.createElement('INPUT');
     body.appendChild(tempInput);

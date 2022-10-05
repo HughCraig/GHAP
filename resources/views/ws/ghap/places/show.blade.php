@@ -14,7 +14,7 @@
     <div>
         <h2>Search Results</h2>
         @if(isset($details))
-        <form method="post" action="/ghap/places/download/">
+        <form method="post" action="{{ url('places/download/') }}">
             {{ csrf_field() }}
             <div>
                 <script> var downloadurl = window.location.href.replace(/&?\??paging=[0-9]*/, '').replace(/&?\??page=[0-9]*/, '').replace('+', '%20'); </script>

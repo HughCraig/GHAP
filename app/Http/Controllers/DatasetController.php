@@ -230,7 +230,7 @@ class DatasetController extends Controller
         $ghap_url = $doc_ed->appendChild($dom->createElement('Data'));
         $ghap_url->setAttribute('name', "ghap_url");
         //$ghap_url->appendChild($dom->createCDATASection($request->url()));
-        $ghap_url->appendChild($dom->createCDATASection("https://tlcmap.org/ghap/publicdatasets/" . $dataset->id));
+        $ghap_url->appendChild($dom->createCDATASection(url("publicdatasets/" . $dataset->id)));
         //style
         if (!empty($dataset->kml_style)) {
             $f = $dom->createDocumentFragment();
@@ -303,8 +303,8 @@ class DatasetController extends Controller
             }
 
             $descriptionContent = $warning . $i->description . "
-			<p><a href='https://tlcmap.org/ghap/search?id=t" . base_convert($i->id, 10, 16) . "'>TLCMap</a></p>
-			<p><a href='https://tlcmap.org/ghap/publicdatasets/" . $dataset->id . "'>TLCMap Layer</a></p>";
+			<p><a href='" . url("search?id=t" . base_convert($i->id, 10, 16)) . "'>TLCMap</a></p>
+			<p><a href='" . url("publicdatasets/" . $dataset->id) . "'>TLCMap Layer</a></p>";
 
             $description->appendChild($dom->createCDATASection($descriptionContent));
             $point->appendChild($dom->createElement('coordinates', $i->longitude . ',' . $i->latitude));
@@ -518,8 +518,8 @@ class DatasetController extends Controller
                 //$proppairs["extended_data"] = $i->extDataAsHTML();
             }
 
-            $proppairs["TLCMapLinkBack"] = "https://tlcmap.org/ghap/search?id=t" . base_convert($i->id, 10, 16);
-            $proppairs["TLCMapDataset"] = "https://tlcmap.org/ghap/publicdatasets/" . $dataset->id;
+            $proppairs["TLCMapLinkBack"] = url("search?id=t" . base_convert($i->id, 10, 16));
+            $proppairs["TLCMapDataset"] = url("publicdatasets/" . $dataset->id);
 
 
             $features[] = array(

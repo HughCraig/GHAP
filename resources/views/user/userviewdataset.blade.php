@@ -12,8 +12,8 @@
     </script>
     <script src="{{ asset('js/userviewdataset.js') }}"></script>
     <!-- for description fields -->
-    <script src="/ghap/js/tinymce/tinymce.min.js"></script>
-    <script src="/ghap/js/wysiwyger.js"></script>
+    <script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
+    <script src="{{ asset('js/wysiwyger.js') }}"></script>
     <script src="{{ asset('/js/dataitem.js') }}"></script>
 @endpush
 

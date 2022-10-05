@@ -25,7 +25,7 @@
                 <div class="mb-4">
                     <span class="text-success">Recommended Fields/Columns:</span> description, datestart, dateend, linkback (a link to this record on another website)
                 </div>
-                <div class="mb-4">Check the <a href="/guides/ghap/#contribute" target="_blank">guide</a> for more information on creating and uploading CSV, KML, and GeoJSON files.</div>
+                <div class="mb-4">Check the <a href="https://tlcmap.org/guides/ghap/#contribute" target="_blank">guide</a> for more information on creating and uploading CSV, KML, and GeoJSON files.</div>
                 <div class="border p-4">
                     Select file to upload (.csv .kml or .json):
                     <input type="file" id="fileToUpload" name="fileToUpload" accept=".csv,.kml,.json,.geojson,application/json,application/vnd.google-earth.kml+xml,text/csv" required>

@@ -250,7 +250,7 @@ class FileFormatter
                 $proppairs["linkback"] = $r->external_url;
             }
 
-            $proppairs["TLCMapLinkBack"] = "https://tlcmap.org/ghap/search?id=" . $id;
+            $proppairs["TLCMapLinkBack"] = url("search?id=" . $id);
 
 
             // Log::error("asdf" . json_encode($r));
@@ -258,9 +258,9 @@ class FileFormatter
             $dataset_url = env('APP_URL');
             if (isset($r->dataset_id)) {
                 // $dataset_url = env('APP_URL') . "/publicdatasets/" . $r->dataset_id;
-                $proppairs["TLCMapDataset"] = "https://tlcmap.org/ghap/publicdatasets/" . $r->dataset_id;
+                $proppairs["TLCMapDataset"] = url("publicdatasets/" . $r->dataset_id);
             } else {
-                $proppairs["TLCMapDataset"] = "https://tlcmap.org/ghap/";
+                $proppairs["TLCMapDataset"] = url("/");
             }
             // $proppairs["layer"] = $dataset_url;
 

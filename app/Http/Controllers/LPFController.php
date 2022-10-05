@@ -40,7 +40,7 @@ class LPFController extends Controller
         //Setup
         $filename = 'gaz_large.lpf.json';
         $fileloc = ''; //will default to 'C:\Users\bjm662\Lavarel\ANPSWebServiceAPI\public'
-        $search_page = 'http://www.tlcmap.org/ghap/search'; //?anps_id=12345
+        $search_page = url('search'); //?anps_id=12345
         $contents = $this->header(); //var for output string
         $first = true;
         $chunk_size = 100000; //how many register entries to do in each chunk - higher chunk size is faster but uses more memory
