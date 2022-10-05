@@ -13,7 +13,7 @@ class CreateUserTable extends Migration
      */
     public function up()
     {
-        Schema::connection('pgsql2')->create('user', function (Blueprint $table) {
+        Schema::connection('pgsql2')->create('tlcmap.user', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->text('name');
             $table->text('email')->index();
@@ -32,7 +32,7 @@ class CreateUserTable extends Migration
      */
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('user');
+        Schema::connection('pgsql2')->dropIfExists('tlcmap.user');
     }
 }
 

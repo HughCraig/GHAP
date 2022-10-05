@@ -13,7 +13,7 @@ class CreateDataitemTable extends Migration
      */
     public function up()
     {
-        Schema::connection('pgsql2')->create('dataitem', function (Blueprint $table) {
+        Schema::connection('pgsql2')->create('tlcmap.dataitem', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('dataset_id')->index()->nullable();
             $table->text('title');
@@ -54,6 +54,6 @@ class CreateDataitemTable extends Migration
      */
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('dataitem');
+        Schema::connection('pgsql2')->dropIfExists('tlcmap.dataitem');
     }
 }

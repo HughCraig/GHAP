@@ -8,7 +8,7 @@ class CreateRoleTable extends Migration
 {
     public function up()
     {
-        Schema::connection('pgsql2')->create('role', function (Blueprint $table) {
+        Schema::connection('pgsql2')->create('tlcmap.role', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('description');
@@ -18,6 +18,6 @@ class CreateRoleTable extends Migration
 
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('role');
+        Schema::connection('pgsql2')->dropIfExists('tlcmap.role');
     }
 }

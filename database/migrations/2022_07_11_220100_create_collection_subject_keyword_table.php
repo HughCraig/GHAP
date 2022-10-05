@@ -13,7 +13,7 @@ class CreateCollectionSubjectKeywordTable extends Migration
      */
     public function up()
     {
-        Schema::connection('pgsql2')->create('collection_subject_keyword', function (Blueprint $table) {
+        Schema::connection('pgsql2')->create('tlcmap.collection_subject_keyword', function (Blueprint $table) {
             $table->unsignedBigInteger('collection_id');
             $table->unsignedBigInteger('subject_keyword_id');
         });
@@ -26,6 +26,6 @@ class CreateCollectionSubjectKeywordTable extends Migration
      */
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('collection_subject_keyword');
+        Schema::connection('pgsql2')->dropIfExists('tlcmap.collection_subject_keyword');
     }
 }

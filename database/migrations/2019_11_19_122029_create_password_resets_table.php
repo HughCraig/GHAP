@@ -13,7 +13,7 @@ class CreatePasswordResetsTable extends Migration
      */
     public function up()
     {
-        Schema::connection('pgsql2')->create('password_resets', function (Blueprint $table) {
+        Schema::connection('pgsql2')->create('tlcmap.password_resets', function (Blueprint $table) {
             $table->string('email')->index();
             $table->string('token')->index();
             $table->timestamp('created_at')->nullable();
@@ -27,7 +27,7 @@ class CreatePasswordResetsTable extends Migration
      */
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('password_resets');
+        Schema::connection('pgsql2')->dropIfExists('tlcmap.password_resets');
     }
 }
 
