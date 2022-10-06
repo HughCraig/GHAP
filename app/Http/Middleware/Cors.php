@@ -16,7 +16,7 @@ class Cors
     public function handle($request, Closure $next)
     {
         $response = $next($request);
-        if ($response instanceof \Illuminate\Http\Response) {
+        if (method_exists($response, 'header')) {
             return $response
                 ->header('Access-Control-Allow-Origin', '*')
                 ->header('Access-Control-Allow-Methods', 'GET');
