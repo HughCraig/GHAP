@@ -691,6 +691,14 @@ div#searchresults {
 }
 
 /* GHAP site styles */
+.site-warning {
+    width: 100%;
+    background-color: #fdffb5;
+    color: #595959;
+    font-size: 0.8em;
+    padding: 0.5em 1em;
+}
+
 div.header {
     background-color: #f4f6f4;
     height: 160px;

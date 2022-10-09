@@ -116,6 +116,13 @@
 
 <body>
 <div id="app">
+    @if (config('app.env') !== 'production')
+        <!-- Non-production site warning -->
+        <div class="site-warning">
+            <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+            This site is for testing only.  Don’t upload valuable research as testing data will not be maintained.
+        </div>
+    @endif
     <!-- NAVBAR -->
     <div class="header">
 
