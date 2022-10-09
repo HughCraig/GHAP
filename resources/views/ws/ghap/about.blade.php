@@ -21,4 +21,6 @@
             </ul>
         </li>
     </ol>
+    <p>This project is supported by the Australian Research Data Commons (ARDC). The ARDC is funded by NCRIS.</p>
+    <p><img style="width:300px" src="{{ asset('img/ardc_logo.png') }}" alt="ARDC logo"></p>
 @endsection
