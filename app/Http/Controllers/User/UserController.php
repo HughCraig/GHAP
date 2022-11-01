@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
+use TLCMap\Http\Helpers\UID;
 use TLCMap\Models\User;
 use TLCMap\Models\Role;
 use TLCMap\Models\SavedSearch;
@@ -575,14 +576,45 @@ class UserController extends Controller
             }
 
             if (!empty($culled_array)) { //ignore empties
-
-                $result = Dataitem::firstOrCreate(array_merge(array('dataset_id' => $ds_id), $culled_array)); //Insert into DB - THIS WILL IGNORE EXACT DUPLICATES WITHIN THIS DATASET
-
-
+                $dataitemUID = $arr[$i]['id'] ?? null;
+                $dataitemProperties = array_merge(array('dataset_id' => $ds_id), $culled_array);
+                $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
             }
 
         }
     }
+
+    /**
+     * Create the new dataitem or update the existing one.
+     *
+     * This will firstly try to find the existing dataitem if there's a UID passed in. If the dataitem is found, it will
+     * update the existing dataitem with the properties. This currently only works with CSV export/import as the UID
+     * prefix is set to 't'.
+     *
+     * @param array $data
+     *   The dataitem properties.
+     * @param string $uid
+     *   The dataitem UID.
+     * @return void
+     */
+    private function createOrUpdateDataitem($data, $uid = null)
+    {
+        $dataitem = null;
+        // Find the existing dataitem if the UID presents.
+        if (!empty($uid) && UID::getPrefix($uid) === 't') {
+            $dataitemID = UID::toID($uid, 't');
+            $dataitem = Dataitem::find($dataitemID);
+        }
+        // Check the existing dataitem is in the correct dataset. If not, ignore the update.
+        if (!empty($dataitem) && (string) $dataitem->dataset_id === (string) $data['dataset_id']) {
+            // Update the existing dataitem if there's a match.
+            $dataitem->fill($data)->save();
+        } else {
+            // Create the new dataitem. THIS WILL IGNORE EXACT DUPLICATES WITHIN THIS DATASET.
+            $result = Dataitem::firstOrCreate($data);
+        }
+    }
+
 // trawl for lat long col names
 
 
