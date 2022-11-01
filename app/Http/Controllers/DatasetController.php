@@ -3,6 +3,7 @@
 namespace TLCMap\Http\Controllers;
 
 use Illuminate\Support\Collection;
+use TLCMap\Http\Helpers\UID;
 use TLCMap\Models\Dataset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -303,7 +304,7 @@ class DatasetController extends Controller
             }
 
             $descriptionContent = $warning . $i->description . "
-			<p><a href='" . url("search?id=t" . base_convert($i->id, 10, 16)) . "'>TLCMap</a></p>
+			<p><a href='" . url("search?id=" . UID::create($i->id, 't')) . "'>TLCMap</a></p>
 			<p><a href='" . url("publicdatasets/" . $dataset->id) . "'>TLCMap Layer</a></p>";
 
             $description->appendChild($dom->createCDATASection($descriptionContent));
@@ -441,7 +442,7 @@ class DatasetController extends Controller
                 $proppairs["description"] = $i->description;
             }
             if (!empty($i->id)) {
-                $proppairs["id"] = base_convert($i->id, 10, 16);
+                $proppairs["id"] = UID::create($i->id);
             }
             if (!empty($i->warning)) {
                 $proppairs["warning"] = $i->warning;
@@ -518,7 +519,7 @@ class DatasetController extends Controller
                 //$proppairs["extended_data"] = $i->extDataAsHTML();
             }
 
-            $proppairs["TLCMapLinkBack"] = url("search?id=t" . base_convert($i->id, 10, 16));
+            $proppairs["TLCMapLinkBack"] = url("search?id=" . UID::create($i->id, 't'));
             $proppairs["TLCMapDataset"] = url("publicdatasets/" . $dataset->id);
 
 
@@ -659,7 +660,7 @@ class DatasetController extends Controller
                 $vals = array_merge($vals, $ext);
             }
 
-            $vals["id"] = "t" . base_convert($vals["id"], 10, 16);
+            $vals["id"] = UID::create($vals["id"], 't');
 
             // to make sure the cells are in the same order as the headings
             foreach ($colheads as $col) {

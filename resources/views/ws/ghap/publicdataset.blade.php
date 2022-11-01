@@ -128,8 +128,8 @@
 
                 <dl>
 
-                    <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('t{{base_convert($data->id,10,16)}}',this,'id')">C</button>
-                    <a href="{{env('APP_URL')}}/search?id=t{{base_convert($data->id,10,16)}}">
+                    <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}',this,'id')">C</button>
+                    <a href="{{env('APP_URL')}}/search?id={{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
                     @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif</a>
                     </h4>
                     <dl>
@@ -148,7 +148,7 @@
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             @if (!empty(config('app.views_root_url')))
                                 <a class="dropdown-item grab-hover"
-                                    onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3Dt{{base_convert($data->id,10,16)}}%26format%3Djson`)">3D Viewer</a>
+                                    onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3D{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}%26format%3Djson`)">3D Viewer</a>
                             @endif
                             <a class="dropdown-item grab-hover" onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{$data->latitude}},{{$data->longitude}}')">Google Maps</a>
                             @if(isset($data->placename)) <a class="dropdown-item grab-hover" target="_blank" href="https://trove.nla.gov.au/search?keyword={{$data->placename}}">Trove Search</a>

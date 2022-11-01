@@ -13,6 +13,7 @@
 namespace TLCMap\Http\Controllers;
 
 use Illuminate\Http\Request;
+use TLCMap\Http\Helpers\UID;
 use TLCMap\Models\Register;
 use TLCMap\Models\Documentation;
 use TLCMap\Models\Source;
@@ -735,12 +736,10 @@ class GazetteerController extends Controller
         // We only need to convert to and from for display, update, retrieval with the one native function call.
         if (isset($parameters['id'])) {
 
-            if (stripos($parameters['id'], 't') !== false) {
-                $hid = preg_replace('/^t/', '', $parameters['id']);
-                $parameters['dataitemid'] = base_convert($hid, 16, 10);
-            } else if (stripos($parameters['id'], 'a') !== false) {
-                $hid = preg_replace('/^a/', '', $parameters['id']);
-                $parameters['anps_id'] = base_convert($hid, 16, 10);
+            if (UID::getPrefix($parameters['id']) === 't') {
+                $parameters['dataitemid'] = UID::toID($parameters['id'], 't');
+            } else if (UID::getPrefix($parameters['id']) === 'a') {
+                $parameters['anps_id'] =  UID::toID($parameters['id'], 'a');
             }
         }
 

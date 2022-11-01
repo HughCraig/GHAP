@@ -138,13 +138,13 @@ class FileFormatter
                     $source = $r->source;
                 }
                 // $source = (!empty($r->original_data_source)) ? $r->original_data_source : $r->source;
-                $id = (isset($r->anps_id)) ? "a" . base_convert($r->anps_id, 10, 16) : "t" . base_convert($r->dataitem_id, 10, 16);
+                $id = (isset($r->anps_id)) ? UID::create($r->anps_id, 'a') : UID::create($r->dataitem_id, 't');
                 $state = (isset($r->state_code)) ? $r->state_code : $r->state;
                 $datestart = (isset($r->datestart)) ? $r->datestart : '';
                 $dateend = (isset($r->dateend)) ? $r->dateend : '';
                 $external_url = (isset($r->external_url)) ? $r->external_url : '';
                 $ghap_url = env('APP_URL');
-                $ghap_url .= (isset($r->anps_id)) ? "/search?id=a" . base_convert($r->anps_id, 10, 16) : "/search?id=t" . base_convert($r->dataitem_id, 10, 16);
+                $ghap_url .= (isset($r->anps_id)) ? "/search?id=" . UID::create($r->anps_id, 'a') : "/search?id=" . UID::create($r->dataitem_id, 't');
                 $layerlink = env('APP_URL');
                 $layerlink .= (isset($r->anps_id)) ? "" : "/publicdatasets/" . $r->dataset_id;
                 fputcsv($file, array($id, $title, $r->placename, $state, $r->lga_name, $r->parish, $r->feature_term, $r->tlcm_latitude, $r->tlcm_longitude, $source, $r->flag, $r->description, $datestart, $dateend, $external_url, $ghap_url, $layerlink));
@@ -185,10 +185,10 @@ class FileFormatter
                 $proppairs["description"] = $r->description;
             }
             if (!empty($r->anps_id)) {
-                $id = "a" . base_convert($r->anps_id, 10, 16);
+                $id = UID::create($r->anps_id, 'a');
             }
             if (!empty($r->dataitem_id)) {
-                $id = "t" . base_convert($r->dataitem_id, 10, 16);
+                $id = UID::create($r->dataitem_id, 't');
             }
             $proppairs["id"] = $id;
             if (!empty($r->warning)) {
@@ -319,7 +319,7 @@ class FileFormatter
 
             //HTML table for ED data - we reuse this for the ghap_url element
             $linkToItem = env('APP_URL');
-            $linkToItem .= ($r->anps_id) ? "/search?id=a" . base_convert($r->anps_id, 10, 16) : "/search?id=t" . base_convert($r->dataitem_id, 10, 16);
+            $linkToItem .= ($r->anps_id) ? "/search?id=" . UID::create($r->anps_id, 'a') : "/search?id=" . UID::create($r->dataitem_id, 't');
             $ed_table = "<br><br><table class='tlcmap'><tr><th>TLCMap</th><td><a href='{$linkToItem}'>{$linkToItem}</a></td></tr>";
 
             $linkToLayer = env('APP_URL');
@@ -340,8 +340,8 @@ class FileFormatter
             $data = $ed->appendChild($dom->createElement('Data'));
             $data->setAttribute('name', 'id');
             $data->appendChild($dom->createElement('displayName', 'ID'));
-            if ($r->anps_id) $data->appendChild($dom->createElement('value', 'a' . base_convert($r->anps_id, 10, 16)));
-            else $data->appendChild($dom->createElement('value', 't' . base_convert($r->dataitem_id, 10, 16)));
+            if ($r->anps_id) $data->appendChild($dom->createElement('value', UID::create($r->anps_id, 'a')));
+            else $data->appendChild($dom->createElement('value', UID::create($r->dataitem_id, 't')));
             $ed_table .= "<tr><th>{$data->firstChild->nodeValue}</th><td>{$data->firstChild->nextSibling->nodeValue}</td></tr>";
 
             $data = $ed->appendChild($dom->createElement('Data'));

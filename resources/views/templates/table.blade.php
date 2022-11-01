@@ -23,10 +23,10 @@
                 <div class="sresultmain">
                     <h4>
                         <button type="button" class="btn btn-primary btn-sm"
-                                onclick="copyLink(@if(isset($line->anps_id))'a{{base_convert($line->anps_id,10,16)}}',this,'id'@elseif(isset($line->dataitem_id))'t{{base_convert($line->dataitem_id,10,16)}}',this,'id'@endif)">
+                                onclick="copyLink(@if(isset($line->anps_id))'{{ \TLCMap\Http\Helpers\UID::create($line->anps_id, 'a') }}',this,'id'@elseif(isset($line->dataitem_id))'{{ \TLCMap\Http\Helpers\UID::create($line->dataitem_id, 't') }}',this,'id'@endif)">
                             C
                         </button>
-                        <a href="{{URL::to('/')}}/search?@if(isset($line->anps_id))id=a{{base_convert($line->anps_id,10,16)}}@elseif(isset($line->dataitem_id))id=t{{base_convert($line->dataitem_id,10,16)}}@endif">
+                        <a href="{{URL::to('/')}}/search?@if(isset($line->anps_id))id={{ \TLCMap\Http\Helpers\UID::create($line->anps_id, 'a') }}@elseif(isset($line->dataitem_id))id={{ \TLCMap\Http\Helpers\UID::create($line->dataitem_id, 't') }}@endif">
                             @if(isset($line->title)){{$line->title}}@else{{$line->placename}}@endif
                         </a>
                     </h4>
@@ -65,12 +65,12 @@
                             @if (!empty(config('app.views_root_url')))
                                 @if(isset($line->anps_id))
                                     <a class="dropdown-item grab-hover"
-                                        onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3Da{{base_convert($line->anps_id,10,16)}}%26format%3Djson`)">
+                                        onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3D{{ \TLCMap\Http\Helpers\UID::create($line->anps_id, 'a') }}%26format%3Djson`)">
                                         3D Viewer
                                     </a>
                                 @elseif(isset($line->dataitem_id))
                                     <a class="dropdown-item grab-hover"
-                                        onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3Dt{{base_convert($line->dataitem_id,10,16)}}%26format%3Djson`)">
+                                        onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3D{{ \TLCMap\Http\Helpers\UID::create($line->dataitem_id, 't') }}%26format%3Djson`)">
                                         3D Viewer
                                     </a>
                                 @endif
@@ -79,12 +79,12 @@
                             @if (!empty(config('app.views_temporal_earth_url')))
                                 @if(isset($line->anps_id))
                                     <a class="dropdown-item grab-hover"
-                                        onclick="temporalEarthLink('a{{base_convert($line->anps_id,10,16)}}','id')">
+                                        onclick="temporalEarthLink('{{ \TLCMap\Http\Helpers\UID::create($line->anps_id, 'a') }}','id')">
                                         Temporal Earth
                                     </a>
                                 @elseif(isset($line->dataitem_id))
                                     <a class="dropdown-item grab-hover"
-                                        onclick="temporalEarthLink('t{{base_convert($line->dataitem_id,10,16)}}', 'id')">
+                                        onclick="temporalEarthLink('{{ \TLCMap\Http\Helpers\UID::create($line->dataitem_id, 't') }}', 'id')">
                                         Temporal Earth</a>
                                 @endif
                             @endif
@@ -169,11 +169,11 @@
                     <h4>Sources</h4>
                     @if(isset($line->anps_id))
                         <dt>ANPS ID</dt>
-                        <dd>{{base_convert($line->anps_id,10,16)}}</dd>
+                        <dd>{{ \TLCMap\Http\Helpers\UID::create($line->anps_id) }}</dd>
                     @endif
                     @if(isset($line->dataitem_id))
                         <dt>TLCMap ID</dt>
-                        <dd>{{base_convert($line->dataitem_id,10,16)}}</dd>
+                        <dd>{{ \TLCMap\Http\Helpers\UID::create($line->dataitem_id) }}</dd>
                     @endif
                     @if(isset($line->original_data_source))
                         <dt>Source</dt>
