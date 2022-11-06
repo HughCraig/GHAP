@@ -155,7 +155,7 @@
                             @if (!empty(config('app.help_video_url')))
                                 <a href="#" data-toggle="modal" data-target="#helpVideoModal" class="w3-bar-item w3-button">Get started</a>
                             @endif
-                            <a href="https://tlcmap.org/guides/ghap/" class="w3-bar-item w3-button">Guide</a>
+                            <a href="https://hughcraignewcastleeduau.wpcomstaging.com/help/guides/ghap-guide/" class="w3-bar-item w3-button">Guide</a>
                         </div>
                     </div>
                 </div>
