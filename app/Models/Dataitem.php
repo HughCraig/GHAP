@@ -35,50 +35,71 @@ class Dataitem extends Model
     {
         return $this->belongsTo(RecordType::class, 'recordtype_id');
     }
+
+    /**
+     * Get the extended data of the dataitem.
+     *
+     * @return array|false|null
+     *   Returns the array of extended data as key/value paris, or null if it's empty. Returns false if it's failed to
+     *   parse the data.
+     */
+    public function getExtendedData()
+    {
+        if (!isset($this->extended_data)) {
+            return null;
+        }
+        $extData = [];
+        try {
+            $extDataXML = simplexml_load_string($this->extended_data, 'SimpleXMLElement', LIBXML_NOCDATA);
+            foreach ($extDataXML->Data as $item) {
+                $extData[(string) $item->attributes()->name] = $item->value;
+            }
+        } catch (Exception $e) {
+            return false;
+        }
+        return $extData;
+    }
+
     // extended data should be stored as the KML version, and then turned into a table, or json or whatever as needed in output.
     // The old way of adding it direction into 'description', will cause problems with when we want it to be possible to export 
     // the data with ids so person can update them again.
     public function extDataAsHTML()
     {
-        if (!isset($this->extended_data)) {
+        $extData = $this->getExtendedData();
+        if ($extData === null) {
             return null;
-        }
-        try {
-            $htable = simplexml_load_string($this->extended_data, 'SimpleXMLElement', LIBXML_NOCDATA);
+        } elseif ($extData === false) {
+            return "Could not display extended data.";
+        } else {
             $htext = "<dl class='extdata'>";
-            foreach ($htable->Data as $d) {
-                $htext = $htext . "<dt>" . $d->attributes()->name . "</dt><dd>" . $this->sniffUrl($d->value) . "</dd></dt>";
+            foreach ($extData as $name => $value) {
+                $htext = $htext . "<dt>" . $name . "</dt><dd>" . $this->sniffUrl($value) . "</dd></dt>";
             }
             $htext = $htext . "</dl>";
-        } catch (Exception $e) {
-            return "Could not display extended data.";
+            return $htext;
         }
-        return $htext;
     }
 
     public function extDataAsKeyValues()
     {
-        if (!isset($this->extended_data)) {
+        $extData = $this->getExtendedData();
+        if ($extData === null) {
             return null;
-        }
-        $outpairs = array();
-        try {
-            $htable = simplexml_load_string($this->extended_data, 'SimpleXMLElement', LIBXML_NOCDATA);
-            foreach ($htable->Data as $d) {
-                if (empty($d->attributes()->name)) {
-                    continue;
-                };
-                $check = $d->attributes()->name;
-                if ((strtolower($check) === "latitude") || (strtolower($check) === "longitude")) {
+        } elseif ($extData === false) {
+            return "Could not convert extended data.";
+        } else {
+            $outpairs = array();
+            foreach ($extData as $name => $value) {
+                if (empty($name)) {
                     continue;
                 }
-                $outpairs[$d->attributes()->name . ""] = $this->sniffUrl($d->value);
-                //$htext = $htext . "<dt>" . $d->attributes()->name . "</dt><dd>" . $this->sniffUrl($d->value) . "</dd></dt>";
+                if ((strtolower($name) === "latitude") || (strtolower($name) === "longitude")) {
+                    continue;
+                }
+                $outpairs[$name] = $this->sniffUrl($value);
             }
-        } catch (Exception $e) {
-            return "Could not convert extended data.";
+            return $outpairs;
         }
-        return $outpairs;
     }
 
     public function sniffUrl($maybeUrl)

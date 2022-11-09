@@ -592,7 +592,7 @@ class DatasetController extends Controller
         // SET UP HEADERS, do the preprocess. Need to loop all extended data to ensure all columns obtained.
         //fputcsv($f, array_keys($proppairs[0])); // Add the keys as the column headers
 
-        $headers = array("id", "title", "placename", "latitude", "longitude", "description", "warning", "state", "parish", "feature_term", "lga", "source", "datestart", "dateend", "external_url", "TLCMapLinkBack", "TLCMapDataset");
+        // $headers = array("id", "title", "placename", "latitude", "longitude", "description", "warning", "state", "parish", "feature_term", "lga", "source", "datestart", "dateend", "external_url", "TLCMapLinkBack", "TLCMapDataset");
         $colheads = array();
         $extkeys = array();
 // !!!!!!!!!! actually also go through the headers and only put them in if at least one is not null.....
@@ -619,7 +619,7 @@ class DatasetController extends Controller
             // Fudge to convert object with properties to key value pairs
             $arr = json_decode(json_encode($i), true);
             foreach ($arr as $key => $value) {
-                if (!($value === NULL)) {
+                if (!($value === NULL) && $key !== 'extended_data') {
                     if (!in_array($key, $colheads)) {
                         $colheads[] = $key;
                     }
@@ -629,9 +629,8 @@ class DatasetController extends Controller
         foreach ($dataitems as $i) {
 
             // add extended data headers
-            if (!empty($i->extended_data)) {
-                $arr = $i->extDataAsKeyValues();
-
+            $arr = $i->getExtendedData();
+            if (!empty($arr)) {
                 foreach ($arr as $key => $value) {
                     if (!($value === NULL)) {
                         if (!in_array($key, $colheads)) {
@@ -644,8 +643,18 @@ class DatasetController extends Controller
         }
         $colheads = array_merge($colheads, $extkeys);
 
+        // Apply any modification to the column headers for display.
+        $displayHeaders = [];
+        foreach ($colheads as $colhead) {
+            if ($colhead === 'id') {
+                $displayHeaders[] = 'ghap_id';
+            } else {
+                $displayHeaders[] = $colhead;
+            }
+        }
+
 // add headings to csv
-        fputcsv($f, $colheads, $delimiter, $enclosure, $escape_char);
+        fputcsv($f, $displayHeaders, $delimiter, $enclosure, $escape_char);
 
 // now the data
         foreach ($dataitems as &$i) {
@@ -654,10 +663,9 @@ class DatasetController extends Controller
 
             $vals = json_decode(json_encode($i), true);
 
-            $ext = array();
-            if (!empty($i->extended_data)) {
-                $ext = $i->extDataAsKeyValues();
-                $vals = array_merge($vals, $ext);
+            $ext = $i->getExtendedData();
+            if (!empty($ext)) {
+                $vals = $vals + $ext;
             }
 
             $vals["id"] = UID::create($vals["id"], 't');

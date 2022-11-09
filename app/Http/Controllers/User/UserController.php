@@ -483,7 +483,7 @@ class UserController extends Controller
         $datecols = $this->aliasColPair($this->dateheadings, $arr);
         $llcols = $this->aliasColPair($this->llheadings, $arr);
 
-        $notForExtData = ["id", "title", "placename", "name", "description", "type", "linkback"]; // because of special handling, as with date and lat long cols
+        $notForExtData = ["id", "title", "placename", "name", "description", "type", "linkback", "created_at", "updated_at", "ghap_id"]; // because of special handling, as with date and lat long cols
 
         $extDataExclusions = array_merge($fillable, $datecols, $llcols, $notForExtData);
 
@@ -528,7 +528,7 @@ class UserController extends Controller
                 else if (in_array($key, $fillable) && $key != 'id') {
                     $culled_array[$key] = $value;
                 } //if the key is present as a fillable field for dataitems, then we keep it - DO NOT PUSH ID< THIS IS GENERATED AUTOMATICALLY
-                else if (!in_array($key, $extDataExclusions)) {
+                else if (!in_array($key, $extDataExclusions) && isset($value) && $value !== '') {
 
                     array_push($extendeddata, $key); // all the extra cols that will go in 'extended data' kml chunk.
                 }
@@ -565,18 +565,22 @@ class UserController extends Controller
             }
 
             if (!empty($extendeddata)) {
-                $extdata = '<ExtendedData>';
-
+                $extdata = '';
                 foreach ($extendeddata as $ed) {
-                    $extdata = $extdata .
-                        '<Data name="' . $ed . '"><value><![CDATA[' . $arr[$i][$ed] . ']]></value></Data>';
+                    if (isset($arr[$i][$ed]) && $arr[$i][$ed] !== '') {
+                        $extdata = $extdata .
+                            '<Data name="' . $ed . '"><value><![CDATA[' . $arr[$i][$ed] . ']]></value></Data>';
+                    }
                 }
-                $extdata = $extdata . '</ExtendedData>';
-                $culled_array["extended_data"] = $extdata;
+                if (!empty($extdata)) {
+                    $culled_array["extended_data"] = '<ExtendedData>' . $extdata . '</ExtendedData>';
+                } else {
+                    $culled_array["extended_data"] = null;
+                }
             }
 
             if (!empty($culled_array)) { //ignore empties
-                $dataitemUID = $arr[$i]['id'] ?? null;
+                $dataitemUID = $arr[$i]['ghap_id'] ?? null;
                 $dataitemProperties = array_merge(array('dataset_id' => $ds_id), $culled_array);
                 $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
             }
