@@ -97,8 +97,16 @@ return [
             'provider' => 'users',
             'table' => 'tlcmap.password_resets',
             'connection' => 'pgsql2',
-            'expire' => 60,
+            'expire' => env('EMAIL_PASSWORD_RESET_EXPIRE', 60),
         ],
+    ],
+
+    /**
+     * The email verification configuration.
+     */
+    'verification' => [
+        // The verification email expire time in minutes.
+        'expire' => env('EMAIL_VERIFICATION_EXPIRE', 60),
     ],
 
 ];
