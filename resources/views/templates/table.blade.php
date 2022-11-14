@@ -45,7 +45,7 @@
                         @if(isset($line->external_url))
                             <dt>Link back to source:</dt>
                             <dd>
-                                <a href="{{$line->external_url}}">@if(isset($line->external_url)){{$line->original_data_source}}@else{{$line->external_url}}@endif</a>
+                                <a target="_blank" href="{{$line->external_url}}">{{$line->external_url}}</a>
                             </dd>
                         @endif
                         @if(isset($line->recordtype_id))
