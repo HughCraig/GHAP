@@ -690,6 +690,10 @@ div#searchresults {
     max-width: 100%;
 }
 
+div#searchresults .container .row:nth-child(even) {
+    background-color: #f5f5f5;
+}
+
 /* GHAP site styles */
 .site-warning {
     width: 100%;
