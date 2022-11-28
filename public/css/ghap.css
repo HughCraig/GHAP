@@ -690,8 +690,17 @@ div#searchresults {
     max-width: 100%;
 }
 
-div#searchresults .container .row:nth-child(even) {
+.place-list .row {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.place-list .row:nth-child(odd) {
     background-color: #f5f5f5;
+}
+
+.place-list .col {
+    overflow-wrap: anywhere;
 }
 
 /* GHAP site styles */

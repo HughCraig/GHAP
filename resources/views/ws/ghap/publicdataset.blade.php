@@ -117,89 +117,79 @@
 
     <!-- Dataitem Table -->
 
-    <div class="container">
-
-        @foreach($ds->dataitems as $data)
-
-
-
-        <div class="row">
-            <div class="col">
-
-                <dl>
-
-                    <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}',this,'id')">C</button>
-                    <a href="{{env('APP_URL')}}/search?id={{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
-                    @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif</a>
-                    </h4>
-                    <dl>
-                    @if(isset($data->placename))<dt>Placename</dt><dd>{{$data->placename}}</dd>@endif
-                    <dl>
-
-                    @if(isset($data->recordtype_id))<dt>Type</dt><dd>{{$data->recordtype->type}}</dd>
-                    @elseif(isset($data->dataset->recordtype_id))<dt>Type</dt><dd>{{$data->dataset->recordtype->type}}</dd>
-                    @endif
-
-                
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        🌏 View Maps...
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            @if (!empty(config('app.views_root_url')))
-                                <a class="dropdown-item grab-hover"
-                                    onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3D{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}%26format%3Djson`)">3D Viewer</a>
+    <div class="container-fluid">
+        <div class="place-list">
+            @foreach($ds->dataitems as $data)
+                <div class="row">
+                    <div class="col col-xl-3">
+                        <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}',this,'id')">C</button>
+                            <a href="{{env('APP_URL')}}/search?id={{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
+                                @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif</a>
+                        </h4>
+                        <dl>
+                            @if(isset($data->placename))<dt>Placename</dt><dd>{{$data->placename}}</dd>@endif
+                            @if(isset($data->recordtype_id))<dt>Type</dt><dd>{{$data->recordtype->type}}</dd>
+                            @elseif(isset($data->dataset->recordtype_id))<dt>Type</dt><dd>{{$data->dataset->recordtype->type}}</dd>
                             @endif
-                            <a class="dropdown-item grab-hover" onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{$data->latitude}},{{$data->longitude}}')">Google Maps</a>
-                            @if(isset($data->placename)) <a class="dropdown-item grab-hover" target="_blank" href="https://trove.nla.gov.au/search?keyword={{$data->placename}}">Trove Search</a>
-                                @else<a class="dropdown-item grab-hover" target="_blank" href="https://trove.nla.gov.au/search?keyword={{$data->title}}">Trove Search</a>@endif
-                        
-                        </div>
+                            <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    🌏 View Maps...
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    @if (!empty(config('app.views_root_url')))
+                                        <a class="dropdown-item grab-hover"
+                                           onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3D{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}%26format%3Djson`)">3D Viewer</a>
+                                    @endif
+                                    <a class="dropdown-item grab-hover" onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{$data->latitude}},{{$data->longitude}}')">Google Maps</a>
+                                    @if(isset($data->placename)) <a class="dropdown-item grab-hover" target="_blank" href="https://trove.nla.gov.au/search?keyword={{$data->placename}}">Trove Search</a>
+                                    @else<a class="dropdown-item grab-hover" target="_blank" href="https://trove.nla.gov.au/search?keyword={{$data->title}}">Trove Search</a>@endif
+
+                                </div>
+                            </div>
+                        </dl>
                     </div>
+                    <div class="col col-xl-2">
 
-            </div>
-            <div class="col">
+                        <h4>Details</h4>
 
-                <h4>Details</h4>
+                        @if(isset($data->latitude))<dt>Latitude</dt><dd>{{$data->latitude}}</dd>@endif
+                        @if(isset($data->longitude))<dt>Longitude</dt><dd>{{$data->longitude}}</dd>@endif
+                        @if(isset($data->start))<dt>Start Date</dt><dd>{{$data->start}}</dd>@endif
+                        @if(isset($data->end))<dt>End Date</dt><dd>{{$data->end}}</dd>@endif
 
-                @if(isset($data->latitude))<dt>Latitude</dt><dd>{{$data->latitude}}</dd>@endif
-                @if(isset($data->longitude))<dt>Longitude</dt><dd>{{$data->longitude}}</dd>@endif
-                @if(isset($data->start))<dt>Start Date</dt><dd>{{$data->start}}</dd>@endif
-                @if(isset($data->end))<dt>End Date</dt><dd>{{$data->end}}</dd>@endif
+                        @if(isset($data->state_code))<dt>State</dt><dd>{{$data->state_code}}</dd>@endif
+                        @if(isset($data->lga_name))<dt>LGA</dt><dd>{{$data->lga_name}}</dd>@endif
+                        @if(isset($data->parish))<dt>Parish</dt><dd>{{$data->parish}}</dd>@endif
+                        @if(isset($data->feature_term))<dt>Feature Term</dt><dd>{{$data->feature_term}}</dd>@endif
 
-                @if(isset($data->state_code))<dt>State</dt><dd>{{$data->state_code}}</dd>@endif
-                @if(isset($data->lga_name))<dt>LGA</dt><dd>{{$data->lga_name}}</dd>@endif
-                @if(isset($data->parish))<dt>Parish</dt><dd>{{$data->parish}}</dd>@endif
-                @if(isset($data->feature_term))<dt>Feature Term</dt><dd>{{$data->feature_term}}</dd>@endif
-
-            </div>
-            <div class="col">
-
-                <h4>Description</h4>
-                @if(isset($data->description))
-                    <div>{!!$data->description!!}</div>
-                @endif
-                @if(isset($data->extended_data))
                     </div>
-                    <div class="col">
-                    <h4>Extended Data</h4>
-                    {!!$data->extDataAsHTML()!!}
-                @endif
-            </div>
-            <div class="col">
-                <h4>Sources</h4>
-                @if(isset($data->id))<dt>TLCMap ID</dt><dd>{{$data->id}}</dd>@endif
-                @if(isset($data->external_url))<dt>Linkback</dt><dd><a href="{{$data->external_url}}">{{$data->external_url}}</a></dd>@endif
-                @if(isset($data->source))<dt>Source</dt><dd>{{$data->source}}</dd>@endif
+                    <div class="col col-xl-3">
 
-                @if(isset($data->created_at))<dt>Created At</dt><dd>{{$data->created_at}}</dd>@endif
-                @if(isset($data->updated_at))<dt id="updatedat">Updated At</dt><dd>{{$data->updated_at}}</dd>@endif
+                        <h4>Description</h4>
+                        @if(isset($data->description))
+                            <div>{!!$data->description!!}</div>
+                        @endif
+                        @if(isset($data->extended_data))
+                    </div>
+                    <div class="col col-xl-2">
+                        <h4>Extended Data</h4>
+                        {!!$data->extDataAsHTML()!!}
+                        @endif
+                    </div>
+                    <div class="col col-xl-2">
+                        <h4>Sources</h4>
+                        @if(isset($data->id))<dt>TLCMap ID</dt><dd>{{$data->id}}</dd>@endif
+                        @if(isset($data->external_url))<dt>Linkback</dt><dd><a href="{{$data->external_url}}">{{$data->external_url}}</a></dd>@endif
+                        @if(isset($data->source))<dt>Source</dt><dd>{{$data->source}}</dd>@endif
 
-            </div>
-            <!-- end bootstrap row -->
-            </div>
+                        @if(isset($data->created_at))<dt>Created At</dt><dd>{{$data->created_at}}</dd>@endif
+                        @if(isset($data->updated_at))<dt id="updatedat">Updated At</dt><dd>{{$data->updated_at}}</dd>@endif
 
-        @endforeach
+                    </div>
+                    <!-- end bootstrap row -->
+                </div>
+            @endforeach
+        </div>
     <!-- end bootstrap container -->
     </div>
 
