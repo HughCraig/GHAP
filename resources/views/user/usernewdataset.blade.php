@@ -36,7 +36,7 @@
                     *Description
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                                 title="A short paragraph summarising the layer. Anything not covered by other fields can be added here."></span>
-                    <textarea rows="3" maxlength="500" class="w-100 mb-2 w3-white form-control" name="description" required ></textarea>
+                    <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control" name="description" required ></textarea>
 
                     Record Type
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
@@ -50,7 +50,7 @@
                     Content Warning 
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
                         title="Anything the viewer should be aware of before viewing information in this layer, such as that the content may distress some viewers."></span>
-                        <textarea rows="3" maxlength="500" class="w-100 mb-2 w3-white form-control" name="warning" ></textarea>
+                        <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control" name="warning" ></textarea>
 
                     Visibility 
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
