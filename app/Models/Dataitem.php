@@ -2,6 +2,7 @@
 
 namespace TLCMap\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Dataitem extends Model
@@ -34,6 +35,72 @@ class Dataitem extends Model
     public function recordtype()
     {
         return $this->belongsTo(RecordType::class, 'recordtype_id');
+    }
+
+    /**
+     * Get the start date.
+     *
+     * Accessor to normalise the date string in format yyyy-mm-dd.
+     *
+     * @param string $value
+     * @return string
+     */
+    public function getDatestartAttribute($value)
+    {
+        if (preg_match('/^\d+-\d+-\d+$/', $value)) {
+            return Carbon::parse($value)->format('Y-m-d');
+        }
+        return $value;
+    }
+
+    /**
+     * Set the start date.
+     *
+     * Mutator to normalise the date string in format yyyy-mm-dd
+     *
+     * @param string $value
+     * @return void
+     */
+    public function setDatestartAttribute($value)
+    {
+        if (preg_match('/^\d+-\d+-\d+$/', $value)) {
+            $this->attributes['datestart'] = Carbon::parse($value)->format('Y-m-d');
+        } else {
+            $this->attributes['datestart'] = $value;
+        }
+    }
+
+    /**
+     * Get the end date.
+     *
+     * Accessor to normalise the date string in format yyyy-mm-dd.
+     *
+     * @param string $value
+     * @return string
+     */
+    public function getDateendAttribute($value)
+    {
+        if (preg_match('/^\d+-\d+-\d+$/', $value)) {
+            return Carbon::parse($value)->format('Y-m-d');
+        }
+        return $value;
+    }
+
+    /**
+     * Set the end date.
+     *
+     * Mutator to normalise the date string in format yyyy-mm-dd
+     *
+     * @param string $value
+     * @return void
+     */
+    public function setDateendAttribute($value)
+    {
+        if (preg_match('/^\d+-\d+-\d+$/', $value)) {
+            $this->attributes['dateend'] = Carbon::parse($value)->format('Y-m-d');
+        } else {
+            $this->attributes['dateend'] = $value;
+        }
     }
 
     /**
