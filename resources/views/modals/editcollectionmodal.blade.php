@@ -28,7 +28,7 @@
                 </button>
             </div>
 
-            <form method="POST" id="edit_dataset_form" action="{]{url()->full()}}/edit">
+            <form method="POST" id="edit_dataset_form" action="{{url()->full()}}/edit">
                 <div class="modal-body">
                     @csrf
                     <div class="row">
