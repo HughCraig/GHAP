@@ -395,7 +395,9 @@ class GazetteerController extends Controller
                     //$query->where('placename', 'ILIKE', '%'.$parameters['fuzzyname'].'%')->orWhere('placename', 'SOUNDS LIKE', $parameters['fuzzyname']);
                 });
             } else if ($parameters['containsname']) {
-                $dataitems->where('title', 'ILIKE', '%' . $parameters['containsname'] . '%')->orWhere('placename', 'ILIKE', '%' . $parameters['containsname'] . '%');
+                $dataitems->where(function ($query) use ($parameters) {
+                    $query->where('title', 'ILIKE', '%' . $parameters['containsname'] . '%')->orWhere('placename', 'ILIKE', '%' . $parameters['containsname'] . '%');
+                });
             }
         }
 
@@ -429,7 +431,9 @@ class GazetteerController extends Controller
                 $dataitems->where('longitude', '>=', $bbox['min_long']);
                 $dataitems->where('longitude', '<=', $bbox['max_long']);
             } else { //else we have crossed the 180th meridian
-                $dataitems->where('longitude', '>=', $bbox['min_long'])->orWhere('longitude', '<=', $bbox['max_long']); //TODO: does this need a where(function) encapsulation?
+                $dataitems->where(function ($query) use ($bbox) {
+                    $query->where('longitude', '>=', $bbox['min_long'])->orWhere('longitude', '<=', $bbox['max_long']);
+                });
             }
         }
         if ($polygon) { //sql: WHERE ST_CONTAINS(ST_GEOMFROMTEXT('POLYGON((lng1 lat1, lng2 lat2, lngn latn, lng1 lat1))'), POINT(longitude,latitude) )
@@ -440,8 +444,10 @@ class GazetteerController extends Controller
             }
             $polygonsql = substr($polygonsql, 0, strlen($polygonsql) - 2); //strip final comma
             $polygonsql .= "))')";
-            $dataitems->whereRaw("ST_CONTAINS(" . $polygonsql . ", ST_POINT(longitude,latitude) )")->orWhereRaw("ST_CONTAINS(" . $polygonsql . ", ST_POINT(longitude+360,latitude) )")
-                ->orWhereRaw("ST_CONTAINS(" . $polygonsql . ", ST_POINT(longitude-360,latitude) )"); //TODO: does this need a where(function) encapsulation?
+            $dataitems->where(function ($query) use ($polygonsql) {
+                $query->whereRaw("ST_CONTAINS(" . $polygonsql . ", ST_POINT(longitude,latitude) )")->orWhereRaw("ST_CONTAINS(" . $polygonsql . ", ST_POINT(longitude+360,latitude) )")
+                    ->orWhereRaw("ST_CONTAINS(" . $polygonsql . ", ST_POINT(longitude-360,latitude) )");
+            });
             // $dataitems->whereRaw("ST_CONTAINS(" . $polygonsql . ", POINT(longitude,latitude) )")->orWhereRaw("ST_CONTAINS(" . $polygonsql . ", POINT(longitude+360,latitude) )")
             //                 ->orWhereRaw("ST_CONTAINS(" . $polygonsql . ", POINT(longitude-360,latitude) )"); //TODO: does this need a where(function) encapsulation?
         }
