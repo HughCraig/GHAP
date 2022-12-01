@@ -522,12 +522,13 @@ class DatasetController extends Controller
             $proppairs["TLCMapLinkBack"] = url("search?id=" . UID::create($i->id, 't'));
             $proppairs["TLCMapDataset"] = url("publicdatasets/" . $dataset->id);
 
-
-            $features[] = array(
-                'type' => 'Feature',
-                'geometry' => array('type' => 'Point', 'coordinates' => array((float)$proppairs["longitude"], (float)$proppairs["latitude"])),
-                'properties' => $proppairs
-            );
+            if (isset($proppairs["longitude"]) && isset($proppairs["latitude"])) {
+                $features[] = array(
+                    'type' => 'Feature',
+                    'geometry' => array('type' => 'Point', 'coordinates' => array((float)$proppairs["longitude"], (float)$proppairs["latitude"])),
+                    'properties' => $proppairs
+                );
+            }
         }
 
         $allfeatures = array('type' => 'FeatureCollection', 'metadata' => $metadata, 'features' => $features);
