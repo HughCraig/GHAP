@@ -65,12 +65,12 @@
                                 @if (!empty(config('app.views_root_url')))
                                     @if(isset($line->anps_id))
                                         <a class="dropdown-item grab-hover"
-                                           onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3D{{ \TLCMap\Http\Helpers\UID::create($line->anps_id, 'a') }}%26format%3Djson`)">
+                                           onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . \TLCMap\Http\Helpers\UID::create($line->anps_id, 'a') . '&format=json') }}`)">
                                             3D Viewer
                                         </a>
                                     @elseif(isset($line->dataitem_id))
                                         <a class="dropdown-item grab-hover"
-                                           onclick="window.open(`{{ config('app.views_root_url') }}/places.html?load={{env('APP_URL')}}/search?id%3D{{ \TLCMap\Http\Helpers\UID::create($line->dataitem_id, 't') }}%26format%3Djson`)">
+                                           onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . \TLCMap\Http\Helpers\UID::create($line->dataitem_id, 't') . '&format=json') }}`)">
                                             3D Viewer
                                         </a>
                                     @endif

@@ -221,7 +221,7 @@
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             @if (!empty(config('app.views_root_url')))
                                 <a class="dropdown-item grab-hover"
-                                    onclick="window.open('{{ config('app.views_root_url') }}/place.html?latlng={!! urlencode($data->latitude) !!},{!! urlencode($data->longitude) !!}&id={!! urlencode($data->id) !!}&title={!! urlencode($data->title) !!}&placename={!! urlencode($data->placename) !!}&description={!! urlencode($data->description) !!}&linkback={{url()->full()}}')">3D Viewer</a>
+                                    onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . \TLCMap\Http\Helpers\UID::create($data->id, 't') . '&format=json') }}')">3D Viewer</a>
                             @endif
                             <a class="dropdown-item grab-hover" onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{$data->latitude}},{{$data->longitude}}')">Google Maps</a>
 
