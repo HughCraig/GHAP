@@ -13,7 +13,7 @@ class CreateCollectionDatasetTable extends Migration
      */
     public function up()
     {
-        Schema::connection('pgsql2')->create('tlcmap.collection_dataset', function (Blueprint $table) {
+        Schema::create('tlcmap.collection_dataset', function (Blueprint $table) {
             $table->unsignedBigInteger('collection_id');
             $table->unsignedBigInteger('dataset_id');
         });
@@ -26,6 +26,6 @@ class CreateCollectionDatasetTable extends Migration
      */
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('tlcmap.collection_dataset');
+        Schema::dropIfExists('tlcmap.collection_dataset');
     }
 }

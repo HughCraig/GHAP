@@ -122,7 +122,7 @@
             @foreach($ds->dataitems as $data)
                 <div class="row">
                     <div class="col col-xl-3">
-                        <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}',this,'id')">C</button>
+                        <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
                             <a href="{{env('APP_URL')}}/search?id={{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
                                 @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif</a>
                         </h4>
@@ -154,11 +154,11 @@
 
                         @if(isset($data->latitude))<dt>Latitude</dt><dd>{{$data->latitude}}</dd>@endif
                         @if(isset($data->longitude))<dt>Longitude</dt><dd>{{$data->longitude}}</dd>@endif
-                        @if(isset($data->start))<dt>Start Date</dt><dd>{{$data->start}}</dd>@endif
-                        @if(isset($data->end))<dt>End Date</dt><dd>{{$data->end}}</dd>@endif
+                        @if(isset($data->datestart))<dt>Start Date</dt><dd>{{$data->datestart}}</dd>@endif
+                        @if(isset($data->dateend))<dt>End Date</dt><dd>{{$data->dateend}}</dd>@endif
 
-                        @if(isset($data->state_code))<dt>State</dt><dd>{{$data->state_code}}</dd>@endif
-                        @if(isset($data->lga_name))<dt>LGA</dt><dd>{{$data->lga_name}}</dd>@endif
+                        @if(isset($data->state))<dt>State</dt><dd>{{$data->state}}</dd>@endif
+                        @if(isset($data->lga))<dt>LGA</dt><dd>{{$data->lga}}</dd>@endif
                         @if(isset($data->parish))<dt>Parish</dt><dd>{{$data->parish}}</dd>@endif
                         @if(isset($data->feature_term))<dt>Feature Term</dt><dd>{{$data->feature_term}}</dd>@endif
 
@@ -178,9 +178,9 @@
                     </div>
                     <div class="col col-xl-2">
                         <h4>Sources</h4>
-                        @if(isset($data->id))<dt>TLCMap ID</dt><dd>{{$data->id}}</dd>@endif
+                        @if(isset($data->uid))<dt>TLCMap ID</dt><dd>{{$data->uid}}</dd>@endif
                         @if(isset($data->external_url))<dt>Linkback</dt><dd><a href="{{$data->external_url}}">{{$data->external_url}}</a></dd>@endif
-                        @if(isset($data->source))<dt>Source</dt><dd>{{$data->source}}</dd>@endif
+                        @if(isset($data->source))<dt>Source</dt><dd>{!! nl2br($data->source) !!}</dd>@endif
 
                         @if(isset($data->created_at))<dt>Created At</dt><dd>{{$data->created_at}}</dd>@endif
                         @if(isset($data->updated_at))<dt id="updatedat">Updated At</dt><dd>{{$data->updated_at}}</dd>@endif

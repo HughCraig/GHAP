@@ -7,13 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Collection extends Model
 {
     /**
-     * The connection name for the model.
-     *
-     * @var string
-     */
-    protected $connection = 'pgsql2';
-
-    /**
      * The table associated with the model.
      *
      * @var string

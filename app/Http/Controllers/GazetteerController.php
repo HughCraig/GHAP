@@ -14,9 +14,6 @@ namespace TLCMap\Http\Controllers;
 
 use Illuminate\Http\Request;
 use TLCMap\Http\Helpers\UID;
-use TLCMap\Models\Register;
-use TLCMap\Models\Documentation;
-use TLCMap\Models\Source;
 use TLCMap\Models\Dataset;
 use TLCMap\Models\Dataitem;
 use Illuminate\Support\Facades\Input;
@@ -34,6 +31,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
 
 use TLCMap\Http\Helpers\GeneralFunctions;
+use TLCMap\Models\Datasource;
 
 class GazetteerController extends Controller
 {
@@ -60,59 +58,6 @@ class GazetteerController extends Controller
     {
         session(['paging.redirect.success' => 'true']);
         return redirect(session('paging.redirect.url'));
-    }
-
-    /**
-     * Function for uploading a text file with a placename on each line
-     * Results will be combined
-     *
-     * Eg: Show all with placename Newcastle, Cessnock, Shoal Bay (23 results)
-     */
-    public function searchFromFile(Request $request)
-    {
-        $results = collect();  //Collection to hold results of search
-        $bulkfile = $request->bulkfile; //Get file from request
-
-        if (!empty($bulkfile)) {
-            $ausgaz = DB::table('gazetteer.register'); //get anps Register table
-            //and the tlcmap data
-            $dataitems = Dataitem::select('title', DB::raw("'From Contributed Layer ' || dataset_id as flag"), 'id as dataitem_id', 'description', 'latitude as tlcm_latitude', 'longitude as tlcm_longitude',
-                'state as state_code', 'feature_term', 'source as original_data_source', 'lga as lga_name', 'external_url', 'datestart', 'dateend', 'created_at', 'updated_at', 'placename')
-                ->whereHas('dataset', function ($q) {
-                    $q->where('public', '=', 'true');
-                });
-            $bulkfile = $bulkfile->get();
-            $delim = PHP_EOL;
-
-            if (strpos($bulkfile, ',') !== false) { //if file contains a comma, separate by comma
-                $delim = ',';
-            }
-
-            $contents = explode($delim, $bulkfile); //turn into an array - explode separating by new lines
-            foreach ($contents as $line) {
-                //$results->orWhere('placename','=',trim($line)); //OLD METHOD, DIRECT MATCHES - get the results matching this line from DB
-                //NEW METHOD, FUZZY
-                // ANPS Gaz:
-                $ausgaz->orWhere(function ($query) use ($line) {
-                    $query->where('placename', 'ILIKE', '%' . trim($line) . '%')->orWhereRaw('placename % ?', trim($line));
-                    //$query->where('placename', 'ILIKE', '%'.trim($line).'%')->orWhere('placename', 'SOUNDS LIKE', trim($line));
-                });
-                // User Layers, query both title and placename
-                $dataitems->orWhere(function ($query) use ($line) {
-                    $query->where('title', 'ILIKE', '%' . trim($line) . '%')->orWhereRaw('title % ?', trim($line))->where('placename', 'ILIKE', '%' . trim($line) . '%')->orWhereRaw('placename % ?', trim($line));
-                });
-            }
-            $dataitems = $dataitems->get();
-            $results = $dataitems->merge($ausgaz->get()); //TODO merge not working???
-
-            //Get results
-            $paging = env('DEFAULT_PAGING', false);
-            $results = $results->paginate($paging)->appends(request()->query());
-
-            return view('ws.ghap.places.show', ['details' => $results, 'query' => $results]);
-        }
-        return redirect()->route('index'); //if the file was empty or not attached, go back to the main page
-
     }
 
     public function bulkFileParser(Request $request)
@@ -161,7 +106,8 @@ class GazetteerController extends Controller
         $file = $request->polygonkml;
         if (empty($file)) return redirect()->route('index'); //if the file was empty or not attached, go back to the main page
 
-        $results = DB::table('gazetteer.register'); //get Register table
+        // This currently only search ANPS data. Maybe better to give users the option to select the datasource.
+        $results = Datasource::anps()->dataitems();
 
         //Go through the kml and find Polygons
         $data = array();
@@ -187,9 +133,11 @@ class GazetteerController extends Controller
         if (empty($polygons)) return redirect()->route('index'); //Could not extract a valid polygon
 
         //for each Polygon generate a raw SQL style polygon
-        for ($i = 0; $i < count($polygons); $i++) {
-            $results->OrWhereRaw("ST_CONTAINS(ST_GEOMFROMTEXT('" . $polygons[$i] . "'), ST_POINT(tlcm_longitude::double precision,tlcm_latitude::double precision) )");
-        }
+        $results->where(function ($query) use ($polygons) {
+            for ($i = 0; $i < count($polygons); $i++) {
+                $query->OrWhereRaw("ST_CONTAINS(ST_GEOMFROMTEXT('" . $polygons[$i] . "'), ST_POINT(longitude::double precision,latitude::double precision) )");
+            }
+        });
 
         //sql: WHERE ST_CONTAINS(ST_GEOMFROMTEXT('POLYGON((lng1 lat1, lng2 lat2, lngn latn, lng1 lat1))'), POINT(longitude,latitude) )
         //limit results to just those within any one of these polygons
@@ -211,10 +159,6 @@ class GazetteerController extends Controller
 
         $that = $this;
 
-        /* DATA STRUCTURES */
-        $asoc_array = array(); //Associative array to hold ANPS source data
-        $results = collect();  //Collection to hold results of search
-
         /* ENV VARS */
         $MAX_PAGING = env('MAX_PAGING', false);     //should move the rest of the direct env calls to be config calls but this will take forever
         $DEFAULT_PAGING = env('DEFAULT_PAGING', false);
@@ -233,48 +177,11 @@ class GazetteerController extends Controller
         if (!$paging && ($parameters['format'] == 'html' || $parameters['format'] == '')) $paging = $DEFAULT_PAGING; //limit to DEFAULT if no limit set (to speed it up)
         if (!$paging || $paging > $MAX_PAGING) $paging = $MAX_PAGING; //limit to MAX if over max
 
-        /* PUBLIC DATASET SEARCH */
-        if ($parameters['searchpublicdatasets'] || $parameters['dataitemid']) {
-            $publicdata = $this->searchPublicDatasets($parameters); //call our local function to handle public datasets
-            if ($publicdata) $results = $results->merge($publicdata);
-        }
+        // Search dataitems.
+        $results = $this->searchDataitems($parameters);
 
-        // app('log')->debug('Time after public dataset search: ' . (microtime(true) - $starttime)); //DEBUG LOGGING TEST
-
-        /* AUS GAZETTEER SEARCH */
-        if (!$parameters['dataitemid'] && ($parameters['searchausgaz'] || (!$parameters['searchpublicdatasets'] && !$parameters['searchausgaz']))) {
-            //ausgaz is a QUERY BUILDER object as we havent called get() on it yet
-            $ausgaz = $this->searchAusGaz($parameters, $id); //call our local function to handle Australian Gazetteer datasets
-
-            // app('log')->debug('Time after ausgaz search: ' . (microtime(true) - $starttime)); //DEBUG LOGGING TEST
-
-            //Get the COLLECTION
-            $ausgaz_collection = $ausgaz->get();
-
-            // app('log')->debug('Time after ausgaz TO COLLECTION: ' . (microtime(true) - $starttime)); //DEBUG LOGGING TEST
-
-            //Modifying the collection directly, as datestart and dateend fields are TEXT fields not dates, simpler this way (might be a little slower)
-            if ($parameters['datefrom'] || $parameters['dateto']) {
-                $ausgaz_collection = $ausgaz_collection->filter(function ($v) use ($parameters, $that) {
-                    return $that::dateSearch($parameters['datefrom'], $parameters['dateto'], $v->tlcm_start, $v->tlcm_end);
-                });
-            }
-
-            // app('log')->debug('Time after ausgaz date filtering: ' . (microtime(true) - $starttime)); //DEBUG LOGGING TEST
-
-            //Merge the COLLECTION of ausgaz into the results COLLECTION
-            $results = $results->merge($ausgaz_collection);
-
-            /* MAX SIZE CHECK */
-            if ($this->maxSizeCheck($results, $parameters['format'], $MAX_PAGING)) return redirect()->route('maxPagingMessage'); //if results > $MAX_PAGING show warning msg
-
-            /* GET ANPS SOURCE DATA - TODO: CACHE THE JOIN SO WE DON'T HAVE TO PERFORM IT EACH TIME */
-            //THIS IS MASSIVELY SLOW FOR LARGE DATASETS, DISABLING FOR NOW
-            if ($parameters['format'] != 'csv') $asoc_array = $this->getANPSSourceData($ausgaz); //don't do it for csv, haven't decided on column format yet
-
-            // app('log')->debug('Time after grabbing source data: ' . (microtime(true) - $starttime)); //DEBUG LOGGING TEST
-
-        }
+        /* MAX SIZE CHECK */
+        if ($this->maxSizeCheck($results, $parameters['format'], $MAX_PAGING)) return redirect()->route('maxPagingMessage'); //if results > $MAX_PAGING show warning msg
 
         /* FUZZY NAME SORTING - skip if table sorting is applied */
         if ($parameters['fuzzyname'] && (!$parameters['sort'] || !$parameters['direction'])) $results = $this->fuzzysort($results, $parameters['fuzzyname'], true); //last param true if fuzzy, false if contains
@@ -286,74 +193,73 @@ class GazetteerController extends Controller
         /* APPLY PAGING/LIMITING */
         $results = $this->paginate($results, $paging); //Turn into a LengthAwarePaginator - APPLIES LIMITING!
 
-        // app('log')->debug('Time before output function: ' . (microtime(true) - $starttime)); //DEBUG LOGGING TEST
-
         /* OUTPUT */
-        return $this->outputs($parameters, $results, $asoc_array);
+        return $this->outputs($parameters, $results);
     }
-
-
 
     /********************/
     /* SEARCH FUNCTIONS */
     /********************/
 
-    function searchPublicDatasets($parameters)
+    private function searchDataitems($parameters)
     {
         $that = $this; //self reference to use the functions in this controller
 
-        /* SKIP IF ANPS ID WAS SEARCHED */
-        if ($parameters['anps_id']) return null;
-
-        /* Get dataitems where their parent dataset is public */
-
-        // Bill Pascoe: This is tricky. Moving to postgres the 'From Public Dataset' bit is causing problems. The intention appears to be to add a column with texts that says something like
-        // 'From Public Dataset X' and call the column 'flag'. This isn't the text that ultimately gets displayed either. It seems like a strange and dodgy way of going about things
-        // but haven't followed the workflow through to see why. Will just change this a bit to get it working for now.
-        // Previous code is commented out below. It looks like the '+' sign is what pgres sees as an invalid operator, so is maybe a MySQL specific way to concat strings.
-        // So just removing + dataset_id for now. Maybe redundant old untidy code.
-        //
-        // In trying to figure out why this is creating a string to put in a column that says 'From Public Dataset X' and call that column 'flag' it seems it was used to create
-        // the link from this item in search results to the public dataset. However, that bit of code in table.blade was adding the 'flag' value to the end of a URL, which would tack this whole
-        // string on the end, which didn't work anyway, as the link to the dataset really just needs the dataset id tacked on the end. So I'm still not sure what this is for,
-        // except perhaps a fudge to the the right human readable text in to GeoJSON and KML output. Maybe check that out. In the mean time, just correcting table.blade.php to
-        // use dataset_id instead of 'flag'.
-        $dataitems = Dataitem::select('title', 'dataset_id', 'recordtype_id', DB::raw("'From Contributed Layer ' || dataset_id as flag"),
-            'id as dataitem_id', 'description', 'latitude as tlcm_latitude', 'longitude as tlcm_longitude',
-            'state as state_code', 'feature_term', 'source as original_data_source', 'lga as lga_name',
-            'external_url', 'datestart as tlcm_start', 'dateend as tlcm_end', 'extended_data', 'created_at', 'updated_at', 'placename')
+        // Get datasource IDs to search.
+        $datasourceIDs = [];
+        $allDatasourceIDs = [];
+        $datasources = Datasource::all();
+        foreach ($datasources as $datasource) {
+            if (isset($parameters[$datasource->search_param_name])) {
+                $datasourceIDs[] = $datasource->id;
+            }
+            $allDatasourceIDs[] = $datasource->id;
+        }
+        // Set to all datasources if no parameter specified.
+        if (empty($datasourceIDs)) {
+            $datasourceIDs = $allDatasourceIDs;
+        }
+        // Search dataitems.
+        $dataitems = Dataitem::searchScope()
             ->with(['dataset' => function ($q) {
                 $q->select('id', 'name', 'warning');
             }])
-            ->whereHas('dataset', function ($q) {
-                $q->where('public', '=', 'true');
-            });
-
-//        $dataitems = Dataitem::select('placename', 'dataset_id', DB::raw("'From Public Dataset ' + dataset_id as flag"), 'id as dataitem_id', 'description', 'latitude as TLCM_Latitude', 'longitude as TLCM_Longitude',
-//	    'state as state_code', 'feature_term', 'source as ORIGINAL_DATA_SOURCE', 'lga as lga_name', 'parish', 'external_url','datestart as TLCM_start','dateend as TLCM_end','created_at','updated_at')
-//	        ->with(['dataset' => function ($q) { $q->select('id', 'name'); }])
-//	        ->whereHas('dataset', function ($q) { $q->where('public','=','1'); } );
-
+            ->with(['datasource' => function ($q) {
+                $q->select('id', 'name', 'description', 'link');
+            }])
+            ->whereIn('datasource_id', $datasourceIDs);
 
         /* GET BBOX PARAMS */
         $bbox = ($parameters['bbox']) ? $this->getBbox($parameters['bbox']) : null;
         $polygon = ($parameters['polygon']) ? $this->getPolygon($parameters['polygon']) : null;
         $circle = ($parameters['circle']) ? $this->getCircle($parameters['circle']) : null;
 
-        //BULK SEARCH FROM FILE - set names to be either names fuzzynames containsnames or null - filter out empty strings
-        $names;
-        switch (!null) {
-            case ($parameters['names']):
-                $names = array_filter(array_map('trim', $parameters['names']));
-                break;
-            case ($parameters['fuzzynames']):
-                $names = array_filter(array_map('trim', $parameters['fuzzynames']));
-                break;
-            case ($parameters['containsnames']):
-                $names = array_filter(array_map('trim', $parameters['containsnames']));
-                break;
-            default:
-                $names = null;
+        // Search UID.
+        if (isset($parameters['id'])) {
+            $dataitems->where('uid', '=', $parameters['id']);
+        }
+
+        // Legacy support of ANPS ID search.
+        if (isset($parameters['anps_id'])) {
+            $anpsSource = Datasource::anps();
+            if ($anpsSource) {
+                $searchAnpsID = $parameters['anps_id'];
+                // Apply a logic group for the convenience of further logics.
+                $dataitems->where(function ($query) use ($anpsSource, $searchAnpsID) {
+                    $query->where('datasource_id', $anpsSource->id)
+                        ->where('original_id', $searchAnpsID);
+                });
+            }
+        }
+
+        if ($parameters['names']) {
+            $names = array_filter(array_map('trim', $parameters['names']));
+        } elseif ($parameters['fuzzynames']) {
+            $names = array_filter(array_map('trim', $parameters['fuzzynames']));
+        } elseif ($parameters['containsnames']) {
+            $names = array_filter(array_map('trim', $parameters['containsnames']));
+        } else {
+            $names = null;
         }
 
         if ($names) { //if we are bulk searching from file
@@ -409,20 +315,6 @@ class GazetteerController extends Controller
         if ($parameters['state']) $dataitems->where('state', '=', $parameters['state']);
         if ($parameters['feature_term']) $dataitems->where('feature_term', '=', $parameters['feature_term']);
 
-        /* Check for date overlap (a.start < b.end && a.end > b.start) */
-        //NOTE: we are NOT currently giving special consideration to cases where a dataitem has 1 but not both start and end dates, TODO: Accomodate this odd situation
-        //If user specifies both a from AND to date they want all instances where dataitems were active in this period (inclusive)
-        // if ($parameters['dateto'] && $parameters['datefrom']) {
-        //     $dataitems->where( function($q) use ($parameters) { 
-        //         $q->whereDate('datestart', '<=', $parameters['dateto']); //$q->whereRaw( (Carbon::parse('datestart')->lessThanOrEqualTo(Carbon::parse($parameters['dateto']))) . ' = true'  );
-        //         $q->whereDate('dateend', '>=',  $parameters['datefrom']); //$q->whereRaw( (Carbon::parse('datestart')->lessThanOrEqualTo(Carbon::parse($parameters['dateto']))) . ' = true'  ); 
-        //     });
-        // }
-        // //if user ONLY specifies an end date, they want all instances where dataitems were active up to and including this date 
-        // else if ($parameters['dateto']) $dataitems->whereDate('datestart', '<=', $parameters['dateto']); //$dataitems->whereRaw( (Carbon::parse('datestart')->lessThanOrEqualTo(Carbon::parse($parameters['dateto']))) . ' = true'  ); 
-        // //if user ONLY specifies a start date, they want all instances where dataitems were active on this date or any date afterward
-        // else if ($parameters['datefrom']) $dataitems->whereDate('dateend', '>=', $parameters['datefrom']); //$dataitems->whereRaw( (Carbon::parse('datestart')->lessThanOrEqualTo(Carbon::parse($parameters['dateto']))) . ' = true'  );
-
         if ($bbox) {
             $dataitems->where('latitude', '>=', $bbox['min_lat']);
             $dataitems->where('latitude', '<=', $bbox['max_lat']);
@@ -448,12 +340,9 @@ class GazetteerController extends Controller
                 $query->whereRaw("ST_CONTAINS(" . $polygonsql . ", ST_POINT(longitude,latitude) )")->orWhereRaw("ST_CONTAINS(" . $polygonsql . ", ST_POINT(longitude+360,latitude) )")
                     ->orWhereRaw("ST_CONTAINS(" . $polygonsql . ", ST_POINT(longitude-360,latitude) )");
             });
-            // $dataitems->whereRaw("ST_CONTAINS(" . $polygonsql . ", POINT(longitude,latitude) )")->orWhereRaw("ST_CONTAINS(" . $polygonsql . ", POINT(longitude+360,latitude) )")
-            //                 ->orWhereRaw("ST_CONTAINS(" . $polygonsql . ", POINT(longitude-360,latitude) )"); //TODO: does this need a where(function) encapsulation?
         }
         if ($circle) {
             $dataitems->whereRaw("ST_DISTANCE( ST_POINT(" . $circle['long'] . "," . $circle['lat'] . "), ST_POINT(longitude,latitude) ) <= " . $circle['rad']); //NOTE: ST_DISTANCE for mariaDB, ST_DISTANCE_SPHERE for mysql
-            // $dataitems->whereRaw("ST_DISTANCE( POINT(" . $circle['long'] . "," . $circle['lat'] . "), POINT(longitude,latitude) ) <= " . $circle['rad']); //NOTE: ST_DISTANCE for mariaDB, ST_DISTANCE_SPHERE for mysql
         }
         if ($circle) {
             //NOTE: in mysql use  whereRaw( "ST_DISTANCE_SPHERE( POINT(" . $circle['long'] . "," . $circle['lat'] . "), POINT(TLCM_Longitude,TLCM_Latitude) ) <= " . $circle['rad'] );
@@ -468,165 +357,17 @@ class GazetteerController extends Controller
             $dataitems = $this->diSubquery($dataitems, $parameters);
         }
 
-        $collection = $dataitems->whereHas('dataset', function ($q) {
-            $q->where('public', '=', 'true');
-        })->get(); //needs to be applied a second time for some reason (maybe because of the subquery?)
+        $collection = $dataitems->get(); //needs to be applied a second time for some reason (maybe because of the subquery?)
 
         //Modifying the collection directly, as datestart and dateend fields are TEXT fields not dates, simpler this way (might be a little slower)
         if ($parameters['dateto'] || $parameters['datefrom']) {
             $collection = $collection->filter(function ($v) use ($parameters, $that) {
-                return $that::dateSearch($parameters['datefrom'], $parameters['dateto'], $v->tlcm_start, $v->tlcm_end);
+                return $that::dateSearch($parameters['datefrom'], $parameters['dateto'], $v->datestart, $v->dateend);
             });
         }
 
         return $collection;
-    }
 
-    function searchAusGaz($parameters, $id)
-    {
-        /* Get Tables */
-        $results = DB::table('gazetteer.register'); //Contains geographical places in the Gazetteer
-
-        //No longer needed? Works without this
-        /* ANPS GAZ ENTRIES HAVE NO DATES! RETURN ZERO RESULTS IF DATE FIELDS ARE REQUESTED */
-        // if ($parameters['datefrom'] || $parameters['dateto']) {
-        //     $results->where('anps_id', '=', '-99999999');
-        //     return $results;
-        // }
-
-        /* GET BBOX PARAMS */
-        $bbox = ($parameters['bbox']) ? $this->getBbox($parameters['bbox']) : null;
-        $polygon = ($parameters['polygon']) ? $this->getPolygon($parameters['polygon']) : null;
-        $circle = ($parameters['circle']) ? $this->getCircle($parameters['circle']) : null;
-
-        //BULK SEARCH FROM FILE - set names to be either names fuzzynames containsnames or null - filter out empty strings
-        $names;
-        switch (!null) {
-            case $parameters['names']:
-                $names = array_filter(array_map('trim', $parameters['names']));
-                break;
-            case $parameters['fuzzynames']:
-                $names = array_filter(array_map('trim', $parameters['fuzzynames']));
-                break;
-            case $parameters['containsnames']:
-                $names = array_filter(array_map('trim', $parameters['containsnames']));
-                break;
-            default:
-                $names = null;
-        }
-
-        if ($names) { //if we are bulk searching from file
-            if (!empty($names)) { //if we dont have an empty array
-                if ($parameters['names']) {
-                    $results->where(function ($query) use ($names) {
-                        $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
-                        $query->where('placename', 'ILIKE', $firstcase);
-                        foreach ($names as $line) {
-                            $query->orWhere('placename', '=', $line);
-                        }
-                    });
-                } else if ($parameters['fuzzynames']) {
-                    $results->where(function ($query) use ($names) {
-                        $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
-                        $query->where('placename', 'ILIKE', '%' . $firstcase . '%')->orWhereRaw('placename % ?', $firstcase);
-                        //  $query->where('placename', 'ILIKE', '%'.$firstcase.'%')->orWhere('placename', 'SOUNDS LIKE', $firstcase);
-                        foreach ($names as $line) {
-                            $query->orWhere('placename', 'ILIKE', '%' . $line . '%')->orWhereRaw('placename % ?', $line);
-                            //$query->orWhere('placename', 'ILIKE', '%'.$line.'%')->orWhere('placename', 'SOUNDS LIKE', $line);
-                        }
-                    });
-                } else if ($parameters['containsnames']) {
-                    $results->where(function ($query) use ($names) {
-                        $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
-                        $query->where('placename', 'ILIKE', '%' . $firstcase . '%');
-                        foreach ($names as $line) {
-                            $query->orWhere('placename', 'ILIKE', '%' . $line . '%');
-                        }
-                    });
-                }
-            } else $results->where('placename', '=', null); //we did a bulk search but all of the names equated to empty strings! Show no results
-        } else { //we are not bulk searching from file, we are searching for a single placename
-            if ($parameters['name']) $results->where('placename', 'ILIKE', $parameters['name']); //exact search
-            else if ($parameters['fuzzyname']) {
-                $results->where(function ($query) use ($parameters) { //fuzzy search
-                    // in postgres there are advanced fuzzy matching techniques. but you have to enable them, eg by enabling pg_trgm
-                    // which lets you use the % operator for a quick fuzzy match. There are others worth exploring later.
-                    // However eloquent doesn't let you use the % as an operator, and if you try to use DB::raw '%' for the operator
-                    // it assumes you only have a two parameter method, and treat it like 'Where placename = %' instead of 'placemane % myfuzzyname
-                    // So we have to use orWhereRaw to write the whole where clause ourselves, but that is vulnerable to SQL Injection
-                    // so we use the ? placeholder, followed by the input parameter, which is designed to aviod SQL injection.
-                    // NOTE that the % approach gives quite different results to MySQL 'SOUNDS LIKE'. Though they are both fuzzy.
-                    // No time at present to investigate the optimum or best.
-                    // but btw, when Ben McDonnell was looking into Levenstein distance, it took minutes. But I think he had to DIY when using MySQL
-                    // whereas PG has a Lewenshtien built in, so could work. Would need to rework this fuzzy match including the
-                    // fuzzy sorting function in this code below, which would then just use the rank returned by the query.
-                    $query->where('placename', 'ILIKE', '%' . $parameters['fuzzyname'] . '%')->orWhereRaw('placename % ?', $parameters['fuzzyname']);
-                    //	$query->where('placename', 'ILIKE', '%'.$parameters['fuzzyname'].'%')->orWhere('placename', 'SOUNDS LIKE', $parameters['fuzzyname']);
-                });
-            } else if ($parameters['containsname']) {
-                $results->where('placename', 'ILIKE', '%' . $parameters['containsname'] . '%');
-            }
-        }
-
-        /* GET ID FROM URL */
-        if ($id) $results->where('anps_id', '=', $id);
-
-        /* BUILD SEARCH QUERY WITH PARAMS */
-        if ($parameters['anps_id']) $results->where('anps_id', '=', $parameters['anps_id']);
-        if ($parameters['from']) $results->where('anps_id', '>=', $parameters['from']);
-        if ($parameters['to']) $results->where('anps_id', '<=', $parameters['to']);
-        if ($parameters['lga']) $results->where('lga_name', '=', $parameters['lga']);
-        if ($parameters['state']) $results->where('state_code', '=', $parameters['state']);
-        if ($parameters['source']) $results->where('original_data_source', '=', $parameters['source']);
-        if ($parameters['feature_term']) $results->where('feature_term', '=', $parameters['feature_term']);
-        if ($parameters['parish']) $results->where('parish', '=', $parameters['parish']);
-        if ($parameters['datefrom'] || $parameters['dateto']) $results->where(function ($q) {
-            $q->where('tlcm_start', '!=', null)->orWhere('tlcm_end', '!=', null);
-        });
-        if ($bbox) { //assume values are in range -180 to 180, as we have dealt with that in leaflet
-            $results->whereRaw("tlcm_latitude::double precision >= ?", $bbox['min_lat']);
-            $results->whereRaw("tlcm_latitude::double precision <= ?", $bbox['max_lat']);
-            // $results->where("tlcm_latitude::double precision", '>=', $bbox['min_lat']);
-            // $results->where("tlcm_latitude::double precision", '<=', $bbox['max_lat']);
-
-            if ($bbox['min_long'] <= $bbox['max_long']) { //if min is lower than max we have not crossed the 180th meridian
-                $results->whereRaw("tlcm_longitude::double precision >= ? ", $bbox['min_long']);
-                $results->whereRaw("tlcm_longitude::double precision <= ?", $bbox['max_long']);
-            } else { //else we have crossed the 180th meridian
-                $results->whereRaw("tlcm_longitude::double precision >= ?", $bbox['min_long'])->orWhereRaw("tlcm_longitude::double precision <= ?", $bbox['max_long']); //TODO: does this need a where(function) encapsulation?
-            }
-        }
-        if ($polygon) {
-            $polygonsql = "ST_GEOMFROMTEXT('POLYGON((";
-            for ($i = 0; $i < count($polygon); $i += 2) { //for each point
-                if (!is_numeric($polygon[$i])) {
-                    throw new Exception('Invalid polygon value. Must be number only.');
-                } // validate because it's raw SQL
-                $polygonsql .= $polygon[$i] . " "; //long
-                $polygonsql .= $polygon[$i + 1] . ", "; //lat
-            }
-            $polygonsql = substr($polygonsql, 0, strlen($polygonsql) - 2);
-            $polygonsql .= "))')";
-            $results->whereRaw("ST_CONTAINS( " . $polygonsql . ", ST_POINT(tlcm_longitude::double precision,tlcm_latitude::double precision) )")
-                ->orWhereRaw("ST_CONTAINS( " . $polygonsql . " , ST_POINT(tlcm_longitude::double precision +360,tlcm_latitude::double precision) )")
-                ->orWhereRaw("ST_CONTAINS( " . $polygonsql . " , ST_POINT(tlcm_longitude::double precision -360,tlcm_latitude::double precision) )"); //TODO: does this need a where(function) encapsulation?
-        }
-        if ($circle) {
-            //NOTE: in mysql use  whereRaw( "ST_DISTANCE_SPHERE( POINT(" . $circle['long'] . "," . $circle['lat'] . "), POINT(TLCM_Longitude,TLCM_Latitude) ) <= " . $circle['rad'] );
-            //for mariadb: http://sqlfiddle.com/#!2/abcc8/4/0
-            //
-            //BIll Pascoe: note, from postgres migration - it may be that postgis can handle this with a much simpler command, but we can leave that till another time, if this works. Time is short.
-            $that = $this; //access $this inside the next function by setting it as $that
-            $results->where(function ($query) use ($circle, $that) {
-                $query->whereRaw($this->circleWrapString($circle, "tlcm_latitude::double precision", "tlcm_longitude::double precision"))->OrWhereRaw($this->circleWrapString($circle, "tlcm_latitude::double precision", "tlcm_longitude::double precision +360"))
-                    ->orWhereRaw($this->circleWrapString($circle, "tlcm_latitude::double precision", "tlcm_longitude::double precision -360")); //TODO: does this need a where(function) encapsulation?
-            });
-        }
-        if ($parameters['subquery']) {
-            $results = $this->gazSubquery($results, $parameters);
-        }
-
-        return $results;
     }
 
     /********************/
@@ -740,15 +481,9 @@ class GazetteerController extends Controller
         // seperately record and track UIDs involving DB calls to check uniqueness or find the last number to increment from,
         // leaving it to the system, which would introduces points of failure, confusion and human error.
         // We only need to convert to and from for display, update, retrieval with the one native function call.
-        if (isset($parameters['id'])) {
 
-            if (UID::getPrefix($parameters['id']) === 't') {
-                $parameters['dataitemid'] = UID::toID($parameters['id'], 't');
-            } else if (UID::getPrefix($parameters['id']) === 'a') {
-                $parameters['anps_id'] =  UID::toID($parameters['id'], 'a');
-            }
-        }
-
+        // The 'id' parameter actually means 'uid'.
+        $parameters['id'] = (isset($parameters['id'])) ? $parameters['id'] : null;
         $parameters['paging'] = (isset($parameters['paging'])) ? $parameters['paging'] : null;
         $parameters['lga'] = (isset($parameters['lga'])) ? $parameters['lga'] : null;
         $parameters['state'] = (isset($parameters['state'])) ? $parameters['state'] : null;
@@ -796,39 +531,6 @@ class GazetteerController extends Controller
     }
 
     /**
-     * Get the ANPS source data information for these register entries and return it in an associative array
-     */
-    function getANPSSourceData($results)
-    {
-        $asoc_array = array();
-        $doc = DB::table('gazetteer.documentation'); //Links places to sources
-        $src = DB::table('gazetteer.source'); //Sources used within the gazetteer data collection
-
-        //in mysql: SELECT DISTINCT documentation.anps_id, source.* FROM source INNER JOIN documentation ON source.source_id = documentation.doc_source_id
-        $source_anps_matches = $src->join('gazetteer.documentation', 'source.source_id', '=', 'documentation.doc_source_id')
-            ->select('documentation.anps_id', 'source.*')->distinct()->orderBy('anps_id')->get();
-//       var_dump($source_anps_matches); 
-        //for each anps_id we have in results,
-        $results->orderBy('anps_id')->chunk(50000, function ($results_chunk) use ($source_anps_matches, &$asoc_array) {
-            foreach ($results_chunk as $result) {
-                //var_dump($result);exit;
-                if ($result->original_data_source != 'ANPS Research') continue; //Skip ones that do not have ANPS Research tagged on them - they dont have matches anyways
-                $curr_srcs = []; //reset
-
-                //Get the sources for that id from the match query
-                foreach ($source_anps_matches as $match_row) {
-                    if ($match_row->anps_id > $result->anps_id) break;
-                    if ($match_row->anps_id == $result->anps_id) array_push($curr_srcs, $match_row);
-                }
-
-                $asoc_array[$result->anps_id] = $curr_srcs;
-            }
-        });
-
-        return $asoc_array;
-    }
-
-    /**
      * When the user tries to search for too many results on kml/json/csv OR too many per page for html,
      * We want to show the middleware warning message to inform the user that their results are being limited to the first n
      */
@@ -851,39 +553,38 @@ class GazetteerController extends Controller
     /**
      * Format and Redirect according to the return format type: kml, csv, json, html
      */
-    function outputs($parameters, $results, $asoc_array)
+    function outputs($parameters, $results)
     {
         /* Outputs */
         $headers = array(); //Create an array for headers
         $filename = "tlcmap_output"; //name for the output file
 
         if ($parameters['format'] == "json") {
+            // Note: not sure this chuck part gets called anywhere. May delete this after verification.
             if ($parameters['chunks']) { //if we have sent the chunks parameter through
-                return FileFormatter::jsonChunk($results, $parameters['chunks'], $asoc_array); //download a zip containing the json files in chunks
+                return FileFormatter::jsonChunk($results, $parameters['chunks']); //download a zip containing the json files in chunks
             }
-            // Log::error("asdfasdf 011");
-            //if (!empty($results_collection)) $results = $results->getCollection(); //if fuzzyname, collect for json
             $headers['Content-Type'] = 'application/json'; //set header content type
             if ($parameters['download']) $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.json"'; //if we are downloading, add a 'download attachment' header
-            return Response::make(FileFormatter::toGeoJSON($results, $asoc_array), '200', $headers); //serve the file to browser (or download)
+            return Response::make(FileFormatter::toGeoJSON($results), '200', $headers); //serve the file to browser (or download)
         }
         if ($parameters['format'] == "csv") {
-            // Log::error("asdf 000");
             $headers["Content-Type"] = "text/csv"; //set header content type
             $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.csv"'; //always download csv
             return FileFormatter::toCSV($results, $headers); //Download
         }
         if ($parameters['format'] == "kml") {
+            // Note: not sure this chuck part gets called anywhere. May delete this after verification.
             if ($parameters['chunks']) { //if we have sent the chunks parameter through
-                return FileFormatter::kmlChunk($results, $parameters['chunks'], $asoc_array); //download a zip contianing n chunks
+                return FileFormatter::kmlChunk($results, $parameters['chunks']); //download a zip contianing n chunks
             }
             $headers['Content-Type'] = 'text/xml'; //set header content type
             if ($parameters['download']) $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.kml"'; //if we are downloading, add a 'download attachment' header
-            return Response::make(FileFormatter::toKML2($results, $asoc_array, $parameters), '200', $headers); //serve the file to browser (or download)
+            return Response::make(FileFormatter::toKML2($results, $parameters), '200', $headers); //serve the file to browser (or download)
         }
 
         //else, format as html
-        return view('ws.ghap.places.show', ['details' => $results, 'query' => $results, 'sources' => $asoc_array]);
+        return view('ws.ghap.places.show', ['details' => $results, 'query' => $results]);
     }
 
     /**

@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Dataset extends Model
 {
-    protected $connection = 'pgsql2';
     protected $table = "tlcmap.dataset";
     public $timestamps = true;
     public $incrementing = true;

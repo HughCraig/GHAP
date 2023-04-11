@@ -3,6 +3,7 @@
 namespace TLCMap\Http\Controllers;
 
 use Illuminate\Http\Request;
+use TLCMap\Http\Helpers\UID;
 use TLCMap\Models\SavedSearch;
 use TLCMap\Models\Dataitem;
 use TLCMap\Models\Dataset;
@@ -264,6 +265,12 @@ class AjaxController extends Controller
             'external_url' => $external_url,
             'placename' => $placename
         ]);
+        // Generate UID.
+        if ($dataitem->id) {
+            $dataitem->uid = UID::create($dataitem->id, 't');
+            $dataitem->save();
+        }
+
         $dataset->updated_at = Carbon::now();
         $dataset->save();
         return response()->json(['dataitem' => $dataitem, 'time' => $dataset->updated_at->toDateTimeString(), 'count' => count($dataset->dataitems)]);

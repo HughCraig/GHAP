@@ -19,7 +19,6 @@ use TLCMap\Models\SavedSearch;
 use TLCMap\Models\Dataset;
 use TLCMap\Models\Dataitem;
 use TLCMap\Models\SubjectKeyword;
-use TLCMap\Models\Register;
 use TLCMap\Models\RecordType;
 
 use TLCMap\Mail\EmailChangedOld;
@@ -169,32 +168,16 @@ class UserController extends Controller
         $dataset = $user->datasets()->find($id);
         if (!$dataset) return redirect('myprofile/mydatasets');
 
-
         //lgas from DB
-        $lgas = DB::table('gazetteer.register')->select('lga_name')->distinct()->where('lga_name', '<>', '')->get()->toArray();
-        $temp = array();
-        foreach ($lgas as $row) {
-            $temp[] = $row->lga_name;
-        }
-        $lgas = json_encode($temp, JSON_NUMERIC_CHECK);
+        $lgas = json_encode(Dataitem::getAllLga(), JSON_NUMERIC_CHECK);
 
         //feature_codes from DB
-        $feature_terms = DB::table('gazetteer.register')->select('feature_term')->distinct()->where('feature_term', '<>', '')->get()->toArray();
-        $temp = array();
-        foreach ($feature_terms as $row) {
-            $temp[] = $row->feature_term;
-        }
-        $feature_terms = json_encode($temp, JSON_NUMERIC_CHECK);
+        $feature_terms = json_encode(Dataitem::getAllFeatures(), JSON_NUMERIC_CHECK);
 
         //parishes from DB
-        $parishes = DB::table('gazetteer.register')->select('parish')->distinct()->where('parish', '<>', '')->get()->toArray();
-        $temp = array();
-        foreach ($parishes as $row) {
-            $temp[] = $row->parish;
-        }
-        $parishes = json_encode($temp, JSON_NUMERIC_CHECK);
+        $parishes = json_encode(Dataitem::getAllParishes(), JSON_NUMERIC_CHECK);
 
-        $states = DB::table('gazetteer.register')->select('state_code')->distinct()->groupby('state_code')->get();
+        $states = Dataitem::getAllStates();
 
         // recordtypes from db. Note that the DS and the Item both have a recordtype attribute
         $recordtypes = RecordType::types();
@@ -487,6 +470,9 @@ class UserController extends Controller
 
         $extDataExclusions = array_merge($fillable, $datecols, $llcols, $notForExtData);
 
+        // Exclude these columns.
+        $excludeColumns = ['uid', 'datasource_id'];
+
 
         for ($i = 0; $i < count($arr); $i++) { //FOREACH data item
             $culled_array = array(); //we will cull out all keys that are not present as fillable fields
@@ -515,22 +501,19 @@ class UserController extends Controller
                  */
                 // we are looping each column and checking it's name looking to handle the crucial ones...
                 //if array has the "type" key, change it to "recordtype_id" and change all of the values to the actual id for the given type, or "Other" if it does not match
-                if ($key == "type") {
-                    $recordtype = RecordType::where("type", trim($value))->first(); //get the this recordtype from "type" name
-                    $culled_array["recordtype_id"] = ($recordtype) ? $recordtype->id : 1; //if recordtype does exist, set the recordtype_id to its id, otherwise set it to 1 (default "Other")
-                }
-                // formerly we only had placename field and populated it with 'title', but now we have both, see below.
-                //else if ($key == "title") { $culled_array["placename"] = $value; } //if we upload a file with "title" key, set it to be the placemark
-                //}
-                else if ($key == "linkback") {
-                    $culled_array["external_url"] = $value;
-                } //For all other keys (except id) push the key value combo into the culled array
-                else if (in_array($key, $fillable) && $key != 'id') {
-                    $culled_array[$key] = $value;
-                } //if the key is present as a fillable field for dataitems, then we keep it - DO NOT PUSH ID< THIS IS GENERATED AUTOMATICALLY
-                else if (!in_array($key, $extDataExclusions) && isset($value) && $value !== '') {
-
-                    array_push($extendeddata, $key); // all the extra cols that will go in 'extended data' kml chunk.
+                if (!in_array($key, $excludeColumns)) {
+                    if ($key == "type") {
+                        $recordtype = RecordType::where("type", trim($value))->first(); //get the this recordtype from "type" name
+                        $culled_array["recordtype_id"] = ($recordtype) ? $recordtype->id : 1; //if recordtype does exist, set the recordtype_id to its id, otherwise set it to 1 (default "Other")
+                    } else if ($key == "linkback") {
+                        $culled_array["external_url"] = $value;
+                    } else if (in_array($key, $fillable) && $key != 'id') {
+                        //For all other keys (except id) push the key value combo into the culled array
+                        $culled_array[$key] = $value;
+                    } else if (!in_array($key, $extDataExclusions) && isset($value) && $value !== '') {
+                        //if the key is present as a fillable field for dataitems, then we keep it - DO NOT PUSH ID< THIS IS GENERATED AUTOMATICALLY
+                        array_push($extendeddata, $key); // all the extra cols that will go in 'extended data' kml chunk.
+                    }
                 }
             }
 
@@ -603,19 +586,20 @@ class UserController extends Controller
      */
     private function createOrUpdateDataitem($data, $uid = null)
     {
-        $dataitem = null;
         // Find the existing dataitem if the UID presents.
-        if (!empty($uid) && UID::getPrefix($uid) === 't') {
-            $dataitemID = UID::toID($uid, 't');
-            $dataitem = Dataitem::find($dataitemID);
-        }
+        $dataitem = Dataitem::where('uid', $uid)->first();
         // Check the existing dataitem is in the correct dataset. If not, ignore the update.
         if (!empty($dataitem) && (string) $dataitem->dataset_id === (string) $data['dataset_id']) {
             // Update the existing dataitem if there's a match.
             $dataitem->fill($data)->save();
         } else {
             // Create the new dataitem. THIS WILL IGNORE EXACT DUPLICATES WITHIN THIS DATASET.
-            $result = Dataitem::firstOrCreate($data);
+            $dataitem = Dataitem::firstOrCreate($data);
+            // Generate UID.
+            if (empty($dataitem->uid)) {
+                $dataitem->uid = UID::create($dataitem->id, 't');
+                $dataitem->save();
+            }
         }
     }
 

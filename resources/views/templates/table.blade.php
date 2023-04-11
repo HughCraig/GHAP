@@ -6,13 +6,13 @@
                 SORT:
                 <!-- @sortablelink('title', 'Title') Don't know why, but this sorter doesn't work, so just commenting out for now.-->
                 @sortablelink('placename', 'Placename') |
-                @sortablelink('state_code', 'State') |
-                @sortablelink('lga_name', 'LGA') |
+                @sortablelink('state', 'State') |
+                @sortablelink('lga', 'LGA') |
                 @sortablelink('feature_term') |
-                @sortablelink('tlcm_latitude', 'Latitude') |
-                @sortablelink('tlcm_longitude', 'Longitude') |
-                @sortablelink('tlcm_start', 'Start Date') |
-                @sortablelink('tlcm_end', 'End Date') |
+                @sortablelink('latitude', 'Latitude') |
+                @sortablelink('longitude', 'Longitude') |
+                @sortablelink('datestart', 'Start Date') |
+                @sortablelink('dateend', 'End Date') |
             </p>
         </div>
     </div>
@@ -23,10 +23,10 @@
                     <div class="sresultmain">
                         <h4>
                             <button type="button" class="btn btn-primary btn-sm"
-                                    onclick="copyLink(@if(isset($line->anps_id))'{{ \TLCMap\Http\Helpers\UID::create($line->anps_id, 'a') }}',this,'id'@elseif(isset($line->dataitem_id))'{{ \TLCMap\Http\Helpers\UID::create($line->dataitem_id, 't') }}',this,'id'@endif)">
+                                    onclick="copyLink('{{ $line->uid }}',this,'id')">
                                 C
                             </button>
-                            <a href="{{URL::to('/')}}/search?@if(isset($line->anps_id))id={{ \TLCMap\Http\Helpers\UID::create($line->anps_id, 'a') }}@elseif(isset($line->dataitem_id))id={{ \TLCMap\Http\Helpers\UID::create($line->dataitem_id, 't') }}@endif">
+                            <a href="{{ URL::to('/') }}/search?id={{ $line->uid }}">
                                 @if(isset($line->title)){{$line->title}}@else{{$line->placename}}@endif
                             </a>
                         </h4>
@@ -35,12 +35,12 @@
                                 <dt>Placename</dt>
                                 <dd>{{$line->placename}}</dd>
                             @endif
-                            @if(isset($line->dataitem_id))
+                            @if(isset($line->dataset))
                                 <dt>Layer</dt>
                                 <dd><a href="{{route('publicdatasets')}}/{{$line->dataset_id}}">{{$line->dataset->name}}</a></dd>
-                            @else
+                            @elseif (isset($line->datasource))
                                 <dt>Layer</dt>
-                                <dd><a href="https://www.anps.org.au/">Australian National Placenames Survey Gazetteer</a></dd>
+                                <dd><a href="{{ $line->datasource->link }}">{{ $line->datasource->description }}</a></dd>
                             @endif
                             @if(isset($line->external_url))
                                 <dt>Link back to source:</dt>
@@ -63,35 +63,22 @@
                             </button>
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                 @if (!empty(config('app.views_root_url')))
-                                    @if(isset($line->anps_id))
-                                        <a class="dropdown-item grab-hover"
-                                           onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . \TLCMap\Http\Helpers\UID::create($line->anps_id, 'a') . '&format=json') }}`)">
-                                            3D Viewer
-                                        </a>
-                                    @elseif(isset($line->dataitem_id))
-                                        <a class="dropdown-item grab-hover"
-                                           onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . \TLCMap\Http\Helpers\UID::create($line->dataitem_id, 't') . '&format=json') }}`)">
-                                            3D Viewer
-                                        </a>
-                                    @endif
+                                    <a class="dropdown-item grab-hover"
+                                       onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . $line->uid . '&format=json') }}`)">
+                                        3D Viewer
+                                    </a>
                                 @endif
 
                                 @if (!empty(config('app.views_temporal_earth_url')))
-                                    @if(isset($line->anps_id))
-                                        <a class="dropdown-item grab-hover"
-                                           onclick="temporalEarthLink('{{ \TLCMap\Http\Helpers\UID::create($line->anps_id, 'a') }}','id')">
-                                            Temporal Earth
-                                        </a>
-                                    @elseif(isset($line->dataitem_id))
-                                        <a class="dropdown-item grab-hover"
-                                           onclick="temporalEarthLink('{{ \TLCMap\Http\Helpers\UID::create($line->dataitem_id, 't') }}', 'id')">
-                                            Temporal Earth</a>
-                                    @endif
+                                    <a class="dropdown-item grab-hover"
+                                       onclick="temporalEarthLink('{{ $line->uid }}','id')">
+                                        Temporal Earth
+                                    </a>
                                 @endif
 
-                                @if(isset($line->tlcm_latitude))
+                                @if(isset($line->latitude))
                                     <a class="dropdown-item" target="_blank"
-                                       href="https://www.google.com/maps/search/?api=1&query={{$line->tlcm_latitude}},{{$line->tlcm_longitude}}"
+                                       href="https://www.google.com/maps/search/?api=1&query={{$line->latitude}},{{$line->longitude}}"
                                        target="_blank">
                                         Google Maps
                                     </a>
@@ -115,29 +102,29 @@
                     <div>
                         <h4>Details</h4>
                         <dl>
-                            @if(isset($line->tlcm_latitude))
+                            @if(isset($line->latitude))
                                 <dt>Latitude</dt>
-                                <dd>{{$line->tlcm_latitude}}</dd>
+                                <dd>{{$line->latitude}}</dd>
                             @endif
-                            @if(isset($line->tlcm_longitude))
+                            @if(isset($line->longitude))
                                 <dt>Longitude</dt>
-                                <dd>{{$line->tlcm_longitude}}</dd>
+                                <dd>{{$line->longitude}}</dd>
                             @endif
-                            @if(isset($line->tlcm_start))
+                            @if(isset($line->datestart))
                                 <dt>Start Date</dt>
-                                <dd>{{$line->tlcm_start}}</dd>
+                                <dd>{{$line->datestart}}</dd>
                             @endif
-                            @if(isset($line->tlcm_end))
+                            @if(isset($line->dateend))
                                 <dt>End Date</dt>
-                                <dd>{{$line->tlcm_end}}</dd>
+                                <dd>{{$line->dateend}}</dd>
                             @endif
-                            @if(isset($line->state_code))
+                            @if(isset($line->state))
                                 <dt>State</dt>
-                                <dd>{{$line->state_code}}</dd>
+                                <dd>{{$line->state}}</dd>
                             @endif
-                            @if(isset($line->lga_name))
+                            @if(isset($line->lga))
                                 <dt>LGA</dt>
-                                <dd>{{$line->lga_name}}</dd>
+                                <dd>{{$line->lga}}</dd>
                             @endif
                             @if(isset($line->parish))
                                 <dt>Parish</dt>
@@ -167,55 +154,18 @@
                 <div class="col col-xl-2">
                     <div>
                         <h4>Sources</h4>
-                        @if(isset($line->anps_id))
-                            <dt>ANPS ID</dt>
-                            <dd>{{ \TLCMap\Http\Helpers\UID::create($line->anps_id) }}</dd>
+                        @if (isset($line->uid))
+                            <dt>ID</dt>
+                            <dd>{{ $line->uid }}</dd>
                         @endif
-                        @if(isset($line->dataitem_id))
-                            <dt>TLCMap ID</dt>
-                            <dd>{{ \TLCMap\Http\Helpers\UID::create($line->dataitem_id) }}</dd>
-                        @endif
-                        @if(isset($line->original_data_source))
+                        @if(isset($line->source))
                             <dt>Source</dt>
-                            <dd>{{$line->original_data_source}}</dd>
+                            <dd>{!! nl2br($line->source) !!}</dd>
                         @endif
                         @if(isset($line->dataset->flag))
                             <dt>ANPS to TLCMap Import Note</dt>
                             <dd>{{$line->dataset->flag}}</dd>
                         @endif
-                        @isset($sources)
-                            @if(!(empty($sources[$line->anps_id])))
-                                <p>ANPS Sources</p>
-                                <dl>
-                                    @foreach($sources[$line->anps_id] as $source)
-                                        <dt>ID</dt>
-                                        <dd>{{$source->source_id}}</dd>
-                                        <dt>Type</dt>
-                                        <dd>{{$source->source_type}}</dd>
-                                        <dt>Title</dt>
-                                        <dd>{{$source->title}}</dd>
-                                        <dt>Author</dt>
-                                        <dd>{{$source->author}}</dd>
-                                        <dt>ISBN</dt>
-                                        <dd>{{$source->isbn}}</dd>
-                                        <dt>Publisher`</dt>
-                                        <dd>{{$source->publisher}}</dd>
-                                        <dt>Place</dt>
-                                        <dd>{{$source->source_place}}</dd>
-                                        <dt>Date</dt>
-                                        <dd>{{$source->source_date}}</dd>
-                                        <dt>Locaton</dt>
-                                        <dd>{{$source->source_location}}</dd>
-                                        <dt>Library</dt>
-                                        <dd>{{$source->anps_library}}</dd>
-                                        <dt>Status</dt>
-                                        <dd>{{$source->source_status}}</dd>
-                                        <dt>Notes</dt>
-                                        <dd>{{$source->source_notes}}</dd>
-                                    @endforeach
-                                </dl>
-                            @endif
-                        @endisset
                     </div>
                 </div>
                 <div class="col col-xl-2">

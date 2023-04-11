@@ -4,23 +4,27 @@ namespace TLCMap\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
+use function foo\func;
 
 class Dataitem extends Model
 {
-    protected $connection = 'pgsql2';
     protected $table = "tlcmap.dataitem";
     public $timestamps = true;
     public $incrementing = true;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * This fillable property is important for the bulk dataitem import from the files. These fillable fields will be
+     * matched and used during the import.
+     *
+     * @var array
+     */
     protected $fillable = [
         'id', 'dataset_id', 'recordtype_id', 'title', 'description', 'latitude', 'longitude',
         'datestart', 'dateend', 'state', 'feature_term', 'lga', 'source', 'external_url',
-        'extended_data', 'kml_style_url', 'placename'
-    ];
-
-    protected $sortable = [
-        'id', 'dataset_id', 'recordtype_id', 'title', 'description', 'latitude', 'longitude',
-        'datestart', 'dateend', 'state', 'feature_term', 'lga', 'source', 'external_url', 'placename'
+        'extended_data', 'kml_style_url', 'placename', 'original_id', 'parish'
     ];
 
     /**
@@ -35,6 +39,16 @@ class Dataitem extends Model
     public function recordtype()
     {
         return $this->belongsTo(RecordType::class, 'recordtype_id');
+    }
+
+    /**
+     * Datasource which the data item belongs to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function datasource()
+    {
+        return $this->belongsTo(Datasource::class, 'datasource_id');
     }
 
     /**
@@ -176,5 +190,80 @@ class Dataitem extends Model
         } else {
             return htmlentities($maybeUrl);
         }
+    }
+
+    /**
+     * Get the scope for search.
+     *
+     * This method will provide the scope for search. It will exclude dataitems which belong to private dataset.
+     *
+     * @return Builder
+     *   The query builder of the search which can be further extended.
+     */
+    public static function searchScope()
+    {
+        return self::where(function ($query) {
+            $query->whereHas('dataset', function ($q) {
+                $q->where('public', '=', 'true');
+            })->orWhere('dataset_id', null);
+        });
+    }
+
+    /**
+     * Get enumerated LGA values.
+     *
+     * @return string[]
+     *   LGA names.
+     */
+    public static function getAllLga()
+    {
+        return self::getColumnEnumeration('lga');
+    }
+
+    /**
+     * Get enumerated feature terms.
+     *
+     * @return string[]
+     *   Feature term names.
+     */
+    public static function getAllFeatures()
+    {
+        return self::getColumnEnumeration('feature_term');
+    }
+
+    /**
+     * Get enumerated parishes.
+     *
+     * @return string[]
+     *   Parish names.
+     */
+    public static function getAllParishes()
+    {
+        return self::getColumnEnumeration('parish');
+    }
+
+    /**
+     * Get enumerated states.
+     *
+     * @return string[]
+     *   State names.
+     */
+    public static function getAllStates()
+    {
+        return self::getColumnEnumeration('state');
+    }
+
+    /**
+     * Get enumerated values from a column.
+     *
+     * @param string $column
+     *   The database column name.
+     *
+     * @return string[]
+     *   The enumerated values.
+     */
+    private static function getColumnEnumeration($column)
+    {
+        return self::select($column)->distinct()->where($column, '<>', '')->pluck($column)->toArray();
     }
 }

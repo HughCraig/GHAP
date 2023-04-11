@@ -230,7 +230,6 @@ class DatasetController extends Controller
         $doc_ed = $docNode->appendChild($dom->createElement('ExtendedData'));
         $ghap_url = $doc_ed->appendChild($dom->createElement('Data'));
         $ghap_url->setAttribute('name', "ghap_url");
-        //$ghap_url->appendChild($dom->createCDATASection($request->url()));
         $ghap_url->appendChild($dom->createCDATASection(url("publicdatasets/" . $dataset->id)));
         //style
         if (!empty($dataset->kml_style)) {
@@ -240,7 +239,7 @@ class DatasetController extends Controller
         }
 
 
-// if there is no style create a TLCMap default style. (motivated by ugly icons in TE due to Cesium default icon)
+        // if there is no style create a TLCMap default style. (motivated by ugly icons in TE due to Cesium default icon)
 
 
         if (!empty($dataset->kml_style)) {
@@ -304,7 +303,7 @@ class DatasetController extends Controller
             }
 
             $descriptionContent = $warning . $i->description . "
-			<p><a href='" . url("search?id=" . UID::create($i->id, 't')) . "'>TLCMap</a></p>
+			<p><a href='" . url("search?id=" . $i->uid) . "'>TLCMap</a></p>
 			<p><a href='" . url("publicdatasets/" . $dataset->id) . "'>TLCMap Layer</a></p>";
 
             $description->appendChild($dom->createCDATASection($descriptionContent));
@@ -371,8 +370,6 @@ class DatasetController extends Controller
         $dataitems = $this->infillDataitemDates($dataset->dataitems);
 
         if (isset($_GET["sort"])) {
-            // $dataitems = $dataset->dataitems()->whereNotNull("enddate")->whereNotNull("datestart");
-
             $dataitems = $dataitems->where('datestart', '!==', '')->where('dateend', '!==', '');
 
             if ($_GET["sort"] === 'end') {
@@ -387,9 +384,7 @@ class DatasetController extends Controller
 
             if ($_GET["line"] === 'time') {
                 $dataitems = $dataitems->sortBy('datestart')->values()->all();
-                // Log::debug('An informational message.' . json_encode($dataset->dataitems, JSON_PRETTY_PRINT));
             }
-
 
             $linecoords = array();
 
@@ -415,7 +410,6 @@ class DatasetController extends Controller
 
 
         foreach ($dataitems as $i) {
-            //$id = 'Dataitem ' . base_convert($i->dataitem_id,10,16);
 
             // we are sorting by dates in a context that requires dates, such as the timeline maps, so we can't include null or empty dates.
             if (isset($_GET["sort"])) {
@@ -427,7 +421,6 @@ class DatasetController extends Controller
 
 
             $contribution = 'Contribution: "' . $dataset->name . '"<br> by User: ' . $dataset->ownerName();
-
 
             $proppairs = array();
             if (!empty($i->title)) {
@@ -442,7 +435,7 @@ class DatasetController extends Controller
                 $proppairs["description"] = $i->description;
             }
             if (!empty($i->id)) {
-                $proppairs["id"] = UID::create($i->id);
+                $proppairs["id"] = $i->uid;
             }
             if (!empty($i->warning)) {
                 $proppairs["warning"] = $i->warning;
@@ -462,7 +455,6 @@ class DatasetController extends Controller
             if (!empty($i->source)) {
                 $proppairs["source"] = $i->source;
             }
-            //	if (!empty($contribution)){$proppairs["contribution"] = $contribution;}
 
             if (!empty($i->datestart)) {
                 $proppairs["datestart"] = $i->datestart;
@@ -474,14 +466,12 @@ class DatasetController extends Controller
             // geojson layers in arcgis. this was marked as for testing only to be removed, but I think it turned out to be necessary, so keep
             $unixepochdates = $i->datestart . "";
             $unixepochdatee = $i->dateend . "";
-            //$unixepochdates = preg_replace("/[^0-9\-]/", "", $unixepochdates );
             if (strpos($unixepochdates, '-') === false) {
                 $unixepochdates = $unixepochdates . "-01-01";
             }
             if (strpos($unixepochdatee, '-') === false) {
                 $unixepochdatee = $unixepochdatee . "-01-01";
             }
-            //   if (!empty($i->datestart)){$proppairs["time"] = strtotime($unixepochdates) ;}
 
             if (!empty($i->datestart)) {
                 $proppairs["udatestart"] = strtotime($unixepochdates) * 1000;
@@ -519,7 +509,7 @@ class DatasetController extends Controller
                 //$proppairs["extended_data"] = $i->extDataAsHTML();
             }
 
-            $proppairs["TLCMapLinkBack"] = url("search?id=" . UID::create($i->id, 't'));
+            $proppairs["TLCMapLinkBack"] = url("search?id=" . $i->uid);
             $proppairs["TLCMapDataset"] = url("publicdatasets/" . $dataset->id);
 
             if (isset($proppairs["longitude"]) && isset($proppairs["latitude"])) {
@@ -565,53 +555,20 @@ class DatasetController extends Controller
      */
     function generateCSV(Request $request, $dataset)
     {
-        //    $features = array();
-        //    $metadata = array('name' => $dataset->name, 'description' => $dataset->description, 'ghap_url' => $request->url());
-
-        //get all dataitems for this dataset as eloquent collection
-
-
         $f = fopen('php://memory', 'r+');
         $delimiter = ',';
         $enclosure = '"';
         $escape_char = "\\";
-
-
-        /*
-      foreach ($test as $item) {
-          fputcsv($f, $item, $delimiter, $enclosure, $escape_char);
-      }
-      rewind($f);
-      return stream_get_contents($f);
-      */
-
+        // Exclude some columns.
+        $excludeColumns = ['uid', 'datasource_id'];
 
         $dataitems = $dataset->dataitems;
-
-        // $f = fopen('php://output', 'w');
-
-        // SET UP HEADERS, do the preprocess. Need to loop all extended data to ensure all columns obtained.
-        //fputcsv($f, array_keys($proppairs[0])); // Add the keys as the column headers
-
-        // $headers = array("id", "title", "placename", "latitude", "longitude", "description", "warning", "state", "parish", "feature_term", "lga", "source", "datestart", "dateend", "external_url", "TLCMapLinkBack", "TLCMapDataset");
         $colheads = array();
         $extkeys = array();
-// !!!!!!!!!! actually also go through the headers and only put them in if at least one is not null.....
+        // !!!!!!!!!! actually also go through the headers and only put them in if at least one is not null.....
 
-//Log::error(json_encode($dataitems[0]));
-
-// Fudge to convert object with properties to key value pairs
+        // Fudge to convert object with properties to key value pairs
         $arr = json_decode(json_encode($dataitems[0]), true);
-
-// Loop through the associative array
-//foreach($arr as $key=>$value){
-//    Log::error($key . " => " . $value . "<br>");
-//}
-
-
-        foreach ($dataitems[0] as $key => $value) {
-            //  Log::error( "$key => $value\n");
-        }
 
         foreach ($dataitems as $i) {
 
@@ -621,7 +578,7 @@ class DatasetController extends Controller
             $arr = json_decode(json_encode($i), true);
             foreach ($arr as $key => $value) {
                 if (!($value === NULL) && $key !== 'extended_data') {
-                    if (!in_array($key, $colheads)) {
+                    if (!in_array($key, $colheads) && !in_array($key, $excludeColumns)) {
                         $colheads[] = $key;
                     }
                 }
@@ -639,7 +596,6 @@ class DatasetController extends Controller
                         }
                     }
                 }
-                //array_unique(array_merge($extkeys, array_keys($i->extDataAsKeyValues())));
             }
         }
         $colheads = array_merge($colheads, $extkeys);
@@ -654,10 +610,10 @@ class DatasetController extends Controller
             }
         }
 
-// add headings to csv
+        // add headings to csv
         fputcsv($f, $displayHeaders, $delimiter, $enclosure, $escape_char);
 
-// now the data
+        // now the data
         foreach ($dataitems as &$i) {
 
             $cells = array();
@@ -669,12 +625,11 @@ class DatasetController extends Controller
                 $vals = $vals + $ext;
             }
 
-            $vals["id"] = UID::create($vals["id"], 't');
+            $vals["id"] = $i->uid;
 
             // to make sure the cells are in the same order as the headings
             foreach ($colheads as $col) {
                 $cells[] = isset($vals[$col]) ? $vals[$col] : "";
-                //$cells[] = $vals[$col];
             }
 
 
@@ -683,87 +638,10 @@ class DatasetController extends Controller
 
         }
         rewind($f);
-//        $allfeatures = array('type' => 'FeatureCollection', 'metadata' => $metadata, 'features' => $features);
 
         // Loop over the array and passing in the values only.
 
 
         return stream_get_contents($f);;
-    }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $iequest
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $iequest)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \TLCMap\Dataset $ds
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Dataset $ds)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \TLCMap\Dataset $ds
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Dataset $ds)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $iequest
-     * @param  \TLCMap\Dataset $ds
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $iequest, Dataset $ds)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \TLCMap\Dataset $ds
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Dataset $ds)
-    {
-        //
     }
 }

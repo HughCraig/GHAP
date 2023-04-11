@@ -13,7 +13,7 @@ class CreateRoleUserTable extends Migration
 {
     public function up()
     {
-        Schema::connection('pgsql2')->create('tlcmap.role_user', function (Blueprint $table) {
+        Schema::create('tlcmap.role_user', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('role_id')->index();
             $table->unsignedBigInteger('user_id')->index();
@@ -22,6 +22,6 @@ class CreateRoleUserTable extends Migration
 
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('tlcmap.role_user');
+        Schema::dropIfExists('tlcmap.role_user');
     }
 }

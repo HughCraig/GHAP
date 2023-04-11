@@ -59,8 +59,9 @@
 
                     <label for="addstate">State</label>
                     <select class="w3-white form-control" name="addstate" id="addstate">
+                        <option label selected></option>
                         @foreach($states as $state)
-                        <option label="{{$state->state_code}}">{{$state->state_code}}</option>
+                        <option label="{{$state}}">{{$state}}</option>
                         @endforeach
                     </select>
                 </div>

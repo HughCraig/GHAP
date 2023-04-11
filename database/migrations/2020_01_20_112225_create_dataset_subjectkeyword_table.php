@@ -13,7 +13,7 @@ class CreateDatasetSubjectkeywordTable extends Migration
      */
     public function up()
     {
-        Schema::connection('pgsql2')->create('tlcmap.dataset_subject_keyword', function (Blueprint $table) {
+        Schema::create('tlcmap.dataset_subject_keyword', function (Blueprint $table) {
             $table->unsignedBigInteger('dataset_id')->index();
             $table->unsignedBigInteger('subject_keyword_id')->index();
 
@@ -30,6 +30,6 @@ class CreateDatasetSubjectkeywordTable extends Migration
      */
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('tlcmap.dataset_subject_keyword');
+        Schema::dropIfExists('tlcmap.dataset_subject_keyword');
     }
 }

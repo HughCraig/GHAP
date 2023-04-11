@@ -200,9 +200,10 @@
 
                 <td data-order="{{$data->state}}" data-search="{{$data->state}}">
                     <select class="inputastd" type="text" id="state" name="state" disabled="true" value="{{$data->state}}" oldvalue="{{$data->state}}">
+                        <option label{{ empty($data->state) ? "" : " selected" }}></option>
                         @foreach($states as $state)
-                            @if($state->state_code == $data->state) <option label="{{$state->state_code}}" selected>{{$state->state_code}}</option> 
-                            @else <option label="{{$state->state_code}}">{{$state->state_code}}</option> @endif
+                            @if($state == $data->state) <option label="{{$state}}" selected>{{$state}}</option>
+                            @else <option label="{{$state}}">{{$state}}</option> @endif
                         @endforeach
                     </select></td>
                 <td data-order="{{$data->feature_term}}" data-search="{{$data->feature_term}}">
@@ -221,7 +222,7 @@
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             @if (!empty(config('app.views_root_url')))
                                 <a class="dropdown-item grab-hover"
-                                    onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . \TLCMap\Http\Helpers\UID::create($data->id, 't') . '&format=json') }}')">3D Viewer</a>
+                                    onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . $data->uid . '&format=json') }}')">3D Viewer</a>
                             @endif
                             <a class="dropdown-item grab-hover" onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{$data->latitude}},{{$data->longitude}}')">Google Maps</a>
 

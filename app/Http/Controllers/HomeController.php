@@ -4,6 +4,8 @@ namespace TLCMap\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use TLCMap\Models\Dataitem;
+use TLCMap\Models\Datasource;
 
 class HomeController extends Controller
 {
@@ -17,32 +19,19 @@ class HomeController extends Controller
     {
 
         //lgas from DB
-        $lgas = DB::table('gazetteer.register')->select('lga_name')->distinct()->where('lga_name', '<>', '')->get()->toArray();
-        $temp = array();
-        foreach ($lgas as $row) {
-            $temp[] = $row->lga_name;
-        }
-        $lgas = json_encode($temp, JSON_NUMERIC_CHECK);
+        $lgas = json_encode(Dataitem::getAllLga(), JSON_NUMERIC_CHECK);
 
         //feature_codes from DB
-        $feature_terms = DB::table('gazetteer.register')->select('feature_term')->distinct()->where('feature_term', '<>', '')->get()->toArray();
-        $temp = array();
-        foreach ($feature_terms as $row) {
-            $temp[] = $row->feature_term;
-        }
-        $feature_terms = json_encode($temp, JSON_NUMERIC_CHECK);
+        $feature_terms = json_encode(Dataitem::getAllFeatures(), JSON_NUMERIC_CHECK);
 
         //parishes from DB
-        $parishes = DB::table('gazetteer.register')->select('parish')->distinct()->where('parish', '<>', '')->get()->toArray();
-        $temp = array();
-        foreach ($parishes as $row) {
-            $temp[] = $row->parish;
-        }
-        $parishes = json_encode($temp, JSON_NUMERIC_CHECK);
+        $parishes = json_encode(Dataitem::getAllParishes(), JSON_NUMERIC_CHECK);
 
-        $states = DB::table('gazetteer.register')->select(DB::Raw('state_code'))->distinct()->orderby('state_code')->get();
-        // $states = DB::table('gazetteer.register')->select('state_code')->distinct()->groupby('state_code')->get();
-        $count = DB::table('gazetteer.register')->count(); //count of all register entries
+        $states = Dataitem::getAllStates();
+
+        $count = Dataitem::count(); //count of all register entries
+
+        $datasources = Datasource::all();
 
         return view('ws.ghap.places.index', [
             'lgas' => $lgas,
@@ -50,6 +39,7 @@ class HomeController extends Controller
             'parishes' => $parishes,
             'states' => $states,
             'count' => $count,
+            'datasources' => $datasources,
         ]);
     }
 
