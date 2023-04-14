@@ -15,7 +15,7 @@ class AddAnpsColumnsToDataitemTable extends Migration
     {
         Schema::table('tlcmap.dataitem', function (Blueprint $table) {
             $table->string('uid', 100)->index()->nullable();
-            $table->unsignedBigInteger('original_id')->index()->nullable();
+            $table->string('original_id', 255)->index()->nullable();
             $table->unsignedBigInteger('datasource_id')->index()->default(1);
             $table->text('parish')->nullable();
             $table->text('flag')->nullable();
