@@ -118,6 +118,29 @@ class Dataitem extends Model
     }
 
     /**
+     * Set the extended data of the dataitem.
+     *
+     * Note that this method only sets the property on the model. To save the extended data into the database, the
+     * `save()` method will need to be called.
+     *
+     * @param array $extendedData
+     *   An associative array of the extended data key/value pairs.
+     * @return void
+     */
+    public function setExtendedData($extendedData)
+    {
+        if (!empty($extendedData)) {
+            $items = [];
+            foreach ($extendedData as $key => $value) {
+                $items[] = '<Data name="' . $key . '"><value><![CDATA[' . $value . ']]></value></Data>';
+            }
+            $this->extended_data = '<ExtendedData>' . implode('', $items) . '</ExtendedData>';
+        } else {
+            $this->extended_data = null;
+        }
+    }
+
+    /**
      * Get the extended data of the dataitem.
      *
      * @return array|false|null
