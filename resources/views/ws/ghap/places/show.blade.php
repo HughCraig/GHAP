@@ -31,6 +31,7 @@
                         <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=kml&download=on">KML</a>
                         <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=csv&download=on">CSV</a>
                         <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=json&download=on">GeoJSON</a>
+                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=rocrate&download=on">RO-Crate</a>
                     </div>
                 </div>
 

@@ -18,6 +18,16 @@
     <!-- Edit Collection Modal Button-->
     @include('modals.editcollectionmodal')
 
+    <!-- Export/Download -->
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Download
+        </button>
+        <div class="dropdown-menu" aria-labelledby="downloadDropdown">
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/ro-crate">RO-Crate</a>
+        </div>
+    </div>
+
     @if (!empty(config('app.views_root_url')))
         <!-- Visualise-->
         <div class="dropdown">

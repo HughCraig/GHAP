@@ -37,6 +37,7 @@ Route::get('publicdatasets/{id}/json', 'DatasetController@viewPublicJSON')->name
 Route::get('publicdatasets/{id}/json/download', 'DatasetController@downloadPublicJSON')->name('downloadpublicdatasetjson');
 Route::get('publicdatasets/{id}/csv', 'DatasetController@viewPublicCSV')->name('viewpublicdatasetcsv')->middleware('cors');
 Route::get('publicdatasets/{id}/csv/download', 'DatasetController@downloadPublicCSV')->name('downloadpublicdatasetcsv');
+Route::get('publicdatasets/{id}/ro-crate', 'DatasetController@downloadPublicROCrate');
 
 /**
  * Public collection pages.
@@ -44,6 +45,7 @@ Route::get('publicdatasets/{id}/csv/download', 'DatasetController@downloadPublic
 Route::get('publiccollections', 'CollectionController@viewPublicCollections');
 Route::get('publiccollections/{id}', 'CollectionController@viewPublicCollection');
 Route::get('publiccollections/{id}/json', 'CollectionController@viewPublicJson')->middleware('cors');
+Route::get('publiccollections/{id}/ro-crate', 'CollectionController@downloadPublicROCrate');
 
 /**
  * User Pages.
@@ -71,6 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('myprofile/mydatasets/{id}/json/download', 'DatasetController@downloadPrivateJSON')->name('downloaddatasetjson');
     Route::get('myprofile/mydatasets/{id}/csv', 'DatasetController@viewPrivateCSV')->name('viewdatasetcsv');
     Route::get('myprofile/mydatasets/{id}/csv/download', 'DatasetController@downloadPrivateCSV')->name('downloaddatasetcsv');
+    Route::get('myprofile/mydatasets/{id}/ro-crate', 'DatasetController@downloadPrivateROCrate');
 });
 
 /**
@@ -82,6 +85,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('myprofile/mycollections/newcollection/create', 'CollectionController@createNewCollection');
     Route::get('myprofile/mycollections/{id}', 'CollectionController@viewMyCollection');
     Route::post('myprofile/mycollections/{id}/edit', 'CollectionController@editCollection');
+    Route::get('myprofile/mycollections/{id}/ro-crate', 'CollectionController@downloadPrivateROCrate');
 });
 
 /**

@@ -8,6 +8,7 @@ use TLCMap\Http\Helpers\GeneralFunctions;
 use TLCMap\Models\Collection;
 use TLCMap\Models\Dataset;
 use TLCMap\Models\SubjectKeyword;
+use TLCMap\ROCrate\ROCrateGenerator;
 
 class CollectionController extends Controller
 {
@@ -86,6 +87,52 @@ class CollectionController extends Controller
             }
         }
         return response()->json($result);
+    }
+
+    /**
+     * Download the RO-Crate for a public collection.
+     *
+     * @param Request $request
+     * @param int $collectionID
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|null
+     */
+    public function downloadPublicROCrate(Request $request, $collectionID)
+    {
+        $collection = Collection::where([
+            'id' => $collectionID,
+            'public' => true,
+        ])->first();
+        if (!$collection) {
+            abort(404);
+        }
+        $crate = ROCrateGenerator::generateCollectionCrate($collection);
+        if ($crate) {
+            $timestamp = date("YmdHis");
+            return response()->download($crate, "ghap-ro-crate-multilayer-{$collection->id}-{$timestamp}.zip")->deleteFileAfterSend();
+        }
+        return null;
+    }
+
+    /**
+     * Download the RO-Crate as the owner of a collection.
+     *
+     * @param Request $request
+     * @param int $collectionID
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|null
+     */
+    public function downloadPrivateROCrate(Request $request, $collectionID)
+    {
+        $user = Auth::user();
+        $collection = $user->collections()->find($collectionID);
+        if (!$collection) {
+            abort(404);
+        }
+        $crate = ROCrateGenerator::generateCollectionCrate($collection);
+        if ($crate) {
+            $timestamp = date("YmdHis");
+            return response()->download($crate, "ghap-ro-crate-multilayer-{$collection->id}-{$timestamp}.zip")->deleteFileAfterSend();
+        }
+        return null;
     }
 
     /**

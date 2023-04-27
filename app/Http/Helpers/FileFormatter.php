@@ -112,37 +112,73 @@ class FileFormatter
     }
 
     /*
-     *  Convert search result to csv format, send it back in the response
+     * Convert search result to csv format, send it back in the response
      * Broken, rework for dataitems, gaps in strings, etc
+     *
+     * @return
+     *   The streamed the response of the CSV file.
      */
     public static function toCSV($results, $headers)
     {
         $callback = function () use ($results) {
-            $columns = array("id", "title", "placename", "state", "lga", "parish", "feature_term", "latitude", "longitude", "source", "flag", "description", "datestart", "dateend", "linkback", "tlcmaplink", "layerlink"); //unsure how to put multiple sources into csv
             $file = fopen('php://output', 'w');
-
-            fputcsv($file, $columns);
-            foreach ($results as $r) {
-                // this is a bit wierd. It seems that if the results are from user layer, they are key value pairs so $r['title'] works, but if they are from ANPS they are properties of an object and only $r->title works
-                $title = (!empty($r->title)) ? $r->title : $r->placename;
-                $source = (!empty($r->source)) ? $r->source : '';
-                $id = (isset($r->uid)) ? $r->uid : '';
-                $state = (isset($r->state)) ? $r->state : '';
-                $datestart = (isset($r->datestart)) ? $r->datestart : '';
-                $dateend = (isset($r->dateend)) ? $r->dateend : '';
-                $external_url = (isset($r->external_url)) ? $r->external_url : '';
-                $ghap_url = env('APP_URL');
-                $ghap_url .= (isset($r->uid)) ? "/search?id=" . $r->uid : '';
-                $layerlink = env('APP_URL');
-                $layerlink .= (isset($r->dataset_id)) ? ("/publicdatasets/" . $r->dataset_id) : '';
-                fputcsv($file, array($id, $title, $r->placename, $state, $r->lga, $r->parish, $r->feature_term, $r->latitude, $r->longitude, $source, $r->flag, $r->description, $datestart, $dateend, $external_url, $ghap_url, $layerlink));
-            }
-
+            FileFormatter::addCSVContent($file, $results);
             fclose($file);
-
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Convert search result to CSV and return the content of the CSV.
+     *
+     * This method is different from 'toCSV' as it will return the content of the CSV instead of a streamed response.
+     *
+     * @param array $results
+     *   The search results.
+     * @return false|string
+     *   The CSV content.
+     */
+    public static function toCSVContent($results)
+    {
+        $file = fopen('php://memory', 'r+');
+        FileFormatter::addCSVContent($file, $results);
+        rewind($file);
+        return stream_get_contents($file);
+    }
+
+    /**
+     * Add the content to the CSV file.
+     *
+     * Note: this method doesn't close the file handle. It's the responsibility of the code which calls this
+     * method to close the file handle.
+     *
+     * @param $file
+     *   The file handle of the CSV file.
+     * @param array $results
+     *   The search results data.
+     * @return void
+     */
+    private static function addCSVContent($file, $results)
+    {
+        //unsure how to put multiple sources into csv
+        $columns = array("id", "title", "placename", "state", "lga", "parish", "feature_term", "latitude", "longitude", "source", "flag", "description", "datestart", "dateend", "linkback", "tlcmaplink", "layerlink");
+        fputcsv($file, $columns);
+        foreach ($results as $r) {
+            // this is a bit wierd. It seems that if the results are from user layer, they are key value pairs so $r['title'] works, but if they are from ANPS they are properties of an object and only $r->title works
+            $title = (!empty($r->title)) ? $r->title : $r->placename;
+            $source = (!empty($r->source)) ? $r->source : '';
+            $id = (isset($r->uid)) ? $r->uid : '';
+            $state = (isset($r->state)) ? $r->state : '';
+            $datestart = (isset($r->datestart)) ? $r->datestart : '';
+            $dateend = (isset($r->dateend)) ? $r->dateend : '';
+            $external_url = (isset($r->external_url)) ? $r->external_url : '';
+            $ghap_url = env('APP_URL');
+            $ghap_url .= (isset($r->uid)) ? "/search?id=" . $r->uid : '';
+            $layerlink = env('APP_URL');
+            $layerlink .= (isset($r->dataset_id)) ? ("/publicdatasets/" . $r->dataset_id) : '';
+            fputcsv($file, array($id, $title, $r->placename, $state, $r->lga, $r->parish, $r->feature_term, $r->latitude, $r->longitude, $source, $r->flag, $r->description, $datestart, $dateend, $external_url, $ghap_url, $layerlink));
+        }
     }
 
     /**

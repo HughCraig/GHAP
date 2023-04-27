@@ -32,6 +32,7 @@ use Carbon\Carbon;
 
 use TLCMap\Http\Helpers\GeneralFunctions;
 use TLCMap\Models\Datasource;
+use TLCMap\ROCrate\ROCrateGenerator;
 
 class GazetteerController extends Controller
 {
@@ -581,6 +582,13 @@ class GazetteerController extends Controller
             $headers['Content-Type'] = 'text/xml'; //set header content type
             if ($parameters['download']) $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.kml"'; //if we are downloading, add a 'download attachment' header
             return Response::make(FileFormatter::toKML2($results, $parameters), '200', $headers); //serve the file to browser (or download)
+        }
+        if ($parameters['format'] === 'rocrate') {
+            $crate = ROCrateGenerator::generateSearchCrate($results, $parameters);
+            if ($crate) {
+                $timestamp = date("YmdHis");
+                return response()->download($crate, "ghap-ro-crate-search-results-{$timestamp}.zip")->deleteFileAfterSend();
+            }
         }
 
         //else, format as html

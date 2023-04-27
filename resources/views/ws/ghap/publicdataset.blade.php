@@ -18,6 +18,7 @@
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/kml/download">KML</a>
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv/download">CSV</a>
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/json/download">GeoJSON</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/ro-crate">RO-Crate</a>
         </div>
     </div>
 
