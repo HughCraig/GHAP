@@ -381,6 +381,9 @@ class ROCrateGenerator
         $queryParameters = [];
         foreach ($parameters as $name => $value) {
             if (isset($value) && $name !== 'format' && $name !== 'download') {
+                if (is_array($value)) {
+                    $value = implode(',', $value);
+                }
                 $queryParameters[] = "{$name}={$value}";
             }
         }
