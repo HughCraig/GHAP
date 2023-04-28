@@ -269,9 +269,9 @@ class GazetteerController extends Controller
                 if ($parameters['names']) {
                     $dataitems->where(function ($query) use ($names) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
-                        $query->where('title', '=', $firstcase)->orWhere('placename', '=', $firstcase);
+                        $query->where('title', 'ILIKE', $firstcase)->orWhere('placename', 'ILIKE', $firstcase);
                         foreach ($names as $line) {
-                            $query->orWhere('title', '=', $line)->orWhere('placename', '=', $firstcase);
+                            $query->orWhere('title', 'ILIKE', $line)->orWhere('placename', 'ILIKE', $firstcase);
                         }
                     });
                 } else if ($parameters['fuzzynames']) {
@@ -294,7 +294,7 @@ class GazetteerController extends Controller
                 }
             } else $dataitems->where('title', '=', null); //we did a bulk search but all of the names equated to empty strings! Show no results
         } else {
-            if ($parameters['name']) $dataitems->where('title', '=', $parameters['name']);
+            if ($parameters['name']) $dataitems->where('title', 'ILIKE', $parameters['name']);
             else if ($parameters['fuzzyname']) {
                 $dataitems->where(function ($query) use ($parameters) {
                     $query->where('title', 'ILIKE', '%' . $parameters['fuzzyname'] . '%')->orWhereRaw('title % ?', $parameters['fuzzyname'])
