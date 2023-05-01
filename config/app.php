@@ -66,6 +66,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application version
+    |--------------------------------------------------------------------------
+    |
+    | This tracks the current version of the application. It should be changed
+    | to the according version number before each release. Also should be
+    | consistent with the version tags in GitHub.
+    |
+    */
+    'version' => '6.0',
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Debug Mode
     |--------------------------------------------------------------------------
     |

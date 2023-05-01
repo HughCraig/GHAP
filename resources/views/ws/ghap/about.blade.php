@@ -3,6 +3,8 @@
 @section('content')
     <h2>About</h2>
 
+    <p><small>Current version: {{ config('app.version') }}</small></p>
+
     <p>Search and contribute to placenames in Australia with the&nbsp;<em>Gazetteer of Historical Australian Placenames</em>&nbsp;(GHAP, 'The Gazetteer' or 'The Gazza'). The Gazza, for the first time, makes easily available aggregated data on 'all' placenames in Australia, based on&nbsp;<a href="https://www.anps.org.au/">ANPS data</a>, including historical names. We have cleaned up coordinates for more than two thirds of 334,208 ANPS placenames and provided a user friendly search and filter interface and web service.</p>
     <p>Search by exact or fuzzy match, for all places within a region, and apply filters to narrow results. Save results in standard formats. Because people come here to search for places, it's also a great place to contribute your place related research so that other can find it. Whether placenames are new to the Gazza or already there, add them in (multiple instances are 'attestations' for people to find out about through links to your research).</p>
     <p>The Gazza can help answer that simple question - "What's here?"</p>
