@@ -60,6 +60,7 @@ class DataEntity
         $entityData = [];
         $refEntities = [];
         // Unpack properties with DataEntity reference.
+        // Note that this will not check the duplication if an entity is referenced in multiple places.
         foreach ($this->data as $name => $value) {
             if (is_array($value)) {
                 $entityData[$name] = [];
@@ -95,6 +96,16 @@ class DataEntity
     public function addPart(DataEntity $part)
     {
         $this->append('hasPart', $part);
+    }
+
+    /**
+     * Get the parts of the current data entity.
+     *
+     * @return DataEntity|DataEntity[]
+     */
+    public function getParts()
+    {
+        return $this->data['hasPart'];
     }
 
     /**

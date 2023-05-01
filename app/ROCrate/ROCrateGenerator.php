@@ -55,7 +55,40 @@ class ROCrateGenerator
         $rootEntity = self::createDatasetDataEntity($dataset);
         $metadata->addDataEntity($rootEntity);
 
+        // Get all file IDs.
+        $files = $rootEntity->getParts();
+        $fileIDs = [];
+        foreach ($files as $file) {
+            $fileIDs[] = ['@id' => $file->id()];
+        }
+        $actionEntity = self::createApplicationDataEntity($fileIDs);
+
+        $metadata->addDataEntity($actionEntity);
+
         return $metadata->getData();
+    }
+
+    /**
+     * Create the application data entity used to describe the application used to generate the files.
+     *
+     * @param array $fileIDs
+     *   The array of file IDs where each element in the format of ['@id' => 'file_id'];
+     * @return DataEntity
+     *   The 'CreateAction' data entity describes the used application and the files it generates.
+     * @throws \Exception
+     */
+    public static function createApplicationDataEntity($fileIDs)
+    {
+        $appEntity = new DataEntity('SoftwareApplication', config('app.url'));
+        $appEntity->set('url', config('app.url'));
+        $appEntity->set('name', config('app.name'));
+        $appEntity->set('version', config('app.version'));
+
+        $actionEntity = new DataEntity('CreateAction');
+        $actionEntity->set('instrument', $appEntity);
+
+        $actionEntity->set('result', $fileIDs);
+        return $actionEntity;
     }
 
     /**
@@ -296,13 +329,23 @@ class ROCrateGenerator
         }
 
         // Add dataset data entities.
+        $fileIDs = [];
         foreach ($collection->datasets as $dataset) {
             $directory = self::getDatasetDirectoryName($dataset);
             $datasetDataEntity = self::createDatasetDataEntity($dataset, $directory);
             $rootEntity->addPart($datasetDataEntity);
+            // Add file IDs to list.
+            $files = $datasetDataEntity->getParts();
+            foreach ($files as $file) {
+                $fileIDs[] = ['@id' => $file->id()];
+            }
         }
 
         $metadata->addDataEntity($rootEntity);
+
+        // Add application data entities.
+        $actionEntity = self::createApplicationDataEntity($fileIDs);
+        $metadata->addDataEntity($actionEntity);
 
         return $metadata->getData();
     }
@@ -409,6 +452,15 @@ class ROCrateGenerator
         $rootEntity->addPart($jsonEntity);
 
         $metadata->addDataEntity($rootEntity);
+
+        // Add application data entity.
+        $fileIDs = [
+            ['@id' => $csvEntity->id()],
+            ['@id' => $kmlEntity->id()],
+            ['@id' => $jsonEntity->id()],
+        ];
+        $actionEntity = self::createApplicationDataEntity($fileIDs);
+        $metadata->addDataEntity($actionEntity);
 
         return $metadata->getData();
     }
