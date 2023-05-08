@@ -111,6 +111,7 @@ Route::middleware(['auth', 'verified'])->group(function () { //must be logged in
     Route::post('ajaxsubsearch', 'AjaxController@ajaxsubsearch');
     Route::post('ajaxdeletesearch', 'AjaxController@ajaxdeletesearch');
 
+    Route::get('ajaxviewdataitem', 'AjaxController@ajaxviewdataitem');
     Route::post('ajaxeditdataitem', 'AjaxController@ajaxeditdataitem');
     Route::post('ajaxadddataitem', 'AjaxController@ajaxadddataitem');
     Route::post('ajaxdeletedataitem', 'AjaxController@ajaxdeletedataitem');

@@ -117,6 +117,36 @@ class AjaxController extends Controller
     }
 
     /**
+     * View a dataitem.
+     *
+     * This controller only apply when a logged in user requesting a dataitem from one of his/her owned dataset.
+     *
+     * Accept URL parameters:
+     * - id: The ID of the dataitem.
+     * - dataset_id: The ID of the dataset which the dataitem belongs to.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function ajaxviewdataitem(Request $request)
+    {
+        $dataitemID = $request->id;
+        $datasetID = $request->dataset_id;
+        $dataitem = null;
+        $user = auth()->user();
+        if (!empty($user) && !empty($datasetID)) {
+            $dataset = $user->datasets()->find($datasetID);
+            if (!empty($dataset) && !empty($dataitemID)) {
+                $dataitem = $dataset->dataitems()->with('recordtype')->where('id', $dataitemID)->first();
+            }
+        }
+        if (empty($dataitem)) {
+            abort(404);
+        }
+        return response()->json($dataitem);
+    }
+
+    /**
      * Delete this dataitem
      */
     public function ajaxdeletedataitem(Request $request)

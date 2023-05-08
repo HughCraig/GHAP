@@ -799,3 +799,8 @@ div#mainnav {
 #helpVideoModal .modal-dialog {
     padding-top: 5%;
 }
+
+.scrollable.modal-body {
+    height: 70vh;
+    overflow-y: scroll;
+}
