@@ -89,6 +89,10 @@
 
                 <label for="addsource">Source (Website url, ISBN, Book title, etc)</label>
                 <input type="text" class="mb-3 form-control"id="addsource" placeholder="Source"> <!-- TODO: Source could be separate table -->
+
+                <!-- Extended data editor -->
+                @include('editors.extended_data_editor')
+
             </div>
         </div>
         <div class="modal-footer">

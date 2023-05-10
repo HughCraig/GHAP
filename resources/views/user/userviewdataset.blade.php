@@ -13,6 +13,7 @@
     </script>
     <script src="{{ asset('js/userviewdataset.js') }}"></script>
     <!-- for description fields -->
+    <script src="{{ asset('js/extended-data-editor.js') }}"></script>
     <script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
     <script src="{{ asset('js/wysiwyger.js') }}"></script>
     <script src="{{ asset('/js/dataitem.js') }}"></script>

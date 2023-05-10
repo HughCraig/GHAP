@@ -156,7 +156,7 @@ class Dataitem extends Model
         try {
             $extDataXML = simplexml_load_string($this->extended_data, 'SimpleXMLElement', LIBXML_NOCDATA);
             foreach ($extDataXML->Data as $item) {
-                $extData[(string) $item->attributes()->name] = $item->value;
+                $extData[(string) $item->attributes()->name] = (string) $item->value;
             }
         } catch (Exception $e) {
             return false;

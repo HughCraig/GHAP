@@ -94,6 +94,7 @@ $("main").on('click', '[name="delete_dataitem_button"]', function () {
 
 /* Add data item was clicked */
 $("main").on('click', '#add_dataitem_button_submit', function () {
+    const extendedDataEditor = new ExtendedDataEditor('#addModal .extended-data-editor');
     $.ajax({
         type: 'POST',
         url: ajaxadddataitem,
@@ -112,7 +113,8 @@ $("main").on('click', '#add_dataitem_button_submit', function () {
             lga: $('#addlga').val().toUpperCase(),
             parish: $('#addparish').val(),
             source: $('#addsource').val(),
-            url: $('#addexternalurl').val()
+            url: $('#addexternalurl').val(),
+            extendedData: extendedDataEditor.getData()
         },
         success: function (result) {
             location.reload();

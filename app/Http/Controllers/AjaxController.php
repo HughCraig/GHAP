@@ -143,6 +143,8 @@ class AjaxController extends Controller
         if (empty($dataitem)) {
             abort(404);
         }
+        $extendedData = $dataitem->getExtendedData();
+        $dataitem->extendedData = $extendedData ? $extendedData : null;
         return response()->json($dataitem);
     }
 
@@ -186,6 +188,7 @@ class AjaxController extends Controller
         $datestart = $request->datestart;
         $dateend = $request->dateend;
         $title = $request->title;
+        $extendedData = $request->extendedData;
 
         // records must have title, may have placename, if no title, assume placename is title
         if ($title === NULL) {
@@ -227,6 +230,7 @@ class AjaxController extends Controller
             'external_url' => $request->url,
             'placename' => $request->placename
         ]);
+        $dataitem->setExtendedData($extendedData);
         $dataitem->save();
 
         $dataset->updated_at = Carbon::now();
@@ -263,6 +267,7 @@ class AjaxController extends Controller
         $source = $request->source;
         $external_url = $request->url;
         $placename = $request->placename;
+        $extendedData = $request->extendedData;
 
 
         if ($title === NULL) {
@@ -295,9 +300,18 @@ class AjaxController extends Controller
             'external_url' => $external_url,
             'placename' => $placename
         ]);
+        $isDirty = false;
         // Generate UID.
         if ($dataitem->id) {
             $dataitem->uid = UID::create($dataitem->id, 't');
+            $isDirty = true;
+        }
+        // Set extended data.
+        if (!empty($extendedData)) {
+            $dataitem->setExtendedData($extendedData);
+            $isDirty = true;
+        }
+        if ($isDirty) {
             $dataitem->save();
         }
 

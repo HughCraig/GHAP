@@ -1,16 +1,4 @@
 $(document).ready( function () {
-    // Init datatable.
-    $("#dataitemtable").dataTable({
-        orderClasses: false,
-        bPaginate: true,
-        bFilter: true,
-        bInfo: false,
-        bSortable: true,
-        bRetrieve: true,
-        aaSorting: [[ 0, "asc" ]],
-        aoColumnDefs: [{ "aTargets": [ 13,16,17 ], "bSortable": false, "bSearchable": false }],
-        "pageLength": 25
-    });
 
     //LGA autocomplete.
     $( "#addlga, [name='lga']" ).autocomplete({
@@ -35,6 +23,12 @@ $(document).ready( function () {
     $('[name="editdateenddiv"]').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
     $('#editDateStartDiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
     $('#editDateEndDiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
+
+    // Initialise the extended data editors.
+    const addModalExtendedDataEditor = new ExtendedDataEditor('#addModal .extended-data-editor');
+    addModalExtendedDataEditor.init();
+    const editModalExtendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
+    editModalExtendedDataEditor.init();
 
     // Handle dataitem delete.
     $('.delete-dataitem-button').on('click', function () {
@@ -124,6 +118,10 @@ $(document).ready( function () {
         if (dataitem.source) {
             $('#editSource').val(dataitem.source);
         }
+        if (dataitem.extendedData) {
+            const extendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
+            extendedDataEditor.setData(dataitem.extendedData);
+        }
     };
 
     /**
@@ -148,6 +146,7 @@ $(document).ready( function () {
         const lga = $('#editLga').val();
         const externalUrl = $('#editExternalurl').val();
         const source = $('#editSource').val();
+        const extendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
         return {
             id: dataitemID,
             ds_id: datasetID,
@@ -163,7 +162,8 @@ $(document).ready( function () {
             featureterm: feature ? feature.toLowerCase() : null,
             lga: lga ? lga.toUpperCase() : null,
             source: source ? source : null,
-            url: externalUrl ? externalUrl : null
+            url: externalUrl ? externalUrl : null,
+            extendedData: extendedDataEditor.getData()
         };
     };
 
@@ -184,6 +184,8 @@ $(document).ready( function () {
         $('#editLga').val('');
         $('#editExternalurl').val('');
         $('#editSource').val('');
+        const extendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
+        extendedDataEditor.setData(null);
     };
 
     // Handle dataitem edit.
