@@ -38,9 +38,10 @@
                     @endforeach
                 </select>
 
-                <label for="editDescription">Description</label>
-                <!-- script for wysiwyg with tinymce is referenced in userviewdataset.blade.php. Add 'wysiwyger' class to apply it. See wysiwyger.js. Removed for now till we can work on it properly. -->
-                <textarea rows="3" class="mb-3 form-control w-100 " style="resize: none" id="editDescription" placeholder="Description"></textarea>
+                <div class="mb-3">
+                    <label for="editDescription">Description</label>
+                    <textarea rows="3" class="mb-3 form-control w-100 wysiwyg-editor" id="editDescription" placeholder="Description"></textarea>
+                </div>
 
                 <label for="editFeatureterm">Feature Term
                     <a href="/guides/featureterms.php" target="_blank">
@@ -81,9 +82,10 @@
                       title="For the URL to be a clickable link please ensure it starts with http:// or https://"></span>
                 <input type="text" class="mb-3 form-control" id="editExternalurl" placeholder="Linkback">
 
-
-                <label for="editSource">Source (Website url, ISBN, Book title, etc)</label>
-                <input type="text" class="mb-3 form-control"id="editSource" placeholder="Source"> <!-- TODO: Source could be separate table -->
+                <div class="mb-3">
+                    <label for="editSource">Source (Website url, ISBN, Book title, etc)</label>
+                    <textarea rows="3" class="mb-3 form-control w-100 wysiwyg-editor" id="editSource" placeholder="Source"></textarea>
+                </div>
 
                 <!-- Extended data editor -->
                 @include('editors.extended_data_editor')

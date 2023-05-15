@@ -12,10 +12,7 @@
         var feature_terms = {!! $feature_terms !!};
     </script>
     <script src="{{ asset('js/userviewdataset.js') }}"></script>
-    <!-- for description fields -->
     <script src="{{ asset('js/extended-data-editor.js') }}"></script>
-    <script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
-    <script src="{{ asset('js/wysiwyger.js') }}"></script>
     <script src="{{ asset('/js/dataitem.js') }}"></script>
 @endpush
 
@@ -94,9 +91,9 @@
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <tr><th class="w-25">Name</th><td>{{$ds->name}}</td></tr>
-		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{{$ds->description}}</td></tr>
+		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->description) !!}</td></tr>
                     <tr style="height: 50px; overflow: auto"><th>Type</th><td>{{$ds->recordtype->type}}</td></tr>
-                    <tr><th>Content Warning</th><td>{{$ds->warning}}</td></tr>
+                    <tr><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td></tr>
                     <tr><th>Your Role</th><td>{{$ds->pivot->dsrole}}</td></tr>
                     <tr><th>Contributor</th><td>{{$ds->ownerName()}} @if($ds->owner() == $user->id) (You) @endif</td></tr>
                     <tr><th>Entries</th><td id="dscount">{{count($ds->dataitems)}}</td></tr>
@@ -125,7 +122,7 @@
                     <tr><th>Creator</th><td>{{$ds->creator}}</td></tr>
                     <tr><th>Publisher</th><td>{{$ds->publisher}}</td></tr>
                     <tr><th>Contact</th><td>{{$ds->contact}}</td></tr>
-                    <tr><th>Citation</th><td>{{$ds->citation}}</td></tr>
+                    <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->citation) !!}</td></tr>
                     <tr><th>DOI</th><td id="doi">{{$ds->doi}}</td></tr>
                     <tr><th>Source URL</th><td id="source_url">{{$ds->source_url}}</td></tr>
                     <tr><th>Linkback</th><td id="linkback">{{$ds->linkback}}</td></tr>
@@ -144,7 +141,7 @@
                     <tr><th>Longitude To</th><td>{{$ds->longitude_to}}</td></tr>
                     <tr><th>Language</th><td>{{$ds->language}}</td></tr>
                     <tr><th>License</th><td>{{$ds->license}}</td></tr>
-                    <tr><th>Rights</th><td>{{$ds->rights}}</td></tr>
+                    <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->rights) !!}</td></tr>
                     <tr><th>Date Created (externally)</th><td>{{$ds->created}}</td></tr>
                 </table>
             </div>
@@ -228,7 +225,7 @@
 
                         <h4>Description</h4>
                         @if(isset($data->description))
-                            <div>{!!$data->description!!}</div>
+                            <div>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->description) !!}</div>
                         @endif
                         @if(isset($data->extended_data))
                     </div>
@@ -241,7 +238,7 @@
                         <h4>Sources</h4>
                         @if(isset($data->uid))<dt>TLCMap ID</dt><dd>{{$data->uid}}</dd>@endif
                         @if(isset($data->external_url))<dt>Linkback</dt><dd><a href="{{$data->external_url}}">{{$data->external_url}}</a></dd>@endif
-                        @if(isset($data->source))<dt>Source</dt><dd>{!! nl2br($data->source) !!}</dd>@endif
+                        @if(isset($data->source))<dt>Source</dt><dd>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->source) !!}</dd>@endif
 
                         @if(isset($data->created_at))<dt>Created At</dt><dd>{{$data->created_at}}</dd>@endif
                         @if(isset($data->updated_at))<dt id="updatedat">Updated At</dt><dd>{{$data->updated_at}}</dd>@endif

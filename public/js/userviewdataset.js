@@ -95,7 +95,7 @@ $(document).ready( function () {
             $('#editRecordtype').val(dataitem.recordtype.type);
         }
         if (dataitem.description) {
-            $('#editDescription').val(dataitem.description);
+            tinymce.get('editDescription').setContent(dataitem.description);
         }
         if (dataitem.feature_term) {
             $('#editFeatureterm').val(dataitem.feature_term);
@@ -116,7 +116,7 @@ $(document).ready( function () {
             $('#editExternalurl').val(dataitem.external_url);
         }
         if (dataitem.source) {
-            $('#editSource').val(dataitem.source);
+            tinymce.get('editSource').setContent(dataitem.source);
         }
         if (dataitem.extendedData) {
             const extendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
@@ -138,14 +138,14 @@ $(document).ready( function () {
         const latitude = $('#editLatitude').val();
         const longitude = $('#editLongitude').val();
         const recordType = $('#editRecordtype').val();
-        const description = $('#editDescription').val();
+        const description = tinymce.get('editDescription').getContent();
         const feature = $('#editFeatureterm').val();
         const state = $('#editState').val();
         const datestart = $('#editDatestart').val();
         const dateend = $('#editDateend').val();
         const lga = $('#editLga').val();
         const externalUrl = $('#editExternalurl').val();
-        const source = $('#editSource').val();
+        const source = tinymce.get('editSource').getContent();
         const extendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
         return {
             id: dataitemID,
@@ -176,14 +176,14 @@ $(document).ready( function () {
         $('#editLatitude').val('');
         $('#editLongitude').val('');
         $('#editRecordtype').val('');
-        $('#editDescription').val('');
+        tinymce.get('editDescription').setContent('');
         $('#editFeatureterm').val('');
         $('#editState').val('');
         $('#editDateStartDiv').datepicker('setDate', null);
         $('#editDateEndDiv').datepicker('setDate', null);
         $('#editLga').val('');
         $('#editExternalurl').val('');
-        $('#editSource').val('');
+        tinymce.get('editSource').setContent('');
         const extendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
         extendedDataEditor.setData(null);
     };

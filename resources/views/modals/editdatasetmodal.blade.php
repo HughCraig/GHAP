@@ -32,7 +32,7 @@
             </div>
 
             <form method="POST" id="edit_dataset_form" action="{{url()->full()}}/edit">
-                <div class="modal-body">
+                <div class="modal-body scrollable">
                     @csrf
                     <div class="row">
                         <div class="col-lg-6">
@@ -44,14 +44,6 @@
                                   class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                                   title="Type and press enter to create keywords describing this layer."></span>
                             <input id="tags" name="tags" type="text" class="smallerinputs mb-4 w3-white form-control"/>
-
-
-                            Description<label class="text-danger">*</label>
-                            <span tabindex="0" data-html="true" data-animation="true"
-                                  class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                                  title="A short paragraph summarising the layer. Anything not covered by other fields can be added here."></span>
-                            <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control"
-                                      name="description" id="description" required>{{$ds->description}}</textarea>
 
                             Record Type
                             <span tabindex="0" data-html="true" data-animation="true"
@@ -66,13 +58,6 @@
                                         <option label="{{$type}}">{{$type}}</option> @endif
                                 @endforeach
                             </select>
-
-                            Content Warning
-                            <span tabindex="0" data-html="true" data-animation="true"
-                                  class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                                  title="Anything the viewer should be aware of before viewing information in this layer, such as that the content may distress some viewers."></span>
-                            <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control" name="warning"
-                                      id="warning">{{$ds->warning}}</textarea>
 
                             Visibility
                             <span tabindex="0" data-html="true" data-animation="true"
@@ -118,21 +103,8 @@
                                   class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                                   title="The usage licence that applies to this layer. Open data is often under a <a href='https://creativecommons.org/licenses/' target='_blank'>Creative Commons</a> CC BY or CC BY-NC licence. If you created the information, you can choose the licence. If you obtained it from another source, select the licence specified there."></span>
                             <input type="text" class=" mb-4 w3-white form-control" name="license" value="{{$ds->license}}"/>
-
-                            Rights
-                            <span tabindex="0" data-html="true" data-animation="true"
-                                  class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                                  title="If not covered by the licence, the rights that apply to use of the information in this layer. You may need to declare that you use it with permission, and others would also have to ask before re-using it; or that it is out of copyright."></span>
-                            <input type="text" class="mb-4 w3-white form-control" name="rights" value="{{$ds->rights}}"/>
-
                         </div>
                         <div class="col-lg-6">
-                            Citation
-                            <span tabindex="0" data-html="true" data-animation="true"
-                                  class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                                  title="A bibliographic citation people should use when referencing this data, such as its source or related project."></span>
-                            <input type="text" class="mb-4 w3-white form-control" name="citation" value="{{$ds->citation}}"/>
-
                             DOI
                             <span tabindex="0" data-html="true" data-animation="true"
                                   class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
@@ -184,6 +156,42 @@
                                   class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                                   title="The date that the information in this layer was created."></span>
                             <input type="date" class="mb-4 w3-white form-control" name="created" value="{{$ds->created}}"/>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-4">
+                                Description<label class="text-danger">*</label>
+                                <span tabindex="0" data-html="true" data-animation="true"
+                                      class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                      title="A short paragraph summarising the layer. Anything not covered by other fields can be added here."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor"
+                                          name="description" id="description">{{$ds->description}}</textarea>
+                            </div>
+                            <div class="mb-4">
+                                Content Warning
+                                <span tabindex="0" data-html="true" data-animation="true"
+                                      class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                      title="Anything the viewer should be aware of before viewing information in this layer, such as that the content may distress some viewers."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor" name="warning"
+                                          id="warning">{{$ds->warning}}</textarea>
+                            </div>
+                            <div class="mb-4">
+                                Citation
+                                <span tabindex="0" data-html="true" data-animation="true"
+                                      class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                      title="A bibliographic citation people should use when referencing this data, such as its source or related project."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor"
+                                          name="citation">{{ $ds->citation }}</textarea>
+                            </div>
+                            <div class="mb-4">
+                                Usage Rights
+                                <span tabindex="0" data-html="true" data-animation="true"
+                                      class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                      title="If not covered by the licence, the rights that apply to use of the information in this layer. You may need to declare that you use it with permission, and others would also have to ask before re-using it; or that it is out of copyright."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor"
+                                          name="rights">{{ $ds->rights }}</textarea>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -143,10 +143,10 @@
                         <dl>
                             @if(isset($line->dataset->warning))
                                 <dt style="background-color: #ffcc00;">Layer Warning:</dt>
-                                <dd style="background-color: #ffcc00;">{{$line->dataset->warning}}</dd>
+                                <dd style="background-color: #ffcc00;">{!! \TLCMap\Http\Helpers\HtmlFilter::simple($line->dataset->warning) !!}</dd>
                             @endif
                             @if(isset($line->description))
-                                <dd>{!!$line->description!!}</dd>
+                                <dd>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($line->description) !!}</dd>
                             @endif
                         </dl>
                     </div>
@@ -160,7 +160,7 @@
                         @endif
                         @if(isset($line->source))
                             <dt>Source</dt>
-                            <dd>{!! nl2br($line->source) !!}</dd>
+                            <dd>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($line->source) !!}</dd>
                         @endif
                         @if(isset($line->dataset->flag))
                             <dt>ANPS to TLCMap Import Note</dt>

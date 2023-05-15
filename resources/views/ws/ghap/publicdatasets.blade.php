@@ -29,7 +29,7 @@
                 <td><a href="{{url()->full()}}/{{$ds->id}}">{{$ds->name}}</a></td>
                 <td>{{count($ds->dataitems)}}</td>
                 <td>{{$ds->recordtype->type}}</td>
-                <td>{{$ds->warning}}</td>
+                <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td>
                 <td>{{$ds->created_at}}</td>
                 <td>{{$ds->updated_at}}</td>
                 <td>

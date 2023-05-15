@@ -104,6 +104,9 @@
     <!-- jQuery datatables -->
     <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
 
+    <!-- TinyMCE -->
+    <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+
     <!-- TLCMap js-->
     <script type="text/javascript" src="{{ asset('/js/tablesort.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/tooltips.js') }}"></script>
@@ -111,6 +114,7 @@
     <script type="text/javascript" src="{{ asset('/js/autocomplete.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/urltools.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/help-video.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/wysiwyg-editor.js') }}"></script>
 
 </head>
 

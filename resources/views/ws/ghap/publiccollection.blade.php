@@ -42,8 +42,8 @@
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <tr><th class="w-25">Name</th><td>{{$collection->name}}</td></tr>
-                    <tr style="height: 50px; overflow: auto"><th>Description</th><td>{{$collection->description}}</td></tr>
-                    <tr style="height: 50px; overflow: auto"><th>Content Warning</th><td>{{$collection->warning}}</td></tr>
+                    <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->description) !!}</td></tr>
+                    <tr style="height: 50px; overflow: auto"><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->warning) !!}</td></tr>
                     <tr><th>Contributor</th><td>{{$collection->ownerUser->name}}</td></tr>
                     <tr><th>Entries</th><td id="collectionCount">{{count($collection->datasets)}}</td></tr>
                     <tr><th>Added to System</th><td>{{$collection->created_at}}</td></tr>
@@ -69,7 +69,7 @@
                     <tr><th>Creator</th><td>{{$collection->creator}}</td></tr>
                     <tr><th>Publisher</th><td>{{$collection->publisher}}</td></tr>
                     <tr><th>Contact</th><td>{{$collection->contact}}</td></tr>
-                    <tr><th>Citation</th><td>{{$collection->citation}}</td></tr>
+                    <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->citation) !!}</td></tr>
                     <tr><th>DOI</th><td id="doi">{{$collection->doi}}</td></tr>
                     <tr><th>Source URL</th><td id="sourceURL">{{$collection->source_url}}</td></tr>
                     <tr><th>Linkback</th><td id="linkback">{{$collection->linkback}}</td></tr>
@@ -88,7 +88,7 @@
                     <tr><th>Longitude To</th><td>{{$collection->longitude_to}}</td></tr>
                     <tr><th>Language</th><td>{{$collection->language}}</td></tr>
                     <tr><th>License</th><td>{{$collection->license}}</td></tr>
-                    <tr><th>Rights</th><td>{{$collection->rights}}</td></tr>
+                    <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->rights) !!}</td></tr>
                     <tr><th>Date Created (externally)</th><td>{{$collection->created}}</td></tr>
                 </table>
             </div>
@@ -104,7 +104,7 @@
                     <td><a href="{{url('publicdatasets')}}/{{$ds->id}}">{{$ds->name}}</a></td>
                     <td>{{count($ds->dataitems)}}</td>
                     <td>{{$ds->recordtype->type}}</td>
-                    <td>{{$ds->warning}}</td>
+                    <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td>
                     <td>{{$ds->created_at}}</td>
                     <td>{{$ds->updated_at}}</td>
                     <td>
