@@ -112,7 +112,7 @@ class ROCrateGenerator
         }
 
         $dataEntity = new DataEntity('Dataset', empty($directory) ? './' : $directory);
-        $dataEntity->set('datePublished', date("Y-m-d"));
+        $dataEntity->set('datePublished', $dataset->created_at->toDateString());
         $dataEntity->set('name', $dataset->name);
         $dataEntity->set('description', $dataset->description);
         if (!empty($dataset->creator)) {
@@ -150,10 +150,12 @@ class ROCrateGenerator
             $dataEntity->set('dateCreated', $dataset->created);
         }
         if (!empty($dataset->language)) {
-            $dataEntity->set('inLanguage', $dataset->language);
+            $dataEntity->set('language', $dataset->language);
         }
         if (!empty($dataset->license)) {
-            $dataEntity->set('license', $dataset->license);
+            $license = new DataEntity('CreativeWork');
+            $license->set('name', $dataset->license);
+            $dataEntity->set('license', $license);
         }
         if (!empty($dataset->rights)) {
             $dataEntity->set('copyrightNotice', $dataset->rights);
@@ -264,7 +266,7 @@ class ROCrateGenerator
     {
         $metadata = new Metadata();
         $rootEntity = new DataEntity('Dataset', './');
-        $rootEntity->set('datePublished', date("Y-m-d"));
+        $rootEntity->set('datePublished', $collection->created_at->toDateString());
         $rootEntity->set('name', $collection->name);
         if (!empty($collection->description)) {
             $rootEntity->set('description', $collection->description);
@@ -304,10 +306,12 @@ class ROCrateGenerator
             $rootEntity->set('dateCreated', $collection->created);
         }
         if (!empty($collection->language)) {
-            $rootEntity->set('inLanguage', $collection->language);
+            $rootEntity->set('language', $collection->language);
         }
         if (!empty($collection->license)) {
-            $rootEntity->set('license', $collection->license);
+            $license = new DataEntity('CreativeWork');
+            $license->set('name', $collection->license);
+            $rootEntity->set('license', $license);
         }
         if (!empty($collection->rights)) {
             $rootEntity->set('copyrightNotice', $collection->rights);

@@ -44,6 +44,18 @@ through the @include directive from the parent template.
                     @endif
                 </td>
             </tr>
+        @elseif ($name === 'license')
+            <tr>
+                <th><a href="http://schema.org/{{ $name }}">{{ $name }}</a></th>
+                <td>
+                    @foreach ($metadata['@graph'] as $entity2)
+                        @if ($entity2['@id'] === $value['@id'])
+                            {{ $entity2['name'] }}
+                            @break
+                        @endif
+                    @endforeach
+                </td>
+            </tr>
         @elseif ($name === 'spatialCoverage')
             <tr>
                 <th><a href="http://schema.org/{{ $name }}">{{ $name }}</a></th>
