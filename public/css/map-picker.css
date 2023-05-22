@@ -1,0 +1,15 @@
+/*
+CSS styles for the map picker widget.
+*/
+
+.map-picker {
+    padding: 1em;
+    border: 1px solid #eee;
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+.mp-map {
+    width: 100%;
+    aspect-ratio: 16/9;
+}

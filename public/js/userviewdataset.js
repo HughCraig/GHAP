@@ -24,6 +24,12 @@ $(document).ready( function () {
     $('#editDateStartDiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
     $('#editDateEndDiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
 
+    // Map pickers.
+    const addModalMapPicker = new MapPicker($('#addModal .map-picker'));
+    addModalMapPicker.init();
+    const editModalMapPicker = new MapPicker($('#editDataitemModal .map-picker'));
+    editModalMapPicker.init();
+
     // Initialise the extended data editors.
     const addModalExtendedDataEditor = new ExtendedDataEditor('#addModal .extended-data-editor');
     addModalExtendedDataEditor.init();
@@ -216,6 +222,11 @@ $(document).ready( function () {
         clearEditDataitemFormValues();
         $('#editDataitemModal').data('itemId', "");
         $('#editDataitemModal').data('setId', "");
+    });
+
+    // Refresh the map when the modal is shown.
+    $('#editDataitemModal').on('shown.bs.modal', function () {
+        editModalMapPicker.refresh();
     });
 
     // Handle record edit when the save button is clicked.

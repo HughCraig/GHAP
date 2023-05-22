@@ -1,5 +1,9 @@
 @extends('templates.layout')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/map-picker.css') }}">
+@endpush
+
 @push('scripts')
     <script>
         //Put the relative URL of our ajax functions into global vars for use in external .js files
@@ -11,6 +15,7 @@
         var lgas = {!! $lgas !!};
         var feature_terms = {!! $feature_terms !!};
     </script>
+    <script src="{{ asset('js/map-picker.js') }}"></script>
     <script src="{{ asset('js/userviewdataset.js') }}"></script>
     <script src="{{ asset('js/extended-data-editor.js') }}"></script>
     <script src="{{ asset('/js/dataitem.js') }}"></script>

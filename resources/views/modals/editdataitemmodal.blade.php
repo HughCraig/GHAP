@@ -22,14 +22,25 @@
                     </span>
                 <input type="text" class="mb-3 form-control" id="editPlacename" placeholder="Placename" required>
 
-                <label for="editLatitude">Latitude</label><label class="text-danger">*</label>
-                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                      title="Try <a href='https://tlcmap.org/quicktools/quickcoordinates.html'>Quick Coordinates</a>.">
-                    </span>
-                <input type="text" class="mb-3 form-control" id="editLatitude" placeholder="Latitude" required>
+                <div class="map-picker">
+                    <p><small>Either enter coordinates manually or click on the map and apply.</small></p>
 
-                <label for="editLongitude">Longitude</label><label class="text-danger">*</label>
-                <input type="text" class="mb-3 form-control" id="editLongitude" placeholder="Longitude" required>
+                    <label for="editLatitude">Latitude</label><label class="text-danger">*</label>
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                          title="Try <a href='https://tlcmap.org/quicktools/quickcoordinates.html'>Quick Coordinates</a>.">
+                    </span>
+                    <input type="text" class="mb-3 form-control mp-input-lat" id="editLatitude" placeholder="Latitude" required>
+
+                    <label for="editLongitude">Longitude</label><label class="text-danger">*</label>
+                    <input type="text" class="mb-3 form-control mp-input-lng" id="editLongitude" placeholder="Longitude" required>
+
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-default btn-sm mp-btn-refresh" title="Refresh the map to reflect coordinate changes">Refresh Map</button>
+                        <button type="button" class="btn btn-default btn-sm mp-btn-unset" title="Unset the coordinates">Unset</button>
+                    </div>
+
+                    <div class="mp-map"></div>
+                </div>
 
                 <label for="editRecordtype">Record Type</label>
                 <select class="w3-white form-control mb-3" id="editRecordtype" name="addrecordtype">

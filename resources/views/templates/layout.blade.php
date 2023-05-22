@@ -59,6 +59,9 @@
     <!-- jQuery datatables -->
     <link href="//cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" rel="stylesheet">
 
+    <!-- ArcGis styles -->
+    <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css">
+
     <!-- Other CSS -->
     @stack('styles')
 
@@ -260,5 +263,8 @@
 <!-- Other JS -->
 @stack('scripts')
 
+<!-- ArcGIS Maps SDK for JavaScript -->
+<!-- This must be included at the last position as it has conflicts with jQuery UI and widgets -->
+<script src="https://js.arcgis.com/4.26/"></script>
 </body>
 </html>
