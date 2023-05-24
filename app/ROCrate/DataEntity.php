@@ -22,7 +22,7 @@ class DataEntity
         $this->data = [];
         // Generate an UUID if ID is empty.
         if (empty($id)) {
-            $id = UUID::create();
+            $id = '#' . UUID::create();
         }
         $this->set('@id', $id);
         $this->set('@type', $type);
