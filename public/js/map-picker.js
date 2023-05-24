@@ -26,6 +26,7 @@ class MapPicker {
         this.view = null;
         this.marker = null;
         this.markerGraphic = null;
+        this.popupContent = null;
     }
 
     /**
@@ -61,11 +62,27 @@ class MapPicker {
                 editor.addMarker(coordinates);
             }
 
+            editor.view.popup.autoOpenEnabled = false;
+
+            // Refresh the map when the popup is closed.
+            editor.view.watch('popup.visible', function (newValue) {
+                if (!newValue) {
+                    editor.refresh();
+                }
+            });
+
             // Handle click event in the map view.
             editor.view.on('click', function (event) {
-                editor.container.find('.mp-input-lat').val(event.mapPoint.latitude);
-                editor.container.find('.mp-input-lng').val(event.mapPoint.longitude);
                 editor.createMarkerAt([event.mapPoint.longitude, event.mapPoint.latitude], true, false);
+
+                // Open Popup.
+                editor.popupContent.find('.mp-popup-lat').text(event.mapPoint.latitude);
+                editor.popupContent.find('.mp-popup-lng').text(event.mapPoint.longitude);
+                editor.view.popup.open({
+                    title: `Coordinates`,
+                    content: editor.popupContent[0],
+                    location: event.mapPoint
+                });
             });
         });
 
@@ -82,6 +99,23 @@ class MapPicker {
             editor.container.find('.mp-input-lat').val('');
             editor.container.find('.mp-input-lng').val('');
             editor.clearMarkers();
+        });
+
+        // Create popup content node.
+        let popupHtml = `<div class="mp-popup-content">`;
+        popupHtml += `<p>Latitude: <span class="mp-popup-lat"></span></p>`;
+        popupHtml += `<p>Longitude: <span class="mp-popup-lng"></span></p>`;
+        popupHtml += `<p><button type="button" class="btn btn-default btn-sm mp-popup-btn-set">Apply these coordinates</button></p>`;
+        popupHtml += `</div>`;
+        this.popupContent = $(popupHtml);
+        this.popupContent.find('.mp-popup-btn-set').on('click', function () {
+            const lat = editor.popupContent.find('.mp-popup-lat').text();
+            const lng = editor.popupContent.find('.mp-popup-lng').text();
+            if (lat && lng) {
+                editor.container.find('.mp-input-lat').val(lat);
+                editor.container.find('.mp-input-lng').val(lng);
+            }
+            editor.view.popup.close();
         });
     }
 
