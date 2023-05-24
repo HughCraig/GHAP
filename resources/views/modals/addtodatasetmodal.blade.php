@@ -112,7 +112,7 @@
         </div>
         <div class="modal-footer">
             <span class="text-danger">* required fields</span>
-            <button type="button" class="btn btn-primary" id="add_dataitem_button_submit">Add Item</button>
+            <button type="button" class="btn btn-primary" id="add_dataitem_button_submit">Add Place</button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         </div>
         </div>
