@@ -146,23 +146,24 @@
                 </div>
                 <div class="main-menu">
                     <div class="w3-dropdown-hover" style="display:none;"></div>
+                    <div class="main-menu-item">
+                        <a href="{{ url('/') }}">Search</a>
+                    </div>
                     <div class="main-menu-item w3-dropdown-hover w3-mobile">
-                        <a href="#">Browse Layers <i class="fa fa-caret-down"></i></a>
+                        <a href="#">Layers <i class="fa fa-caret-down"></i></a>
                         <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
                             <a href="{{ url('publicdatasets') }}" class="w3-bar-item w3-button">Layers</a>
                             <a href="{{ url('publiccollections') }}" class="w3-bar-item w3-button">Multilayers</a>
                         </div>
                     </div>
-                    <div class="main-menu-item">
-                        <a href="{{ url('about') }}">About</a>
-                    </div>
                     <div class="main-menu-item w3-dropdown-hover w3-mobile">
                         <a href="#">Help <i class="fa fa-caret-down"></i></a>
                         <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
                             @if (!empty(config('app.help_video_url')))
-                                <a href="#" data-toggle="modal" data-target="#helpVideoModal" class="w3-bar-item w3-button">Get started</a>
+                                <a href="#" data-toggle="modal" data-target="#helpVideoModal" class="w3-bar-item w3-button">Quick start</a>
                             @endif
                             <a href="https://hughcraignewcastleeduau.wpcomstaging.com/help/guides/ghap-guide/" class="w3-bar-item w3-button">Guide</a>
+                            <a href="{{ url('about') }}" class="w3-bar-item w3-button">About</a>
                         </div>
                     </div>
                 </div>
