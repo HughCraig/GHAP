@@ -217,9 +217,15 @@ $(document).ready( function () {
         });
     });
 
+    // Create the message banner for edit modal.
+    const msgBanner = new MessageBanner($('#editDataitemModal .message-banner'));
+    msgBanner.hide();
+
     // Unset all control values when the modal is hidden.
     $('#editDataitemModal').on('hidden.bs.modal', function () {
         clearEditDataitemFormValues();
+        msgBanner.clear();
+        msgBanner.hide();
         $('#editDataitemModal').data('itemId', "");
         $('#editDataitemModal').data('setId', "");
     });
@@ -231,22 +237,62 @@ $(document).ready( function () {
 
     // Handle record edit when the save button is clicked.
     $('#editDataitemSaveButton').on('click', function () {
-        $(this).prop('disabled', 'disabled');
-        // Save the dataitem.
-        $.ajax({
-            type: 'POST',
-            url: ajaxeditdataitem,
-            data: getEditDataitemRequestData(),
-            success: function (result) {
-                $(this).removeProp('disabled');
-                $('#editDataitemModal').modal('hide');
-                location.reload();
-            },
-            error: function (xhr, textStatus, errorThrown) {
-                $(this).removeProp('disabled');
-                $('#editDataitemModal').modal('hide');
-                alert(xhr.responseText); //error message with error info
-            }
-        });
+        // Validate the input.
+        let isValid = true;
+        msgBanner.clear();
+        if ($('#editTitle').val() === '') {
+            isValid = false;
+            msgBanner.error('Title must be filled');
+        }
+        if ($('#editLatitude').val() === '') {
+            isValid = false;
+            msgBanner.error('Latitude must be filled');
+        } else if (!Validation.latitude($('#editLatitude').val())) {
+            isValid = false;
+            msgBanner.error('Latitude must be valid from -90 to 90');
+        }
+        if ($('#editLongitude').val() === '') {
+            isValid = false;
+            msgBanner.error('Longitude must be filled');
+        } else if (!Validation.longitude($('#editLongitude').val())) {
+            isValid = false;
+            msgBanner.error('Longitude must be valid from -180 to 180');
+        }
+        if ($('#editDatestart').val() !== '' && !Validation.date($('#editDatestart').val())) {
+            isValid = false;
+            msgBanner.error('Date Start must be in valid format');
+        }
+        if ($('#editDateend').val() !== '' && !Validation.date($('#editDateend').val())) {
+            isValid = false;
+            msgBanner.error('Date End must be in valid format');
+        }
+        if ($('#editExternalurl').val() !== '' && !Validation.url($('#editExternalurl').val())) {
+            isValid = false;
+            msgBanner.error('Linkback must be in valid URL format');
+        }
+
+        if (isValid) {
+            $(this).prop('disabled', 'disabled');
+            // Save the dataitem.
+            $.ajax({
+                type: 'POST',
+                url: ajaxeditdataitem,
+                data: getEditDataitemRequestData(),
+                success: function (result) {
+                    $(this).removeProp('disabled');
+                    $('#editDataitemModal').modal('hide');
+                    location.reload();
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    $(this).removeProp('disabled');
+                    $('#editDataitemModal').modal('hide');
+                    alert(xhr.responseText); //error message with error info
+                }
+            });
+        } else {
+            // Display and scroll to the message banner.
+            msgBanner.show();
+            $('#editDataitemModal .scrollable').scrollTop(0);
+        }
     });
 });

@@ -16,6 +16,8 @@
         var feature_terms = {!! $feature_terms !!};
     </script>
     <script src="{{ asset('js/map-picker.js') }}"></script>
+    <script src="{{ asset('js/message-banner.js') }}"></script>
+    <script src="{{ asset('js/validation.js') }}"></script>
     <script src="{{ asset('js/userviewdataset.js') }}"></script>
     <script src="{{ asset('js/extended-data-editor.js') }}"></script>
     <script src="{{ asset('/js/dataitem.js') }}"></script>

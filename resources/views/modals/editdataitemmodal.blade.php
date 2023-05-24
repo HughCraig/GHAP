@@ -13,6 +13,8 @@
         </div>
         <div class="modal-body scrollable">
             <div class="scrollable">
+                <div class="message-banner pt-4 pb-4 mb-3"></div>
+
                 <label for="editTitle">Title</label><label class="text-danger">*</label>
                 <input type="text" class="mb-3 form-control" id="editTitle" placeholder="Title" required>
 
