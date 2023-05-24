@@ -799,3 +799,19 @@ div#mainnav {
 #helpVideoModal .modal-dialog {
     padding-top: 5%;
 }
+
+.scrollable.modal-body {
+    height: 70vh;
+    overflow-y: scroll;
+}
+
+.extended-data-editor table tr:first-child {
+    font-weight: normal;
+}
+
+.extended-data-editor table th:first-child {
+    width: 40%;
+}
+.extended-data-editor table th:nth-child(2) {
+    width: 40%;
+}

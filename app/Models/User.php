@@ -15,7 +15,6 @@ class User extends \Eloquent implements Authenticatable, CanResetPasswordContrac
 {
     use AuthenticableTrait, CanResetPassword;
     use MustVerifyEmail, Notifiable;
-    protected $connection = 'pgsql2';
     protected $table = "tlcmap.user";
 
     protected $primaryKey = "id";

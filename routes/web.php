@@ -19,7 +19,6 @@ Route::get('/home', function () {
 })->name('home');
 Route::get('', 'HomeController@index')->name('index');
 Route::get('about', 'HomeController@aboutPage')->name('about');
-Route::post('file', 'GazetteerController@searchFromFile')->name('searchFromFile'); //search from file
 Route::post('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->name('searchFromKmlPolygon'); //search from file
 Route::get('places/{id?}', 'GazetteerController@search')->name('places'); //shows places with optional id, if no id is given it uses all results before applying filters
 Route::get('search', 'GazetteerController@search')->name('search')->middleware('checkmaxpaging', 'cors');
@@ -38,6 +37,7 @@ Route::get('publicdatasets/{id}/json', 'DatasetController@viewPublicJSON')->name
 Route::get('publicdatasets/{id}/json/download', 'DatasetController@downloadPublicJSON')->name('downloadpublicdatasetjson');
 Route::get('publicdatasets/{id}/csv', 'DatasetController@viewPublicCSV')->name('viewpublicdatasetcsv')->middleware('cors');
 Route::get('publicdatasets/{id}/csv/download', 'DatasetController@downloadPublicCSV')->name('downloadpublicdatasetcsv');
+Route::get('publicdatasets/{id}/ro-crate', 'DatasetController@downloadPublicROCrate');
 
 /**
  * Public collection pages.
@@ -45,6 +45,7 @@ Route::get('publicdatasets/{id}/csv/download', 'DatasetController@downloadPublic
 Route::get('publiccollections', 'CollectionController@viewPublicCollections');
 Route::get('publiccollections/{id}', 'CollectionController@viewPublicCollection');
 Route::get('publiccollections/{id}/json', 'CollectionController@viewPublicJson')->middleware('cors');
+Route::get('publiccollections/{id}/ro-crate', 'CollectionController@downloadPublicROCrate');
 
 /**
  * User Pages.
@@ -72,6 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('myprofile/mydatasets/{id}/json/download', 'DatasetController@downloadPrivateJSON')->name('downloaddatasetjson');
     Route::get('myprofile/mydatasets/{id}/csv', 'DatasetController@viewPrivateCSV')->name('viewdatasetcsv');
     Route::get('myprofile/mydatasets/{id}/csv/download', 'DatasetController@downloadPrivateCSV')->name('downloaddatasetcsv');
+    Route::get('myprofile/mydatasets/{id}/ro-crate', 'DatasetController@downloadPrivateROCrate');
 });
 
 /**
@@ -83,6 +85,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('myprofile/mycollections/newcollection/create', 'CollectionController@createNewCollection');
     Route::get('myprofile/mycollections/{id}', 'CollectionController@viewMyCollection');
     Route::post('myprofile/mycollections/{id}/edit', 'CollectionController@editCollection');
+    Route::get('myprofile/mycollections/{id}/ro-crate', 'CollectionController@downloadPrivateROCrate');
 });
 
 /**
@@ -108,6 +111,7 @@ Route::middleware(['auth', 'verified'])->group(function () { //must be logged in
     Route::post('ajaxsubsearch', 'AjaxController@ajaxsubsearch');
     Route::post('ajaxdeletesearch', 'AjaxController@ajaxdeletesearch');
 
+    Route::get('ajaxviewdataitem', 'AjaxController@ajaxviewdataitem');
     Route::post('ajaxeditdataitem', 'AjaxController@ajaxeditdataitem');
     Route::post('ajaxadddataitem', 'AjaxController@ajaxadddataitem');
     Route::post('ajaxdeletedataitem', 'AjaxController@ajaxdeletedataitem');

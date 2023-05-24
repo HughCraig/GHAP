@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class CollabLink extends Model
 {
-    protected $connection = 'pgsql2';
     protected $table = "tlcmap.collablink";
     public $timestamps = true;
     public $incrementing = true;

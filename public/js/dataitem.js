@@ -86,6 +86,10 @@ $("main").on('click', '[name="delete_dataitem_button"]', function () {
     });
 });
 
+// Create message banner for add dataitem modal.
+const msgBanner = new MessageBanner($('#addModal .message-banner'));
+msgBanner.hide();
+
 /*
  *  ADDING DATA ITEMS
 
@@ -94,37 +98,79 @@ $("main").on('click', '[name="delete_dataitem_button"]', function () {
 
 /* Add data item was clicked */
 $("main").on('click', '#add_dataitem_button_submit', function () {
-    $.ajax({
-        type: 'POST',
-        url: ajaxadddataitem,
-        data: {
-            ds_id: $('#ds_id').val(),
-            title: $('#addtitle').val(),
-            placename: $('#addplacename').val(),
-            recordtype: $('#addrecordtype').children("option:selected").val(),
-            latitude: $('#addlatitude').val(),
-            longitude: $('#addlongitude').val(),
-            description: $('#adddescription').val(),
-            datestart: $('#adddatestart').val(),
-            dateend: $('#adddateend').val(),
-            state: $('#addstate').children("option:selected").val(),
-            featureterm: $('#addfeatureterm').val().toLowerCase(),
-            lga: $('#addlga').val().toUpperCase(),
-            parish: $('#addparish').val(),
-            source: $('#addsource').val(),
-            url: $('#addexternalurl').val()
-        },
-        success: function (result) {
-            location.reload();
-        },
-        error: function (xhr) {
-            var result = xhr.responseJSON;
-            if (result.hasOwnProperty('e1') && result.e1 === false) document.getElementById('adddatestart').classList.add('is-invalid'); else document.getElementById('adddatestart').classList.remove('is-invalid');
-            if (result.hasOwnProperty('e2') && result.e2 === false) document.getElementById('adddateend').classList.add('is-invalid'); else document.getElementById('adddateend').classList.remove('is-invalid');
-            if (result.hasOwnProperty('error')) alert(result.error)
-            else alert(xhr.responseText); //error message with error info
-        }
-    });
+    // Validate the input.
+    let isValid = true;
+    msgBanner.clear();
+    if ($('#addtitle').val() === '') {
+        isValid = false;
+        msgBanner.error('Title must be filled');
+    }
+    if ($('#addlatitude').val() === '') {
+        isValid = false;
+        msgBanner.error('Latitude must be filled');
+    } else if (!Validation.latitude($('#addlatitude').val())) {
+        isValid = false;
+        msgBanner.error('Latitude must be valid from -90 to 90');
+    }
+    if ($('#addlongitude').val() === '') {
+        isValid = false;
+        msgBanner.error('Longitude must be filled');
+    } else if (!Validation.longitude($('#addlongitude').val())) {
+        isValid = false;
+        msgBanner.error('Longitude must be valid from -180 to 180');
+    }
+    if ($('#adddatestart').val() !== '' && !Validation.date($('#adddatestart').val())) {
+        isValid = false;
+        msgBanner.error('Date Start must be in valid format');
+    }
+    if ($('#adddateend').val() !== '' && !Validation.date($('#adddateend').val())) {
+        isValid = false;
+        msgBanner.error('Date End must be in valid format');
+    }
+    if ($('#addexternalurl').val() !== '' && !Validation.url($('#addexternalurl').val())) {
+        isValid = false;
+        msgBanner.error('Linkback must be in valid URL format');
+    }
+
+    if (isValid) {
+        const extendedDataEditor = new ExtendedDataEditor('#addModal .extended-data-editor');
+        $.ajax({
+            type: 'POST',
+            url: ajaxadddataitem,
+            data: {
+                ds_id: $('#ds_id').val(),
+                title: $('#addtitle').val(),
+                placename: $('#addplacename').val(),
+                recordtype: $('#addrecordtype').children("option:selected").val(),
+                latitude: $('#addlatitude').val(),
+                longitude: $('#addlongitude').val(),
+                description: tinymce.get('adddescription').getContent(),
+                datestart: $('#adddatestart').val(),
+                dateend: $('#adddateend').val(),
+                state: $('#addstate').children("option:selected").val(),
+                featureterm: $('#addfeatureterm').val().toLowerCase(),
+                lga: $('#addlga').val().toUpperCase(),
+                parish: $('#addparish').val(),
+                source: tinymce.get('addsource').getContent(),
+                url: $('#addexternalurl').val(),
+                extendedData: extendedDataEditor.getData()
+            },
+            success: function (result) {
+                location.reload();
+            },
+            error: function (xhr) {
+                var result = xhr.responseJSON;
+                if (result.hasOwnProperty('e1') && result.e1 === false) document.getElementById('adddatestart').classList.add('is-invalid'); else document.getElementById('adddatestart').classList.remove('is-invalid');
+                if (result.hasOwnProperty('e2') && result.e2 === false) document.getElementById('adddateend').classList.add('is-invalid'); else document.getElementById('adddateend').classList.remove('is-invalid');
+                if (result.hasOwnProperty('error')) alert(result.error)
+                else alert(xhr.responseText); //error message with error info
+            }
+        });
+    } else {
+        // Display and scroll to the message banner.
+        msgBanner.show();
+        $('#addModal .scrollable').scrollTop(0);
+    }
 });
 
 /* Show edit controls for this dataitem */

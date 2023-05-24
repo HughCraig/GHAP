@@ -10,9 +10,6 @@
 namespace TLCMap\Http\Helpers;
 
 use Illuminate\Http\Request;
-use TLCMap\Models\Register;
-use TLCMap\Models\Documentation;
-use TLCMap\Models\Source;
 use Illuminate\Support\Facades\Input;
 use Response;
 use File;

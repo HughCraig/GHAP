@@ -13,7 +13,7 @@ class CreateDatasetTable extends Migration
      */
     public function up()
     {
-        Schema::connection('pgsql2')->create('tlcmap.dataset', function (Blueprint $table) {
+        Schema::create('tlcmap.dataset', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->text('name');
             $table->text('description');
@@ -58,6 +58,6 @@ class CreateDatasetTable extends Migration
      */
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('tlcmap.dataset');
+        Schema::dropIfExists('tlcmap.dataset');
     }
 }

@@ -18,6 +18,7 @@
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/kml/download">KML</a>
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv/download">CSV</a>
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/json/download">GeoJSON</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/ro-crate">RO-Crate</a>
         </div>
     </div>
 
@@ -60,9 +61,9 @@
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <tr><th class="w-25">Name</th><td>{{$ds->name}}</td></tr>
-		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{{$ds->description}}</td></tr>
+		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->description) !!}</td></tr>
 		            <tr><th>Type</th><td>{{$ds->type}}</td></tr>
-                    <tr style="height: 50px; overflow: auto"><th>Content Warning</th><td>{{$ds->warning}}</td></tr>
+                    <tr style="height: 50px; overflow: auto"><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td></tr>
                     <tr><th>Contributor</th><td>{{$ds->ownerName()}}</td></tr>
                     <tr><th>Entries</th><td id="dscount">{{count($ds->dataitems)}}</td></tr>
                     <tr><th>Allow ANPS?</th><td id="dspublic">@if($ds->allowanps)Yes @else No @endif</td></tr>
@@ -89,7 +90,7 @@
                     <tr><th>Creator</th><td>{{$ds->creator}}</td></tr>
                     <tr><th>Publisher</th><td>{{$ds->publisher}}</td></tr>
                     <tr><th>Contact</th><td>{{$ds->contact}}</td></tr>
-                    <tr><th>Citation</th><td>{{$ds->citation}}</td></tr>
+                    <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->citation) !!}</td></tr>
                     <tr><th>DOI</th><td id="doi">{{$ds->doi}}</td></tr>
                     <tr><th>Source URL</th><td id="source_url">{{$ds->source_url}}</td></tr>
                     <tr><th>Linkback</th><td id="linkback">{{$ds->linkback}}</td></tr>
@@ -108,7 +109,7 @@
                     <tr><th>Longitude To</th><td>{{$ds->longitude_to}}</td></tr>
                     <tr><th>Language</th><td>{{$ds->language}}</td></tr>
                     <tr><th>License</th><td>{{$ds->license}}</td></tr>
-                    <tr><th>Rights</th><td>{{$ds->rights}}</td></tr>
+                    <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->rights) !!}</td></tr>
                     <tr><th>Date Created (externally)</th><td>{{$ds->created}}</td></tr>
                 </table>
             </div>
@@ -122,7 +123,7 @@
             @foreach($ds->dataitems as $data)
                 <div class="row">
                     <div class="col col-xl-3">
-                        <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}',this,'id')">C</button>
+                        <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
                             <a href="{{env('APP_URL')}}/search?id={{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
                                 @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif</a>
                         </h4>
@@ -154,11 +155,11 @@
 
                         @if(isset($data->latitude))<dt>Latitude</dt><dd>{{$data->latitude}}</dd>@endif
                         @if(isset($data->longitude))<dt>Longitude</dt><dd>{{$data->longitude}}</dd>@endif
-                        @if(isset($data->start))<dt>Start Date</dt><dd>{{$data->start}}</dd>@endif
-                        @if(isset($data->end))<dt>End Date</dt><dd>{{$data->end}}</dd>@endif
+                        @if(isset($data->datestart))<dt>Start Date</dt><dd>{{$data->datestart}}</dd>@endif
+                        @if(isset($data->dateend))<dt>End Date</dt><dd>{{$data->dateend}}</dd>@endif
 
-                        @if(isset($data->state_code))<dt>State</dt><dd>{{$data->state_code}}</dd>@endif
-                        @if(isset($data->lga_name))<dt>LGA</dt><dd>{{$data->lga_name}}</dd>@endif
+                        @if(isset($data->state))<dt>State</dt><dd>{{$data->state}}</dd>@endif
+                        @if(isset($data->lga))<dt>LGA</dt><dd>{{$data->lga}}</dd>@endif
                         @if(isset($data->parish))<dt>Parish</dt><dd>{{$data->parish}}</dd>@endif
                         @if(isset($data->feature_term))<dt>Feature Term</dt><dd>{{$data->feature_term}}</dd>@endif
 
@@ -167,7 +168,7 @@
 
                         <h4>Description</h4>
                         @if(isset($data->description))
-                            <div>{!!$data->description!!}</div>
+                            <div>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->description) !!}</div>
                         @endif
                         @if(isset($data->extended_data))
                     </div>
@@ -178,9 +179,9 @@
                     </div>
                     <div class="col col-xl-2">
                         <h4>Sources</h4>
-                        @if(isset($data->id))<dt>TLCMap ID</dt><dd>{{$data->id}}</dd>@endif
+                        @if(isset($data->uid))<dt>TLCMap ID</dt><dd>{{$data->uid}}</dd>@endif
                         @if(isset($data->external_url))<dt>Linkback</dt><dd><a href="{{$data->external_url}}">{{$data->external_url}}</a></dd>@endif
-                        @if(isset($data->source))<dt>Source</dt><dd>{{$data->source}}</dd>@endif
+                        @if(isset($data->source))<dt>Source</dt><dd>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->source) !!}</dd>@endif
 
                         @if(isset($data->created_at))<dt>Created At</dt><dd>{{$data->created_at}}</dd>@endif
                         @if(isset($data->updated_at))<dt id="updatedat">Updated At</dt><dd>{{$data->updated_at}}</dd>@endif

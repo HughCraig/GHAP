@@ -1,8 +1,13 @@
 @extends('templates.layout')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/map-picker.css') }}">
+@endpush
+
 @push('scripts')
     <script>
         //Put the relative URL of our ajax functions into global vars for use in external .js files
+        var ajaxviewdataitem = "{{url('ajaxviewdataitem')}}";
         var ajaxadddataitem = "{{url('ajaxadddataitem')}}";
         var ajaxeditdataitem = "{{url('ajaxeditdataitem')}}";
         var ajaxdeletedataitem = "{{url('ajaxdeletedataitem')}}";
@@ -10,10 +15,11 @@
         var lgas = {!! $lgas !!};
         var feature_terms = {!! $feature_terms !!};
     </script>
+    <script src="{{ asset('js/map-picker.js') }}"></script>
+    <script src="{{ asset('js/message-banner.js') }}"></script>
+    <script src="{{ asset('js/validation.js') }}"></script>
     <script src="{{ asset('js/userviewdataset.js') }}"></script>
-    <!-- for description fields -->
-    <script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
-    <script src="{{ asset('js/wysiwyger.js') }}"></script>
+    <script src="{{ asset('js/extended-data-editor.js') }}"></script>
     <script src="{{ asset('/js/dataitem.js') }}"></script>
 @endpush
 
@@ -49,6 +55,7 @@
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/kml/download">KML</a>
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv/download">CSV</a>
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/json/download">GeoJSON</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/ro-crate">RO-Crate</a>
         </div>
     </div>
 
@@ -91,9 +98,9 @@
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <tr><th class="w-25">Name</th><td>{{$ds->name}}</td></tr>
-		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{{$ds->description}}</td></tr>
+		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->description) !!}</td></tr>
                     <tr style="height: 50px; overflow: auto"><th>Type</th><td>{{$ds->recordtype->type}}</td></tr>
-                    <tr><th>Content Warning</th><td>{{$ds->warning}}</td></tr>
+                    <tr><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td></tr>
                     <tr><th>Your Role</th><td>{{$ds->pivot->dsrole}}</td></tr>
                     <tr><th>Contributor</th><td>{{$ds->ownerName()}} @if($ds->owner() == $user->id) (You) @endif</td></tr>
                     <tr><th>Entries</th><td id="dscount">{{count($ds->dataitems)}}</td></tr>
@@ -122,7 +129,7 @@
                     <tr><th>Creator</th><td>{{$ds->creator}}</td></tr>
                     <tr><th>Publisher</th><td>{{$ds->publisher}}</td></tr>
                     <tr><th>Contact</th><td>{{$ds->contact}}</td></tr>
-                    <tr><th>Citation</th><td>{{$ds->citation}}</td></tr>
+                    <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->citation) !!}</td></tr>
                     <tr><th>DOI</th><td id="doi">{{$ds->doi}}</td></tr>
                     <tr><th>Source URL</th><td id="source_url">{{$ds->source_url}}</td></tr>
                     <tr><th>Linkback</th><td id="linkback">{{$ds->linkback}}</td></tr>
@@ -141,7 +148,7 @@
                     <tr><th>Longitude To</th><td>{{$ds->longitude_to}}</td></tr>
                     <tr><th>Language</th><td>{{$ds->language}}</td></tr>
                     <tr><th>License</th><td>{{$ds->license}}</td></tr>
-                    <tr><th>Rights</th><td>{{$ds->rights}}</td></tr>
+                    <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->rights) !!}</td></tr>
                     <tr><th>Date Created (externally)</th><td>{{$ds->created}}</td></tr>
                 </table>
             </div>
@@ -155,99 +162,101 @@
 
         <!-- MODAL Bulk Add Dataset button -->
         @include('modals.bulkaddtodatasetmodal')
+
+        <!-- Modal edit dataitem modal -->
+        @include('modals.editdataitemmodal')
+
+        <!-- Modal delete dataitem modal -->
+        @include('modals.deleteconfirmmodal')
     @endif
-    
+
     <!-- Dataitem Table -->
-    <table id="dataitemtable" class="display" style="width:100%">
-        <thead class="w3-black"><tr>
-            <th>Title</th><th>Placename</th><th>Type</th><th>Description</th><th>Latitude</th><th>Longitude</th><th>Date Start</th><th>Date End</th><th>State</th><th>Feature Term</th><th>LGA</th><th>Source</th><th>Linkback</th><th>Visualise</th><th>Created</th><th>Updated</th><th>Edit</th><th>Delete</th>
-        </tr></thead>
-        <tbody>
-        @foreach($ds->dataitems as $data)
-            <tr id="row_id_{{$data->id}}">
-                <td data-order="{{$data->title}}" data-search="{{$data->title}}">
-                    <input class="inputastd" type="text" id="title" name="title" disabled="true" value="{{$data->title}}" oldvalue="{{$data->title}}"></td>
-		        <td data-order="{{$data->placename}}" data-search="{{$data->placename}}">
-                    <input class="inputastd" type="text" id="placename" name="placename" disabled="true" value="{{$data->placename}}" oldvalue="{{$data->placename}}"></td> 
-                <td data-order="{{$data->recordtype->type}}" data-search="{{$data->recordtype->type}}">
-                    <select class="inputastd" type="text" id="recordtype" name="recordtype" disabled="true" value="{{$data->recordtype->type}}" oldvalue="{{$data->recordtype->type}}">
-                        @foreach($recordtypes as $type)
-                            @if($type == $data->recordtype->type) <option label="{{$type}}" selected>{{$type}}</option>
-                            @else <option label="{{$type}}">{{$type}}</option> @endif
-                        @endforeach
-                    </select></td>
-                
-                <td data-order="{{$data->description}}" data-search="{{$data->description}}">
-                    <!-- script for wysiwyg with tinymce is referenced in userviewdataset.blade.php. Add 'wysiwyger' class to apply it. See wysiwyger.js. Removed for now till we can work on it properly. -->
-                    <input class="inputastd" type="text" id="description" name="description" disabled="true" value="{{$data->description}}" oldvalue="{{$data->description}}"></td>
-                <td data-order="{{$data->latitude}}" data-search="{{$data->latitude}}">
-                    <input class="inputastd" type="text" id="latitude" name="latitude" disabled="true" value="{{$data->latitude}}" oldvalue="{{$data->latitude}}"></td>
-                <td data-order="{{$data->longitude}}" data-search="{{$data->longitude}}">
-                    <input class="inputastd" type="text" id="longitude" name="longitude" disabled="true" value="{{$data->longitude}}" oldvalue="{{$data->longitude}}"></td>
-<!-- 
-                <td data-order="{{$data->datestart}}" data-search="{{$data->datestart}}">
-                    <input class="inputastd" type="text" id="datestart" name="datestart" disabled="true" value="{{$data->datestart}}" oldvalue="{{$data->datestart}}"></td>   
-                <td data-order="{{$data->dateend}}" data-search="{{$data->dateend}}">
-                    <input class="inputastd" type="text" id="dateend" name="dateend" disabled="true" value="{{$data->dateend}}" oldvalue="{{$data->dateend}}"></td> -->
 
-                <td data-order="{{$data->datestart}}" data-search="{{$data->datestart}}">
-                    <div class="input-group date" name="editdatestartdiv">
-                        <input type="text" class="inputastd input-group-addon" id="datestart" name="datestart" disabled="true" value="{{$data->datestart}}" oldvalue="{{$data->datestart}}" autocomplete="off"/></div></td>
-
-                <td data-order="{{$data->dateend}}" data-search="{{$data->dateend}}">
-                    <div class="input-group date" name="editdateenddiv">
-                        <input type="text" class="inputastd input-group-addon" id="dateend" name="dateend" disabled="true" value="{{$data->dateend}}" oldvalue="{{$data->dateend}}" autocomplete="off"/></div></td>
-
-                <td data-order="{{$data->state}}" data-search="{{$data->state}}">
-                    <select class="inputastd" type="text" id="state" name="state" disabled="true" value="{{$data->state}}" oldvalue="{{$data->state}}">
-                        @foreach($states as $state)
-                            @if($state->state_code == $data->state) <option label="{{$state->state_code}}" selected>{{$state->state_code}}</option> 
-                            @else <option label="{{$state->state_code}}">{{$state->state_code}}</option> @endif
-                        @endforeach
-                    </select></td>
-                <td data-order="{{$data->feature_term}}" data-search="{{$data->feature_term}}">
-                    <input class="inputastd" type="text" id="feature_term" name="feature_term" disabled="true" value="{{$data->feature_term}}" oldvalue="{{$data->feature_term}}"></td>
-                <td data-order="{{$data->lga}}" data-search="{{$data->lga}}">
-                    <input class="inputastd" type="text" id="lga" name="lga" disabled="true" value="{{$data->lga}}" oldvalue="{{$data->lga}}"></td>
-                <td data-order="{{$data->source}}" data-search="{{$data->source}}">
-                    <input class="inputastd" type="text" id="source" name="source" disabled="true" value="{{$data->source}}" oldvalue="{{$data->source}}"></td>
-                <td data-order="{{$data->external_url}}" data-search="{{$data->external_url}}">
-                    <input class="inputastd" type="text" id="external_url" name="external_url" disabled="true" value="{{$data->external_url}}" oldvalue="{{$data->external_url}}"></td>
-                <td>
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            View In...
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            @if (!empty(config('app.views_root_url')))
-                                <a class="dropdown-item grab-hover"
-                                    onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . \TLCMap\Http\Helpers\UID::create($data->id, 't') . '&format=json') }}')">3D Viewer</a>
+    <div class="container-fluid">
+        <div class="place-list">
+            @foreach($ds->dataitems as $data)
+                <div class="row">
+                    <div class="col col-xl-3">
+                        <h4>
+                            @if ($ds->public)
+                                <button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
+                                <a href="{{env('APP_URL')}}/search?id={{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
                             @endif
-                            <a class="dropdown-item grab-hover" onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{$data->latitude}},{{$data->longitude}}')">Google Maps</a>
+                            @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif
+                            @if ($ds->public)
+                                </a>
+                            @endif
+                        </h4>
+                        <dl>
+                            @if(isset($data->placename))<dt>Placename</dt><dd>{{$data->placename}}</dd>@endif
+                            @if(isset($data->recordtype_id))<dt>Type</dt><dd>{{$data->recordtype->type}}</dd>
+                            @elseif(isset($data->dataset->recordtype_id))<dt>Type</dt><dd>{{$data->dataset->recordtype->type}}</dd>
+                            @endif
+                            <div class="dropdown mb-3">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    🌏 View Maps...
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    @if (!empty(config('app.views_root_url')) && $ds->public)
+                                        <a class="dropdown-item grab-hover"
+                                           onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . \TLCMap\Http\Helpers\UID::create($data->id, 't') . '&format=json') }}`)">3D Viewer</a>
+                                    @endif
+                                    <a class="dropdown-item grab-hover" onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{$data->latitude}},{{$data->longitude}}')">Google Maps</a>
+                                    @if(isset($data->placename)) <a class="dropdown-item grab-hover" target="_blank" href="https://trove.nla.gov.au/search?keyword={{$data->placename}}">Trove Search</a>
+                                    @else<a class="dropdown-item grab-hover" target="_blank" href="https://trove.nla.gov.au/search?keyword={{$data->title}}">Trove Search</a>@endif
 
-                        </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <button type="button" data-item-id="{{ $data->id }}" data-set-id="{{ $ds->id }}" class="btn btn-primary edit-dataitem-button">Edit</button>
+                                <button type="button" data-item-id="{{ $data->id }}" data-set-id="{{ $ds->id }}" class="btn btn-default delete-dataitem-button">Delete</button>
+                            </div>
+                        </dl>
                     </div>
-                </td>
-                <td>{{$data->created_at}}</td>
-                <td id="updatedat">{{$data->updated_at}}</td>
-                
-                <td>
-                    @if($ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'OWNER')
-                    <!-- Edit Data Item Button -->
-                    <button class="hideme" name="edit_dataitem_button" id="edit_dataitem_button_{{$data->id}}" type="Submit">Submit</button>
-                    <button class="hideme" name="edit_dataitem_button_cancel" id="edit_dataitem_button_cancel_{{$data->id}}" type="Submit">Cancel</button>
-                    <button name="edit_dataitem_button_show" id="edit_dataitem_button_show_{{$data->id}}" type="Submit">Edit</button>
-                    @endif
-                </td>
-                <td>
-                    @if($ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'OWNER') 
-                    <!-- Delete Data Item Button -->
-                    <button name="delete_dataitem_button" id="delete_dataitem_button_{{$data->id}}" type="Submit">Delete</button>
-                    @endif
-                </td>
-            </tr>
-        @endforeach
-        </tbody>
-    </table>
-    <a href="{{url('myprofile/mydatasets')}}" class="mb-3 btn btn-primary">Back</a>
+                    <div class="col col-xl-2">
+
+                        <h4>Details</h4>
+
+                        @if(isset($data->latitude))<dt>Latitude</dt><dd>{{$data->latitude}}</dd>@endif
+                        @if(isset($data->longitude))<dt>Longitude</dt><dd>{{$data->longitude}}</dd>@endif
+                        @if(isset($data->datestart))<dt>Start Date</dt><dd>{{$data->datestart}}</dd>@endif
+                        @if(isset($data->dateend))<dt>End Date</dt><dd>{{$data->dateend}}</dd>@endif
+
+                        @if(isset($data->state))<dt>State</dt><dd>{{$data->state}}</dd>@endif
+                        @if(isset($data->lga))<dt>LGA</dt><dd>{{$data->lga}}</dd>@endif
+                        @if(isset($data->parish))<dt>Parish</dt><dd>{{$data->parish}}</dd>@endif
+                        @if(isset($data->feature_term))<dt>Feature Term</dt><dd>{{$data->feature_term}}</dd>@endif
+
+                    </div>
+                    <div class="col col-xl-3">
+
+                        <h4>Description</h4>
+                        @if(isset($data->description))
+                            <div>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->description) !!}</div>
+                        @endif
+                        @if(isset($data->extended_data))
+                    </div>
+                    <div class="col col-xl-2">
+                        <h4>Extended Data</h4>
+                        {!!$data->extDataAsHTML()!!}
+                        @endif
+                    </div>
+                    <div class="col col-xl-2">
+                        <h4>Sources</h4>
+                        @if(isset($data->uid))<dt>TLCMap ID</dt><dd>{{$data->uid}}</dd>@endif
+                        @if(isset($data->external_url))<dt>Linkback</dt><dd><a href="{{$data->external_url}}">{{$data->external_url}}</a></dd>@endif
+                        @if(isset($data->source))<dt>Source</dt><dd>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->source) !!}</dd>@endif
+
+                        @if(isset($data->created_at))<dt>Created At</dt><dd>{{$data->created_at}}</dd>@endif
+                        @if(isset($data->updated_at))<dt id="updatedat">Updated At</dt><dd>{{$data->updated_at}}</dd>@endif
+
+                    </div>
+                    <!-- end bootstrap row -->
+                </div>
+            @endforeach
+        </div>
+        <!-- end bootstrap container -->
+    </div>
+
+    <a href="{{url('myprofile/mydatasets')}}" class="mt-3 mb-3 btn btn-primary">Back</a>
 @endsection

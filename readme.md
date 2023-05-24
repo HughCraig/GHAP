@@ -28,3 +28,18 @@ It has two main aspects:
    - provide a spatio-temporal index to humanities research and culture in and about Australia
    - provide access to this information with search and filter user interfaces, web services and visualisations and 
      compatibility with other spatiotemporal systems
+
+## Developers' notes
+
+### Displaying HTML content/properties
+
+__CAUTION__: ALWAYS filter the HTML provided by users before displaying.
+
+The following properties allow user to input HTML:
+
+- `description` and `source` on place record.
+- `description`, `citation`, `rights`, and `warning` on layer record.
+- `description`, `citation`, `rights`, and `warning` on multilayer record.
+
+To avoid potential XSS attacks, the values of these properties MUST go through the
+`\TLCMap\Http\Helpers\HtmlFilter::simple()` method before they get displayed in the page. 

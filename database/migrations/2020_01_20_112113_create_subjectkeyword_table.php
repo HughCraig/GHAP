@@ -13,7 +13,7 @@ class CreateSubjectkeywordTable extends Migration
      */
     public function up()
     {
-        Schema::connection('pgsql2')->create('tlcmap.subject_keyword', function (Blueprint $table) {
+        Schema::create('tlcmap.subject_keyword', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('keyword');
         });
@@ -26,6 +26,6 @@ class CreateSubjectkeywordTable extends Migration
      */
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('tlcmap.subject_keyword');
+        Schema::dropIfExists('tlcmap.subject_keyword');
     }
 }

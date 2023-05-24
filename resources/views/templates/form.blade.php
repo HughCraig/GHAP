@@ -42,15 +42,12 @@
                     </select>
                 </div>
                 <div class="col-smauto pt-2">
-                    <label data-toggle="tooltip" title="Search ANPS aggregated gazetteer of 'official' place names.">
-                        Gazetteer
-                        <input type="checkbox" id="searchausgaz" name="searchausgaz" checked>
-                    </label>
-
-                    <label data-toggle="tooltip" title="Search layers from research and user community.">
-                        Layers
-                        <input type="checkbox" id="searchpublicdatasets" name="searchpublicdatasets" checked>
-                    </label>
+                    @foreach ($datasources as $datasource)
+                        <label data-toggle="tooltip" title="{{ $datasource->description }}">
+                            {{ $datasource->name }}
+                            <input type="checkbox" id="{{ $datasource->search_param_name }}" name="{{ $datasource->search_param_name }}" checked>
+                        </label>
+                    @endforeach
                 </div>
                 <div class="col-sm-auto">
                     <button class="btn btn-primary" type="button" id="gazformbutton" onclick="submitSearchForm();">
@@ -93,7 +90,7 @@
                                 <select class="w3-white form-control" name="state" id="state">
                                     <option label="" selected></option>
                                     @foreach($states as $state)
-                                        <option label="{{$state->state_code}}">{{$state->state_code}}</option>
+                                        <option label="{{$state}}">{{$state}}</option>
                                     @endforeach
                                 </select>
                             </div>

@@ -33,24 +33,14 @@
                         title="Type and press enter to create keywords describing this layer."></span>
                         <input id="tags" name="tags" type="text" class="smallerinputs mb-2 w3-white form-control" />
 
-                    *Description
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                                title="A short paragraph summarising the layer. Anything not covered by other fields can be added here."></span>
-                    <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control" name="description" required ></textarea>
-
                     Record Type
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                                             title="The type of information in this layer. If the type is mixed, use ‘other’."></span>
-                    <select class="w3-white form-control" id="recordtype" name="recordtype">
+                    <select class="w3-white form-control mb-2" id="recordtype" name="recordtype">
                         @foreach($recordtypes as $type)
                             <option label="{{$type}}">{{$type}}</option>
                         @endforeach
                     </select>
-
-                    Content Warning 
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
-                        title="Anything the viewer should be aware of before viewing information in this layer, such as that the content may distress some viewers."></span>
-                        <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control" name="warning" ></textarea>
 
                     Visibility 
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
@@ -61,14 +51,14 @@
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="GHAP is based on information collected and compiled by the Australian National Placenames Survey, who keep records of historical and other placenames. If your layer includes placenames, we’d like to provide them back to ANPS to help their research and records."></span>
                     <select id="allowanps" name = "allowanps" class="mb-4 w3-white form-control"><option value="0">No</option><option value="1">Yes</option></select>
+
+                    Creator
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                          title="The person or organisation who researched or prepared the data."></span>
+                    <input type="text" class="mb-2 w3-white form-control" name="creator"/>
                 </div>
                 
                 <div class="col-lg p-5">
-                    Creator
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
-                        title="The person or organisation who researched or prepared the data."></span>
-                        <input type="text" class="mb-2 w3-white form-control" name="creator"/>
-                    
                     Publisher
                     <input type="text" class="mb-2 w3-white form-control" name="publisher"/>
 
@@ -77,10 +67,7 @@
                         title="Contact details if people have questions about this layer."></span>
                         <input type="text" class="mb-2 w3-white form-control" name="contact"/>
 
-                    Citation <!-- help hover button -->
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
-                        title="A bibliographic citation people should use when referencing this data, such as its source or related project."></span>
-                    <input type="text" class="mb-4 w3-white form-control" name="citation"/>
+
 
                     DOI <!-- help hover button -->
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
@@ -117,11 +104,6 @@
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="The usage licence that applies to this layer. Open data is often under a <a href='https://creativecommons.org/licenses/' target='_blank'>Creative Commons</a> CC BY or CC BY-NC licence. If you created the information, you can choose the licence. If you obtained it from another source, select the licence specified there."></span>
                         <input type="text" class="mb-2 w3-white form-control" name="license"/>
-
-                    Usage Rights 
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
-                        title="If not covered by the licence, the rights that apply to use of the information in this layer. You may need to declare that you use it with permission, and others would also have to ask before re-using it; or that it is out of copyright."></span>
-                        <input type="text" class="mb-2 w3-white form-control" name="rights"/>  
                 </div>
                 <div class="col-lg p-5">
                     Temporal Coverage
@@ -140,6 +122,37 @@
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
                         title="The date that the information in this layer was created."></span>
                         <input type="date" class="mb-2 w3-white form-control" name="created"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg p-5">
+                    <div class="mb-4">
+                        *Description
+                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                              title="A short paragraph summarising the layer. Anything not covered by other fields can be added here."></span>
+                        <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control wysiwyg-editor" name="description"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        Citation <!-- help hover button -->
+                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                              title="A bibliographic citation people should use when referencing this data, such as its source or related project."></span>
+                        <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control wysiwyg-editor" name="citation"></textarea>
+                    </div>
+                </div>
+                <div class="col-lg p-5">
+                    <div class="mb-4">
+                        Content Warning
+                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                              title="Anything the viewer should be aware of before viewing information in this layer, such as that the content may distress some viewers."></span>
+                        <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control wysiwyg-editor" name="warning" ></textarea>
+                    </div>
+                    <div class="mb-4">
+                        Usage Rights
+                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                              title="If not covered by the licence, the rights that apply to use of the information in this layer. You may need to declare that you use it with permission, and others would also have to ask before re-using it; or that it is out of copyright."></span>
+                        <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control wysiwyg-editor" name="rights" ></textarea>
+                    </div>
                 </div>
             </div>
 

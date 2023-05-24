@@ -13,7 +13,7 @@ class CreateRecordtypeTable extends Migration
      */
     public function up()
     {
-        Schema::connection('pgsql2')->create('tlcmap.recordtype', function (Blueprint $table) {
+        Schema::create('tlcmap.recordtype', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('type', 100);
             $table->text('description')->nullable();
@@ -27,7 +27,7 @@ class CreateRecordtypeTable extends Migration
      */
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('tlcmap.recordtype');
+        Schema::dropIfExists('tlcmap.recordtype');
     }
 }
 

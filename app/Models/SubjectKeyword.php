@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class SubjectKeyword extends Model
 {
-    protected $connection = 'pgsql2';
     protected $table = "tlcmap.subject_keyword";
     public $timestamps = false;
     public $incrementing = true;

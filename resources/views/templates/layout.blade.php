@@ -59,6 +59,9 @@
     <!-- jQuery datatables -->
     <link href="//cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" rel="stylesheet">
 
+    <!-- ArcGis styles -->
+    <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css">
+
     <!-- Other CSS -->
     @stack('styles')
 
@@ -104,6 +107,9 @@
     <!-- jQuery datatables -->
     <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
 
+    <!-- TinyMCE -->
+    <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
+
     <!-- TLCMap js-->
     <script type="text/javascript" src="{{ asset('/js/tablesort.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/tooltips.js') }}"></script>
@@ -111,6 +117,7 @@
     <script type="text/javascript" src="{{ asset('/js/autocomplete.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/urltools.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/help-video.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/wysiwyg-editor.js') }}"></script>
 
 </head>
 
@@ -139,23 +146,24 @@
                 </div>
                 <div class="main-menu">
                     <div class="w3-dropdown-hover" style="display:none;"></div>
+                    <div class="main-menu-item">
+                        <a href="{{ url('/') }}">Search</a>
+                    </div>
                     <div class="main-menu-item w3-dropdown-hover w3-mobile">
-                        <a href="#">Browse Layers <i class="fa fa-caret-down"></i></a>
+                        <a href="#">Layers <i class="fa fa-caret-down"></i></a>
                         <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
                             <a href="{{ url('publicdatasets') }}" class="w3-bar-item w3-button">Layers</a>
                             <a href="{{ url('publiccollections') }}" class="w3-bar-item w3-button">Multilayers</a>
                         </div>
                     </div>
-                    <div class="main-menu-item">
-                        <a href="{{ url('about') }}">About</a>
-                    </div>
                     <div class="main-menu-item w3-dropdown-hover w3-mobile">
                         <a href="#">Help <i class="fa fa-caret-down"></i></a>
                         <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
                             @if (!empty(config('app.help_video_url')))
-                                <a href="#" data-toggle="modal" data-target="#helpVideoModal" class="w3-bar-item w3-button">Get started</a>
+                                <a href="#" data-toggle="modal" data-target="#helpVideoModal" class="w3-bar-item w3-button">Quick start</a>
                             @endif
                             <a href="https://hughcraignewcastleeduau.wpcomstaging.com/help/guides/ghap-guide/" class="w3-bar-item w3-button">Guide</a>
+                            <a href="{{ url('about') }}" class="w3-bar-item w3-button">About</a>
                         </div>
                     </div>
                 </div>
@@ -256,5 +264,8 @@
 <!-- Other JS -->
 @stack('scripts')
 
+<!-- ArcGIS Maps SDK for JavaScript -->
+<!-- This must be included at the last position as it has conflicts with jQuery UI and widgets -->
+<script src="https://js.arcgis.com/4.26/"></script>
 </body>
 </html>

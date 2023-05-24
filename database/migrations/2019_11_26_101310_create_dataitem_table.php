@@ -13,14 +13,14 @@ class CreateDataitemTable extends Migration
      */
     public function up()
     {
-        Schema::connection('pgsql2')->create('tlcmap.dataitem', function (Blueprint $table) {
+        Schema::create('tlcmap.dataitem', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('dataset_id')->index()->nullable();
             $table->text('title');
             $table->unsignedBigInteger('recordtype_id')->index()->nullable()->default(1);
             $table->text('description')->nullable();
-            $table->double('latitude');
-            $table->double('longitude');
+            $table->double('latitude')->nullable();
+            $table->double('longitude')->nullable();
             $table->text('datestart')->nullable();
             $table->text('dateend')->nullable();
             $table->text('state')->nullable();
@@ -54,6 +54,6 @@ class CreateDataitemTable extends Migration
      */
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('tlcmap.dataitem');
+        Schema::dropIfExists('tlcmap.dataitem');
     }
 }

@@ -13,7 +13,7 @@ class CreateCollablinkTable extends Migration
      */
     public function up()
     {
-        Schema::connection('pgsql2')->create('tlcmap.collablink', function (Blueprint $table) {
+        Schema::create('tlcmap.collablink', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('dataset_id');
             $table->string('link');
@@ -29,6 +29,6 @@ class CreateCollablinkTable extends Migration
      */
     public function down()
     {
-        Schema::connection('pgsql2')->dropIfExists('tlcmap.collablink');
+        Schema::dropIfExists('tlcmap.collablink');
     }
 }

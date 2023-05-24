@@ -42,21 +42,6 @@
                                   title="Type and press enter to create keywords describing this multilayer."></span>
                             <input id="tags" name="tags" type="text" class="smallerinputs mb-4 w3-white form-control"/>
 
-
-                            Description<label class="text-danger">*</label>
-                            <span tabindex="0" data-html="true" data-animation="true"
-                                  class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                                  title="A short paragraph summarising the multilayer. Anything not covered by other fields can be added here."></span>
-                            <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control"
-                                      name="description" id="description" required>{{$collection->description}}</textarea>
-
-                            Content Warning
-                            <span tabindex="0" data-html="true" data-animation="true"
-                                  class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                                  title="Anything the viewer should be aware of before viewing information in this multilayer, such as that the content may distress some viewers."></span>
-                            <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control" name="warning"
-                                      id="warning">{{$collection->warning}}</textarea>
-
                             Visibility
                             <span tabindex="0" data-html="true" data-animation="true"
                                   class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
@@ -98,23 +83,6 @@
                             <input type="text" class=" mb-4 w3-white form-control" name="license"
                                    value="{{$collection->license}}"/>
 
-                            Rights
-                            <span tabindex="0" data-html="true" data-animation="true"
-                                  class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                                  title="If not covered by the licence, the rights that apply to use of the information in this multilayer. You may need to declare that you use it with permission, and others would also have to ask before re-using it; or that it is out of copyright."></span>
-                            <input type="text" class="mb-4 w3-white form-control" name="rights"
-                                   value="{{$collection->rights}}"/>
-
-                        </div>
-
-                        <div class="col-lg-6">
-                            Citation
-                            <span tabindex="0" data-html="true" data-animation="true"
-                                  class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                                  title="A bibliographic citation people should use when referencing this data, such as its source or related project."></span>
-                            <input type="text" class="mb-4 w3-white form-control" name="citation"
-                                   value="{{$collection->citation}}"/>
-
                             DOI
                             <span tabindex="0" data-html="true" data-animation="true"
                                   class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
@@ -127,7 +95,9 @@
                                   title="The URL linking to the source for the information in this multilayer. This should be the URL only."> </span>
                             <input type="text" class="mb-4 w3-white form-control" name="source_url"
                                    value="{{$collection->source_url}}"/>
+                        </div>
 
+                        <div class="col-lg-6">
                             Linkback
                             <span tabindex="0" data-html="true" data-animation="true"
                                   class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
@@ -173,6 +143,40 @@
                                   title="The date that the information in this multilayer was created."></span>
                             <input type="date" class="mb-4 w3-white form-control" name="created"
                                    value="{{$collection->created}}"/>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-4">
+                                Description<label class="text-danger">*</label>
+                                <span tabindex="0" data-html="true" data-animation="true"
+                                      class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                      title="A short paragraph summarising the multilayer. Anything not covered by other fields can be added here."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor"
+                                          name="description" id="description">{{$collection->description}}</textarea>
+                            </div>
+                            <div class="mb-4">
+                                Content Warning
+                                <span tabindex="0" data-html="true" data-animation="true"
+                                      class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                      title="Anything the viewer should be aware of before viewing information in this multilayer, such as that the content may distress some viewers."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor" name="warning"
+                                          id="warning">{{$collection->warning}}</textarea>
+                            </div>
+                            <div class="mb-4">
+                                Citation
+                                <span tabindex="0" data-html="true" data-animation="true"
+                                      class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                      title="A bibliographic citation people should use when referencing this data, such as its source or related project."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor" name="citation">{{$collection->citation}}</textarea>
+                            </div>
+                            <div class="mb-4">
+                                Usage Rights
+                                <span tabindex="0" data-html="true" data-animation="true"
+                                      class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                      title="If not covered by the licence, the rights that apply to use of the information in this multilayer. You may need to declare that you use it with permission, and others would also have to ask before re-using it; or that it is out of copyright."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor" name="rights">{{$collection->rights}}</textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
