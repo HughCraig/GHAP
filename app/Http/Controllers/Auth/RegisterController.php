@@ -61,7 +61,7 @@ class RegisterController extends Controller
         $notin = array_merge(explode(' ', strtolower($data['name'])), explode('@', strtolower($data['email']))); //cannot match username, or any part of the email address
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:pgsql2.tlcmap.user'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:pgsql.tlcmap.user'],
             'password' => [
                 'required', 'string', 'min:8', 'max:16', 'confirmed', //8+ chars, must match the password-confirm box
                 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/', //must contain 1 of each: lowercase uppercase number and special character
