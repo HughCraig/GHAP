@@ -96,7 +96,7 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => 'tlcmap.password_resets',
-            'connection' => 'pgsql2',
+            'connection' => 'pgsql',
             'expire' => env('EMAIL_PASSWORD_RESET_EXPIRE', 60),
         ],
     ],

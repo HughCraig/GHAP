@@ -60,7 +60,7 @@ class ResetPasswordController extends Controller
         $notin = array_merge(explode(' ', strtolower($user->name)), explode('@', strtolower($user->email))); //cannot match username, or any part of the email address
 
         return [
-            'email' => ['required', 'exists:pgsql2.tlcmap.user'],
+            'email' => ['required', 'exists:pgsql.tlcmap.user'],
             'password' => [
                 'required', 'string', 'min:8', 'max:16', 'confirmed', //10+ chars, must match the password-confirm box
                 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/', //must contain 1 of each: lowercase uppercase number and special character
