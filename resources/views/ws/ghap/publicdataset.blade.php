@@ -42,13 +42,13 @@
             🌏 View Maps...
             </button>
             <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load={{url()->full()}}/json')">3D Viewer</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load={{url()->full()}}/json')">Cluster</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?line=route&load={{url()->full()}}/json')">Journey Route</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?line=time&load={{url()->full()}}/json')">Journey Times</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load={{url()->full()}}/json?sort=start')">Timeline</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load={{url()->full()}}/json')">Werekata Flight by Route</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?sort=start&load={{url()->full()}}/json')">Werekata Flight by Time</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load=' + encodeURIComponent('{{url()->full()}}/json'))">3D Viewer</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load=' + encodeURIComponent('{{url()->full()}}/json'))">Cluster</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url()->full()}}/json?line=route'))">Journey Route</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url()->full()}}/json?line=time'))">Journey Times</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + encodeURIComponent('{{url()->full()}}/json?sort=start'))">Timeline</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url()->full()}}/json'))">Werekata Flight by Route</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url()->full()}}/json?sort=start'))">Werekata Flight by Time</a>
                 @if (!empty(config('app.views_temporal_earth_url')))
                     <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url()->full()}}/kml')">Temporal Earth</a>
                 @endif

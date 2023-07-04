@@ -56,7 +56,7 @@
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load='+encodeURIComponent(downloadurl+'&format=json'));">3D Viewer</a>
                             <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load='+encodeURIComponent(downloadurl+'&format=json'));">Cluster</a>
-                            <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?line=route&load='+encodeURIComponent(downloadurl+'&format=json'));">Journey Route</a>
+                            <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load='+encodeURIComponent(downloadurl+'&format=json&line=route'));">Journey Route</a>
                             <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?&load='+encodeURIComponent(downloadurl+'&format=json'));">Werekata Flight by Route</a>
                             @if (!empty(config('app.views_temporal_earth_url')))
                                 <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file='+encodeURIComponent(downloadurl+'&format=kml'));">Temporal Earth</a>
