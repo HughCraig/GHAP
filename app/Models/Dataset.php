@@ -3,6 +3,10 @@
 namespace TLCMap\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use TLCMap\Http\Helpers\HtmlFilter;
+use TLCMap\ViewConfig\FeatureCollectionConfig;
+use TLCMap\ViewConfig\FeatureConfig;
+use TLCMap\ViewConfig\GhapConfig;
 
 class Dataset extends Model
 {
@@ -282,6 +286,13 @@ class Dataset extends Model
             'linkback' => $dataset->linkback,
         );
 
+        // Set the feature collection config.
+        $featureCollectionConfig = new FeatureCollectionConfig();
+        $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
+        $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
+        $featureCollectionConfig->setInfoTitle($metadata['name'], $metadata['ghap_url']);
+        $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
+
         // Infill any blank start/end dates.
         $dataitems = $this->infillDataitemDates($dataset->dataitems);
 
@@ -293,30 +304,6 @@ class Dataset extends Model
             } else {
                 $dataitems = $dataitems->sortBy('datestart')->values()->all();
             }
-        }
-
-        if (isset($_GET["line"])) {
-
-
-            if ($_GET["line"] === 'time') {
-                $dataitems = $dataitems->sortBy('datestart')->values()->all();
-            }
-
-            $linecoords = array();
-
-            foreach ($dataitems as $i) {
-                array_push($linecoords, [$i->longitude, $i->latitude]);
-            }
-            $proppairs["name"] = $dataset->name;
-            $features[] = array(
-                'type' => 'Feature',
-                'geometry' => array('type' => 'LineString', 'coordinates' => $linecoords),
-                'properties' => $proppairs
-            );
-
-
-            $allfeatures = array('type' => 'FeatureCollection', 'metadata' => $metadata, 'features' => $features);
-            return json_encode($allfeatures, JSON_PRETTY_PRINT);
         }
 
         if (isset($_GET["metadata"])) {
@@ -335,8 +322,8 @@ class Dataset extends Model
                 // if only one of them is filled, we need to populate with the other
             }
 
-
-            $contribution = 'Contribution: "' . $dataset->name . '"<br> by User: ' . $dataset->ownerName();
+            // Set feature config.
+            $featureConfig = new FeatureConfig();
 
             $proppairs = array();
             if (!empty($i->title)) {
@@ -426,18 +413,52 @@ class Dataset extends Model
             }
 
             $proppairs["TLCMapLinkBack"] = url("search?id=" . $i->uid);
-            $proppairs["TLCMapDataset"] = url("publicdatasets/" . $dataset->id);
+            $proppairs["TLCMapDataset"] = $metadata['ghap_url'];
+
+            // Set footer links.
+            $featureConfig->addLink("TLCMap Record: {$i->uid}", $proppairs["TLCMapLinkBack"]);
+            $featureConfig->addLink('TLCMap Layer', $proppairs["TLCMapDataset"]);
 
             if (isset($proppairs["longitude"]) && isset($proppairs["latitude"])) {
                 $features[] = array(
                     'type' => 'Feature',
                     'geometry' => array('type' => 'Point', 'coordinates' => array((float)$proppairs["longitude"], (float)$proppairs["latitude"])),
-                    'properties' => $proppairs
+                    'properties' => $proppairs,
+                    'display' => $featureConfig->toArray(),
                 );
             }
         }
 
-        $allfeatures = array('type' => 'FeatureCollection', 'metadata' => $metadata, 'features' => $features);
+        // Include the lines features if the query string has the parameter "line".
+        if (isset($_GET["line"])) {
+            if ($_GET["line"] === 'time') {
+                $dataitems = $dataitems->sortBy('datestart')->values()->all();
+            }
+
+            $linecoords = array();
+
+            foreach ($dataitems as $i) {
+                array_push($linecoords, [$i->longitude, $i->latitude]);
+            }
+
+            // Set line feature config.
+            $featureConfig = new FeatureConfig();
+            $featureConfig->setAllowedFields([]);
+
+            $features[] = array(
+                'type' => 'Feature',
+                'geometry' => array('type' => 'LineString', 'coordinates' => $linecoords),
+                'properties' => ['name' => $dataset->name],
+                'display' => $featureConfig->toArray(),
+            );
+        }
+
+        $allfeatures = array(
+            'type' => 'FeatureCollection',
+            'metadata' => $metadata,
+            'features' => $features,
+            'display' => $featureCollectionConfig->toArray(),
+        );
         return json_encode($allfeatures, JSON_PRETTY_PRINT);
     }
 

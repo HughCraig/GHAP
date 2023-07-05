@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
+use TLCMap\ViewConfig\FeatureCollectionConfig;
+use TLCMap\ViewConfig\FeatureConfig;
+use TLCMap\ViewConfig\GhapConfig;
 
 class FileFormatter
 {
@@ -192,9 +195,18 @@ class FileFormatter
     {
         $features = array();
 
+        // Set feature collection config.
+        $featureCollectionConfig = new FeatureCollectionConfig();
+        $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
+        $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
+
         foreach ($results as $r) {
 
             $proppairs = array();
+
+            // Set feature config.
+            $featureConfig = new FeatureConfig();
+
             if (!empty($r->title)) {
                 $proppairs["name"] = $r->title;
             } else {
@@ -249,6 +261,9 @@ class FileFormatter
 
             if (!empty($r->uid)) {
                 $proppairs["TLCMapLinkBack"] = url("search?id=" . $r->uid);
+
+                // Set footer link.
+                $featureConfig->addLink("TLCMap Record: {$r->uid}", $proppairs["TLCMapLinkBack"]);
             }
 
             $dataset_url = env('APP_URL');
@@ -257,6 +272,8 @@ class FileFormatter
             } else {
                 $proppairs["TLCMapDataset"] = url("/");
             }
+            // Set footer link.
+            $featureConfig->addLink('TLCMap Layer', $proppairs["TLCMapDataset"]);
 
             if (!empty($r->extended_data)) {
                 $proppairs = array_merge($proppairs, $r->extDataAsKeyValues());
@@ -268,7 +285,9 @@ class FileFormatter
             $features[] = array(
                 'type' => 'Feature',
                 'geometry' => array('type' => 'Point', 'coordinates' => array((float)$r->longitude, (float)$r->latitude)),
-                'properties' => $proppairs);
+                'properties' => $proppairs,
+                'display' => $featureConfig->toArray(),
+            );
 
 
         }
@@ -276,7 +295,12 @@ class FileFormatter
             return "No search results to display.";
         }
 
-        $allfeatures = array('type' => 'FeatureCollection', 'metadata' => $metadata, 'features' => $features);
+        $allfeatures = array(
+            'type' => 'FeatureCollection',
+            'metadata' => $metadata,
+            'features' => $features,
+            'display' => $featureCollectionConfig->toArray()
+        );
         return json_encode($allfeatures, JSON_PRETTY_PRINT);
     }
 

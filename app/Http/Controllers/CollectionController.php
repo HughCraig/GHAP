@@ -5,10 +5,14 @@ namespace TLCMap\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use TLCMap\Http\Helpers\GeneralFunctions;
+use TLCMap\Http\Helpers\HtmlFilter;
 use TLCMap\Models\Collection;
 use TLCMap\Models\Dataset;
 use TLCMap\Models\SubjectKeyword;
 use TLCMap\ROCrate\ROCrateGenerator;
+use TLCMap\ViewConfig\CollectionConfig;
+use TLCMap\ViewConfig\DatasetConfig;
+use TLCMap\ViewConfig\GhapConfig;
 
 class CollectionController extends Controller
 {
@@ -71,22 +75,42 @@ class CollectionController extends Controller
         }
         $result = $collection->toArray();
         $result['url'] = url("publiccollections/{$collection->id}");
+        $data = [
+            'metadata' => $result
+        ];
+
+        // Set collection config.
+        $collectionConfig = new CollectionConfig();
+        $collectionConfig->setInfoTitle($result['name'], $result['url']);
+        $collectionConfig->setInfoContent(GhapConfig::createCollectionInfoBlockContent($collection));
+
+        $data['display'] = $collectionConfig->toArray();
+
+        // Get query string.
+        $queryString = '';
+        if (!empty($request->input('line'))) {
+            $queryString = '?line=' . $request->input('line');
+        } elseif (!empty($request->input('sort'))) {
+            $queryString = '?sort=' . $request->input('sort');
+        }
+
         $datasets = $collection->datasets()->where('public', true)->get();
         if (!empty($datasets) && count($datasets) > 0) {
-            $result['datasets'] = [];
+            $data['datasets'] = [];
             foreach ($datasets as $dataset) {
-                $result['datasets'][] = [
-                    'id' => $dataset->id,
+                // Set dataset config.
+                $datasetConfig = new DatasetConfig();
+                $datasetConfig->enableListPaneColor();
+                $datasetConfig->setListPaneContent(GhapConfig::createDatasetListPaneContent($dataset));
+
+                $data['datasets'][] = [
                     'name' => $dataset->name,
-                    'description' => $dataset->description,
-                    'warning' => $dataset->warning,
-                    'linkback' => $dataset->linkback,
-                    'url' => url("publicdatasets/{$dataset->id}"),
-                    'jsonURL' => url("publicdatasets/{$dataset->id}/json"),
+                    'jsonURL' => url("publicdatasets/{$dataset->id}/json{$queryString}"),
+                    'display' => $datasetConfig->toArray(),
                 ];
             }
         }
-        return response()->json($result);
+        return response()->json($data);
     }
 
     /**
