@@ -165,7 +165,10 @@ class UserController extends Controller
     public function userViewDataset(Request $request, int $id)
     {
         $user = auth()->user();
-        $dataset = $user->datasets()->find($id);
+        $dataset = $user->datasets()->with(['dataitems' => function ($query) {
+            $query->orderBy('id');
+        }])->find($id);
+    
         if (!$dataset) return redirect('myprofile/mydatasets');
 
         //lgas from DB
@@ -275,8 +278,10 @@ class UserController extends Controller
     public function userEditDataset(Request $request, int $id)
     {
         $user = auth()->user();
-        $dataset = $user->datasets()->find($id);
-
+        $dataset = $user->datasets()->with(['dataitems' => function ($query) {
+            $query->orderBy('id');
+        }])->find($id);
+    
         if (!$dataset) return redirect('myprofile/mydatasets'); //couldn't find dataset
 
         //Mandatory Fields
