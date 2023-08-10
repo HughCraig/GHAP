@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use TLCMap\Models\Dataitem;
 use TLCMap\Models\Datasource;
+use TLCMap\Models\RecordType;
 
 class HomeController extends Controller
 {
@@ -27,6 +28,9 @@ class HomeController extends Controller
         //parishes from DB
         $parishes = json_encode(Dataitem::getAllParishes(), JSON_NUMERIC_CHECK);
 
+        //record types from DB (place type)
+        $recordtypes = RecordType::all();
+
         $states = Dataitem::getAllStates();
 
         $count = Dataitem::count(); //count of all register entries
@@ -37,6 +41,7 @@ class HomeController extends Controller
             'lgas' => $lgas,
             'feature_terms' => $feature_terms,
             'parishes' => $parishes,
+            'recordtypes' => $recordtypes, 
             'states' => $states,
             'count' => $count,
             'datasources' => $datasources,
