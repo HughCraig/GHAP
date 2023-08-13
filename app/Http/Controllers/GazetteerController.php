@@ -228,7 +228,9 @@ class GazetteerController extends Controller
             ->with(['datasource' => function ($q) {
                 $q->select('id', 'name', 'description', 'link');
             }])
-            ->whereIn('datasource_id', $datasourceIDs);
+            ->whereIn('datasource_id', $datasourceIDs)
+            ->join('tlcmap.recordtype', 'tlcmap.dataitem.recordtype_id', '=', 'tlcmap.recordtype.id')
+            ->select('tlcmap.dataitem.*', 'tlcmap.recordtype.type as recordtype_type');
 
         /* GET BBOX PARAMS */
         $bbox = ($parameters['bbox']) ? $this->getBbox($parameters['bbox']) : null;
@@ -309,7 +311,7 @@ class GazetteerController extends Controller
         }
 
         /* BUILD SEARCH QUERY WITH PARAMS */
-        if ($parameters['recordtypeid']) $dataitems->where('recordtype_id', '=', $parameters['recordtypeid']);
+        if ($parameters['recordtype']) $dataitems->where('tlcmap.recordtype' . '.type', '=', $parameters['recordtype']);  // Filter by recordtype value
         if ($parameters['lga']) $dataitems->where('lga', '=', $parameters['lga']);
         if ($parameters['dataitemid']) $dataitems->where('id', '=', $parameters['dataitemid']);
         if ($parameters['from']) $dataitems->where('id', '>=', $parameters['from']);
@@ -487,7 +489,7 @@ class GazetteerController extends Controller
         // The 'id' parameter actually means 'uid'.
         $parameters['id'] = (isset($parameters['id'])) ? $parameters['id'] : null;
         $parameters['paging'] = (isset($parameters['paging'])) ? $parameters['paging'] : null;
-        $parameters['recordtypeid'] = (isset($parameters['recordtypeid'])) ? $parameters['recordtypeid'] : null;
+        $parameters['recordtype'] = (isset($parameters['recordtype'])) ? $parameters['recordtype'] : null;
         $parameters['lga'] = (isset($parameters['lga'])) ? $parameters['lga'] : null;
         $parameters['state'] = (isset($parameters['state'])) ? $parameters['state'] : null;
         $parameters['parish'] = (isset($parameters['parish'])) ? $parameters['parish'] : null;

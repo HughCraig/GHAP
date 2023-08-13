@@ -81,10 +81,10 @@
                         <div class="row align-items-center my-auto">
                             <div class="col-sm-4">Place Type:</div>
                             <div class="col-sm-8">
-                                <select class="w3-white form-control" name="recordtypeid" id="recordtypeid">
+                                <select class="w3-white form-control" name="recordtype" id="recordtype">
                                     <option label="" selected></option>
                                     @foreach($recordtypes as $recordtype)
-                                        <option label="{{$recordtype->type}}">{{$recordtype->id}}</option>
+                                        <option label="{{$recordtype->type}}">{{$recordtype->type}}</option>
                                     @endforeach
                                 </select>
                             </div>
