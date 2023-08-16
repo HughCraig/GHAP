@@ -132,6 +132,7 @@ Route::middleware(['auth', 'verified'])->group(function () { //must be logged in
      */
     Route::post('ajaxdeletecollection', 'CollectionController@ajaxDeleteCollection');
     Route::post('ajaxremovecollectiondataset', 'CollectionController@ajaxRemoveCollectionDataset');
+    Route::post('ajaxremovecollectionsavedsearch', 'CollectionController@ajaxRemoveCollectionSavedSearch');
     Route::post('ajaxaddcollectiondataset', 'CollectionController@ajaxAddCollectionDataset');
 
     /**
@@ -140,6 +141,12 @@ Route::middleware(['auth', 'verified'])->group(function () { //must be logged in
     Route::get('ajax/collections/{collection_id}/datasets/addable/public', 'CollectionController@ajaxGetPublicDatasetOptions');
     Route::get('ajax/collections/{collection_id}/datasets/addable/user', 'CollectionController@ajaxGetUserDatasetOptions');
     Route::get('ajax/collections/{collection_id}/datasets/addable/{dataset_id}/info', 'CollectionController@ajaxGetDatasetInfo');
+
+    /**
+     * Services used for saved search to collection.
+     */
+    Route::get('ajax/saved-searches', 'CollectionController@ajaxGetUserSavedSearch')->name('ajax.saved-searches');
+    Route::post('ajax/add-saved-search', 'CollectionController@ajaxAddSavedSearch')->name('ajax.add-saved-search');
 });
 
 /**

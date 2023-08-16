@@ -11,4 +11,9 @@ class SavedSearch extends Model
     protected $fillable = [
         'id', 'user_id', 'query', 'count', 'name'
     ];
+
+    public function collections()
+    {
+        return $this->belongsToMany('TLCMap\Models\Collection', 'tlcmap.collection_saved_search', 'saved_search_id', 'collection_id');
+    }
 }

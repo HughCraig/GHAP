@@ -131,6 +131,43 @@
                     </td>
                 </tr>
             @endforeach
+
+            @foreach($collection->savedSearches as $ss)
+                <tr id="row_ss_id_{{$ss->id}}">
+                    <td><a href="{{url('/places')}}{{$ss->query}}">{{$ss->name}}</a></td>
+                    <td>{{$ss->count}}</td>
+                    <td>Saved search</td>
+                    <td></td>
+                    <td>{{$ss->created_at}}</td>
+                    <td>{{$ss->updated_at}}</td>
+                    <td>
+                        @if (!empty(config('app.views_root_url')))
+                            <!-- Visualise-->
+                            <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    🌏 View Maps...
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
+
+                                    <script>
+                                        var geojsonUrl = encodeURIComponent( '{{ url("/places") }}' + '{{ $ss->query }}' + '&format=json' );
+                                    </script>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load=' + geojsonUrl)">3D Viewer</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load=' + geojsonUrl)">Cluster</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?line=route&load=' + geojsonUrl)">Journey Route</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?line=time&load=' + geojsonUrl)">Journey Times</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + geojsonUrl)">Timeline</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?&load=' + geojsonUrl)">Werekata Flight by Route</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?sort=start&load=' + geojsonUrl)">Werekata Flight by Time</a>
+                                    @if (!empty(config('app.views_temporal_earth_url')))
+                                        <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file=' + geojsonUrl)">Temporal Earth</a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
             </tbody>
         </table>
     @endif

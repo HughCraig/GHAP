@@ -1,6 +1,7 @@
 @extends('templates.layout')
 
 @push('scripts')
+    <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/publicdataset.js') }}"></script>
     <script src="{{ asset('js/savesearch.js') }}"></script>
 @endpush
