@@ -95,7 +95,7 @@
         </div>
     </div>
 
-    @if (!empty($datasets))
+    @if (!empty($datasets) || !empty($collection->savedSearches))
         <table id="datasetsTable" class="display" style="width:100%">
             <thead class="w3-black"><tr><th>Name</th><th>Size</th><th>Type</th><th>Content Warning</th><th>Created</th><th>Updated</th><th>View Map</th></tr></thead>
             <tbody>
@@ -134,7 +134,7 @@
 
             @foreach($collection->savedSearches as $ss)
                 <tr id="row_ss_id_{{$ss->id}}">
-                    <td><a href="{{url('/places')}}{{$ss->query}}">{{$ss->name}}</a></td>
+                <td><a href="{{url('/search')}}{{$ss->query}}">{{$ss->name}}</a></td>
                     <td>{{$ss->count}}</td>
                     <td>Saved search</td>
                     <td></td>
@@ -148,19 +148,15 @@
                                     🌏 View Maps...
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
-
-                                    <script>
-                                        var geojsonUrl = encodeURIComponent( '{{ url("/places") }}' + '{{ $ss->query }}' + '&format=json' );
-                                    </script>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load=' + geojsonUrl)">3D Viewer</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load=' + geojsonUrl)">Cluster</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?line=route&load=' + geojsonUrl)">Journey Route</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?line=time&load=' + geojsonUrl)">Journey Times</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + geojsonUrl)">Timeline</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?&load=' + geojsonUrl)">Werekata Flight by Route</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?sort=start&load=' + geojsonUrl)">Werekata Flight by Time</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load=' + encodeURIComponent('{{url('search')}}{{$ss->query}}&format=json'))">3D Viewer</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load=' + encodeURIComponent('{{url('search')}}{{$ss->query}}&format=json'))">Cluster</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('search')}}{{$ss->query}}&format=json&line=route'))">Journey Route</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('search')}}{{$ss->query}}&format=json&line=time'))">Journey Times</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + encodeURIComponent('{{url('search')}}{{$ss->query}}&format=json&sort=start'))">Timeline</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('search')}}{{$ss->query}}&format=json'))">Werekata Flight by Route</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('search')}}{{$ss->query}}&format=json&sort=start'))">Werekata Flight by Time</a>
                                     @if (!empty(config('app.views_temporal_earth_url')))
-                                        <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file=' + geojsonUrl)">Temporal Earth</a>
+                                        <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file=' + encodeURIComponent('{{url('search')}}{{$ss->query}}&format=kml'))">Temporal Earth</a>
                                     @endif
                                 </div>
                             </div>

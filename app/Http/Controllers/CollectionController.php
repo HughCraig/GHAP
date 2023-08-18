@@ -89,15 +89,19 @@ class CollectionController extends Controller
 
         // Get query string.
         $queryString = '';
+        $paramString = '';
         if (!empty($request->input('line'))) {
             $queryString = '?line=' . $request->input('line');
+            $paramString = '&line=' . $request->input('line');
         } elseif (!empty($request->input('sort'))) {
             $queryString = '?sort=' . $request->input('sort');
+            $paramString = '&sort=' . $request->input('sort');
         }
+
+        $data['datasets'] = [];
 
         $datasets = $collection->datasets()->where('public', true)->get();
         if (!empty($datasets) && count($datasets) > 0) {
-            $data['datasets'] = [];
             foreach ($datasets as $dataset) {
                 // Set dataset config.
                 $datasetConfig = new DatasetConfig();
@@ -108,6 +112,15 @@ class CollectionController extends Controller
                     'name' => $dataset->name,
                     'jsonURL' => url("publicdatasets/{$dataset->id}/json{$queryString}"),
                     'display' => $datasetConfig->toArray(),
+                ];
+            }
+        }
+        $savedSearches = $collection->savedSearches;
+        if ($savedSearches && count($savedSearches) > 0) {
+            foreach ($savedSearches as $savedSearch) {
+                $data['datasets'][] = [
+                    'name' => $savedSearch->name,
+                    'jsonURL' => url("/search" . $savedSearch->query . '&format=json' . $paramString),
                 ];
             }
         }
@@ -132,6 +145,7 @@ class CollectionController extends Controller
         }
         $crate = ROCrateGenerator::generateCollectionCrate($collection);
         if ($crate) {
+            return $crate;
             $timestamp = date("YmdHis");
             return response()->download($crate, "ghap-ro-crate-multilayer-{$collection->id}-{$timestamp}.zip")->deleteFileAfterSend();
         }

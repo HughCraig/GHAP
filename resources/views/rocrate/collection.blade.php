@@ -93,5 +93,19 @@
                 @include('rocrate.partial_dataset', ['datasetEntity' => $entity, 'level' => 3, 'index' => $loop->index])
             @endif
         @endforeach
+
+        <h2>Saved Searches</h2>
+        <ul>
+            @foreach ($metadata['@graph'] as $entity)
+                @if ($entity['@type'] === 'Saved search' && in_array($entity['@id'], $datasetEntityIDs))
+                    <li><a href="#layer{{ $loop->index }}">{{ $entity['name'] }}</a></li>
+                @endif
+            @endforeach
+        </ul>
+        @foreach ($metadata['@graph'] as $entity)
+            @if ($entity['@type'] === 'Saved search' && in_array($entity['@id'], $datasetEntityIDs))
+                @include('rocrate.partial_dataset', ['datasetEntity' => $entity, 'level' => 3, 'index' => $loop->index])
+            @endif
+        @endforeach
     @endif
 @endsection
