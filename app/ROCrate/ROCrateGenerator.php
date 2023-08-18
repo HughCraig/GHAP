@@ -205,9 +205,9 @@ class ROCrateGenerator
     }
 
     /**
-     * Create the DataEntity for a dataset.
+     * Create the DataEntity for a saved search.
      *
-     * @param Dataset $dataset
+     * @param SavedSearch $savedSearch
      *   The dataset object.
      * @param string $directory
      *   The directory represents the dataset. Default is an empty string which points to the root directory.
@@ -716,7 +716,7 @@ class ROCrateGenerator
     /**
      * Get the directory name of a saved search.
      *
-     * @param Dataset $dataset
+     * @param SavedSearch $savedSearch
      * @return string
      */
     public static function getSavedSearchDirectoryName(SavedSearch $savedSearch)
@@ -740,14 +740,14 @@ class ROCrateGenerator
     /**
      * Get the export file name of a saved search.
      *
-     * @param Dataset $dataset
+     * @param SavedSearch $savedSearch
      * @param string $extension
      *   The file extension.
      * @return string
      */
-    public static function getSavedSearchExportFileName(SavedSearch $dataset, $extension)
+    public static function getSavedSearchExportFileName(SavedSearch $savedSearch, $extension)
     {
-        return "GHAPSearchResult_{$dataset->id}.{$extension}";
+        return "GHAPSearchResult_{$savedSearch->id}.{$extension}";
     }
 
     /**

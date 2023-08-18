@@ -145,7 +145,6 @@ class CollectionController extends Controller
         }
         $crate = ROCrateGenerator::generateCollectionCrate($collection);
         if ($crate) {
-            return $crate;
             $timestamp = date("YmdHis");
             return response()->download($crate, "ghap-ro-crate-multilayer-{$collection->id}-{$timestamp}.zip")->deleteFileAfterSend();
         }
