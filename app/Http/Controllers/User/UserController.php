@@ -278,9 +278,7 @@ class UserController extends Controller
     public function userEditDataset(Request $request, int $id)
     {
         $user = auth()->user();
-        $dataset = $user->datasets()->with(['dataitems' => function ($query) {
-            $query->orderBy('id');
-        }])->find($id);
+        $dataset = $user->datasets()->find($id);
     
         if (!$dataset) return redirect('myprofile/mydatasets'); //couldn't find dataset
 
