@@ -228,9 +228,7 @@ class GazetteerController extends Controller
             ->with(['datasource' => function ($q) {
                 $q->select('id', 'name', 'description', 'link');
             }])
-            ->whereIn('datasource_id', $datasourceIDs)
-            ->join('tlcmap.recordtype', 'tlcmap.dataitem.recordtype_id', '=', 'tlcmap.recordtype.id')
-            ->select('tlcmap.dataitem.*', 'tlcmap.recordtype.type as recordtype_type');
+            ->whereIn('datasource_id', $datasourceIDs);
 
         /* GET BBOX PARAMS */
         $bbox = ($parameters['bbox']) ? $this->getBbox($parameters['bbox']) : null;
@@ -311,7 +309,11 @@ class GazetteerController extends Controller
         }
 
         /* BUILD SEARCH QUERY WITH PARAMS */
-        if ($parameters['recordtype']) $dataitems->where('tlcmap.recordtype' . '.type', '=', $parameters['recordtype']);  // Filter by recordtype value
+        if (isset($parameters['recordtype']) && $parameters['recordtype']) {
+            $dataitems->whereHas('recordtype', function ($query) use ($parameters) {
+                $query->where('type', '=', $parameters['recordtype']); // Filter by recordtype value
+            });
+        }
         if ($parameters['lga']) $dataitems->where('lga', '=', $parameters['lga']);
         if ($parameters['dataitemid']) $dataitems->where('id', '=', $parameters['dataitemid']);
         if ($parameters['from']) $dataitems->where('id', '>=', $parameters['from']);
