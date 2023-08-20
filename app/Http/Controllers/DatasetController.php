@@ -39,7 +39,7 @@ class DatasetController extends Controller
         $ds = Dataset::with(['dataitems' => function ($query) {
             $query->orderBy('id');
         }])->where(['public' => 1, 'id' => $id])->first(); // get this dataset by id if it is also public
-        if (!$ds) return redirect()->route('publicdatasets'); // if not found redirect back
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
         return view('ws.ghap.publicdataset', ['ds' => $ds]); // if found return it with the next view
     }
 
@@ -53,7 +53,7 @@ class DatasetController extends Controller
         $dataset = Dataset::with(['dataitems' => function ($query) {
             $query->orderBy('id');
         }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
-        if (!$dataset) return redirect()->route('publicdatasets'); //redirect if not found (invalid id or not public)
+        if (!$dataset) return redirect()->route('layers'); //redirect if not found (invalid id or not public)
         return Response::make($dataset->kml(), '200', array('Content-Type' => 'text/xml')); //generate the KML response
     }
 
@@ -67,7 +67,7 @@ class DatasetController extends Controller
         $dataset = Dataset::with(['dataitems' => function ($query) {
             $query->orderBy('id');
         }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
-        if (!$dataset) return redirect()->route('publicdatasets');
+        if (!$dataset) return redirect()->route('layers');
         $filename = 'TLCMLayer_' . $id;
         return Response::make($dataset->kml(), '200', array('Content-Type' => 'text/xml', 'Content-Disposition' => 'attachment; filename="' . $filename . '.kml"'));
     }
@@ -83,7 +83,7 @@ class DatasetController extends Controller
         $dataset = Dataset::with(['dataitems' => function ($query) {
             $query->orderBy('id');
         }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
-        if (!$dataset) return redirect()->route('publicdatasets'); //redirect if not found (invalid id or not public)
+        if (!$dataset) return redirect()->route('layers'); //redirect if not found (invalid id or not public)
         return Response::make($dataset->json(), '200', array('Content-Type' => 'application/json')); //generate the json response
     }
 
@@ -97,7 +97,7 @@ class DatasetController extends Controller
         $dataset = Dataset::with(['dataitems' => function ($query) {
             $query->orderBy('id');
         }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
-        if (!$dataset) return redirect()->route('publicdatasets');
+        if (!$dataset) return redirect()->route('layers');
         $filename = 'TLCMLayer_' . $id;
         return Response::make($dataset->json(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
@@ -112,7 +112,7 @@ class DatasetController extends Controller
         $dataset = Dataset::with(['dataitems' => function ($query) {
             $query->orderBy('id');
         }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
-        if (!$dataset) return redirect()->route('publicdatasets'); //redirect if not found (invalid id or not public)
+        if (!$dataset) return redirect()->route('layers'); //redirect if not found (invalid id or not public)
         return Response::make($dataset->csv(), '200', array('Content-Type' => 'text/csv')); //generate the CSV response
     }
 
@@ -126,7 +126,7 @@ class DatasetController extends Controller
         $dataset = Dataset::with(['dataitems' => function ($query) {
             $query->orderBy('id');
         }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
-        if (!$dataset) return redirect()->route('publicdatasets');
+        if (!$dataset) return redirect()->route('layers');
         $filename = 'TLCMLayer_' . $id;
         return Response::make($dataset->csv(), '200', array('Content-Type' => 'text/csv', 'Content-Disposition' => 'attachment; filename="' . $filename . '.CSV"'));
     }
