@@ -180,7 +180,7 @@
                         <h4>
                             @if ($ds->public)
                                 <button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
-                                <a href="{{env('APP_URL')}}/search?id={{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
+                                <a href="{{env('APP_URL')}}/places/{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
                             @endif
                             @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif
                             @if ($ds->public)

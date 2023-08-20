@@ -166,6 +166,9 @@ class GazetteerController extends Controller
 
         /* PARAMETERS */
         $parameters = $this->getParameters($request->all());
+        if(isset($id)){
+            $parameters['id'] = $id;
+        }
 
         //app('log')->debug('Time after Parameter Get: ' . (microtime(true) - $starttime)); //DEBUG LOGGING TEST
 
@@ -180,7 +183,6 @@ class GazetteerController extends Controller
 
         // Search dataitems.
         $results = $this->searchDataitems($parameters);
-
         /* MAX SIZE CHECK */
         if ($this->maxSizeCheck($results, $parameters['format'], $MAX_PAGING)) return redirect()->route('maxPagingMessage'); //if results > $MAX_PAGING show warning msg
 

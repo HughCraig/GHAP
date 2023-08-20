@@ -124,7 +124,7 @@
                 <div class="row">
                     <div class="col col-xl-3">
                         <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
-                            <a href="{{env('APP_URL')}}/search?id={{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
+                            <a href="{{env('APP_URL')}}/places/{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
                                 @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif</a>
                         </h4>
                         <dl>
@@ -195,6 +195,6 @@
     </div>
 
 
-    <a href="{{ route('publicdatasets') }}" class="mb-3 btn btn-primary">All Layers</a>
+    <a href="{{ route('layers') }}" class="mb-3 btn btn-primary">All Layers</a>
 
 @endsection
