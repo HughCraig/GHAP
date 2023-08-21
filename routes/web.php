@@ -23,6 +23,13 @@ Route::post('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->nam
 Route::get('search/{path?}', function (Request $request, $path = null) {
     return redirect()->to('/places/' . $path . '?' . $request->getQueryString());
 });
+Route::get('places/{path?}', function (Request $request ,  $path = null) {
+    $params = $request->all();
+    if (isset($params['id'])) {
+        return redirect()->to('/places/' . $params['id']);
+    }
+    return app('TLCMap\Http\Controllers\GazetteerController')->search($request, $path);
+});
 Route::get('places', 'GazetteerController@search')->name('places')->middleware('checkmaxpaging', 'cors'); 
 Route::get('places/{id?}', 'GazetteerController@search')->name('places'); //shows places with optional id, if no id is given it uses all results before applying filters
 Route::get('maxpaging', 'GazetteerController@maxPagingMessage')->name('maxPagingMessage');
