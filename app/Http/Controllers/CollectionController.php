@@ -81,8 +81,8 @@ class CollectionController extends Controller
                     'description' => $dataset->description,
                     'warning' => $dataset->warning,
                     'linkback' => $dataset->linkback,
-                    'url' => url("publicdatasets/{$dataset->id}"),
-                    'jsonURL' => url("publicdatasets/{$dataset->id}/json"),
+                    'url' => url("layers/{$dataset->id}"),
+                    'jsonURL' => url("layers/{$dataset->id}/json"),
                 ];
             }
         }
