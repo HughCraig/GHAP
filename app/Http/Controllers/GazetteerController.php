@@ -156,6 +156,11 @@ class GazetteerController extends Controller
      */
     public function search(Request $request, string $id = null)
     {
+        if ($request->has('id')) {
+            // Redirect from places/?id={id} to places/{id}.
+            return redirect()->to('/places/' . $request->input('id'));
+        }
+
         $starttime = microtime(true);
 
         $that = $this;
@@ -166,6 +171,9 @@ class GazetteerController extends Controller
 
         /* PARAMETERS */
         $parameters = $this->getParameters($request->all());
+        if(isset($id)){
+            $parameters['id'] = $id;
+        }
 
         //app('log')->debug('Time after Parameter Get: ' . (microtime(true) - $starttime)); //DEBUG LOGGING TEST
 
@@ -180,7 +188,6 @@ class GazetteerController extends Controller
 
         // Search dataitems.
         $results = $this->searchDataitems($parameters);
-
         /* MAX SIZE CHECK */
         if ($this->maxSizeCheck($results, $parameters['format'], $MAX_PAGING)) return redirect()->route('maxPagingMessage'); //if results > $MAX_PAGING show warning msg
 
@@ -309,6 +316,11 @@ class GazetteerController extends Controller
         }
 
         /* BUILD SEARCH QUERY WITH PARAMS */
+        if (isset($parameters['recordtype']) && $parameters['recordtype']) {
+            $dataitems->whereHas('recordtype', function ($query) use ($parameters) {
+                $query->where('type', '=', $parameters['recordtype']); // Filter by recordtype value
+            });
+        }
         if ($parameters['lga']) $dataitems->where('lga', '=', $parameters['lga']);
         if ($parameters['dataitemid']) $dataitems->where('id', '=', $parameters['dataitemid']);
         if ($parameters['from']) $dataitems->where('id', '>=', $parameters['from']);
@@ -486,6 +498,7 @@ class GazetteerController extends Controller
         // The 'id' parameter actually means 'uid'.
         $parameters['id'] = (isset($parameters['id'])) ? $parameters['id'] : null;
         $parameters['paging'] = (isset($parameters['paging'])) ? $parameters['paging'] : null;
+        $parameters['recordtype'] = (isset($parameters['recordtype'])) ? $parameters['recordtype'] : null;
         $parameters['lga'] = (isset($parameters['lga'])) ? $parameters['lga'] : null;
         $parameters['state'] = (isset($parameters['state'])) ? $parameters['state'] : null;
         $parameters['parish'] = (isset($parameters['parish'])) ? $parameters['parish'] : null;
