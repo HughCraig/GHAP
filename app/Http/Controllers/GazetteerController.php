@@ -156,6 +156,11 @@ class GazetteerController extends Controller
      */
     public function search(Request $request, string $id = null)
     {
+        if ($request->has('id')) {
+            // Redirect from places/?id={id} to places/{id}.
+            return redirect()->to('/places/' . $request->input('id'));
+        }
+
         $starttime = microtime(true);
 
         $that = $this;
