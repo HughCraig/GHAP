@@ -19,10 +19,36 @@ $(document).ready( function () {
     $( "#addfeatureterm, [name='feature_term']" ).autocomplete( "option", "appendTo", ".eventInsForm" );
 
     // Datepickers.
-    $('[name="editdatestartdiv"]').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
-    $('[name="editdateenddiv"]').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
-    $('#editDateStartDiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
-    $('#editDateEndDiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
+    $('#editDateStartDiv').datepicker({
+        format: {
+            toDisplay: function (date) {
+                let day = date.getDate().toString().padStart(2, '0');
+                let month = (date.getMonth() + 1).toString().padStart(2, '0');
+                return `${date.getFullYear()}-${month}-${day}`;
+            },
+            toValue: function (date) {
+                return new Date(date); // Convert incomplete date into yyyy-mm-dd for display
+            }
+        },
+        todayBtn: true, 
+        forceParse: false,
+        keyboardNavigation: false
+    });
+    $('#editDateEndDiv').datepicker({
+        format: {
+            toDisplay: function (date) {
+                let day = date.getDate().toString().padStart(2, '0');
+                let month = (date.getMonth() + 1).toString().padStart(2, '0');
+                return `${date.getFullYear()}-${month}-${day}`;
+            },
+            toValue: function (date) {
+                return new Date(date); // Convert incomplete date into yyyy-mm-dd for display
+            }
+        },
+        todayBtn: true, 
+        forceParse: false,
+        keyboardNavigation: false
+    });
 
     // Map pickers.
     const addModalMapPicker = new MapPicker($('#addModal .map-picker'));
