@@ -2,7 +2,7 @@
 /*
  * Benjamin McDonnell
  * For TLCMap project, University of Newcastle
- * 
+ *
  * Some helper methods for the RegisterController
  * Converting the output into chunks, geoJson, KML, etc
  */
@@ -26,9 +26,9 @@ use TLCMap\ViewConfig\GhapConfig;
 class FileFormatter
 {
     /*
-     *   When downloading large data, the user may wish to split the JSON file into smaller chunks 
+     *   When downloading large data, the user may wish to split the JSON file into smaller chunks
      *       Some programs may not handle a single large file
-     * 
+     *
      *   Will call the function to convert to geoJSON, then split the result into chunks, zip it, then send it back in the response
      */
     public static function jsonChunk($results, $chunks)
@@ -88,7 +88,7 @@ class FileFormatter
 
     /*
      *  KML formatting allows for multiple child kml files referenced in a single KML Master file
-     * 
+     *
      *  Builds the master file referencing the child files
      */
     public static function kmlMaster($children, $root)
@@ -257,6 +257,10 @@ class FileFormatter
 
             if (!empty($r->external_url)) {
                 $proppairs["linkback"] = $r->external_url;
+            }
+
+            if (!empty($r->quantity)) {
+                $proppairs["quantity"] = $r->quantity;
             }
 
             if (!empty($r->uid)) {
