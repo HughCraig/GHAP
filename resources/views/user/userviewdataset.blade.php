@@ -27,8 +27,8 @@
 
     <h2>View Layer</h2>
     <a href="{{url('myprofile/mydatasets')}}" class="btn btn-primary">Back</a>
-    
-    @if($ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'OWNER') 
+
+    @if($ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'OWNER')
 
         <!-- Edit Collaborators Button-->
         <a href="{{url()->full()}}/collaborators" class="btn btn-primary">Edit Collaborators</a>
@@ -78,20 +78,22 @@
                 View Map
             </button>
             <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load=' + encodeURIComponent('{{url('')}}/publicdatasets/{{$ds->id}}/json'))">3D Viewer</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load=' + encodeURIComponent('{{url('')}}/publicdatasets/{{$ds->id}}/json'))">Cluster</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('')}}/publicdatasets/{{$ds->id}}/json?line=route'))">Journey Route</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('')}}/publicdatasets/{{$ds->id}}/json?line=time'))">Journey Times</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + encodeURIComponent('{{url('')}}/publicdatasets/{{$ds->id}}/json?sort=start'))">Timeline</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('')}}/publicdatasets/{{$ds->id}}/json'))">Werekata Flight by Route</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('')}}/publicdatasets/{{$ds->id}}/json?sort=start'))">Werekata Flight by Time</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load=' + encodeURIComponent('{{url('')}}/layers/{{$ds->id}}/json'))">3D Viewer</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load=' + encodeURIComponent('{{url('')}}/layers/{{$ds->id}}/json'))">Cluster</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('')}}/layers/{{$ds->id}}/json?line=route'))">Journey Route</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('')}}/layers/{{$ds->id}}/json?line=time'))">Journey Times</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + encodeURIComponent('{{url('')}}/layers/{{$ds->id}}/json?sort=start'))">Timeline</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('')}}/layers/{{$ds->id}}/json'))">Werekata Flight by Route</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('')}}/layers/{{$ds->id}}/json?sort=start'))">Werekata Flight by Time</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{url('')}}/layers/{{$ds->id}}/json?mobility=route'))">Mobility Route</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{url('')}}/layers/{{$ds->id}}/json?mobility=time'))">Mobility Times</a>
                 @if (!empty(config('app.views_temporal_earth_url')))
                     <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url('')}}/kml')">Temporal Earth</a>
                 @endif
             </div>
         </div>
     @endif
-    
+
     <!-- Quick Info -->
     <div class="row mt-3">
         <div class="col-lg-4">
@@ -155,8 +157,8 @@
         </div>
     </div>
 
-    @if($ds->pivot->dsrole == 'OWNER' || $ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'COLLABORATOR') 
-    
+    @if($ds->pivot->dsrole == 'OWNER' || $ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'COLLABORATOR')
+
         <!-- Modal Add to dataset button -->
         @include('modals.addtodatasetmodal')
 
@@ -180,7 +182,7 @@
                         <h4>
                             @if ($ds->public)
                                 <button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
-                                <a href="{{env('APP_URL')}}/places/{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
+                                <a href="{{route('places', ['id' => \TLCMap\Http\Helpers\UID::create($data->id, 't')]) }}">
                             @endif
                             @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif
                             @if ($ds->public)
@@ -199,7 +201,7 @@
                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                     @if (!empty(config('app.views_root_url')) && $ds->public)
                                         <a class="dropdown-item grab-hover"
-                                           onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . \TLCMap\Http\Helpers\UID::create($data->id, 't') . '&format=json') }}`)">3D Viewer</a>
+                                           onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{route('places', ['id' => \TLCMap\Http\Helpers\UID::create($data->id, 't'), 'format' => 'json']) }}`)">3D Viewer</a>
                                     @endif
                                     <a class="dropdown-item grab-hover" onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{$data->latitude}},{{$data->longitude}}')">Google Maps</a>
                                     @if(isset($data->placename)) <a class="dropdown-item grab-hover" target="_blank" href="https://trove.nla.gov.au/search?keyword={{$data->placename}}">Trove Search</a>
@@ -219,6 +221,7 @@
 
                         @if(isset($data->latitude))<dt>Latitude</dt><dd>{{$data->latitude}}</dd>@endif
                         @if(isset($data->longitude))<dt>Longitude</dt><dd>{{$data->longitude}}</dd>@endif
+                        @if(isset($data->quantity))<dt>Quantity</dt><dd>{{$data->quantity}}</dd>@endif
                         @if(isset($data->datestart))<dt>Start Date</dt><dd>{{$data->datestart}}</dd>@endif
                         @if(isset($data->dateend))<dt>End Date</dt><dd>{{$data->dateend}}</dd>@endif
 

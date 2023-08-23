@@ -52,4 +52,17 @@ class Validation {
         const regex = /^(?:\w+:)?\/\/([^\s.]+\.\S{2})\S*(?:\/[^\s]*)?(?:\?[^#\s]*)?(?:#[^\s]*)?$/;
         return regex.test(value);
     }
+
+    /**
+     * Validate a natural number string.
+     * (For "quantity" value)
+     *
+     * @param {string} value
+     *   The input value.
+     * @returns {boolean}
+     */
+    static naturalNumber(value) {
+        const regex = /^(?:0|[1-9]\d*)$/;
+        return regex.test(value);
+    }
 }

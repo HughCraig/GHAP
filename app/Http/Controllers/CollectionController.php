@@ -105,7 +105,7 @@ class CollectionController extends Controller
 
                 $data['datasets'][] = [
                     'name' => $dataset->name,
-                    'jsonURL' => url("publicdatasets/{$dataset->id}/json{$queryString}"),
+                    'jsonURL' => url("layers/{$dataset->id}/json{$queryString}"),
                     'display' => $datasetConfig->toArray(),
                 ];
             }

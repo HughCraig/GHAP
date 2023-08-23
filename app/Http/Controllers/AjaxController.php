@@ -188,6 +188,7 @@ class AjaxController extends Controller
         $datestart = $request->datestart;
         $dateend = $request->dateend;
         $title = $request->title;
+        $quantity = $request->quantity;
         $extendedData = $request->extendedData;
 
         // records must have title, may have placename, if no title, assume placename is title
@@ -215,6 +216,11 @@ class AjaxController extends Controller
         if (isset($dateend)) $dateend = GeneralFunctions::dateMatchesRegexAndConvertString($dateend);
         if ($datestart === false || $dateend === false) return response()->json(['error' => 'Your date values are in the incorrect format.', 'e1' => $e1, 'e2' => $e2], 422); //if either didnt match, send error
 
+        //verify the format of editted quantity
+        // $eQTY = $quantity;
+        // if (isset($quantity)) $quantity = GeneralFunctions::naturalNumberMatchesRegex($quantity);
+        // if ($quantity === false) return response()->json(['error' => 'Your quantity values are in the incorrect format.', 'eQTY' => $eQTY], 422);
+
         $dataitem->fill([
             'title' => $title,
             'recordtype_id' => $recordtype_id,
@@ -223,6 +229,7 @@ class AjaxController extends Controller
             'longitude' => $longitude,
             'datestart' => $datestart,
             'dateend' => $dateend,
+            'quantity' => $quantity,
             'state' => $request->state,
             'feature_term' => $request->featureterm,
             'lga' => $request->lga,
@@ -259,6 +266,7 @@ class AjaxController extends Controller
         $longitude = $request->longitude;
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
         $description = $request->description;
+        $quantity = $request->quantity;
         $datestart = $request->datestart;
         $dateend = $request->dateend;
         $state = $request->state;
@@ -268,7 +276,6 @@ class AjaxController extends Controller
         $external_url = $request->url;
         $placename = $request->placename;
         $extendedData = $request->extendedData;
-
 
         if ($title === NULL) {
             $title = $placename;
@@ -284,6 +291,13 @@ class AjaxController extends Controller
         if (isset($dateend)) $dateend = GeneralFunctions::dateMatchesRegexAndConvertString($dateend);
         if ($datestart === false || $dateend === false) return response()->json(['error' => 'Your date values are in the incorrect format.'], 422); //if either didnt match, send error
 
+        //verify the format of editted quantity
+        $eQTY = $quantity;
+        if (isset($quantity)) {
+            $quantity = GeneralFunctions::naturalNumberMatchesRegex($quantity);
+        }
+        if ($quantity === false) return response()->json(['error' => 'Your quantity values are in the incorrect format.', 'eQTY' => $eQTY], 422);
+
         $dataitem = Dataitem::create([
             'dataset_id' => $ds_id,
             'title' => $title,
@@ -291,6 +305,7 @@ class AjaxController extends Controller
             'latitude' => $latitude,
             'longitude' => $longitude,
             'description' => $description,
+            'quantity' => $quantity,
             'datestart' => $datestart,
             'dateend' => $dateend,
             'state' => $state,
@@ -301,6 +316,7 @@ class AjaxController extends Controller
             'placename' => $placename
         ]);
         $isDirty = false;
+        Log::debug('Quantity value: ' . $dataitem);
         // Generate UID.
         if ($dataitem->id) {
             $dataitem->uid = UID::create($dataitem->id, 't');

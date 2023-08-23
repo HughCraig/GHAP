@@ -23,7 +23,7 @@ class Dataitem extends Model
      */
     protected $fillable = [
         'id', 'dataset_id', 'recordtype_id', 'title', 'description', 'latitude', 'longitude',
-        'datestart', 'dateend', 'state', 'feature_term', 'lga', 'source', 'external_url',
+        'datestart', 'dateend', 'quantity', 'state', 'feature_term', 'lga', 'source', 'external_url',
         'extended_data', 'kml_style_url', 'placename', 'original_id', 'parish'
     ];
 
@@ -165,7 +165,7 @@ class Dataitem extends Model
     }
 
     // extended data should be stored as the KML version, and then turned into a table, or json or whatever as needed in output.
-    // The old way of adding it direction into 'description', will cause problems with when we want it to be possible to export 
+    // The old way of adding it direction into 'description', will cause problems with when we want it to be possible to export
     // the data with ids so person can update them again.
     public function extDataAsHTML()
     {

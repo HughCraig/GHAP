@@ -119,6 +119,10 @@ $("main").on('click', '#add_dataitem_button_submit', function () {
         isValid = false;
         msgBanner.error('Longitude must be valid from -180 to 180');
     }
+    if ($('#addquantity').val() !== '' && !Validation.naturalNumber($('#addquantity').val())) {
+        isValid = false;
+        msgBanner.error('Quantity must be an integer greater or equal to 0');
+    }
     if ($('#adddatestart').val() !== '' && !Validation.date($('#adddatestart').val())) {
         isValid = false;
         msgBanner.error('Date Start must be in valid format');
@@ -134,6 +138,7 @@ $("main").on('click', '#add_dataitem_button_submit', function () {
 
     if (isValid) {
         const extendedDataEditor = new ExtendedDataEditor('#addModal .extended-data-editor');
+
         $.ajax({
             type: 'POST',
             url: ajaxadddataitem,
@@ -145,6 +150,7 @@ $("main").on('click', '#add_dataitem_button_submit', function () {
                 latitude: $('#addlatitude').val(),
                 longitude: $('#addlongitude').val(),
                 description: tinymce.get('adddescription').getContent(),
+                quantity: $('#addquantity').val(),
                 datestart: $('#adddatestart').val(),
                 dateend: $('#adddateend').val(),
                 state: $('#addstate').children("option:selected").val(),
@@ -162,6 +168,7 @@ $("main").on('click', '#add_dataitem_button_submit', function () {
                 var result = xhr.responseJSON;
                 if (result.hasOwnProperty('e1') && result.e1 === false) document.getElementById('adddatestart').classList.add('is-invalid'); else document.getElementById('adddatestart').classList.remove('is-invalid');
                 if (result.hasOwnProperty('e2') && result.e2 === false) document.getElementById('adddateend').classList.add('is-invalid'); else document.getElementById('adddateend').classList.remove('is-invalid');
+                if (result.hasOwnProperty('eQTY') && result.eQTY === false) document.getElementById('addquantity').classList.add('is-invalid'); else document.getElementById('addquantity').classList.remove('is-invalid');
                 if (result.hasOwnProperty('error')) alert(result.error)
                 else alert(xhr.responseText); //error message with error info
             }
@@ -244,6 +251,7 @@ $("main").on('click', '[name="edit_dataitem_button"]', function () {
     var latitude = $('#row_id_' + id + ' td').find('#latitude').val();
     var longitude = $('#row_id_' + id + ' td').find('#longitude').val();
     var description = $('#row_id_' + id + ' td').find('#description').val();
+    var quantity = $('#row_id_' + id + ' td').find('#quantity').val();
     var datestart = $('#row_id_' + id + ' td').find('#datestart').val();
     var dateend = $('#row_id_' + id + ' td').find('#dateend').val();
     var state = $('#row_id_' + id + ' td').find('#state').children("option:selected").val();
@@ -284,6 +292,7 @@ $("main").on('click', '[name="edit_dataitem_button"]', function () {
             description: description,
             latitude: latitude,
             longitude: longitude,
+            quantity: quantity,
             datestart: datestart,
             dateend: dateend,
             state: state,
@@ -334,12 +343,13 @@ $("main").on('click', '[name="edit_dataitem_button"]', function () {
             $('#row_id_' + id + ' td:eq(3)').attr({'data-order': longitude, 'data-search': longitude});
             $('#row_id_' + id + ' td:eq(4)').attr({'data-order': new_start, 'data-search': new_start});
             $('#row_id_' + id + ' td:eq(5)').attr({'data-order': new_end, 'data-search': new_end});
-            $('#row_id_' + id + ' td:eq(6)').attr({'data-order': state, 'data-search': state});
-            $('#row_id_' + id + ' td:eq(7)').attr({'data-order': featureterm, 'data-search': featureterm});
-            $('#row_id_' + id + ' td:eq(8)').attr({'data-order': lga, 'data-search': lga});
-            $('#row_id_' + id + ' td:eq(9)').attr({'data-order': parish, 'data-search': parish});
-            $('#row_id_' + id + ' td:eq(10)').attr({'data-order': source, 'data-search': source});
-            $('#row_id_' + id + ' td:eq(11)').attr({'data-order': url, 'data-search': url});
+            $('#row_id_' + id + ' td:eq(6)').attr({'data-order': quantity, 'data-search': quantity});
+            $('#row_id_' + id + ' td:eq(7)').attr({'data-order': state, 'data-search': state});
+            $('#row_id_' + id + ' td:eq(8)').attr({'data-order': featureterm, 'data-search': featureterm});
+            $('#row_id_' + id + ' td:eq(9)').attr({'data-order': lga, 'data-search': lga});
+            $('#row_id_' + id + ' td:eq(10)').attr({'data-order': parish, 'data-search': parish});
+            $('#row_id_' + id + ' td:eq(11)').attr({'data-order': source, 'data-search': source});
+            $('#row_id_' + id + ' td:eq(12)').attr({'data-order': url, 'data-search': url});
             table.row(row_id).invalidate().draw();
             $(myrow).css('background-color', 'yellow').animate({'background-color': 'inherit'}, 5000);
 

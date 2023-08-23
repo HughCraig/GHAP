@@ -47,6 +47,8 @@
                                 <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + encodeURIComponent('{{url()->full()}}/{{$ds->id}}/json?sort=start'))">Timeline</a>
                                 <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url()->full()}}/{{$ds->id}}/json'))">Werekata Flight by Route</a>
                                 <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url()->full()}}/{{$ds->id}}/json?sort=start'))">Werekata Flight by Time</a>
+                                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{url()->full()}}/{{$ds->id}}/json?mobility=route'))">Mobility Route</a>
+                                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{url()->full()}}/{{$ds->id}}/json?mobility=time'))">Mobility Times</a>
                                 @if (!empty(config('app.views_temporal_earth_url')))
                                     <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url()->full()}}/{{$ds->id}}/kml')">Temporal Earth</a>
                                 @endif

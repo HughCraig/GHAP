@@ -64,7 +64,7 @@
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                 @if (!empty(config('app.views_root_url')))
                                     <a class="dropdown-item grab-hover"
-                                       onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . $line->uid . '&format=json') }}`)">
+                                       onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{route('places', ['id' => $line->uid, 'format' => 'json']) }}`)">
                                         3D Viewer
                                     </a>
                                 @endif
@@ -109,6 +109,10 @@
                             @if(isset($line->longitude))
                                 <dt>Longitude</dt>
                                 <dd>{{$line->longitude}}</dd>
+                            @endif
+                            @if(isset($line->quantity))
+                                <dt>Quantity</dt>
+                                <dd>{{$line->quantity}}</dd>
                             @endif
                             @if(isset($line->datestart))
                                 <dt>Start Date</dt>

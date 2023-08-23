@@ -3,7 +3,7 @@
  * System Architect: Bill Pascoe
  * Main developer: Benjamin McDonnell (2020), Bill Pascoe (2021 upgrade)
  * For TLCMap project, University of Newcastle
- * 
+ *
  * The primary controller for this application
  * Handles the logic related to querying the tlcmap database
  * index displays the main page with the search form, POSTS data through about the lga, state, and count

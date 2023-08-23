@@ -61,6 +61,14 @@
                     <textarea rows="3" class="mb-3 form-control w-100 wysiwyg-editor" id="adddescription" placeholder="Description"></textarea>
                 </div>
 
+                <!-- Quantity-->
+                <label for="addquantity">Quantity</label>
+                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                      title="Please ensure you enter a integer greater or equal to 0."></span>
+                <input type="text" class="mb-3 form-control" id="addquantity" placeholder="10">
+                {{-- TODO: Not sure how can I validate the number properliy, use the string validation like coordinates for now. --}}
+                {{-- <input type="number" min="0" step="1" class="mb-3 form-control" id="addquantity" placeholder="10"> --}}
+
                 <label for="addfeatureterm">Feature Term
                     <a href="/guides/featureterms.php" target="_blank">
                             <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"

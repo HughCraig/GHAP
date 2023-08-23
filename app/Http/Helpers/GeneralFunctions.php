@@ -2,7 +2,7 @@
 /*
  * Benjamin McDonnell
  * For TLCMap project, University of Newcastle
- * 
+ *
  * Some helper methods for the RegisterController
  * Converting the output into chunks, geoJson, KML, etc
  */
@@ -69,6 +69,21 @@ class GeneralFunctions
         return -1; //return false
     }
 
+    public static function naturalNumberMatchesRegex($naturalNum)
+    {
+
+        // if (empty($naturalNum)) {
+        //     return ""; // be forgiving of the row not having number.
+        // }
+        if (preg_match(
+            '/^(?:0|[1-9]\d*)$/',
+            $naturalNum)) {
+            return $naturalNum;
+        } //return the string
+
+        return -1; //return false
+    }
+
     /**
      * $a is the date from/to sent via $parameters   (the date we inputted into the search form)
      * $b is the date in the database that we are checking
@@ -115,7 +130,7 @@ class GeneralFunctions
             if (!array_key_exists($i, $aout) && array_key_exists($i, $bout)) return -1; //if one has more accuracy then it comes after, eg 2020 is before 2020-01-01
             if (!array_key_exists($i, $bout) && array_key_exists($i, $aout)) return 1;
 
-            //not both null, 
+            //not both null,
             if (array_key_exists($i, $aout) && array_key_exists($i, $bout)) {
                 if (floatval($aout[$i]) < floatval($bout[$i])) return -1; //if year is BEFORE or AFTER the compare value, we don't need to bother checking month, day, etc
                 if (floatval($aout[$i]) > floatval($bout[$i])) return 1;
@@ -159,7 +174,7 @@ class GeneralFunctions
                 return ((float)$aout[3] > (float)$bout[3]) ? 1 : -1; //if a > b return 1, else return -1
             } else return 0; //if years match and one or more of the parameters is JUST a year, return equality
         }
-        return ((float)$aout[1] > (float)$bout[1]) ? 1 : -1; //if a > b return 1, else return -1        
+        return ((float)$aout[1] > (float)$bout[1]) ? 1 : -1; //if a > b return 1, else return -1
     }
 
 }

@@ -48,6 +48,8 @@
                 <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + encodeURIComponent('{{url()->full()}}/json?sort=start'))">Timeline</a>
                 <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url()->full()}}/json'))">Werekata Flight by Route</a>
                 <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url()->full()}}/json?sort=start'))">Werekata Flight by Time</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{url()->full()}}/json?mobility=route'))">Mobility Route</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{url()->full()}}/json?mobility=time'))">Mobility Times</a>
                 @if (!empty(config('app.views_temporal_earth_url')))
                     <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url()->full()}}/kml')">Temporal Earth</a>
                 @endif
@@ -95,7 +97,7 @@
                     <tr><th>Source URL</th><td id="source_url">{{$ds->source_url}}</td></tr>
                     <tr><th>Linkback</th><td id="linkback">{{$ds->linkback}}</td></tr>
                     <tr><th>Date From</th><td>{{$ds->temporal_from}}</td></tr>
-                    <tr><th>Date To</th><td>{{$ds->temporal_to}}</td></tr> 
+                    <tr><th>Date To</th><td>{{$ds->temporal_to}}</td></tr>
                 </table>
             </div>
         </div>
@@ -124,7 +126,7 @@
                 <div class="row">
                     <div class="col col-xl-3">
                         <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
-                            <a href="{{env('APP_URL')}}/places/{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
+                            <a href="{{route('places', ['id' => \TLCMap\Http\Helpers\UID::create($data->id, 't')]) }}">
                                 @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif</a>
                         </h4>
                         <dl>
@@ -139,7 +141,7 @@
                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                     @if (!empty(config('app.views_root_url')))
                                         <a class="dropdown-item grab-hover"
-                                           onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . \TLCMap\Http\Helpers\UID::create($data->id, 't') . '&format=json') }}`)">3D Viewer</a>
+                                        onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{route('places', ['id' => \TLCMap\Http\Helpers\UID::create($data->id, 't'), 'format' => 'json']) }}`)">3D Viewer</a>
                                     @endif
                                     <a class="dropdown-item grab-hover" onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{$data->latitude}},{{$data->longitude}}')">Google Maps</a>
                                     @if(isset($data->placename)) <a class="dropdown-item grab-hover" target="_blank" href="https://trove.nla.gov.au/search?keyword={{$data->placename}}">Trove Search</a>
@@ -155,6 +157,7 @@
 
                         @if(isset($data->latitude))<dt>Latitude</dt><dd>{{$data->latitude}}</dd>@endif
                         @if(isset($data->longitude))<dt>Longitude</dt><dd>{{$data->longitude}}</dd>@endif
+                        @if(isset($data->quantity))<dt>Quantity</dt><dd>{{$data->quantity}}</dd>@endif
                         @if(isset($data->datestart))<dt>Start Date</dt><dd>{{$data->datestart}}</dd>@endif
                         @if(isset($data->dateend))<dt>End Date</dt><dd>{{$data->dateend}}</dd>@endif
 

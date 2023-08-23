@@ -337,6 +337,9 @@ class Dataset extends Model
             if (!empty($i->description)) {
                 $proppairs["description"] = $i->description;
             }
+            if (!empty($i->quantity)) {
+                $proppairs["quantity"] = $i->quantity;
+            }
             if (!empty($i->id)) {
                 $proppairs["id"] = $i->uid;
             }
@@ -432,6 +435,42 @@ class Dataset extends Model
         // Include the lines features if the query string has the parameter "line".
         if (isset($_GET["line"])) {
             if ($_GET["line"] === 'time') {
+                $dataitems = $dataitems->sortBy('datestart')->values()->all();
+            }
+
+            $linecoords = array();
+
+            foreach ($dataitems as $i) {
+                array_push($linecoords, [$i->longitude, $i->latitude]);
+            }
+
+            // Set line feature config.
+            $featureConfig = new FeatureConfig();
+            $featureConfig->setAllowedFields([]);
+
+            $features[] = array(
+                'type' => 'Feature',
+                'geometry' => array('type' => 'LineString', 'coordinates' => $linecoords),
+                'properties' => ['name' => $dataset->name],
+                'display' => $featureConfig->toArray(),
+            );
+        }
+
+        /**
+         * Include the another type of polyline feature if the query string has the parameter "mobility".
+         *
+         * This is a place holder for mobility geojson generated geojson.
+         * Only an enhanced version of journey geojson now.
+         *
+         * TODO:
+         * 1. add quantile of the quantity?
+         * 2. The polyline for "LineString" feature consist of a collection of (connected 2-point) lines, but not a collection of points.
+         * The polyline still represents a single line now.
+         * 1. The polyline for "LineString" feature should be extend to a multiple line segments
+         * that can handle "JourneyID" later.
+        */
+        if (isset($_GET["mobility"])) {
+            if ($_GET["mobility"] === 'time') {
                 $dataitems = $dataitems->sortBy('datestart')->values()->all();
             }
 

@@ -46,6 +46,7 @@ class GhapConfig
             "EndDate" => "Date End",
             "datestart" => "Date Start",
             "dateend" => "Date End",
+            "quantity" => 'Quantity',
             "latitude" => "Latitude",
             "longitude" => "Longitude",
             "state" => "State",

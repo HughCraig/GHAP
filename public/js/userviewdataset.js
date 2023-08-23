@@ -103,6 +103,9 @@ $(document).ready( function () {
         if (dataitem.description) {
             tinymce.get('editDescription').setContent(dataitem.description);
         }
+        if (dataitem.quantity) {
+            $('#editQuantity').val(dataitem.quantity);
+        }
         if (dataitem.feature_term) {
             $('#editFeatureterm').val(dataitem.feature_term);
         }
@@ -145,6 +148,7 @@ $(document).ready( function () {
         const longitude = $('#editLongitude').val();
         const recordType = $('#editRecordtype').val();
         const description = tinymce.get('editDescription').getContent();
+        const quantity = $('editQuantity').val();
         const feature = $('#editFeatureterm').val();
         const state = $('#editState').val();
         const datestart = $('#editDatestart').val();
@@ -161,6 +165,7 @@ $(document).ready( function () {
             recordtype: recordType ? recordType : null,
             latitude: latitude !== '' ? latitude : null,
             longitude: longitude !== '' ? longitude : null,
+            quantity: quantity !== '' ? quantity : null,
             description: description ? description : null,
             datestart: datestart ? datestart : null,
             dateend: dateend ? dateend : null,
@@ -183,6 +188,7 @@ $(document).ready( function () {
         $('#editLongitude').val('');
         $('#editRecordtype').val('');
         tinymce.get('editDescription').setContent('');
+        $('#editQuantity').val(null);
         $('#editFeatureterm').val('');
         $('#editState').val('');
         $('#editDateStartDiv').datepicker('setDate', null);
@@ -257,6 +263,10 @@ $(document).ready( function () {
         } else if (!Validation.longitude($('#editLongitude').val())) {
             isValid = false;
             msgBanner.error('Longitude must be valid from -180 to 180');
+        }
+        if (!Validation.naturalNumber($('#editQuantity').val())) {
+            isValid = false;
+            msgBanner.error('Quantity must be an integer greater or equal to 0');
         }
         if ($('#editDatestart').val() !== '' && !Validation.date($('#editDatestart').val())) {
             isValid = false;

@@ -23,8 +23,8 @@ Route::post('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->nam
 Route::get('search/{path?}', function (Request $request, $path = null) {
     return redirect()->to('/places/' . $path . '?' . $request->getQueryString());
 });
-Route::get('places', 'GazetteerController@search')->name('places')->middleware('checkmaxpaging', 'cors'); 
-Route::get('places/{id?}', 'GazetteerController@search')->name('places'); //shows places with optional id, if no id is given it uses all results before applying filters
+Route::get('places', 'GazetteerController@search')->name('places')->middleware('checkmaxpaging', 'cors');
+Route::get('places/{id?}', 'GazetteerController@search')->name('places')->middleware('cors'); //shows places with optional id, if no id is given it uses all results before applying filters
 Route::get('maxpaging', 'GazetteerController@maxPagingMessage')->name('maxPagingMessage');
 Route::get('maxpagingredirect', 'GazetteerController@maxPagingRedirect')->name('maxPagingRedirect');
 Route::post('bulkfileparser', 'GazetteerController@bulkFileParser');
