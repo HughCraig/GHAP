@@ -729,6 +729,8 @@ class UserController extends Controller
         $datestartindex = false;
         $dateendindex = false;
 
+        $latitudeIndex = false;
+        $longitudeIndex = false;
 
         try {
 
@@ -758,6 +760,9 @@ class UserController extends Controller
                         // dates might be in datestart or date end, or there may be a single date field.
                         $datestartindex = array_search('datestart', $header); //if the uploaded header includes datestart or dateend values, store the index
                         $dateendindex = array_search('dateend', $header);
+
+                        $latitudeIndex = array_search('latitude', $header);
+                        $longitudeIndex = array_search('longitude', $header);
 
 
                         if ($datestartindex === false) {
@@ -808,6 +813,15 @@ class UserController extends Controller
                                 $fields[$dateendindex] = $parsedate;
                             }
                             //if (!($fields[$dateendindex] = GeneralFunctions::dateMatchesRegexAndConvertString($fields[$dateendindex]))) return $row;
+                        }
+
+                        if($latitudeIndex !== false){
+                            // Remove spaces, non-breaking spaces, and non-numeric characters.
+                            $fields[$latitudeIndex] = preg_replace('/[^\d\.-]/', '', str_replace("\xc2\xa0", ' ', $fields[$latitudeIndex]));
+                        }
+                        if($longitudeIndex !== false){
+                            // Remove spaces, non-breaking spaces, and non-numeric characters.
+                            $fields[$longitudeIndex] = preg_replace('/[^\d\.-]/', '', str_replace("\xc2\xa0", ' ', $fields[$longitudeIndex]));
                         }
 
                         $outdata[] = array_combine($header, $fields); //data[this] is now an array mapping header to field eg data[this] = ['placename' => 'newcastle', ... => ..., etc]
