@@ -740,6 +740,9 @@ class UserController extends Controller
                 while (($data = fgetcsv($handle)) !== FALSE) {
                     // number of fields in the csv
                     $col_count = count($data);
+
+                   if(!$this->validateRow($data)) continue; //if the row is invalid, skip it
+
                     // sanitise headings
                     if ($row === 0) {
 
@@ -827,6 +830,20 @@ class UserController extends Controller
 
 
         return $outdata; //return the array of lines
+    }
+
+    /*
+    * Valid each row of the imported csv file.
+    * Ignore blank rows, rows are just empty space or rows are just comma
+    */ 
+    function validateRow($array) {
+        foreach ($array as $value) {
+            $trimmedValue = trim($value);
+            if ($trimmedValue !== '' && $trimmedValue !== ',' ) {
+                return true; 
+            }
+        }
+        return false;
     }
 
     function sanitiseKey($s)
