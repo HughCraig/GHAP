@@ -301,16 +301,28 @@ class GazetteerController extends Controller
                 }
             } else $dataitems->where('title', '=', null); //we did a bulk search but all of the names equated to empty strings! Show no results
         } else {
-            if ($parameters['name']) $dataitems->where('title', 'ILIKE', $parameters['name']);
-            else if ($parameters['fuzzyname']) {
+            if ($parameters['name']){
+                $dataitems->where(function ($query) use ($parameters) {
+                    $query->where('title', 'ILIKE', $parameters['name']);
+                    if ($parameters['searchdescription'] === 'on') {
+                        $query->orWhere('description', 'ILIKE', '%' . $parameters['name'] . '%');
+                    }
+                });
+            } else if ($parameters['fuzzyname']) {
                 $dataitems->where(function ($query) use ($parameters) {
                     $query->where('title', 'ILIKE', '%' . $parameters['fuzzyname'] . '%')->orWhereRaw('title % ?', $parameters['fuzzyname'])
                         ->orWhere('placename', 'ILIKE', '%' . $parameters['fuzzyname'] . '%')->orWhereRaw('placename % ?', $parameters['fuzzyname']);
                     //$query->where('placename', 'ILIKE', '%'.$parameters['fuzzyname'].'%')->orWhere('placename', 'SOUNDS LIKE', $parameters['fuzzyname']);
+                    if ($parameters['searchdescription'] === 'on') {
+                        $query->orWhere('description', 'ILIKE', '%' . $parameters['fuzzyname'] . '%');
+                    }
                 });
             } else if ($parameters['containsname']) {
                 $dataitems->where(function ($query) use ($parameters) {
                     $query->where('title', 'ILIKE', '%' . $parameters['containsname'] . '%')->orWhere('placename', 'ILIKE', '%' . $parameters['containsname'] . '%');
+                    if ($parameters['searchdescription'] === 'on') {
+                        $query->orWhere('description', 'ILIKE', '%' . $parameters['containsname'] . '%');
+                    }
                 });
             }
         }
@@ -509,6 +521,7 @@ class GazetteerController extends Controller
         $parameters['fuzzyname'] = (isset($parameters['fuzzyname'])) ? $parameters['fuzzyname'] : null;
         $parameters['containsname'] = (isset($parameters['containsname'])) ? $parameters['containsname'] : null;
         $parameters['format'] = (isset($parameters['format'])) ? $parameters['format'] : null;
+        $parameters['searchdescription'] = (isset($parameters['searchdescription'])) ? $parameters['searchdescription'] : null;
         $parameters['download'] = (isset($parameters['download'])) ? $parameters['download'] : null;
         $parameters['bbox'] = (isset($parameters['bbox'])) ? $parameters['bbox'] : null;
         $parameters['polygon'] = (isset($parameters['polygon'])) ? $parameters['polygon'] : null;
