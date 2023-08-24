@@ -508,6 +508,8 @@ class UserController extends Controller
                     if ($key == "type" || $key == "recordtype") {
                         //get the recordtype id from "type" name
                         $culled_array["recordtype_id"] = RecordType::getIdByType($value); //if recordtype does exist, set the recordtype_id to its id, otherwise set it to 1 (default "Other")
+                    } else if($key == "layer_id"){
+                        $culled_array["dataset_id"] = $value; 
                     } else if ($key == "linkback") {
                         $culled_array["external_url"] = $value;
                     } else if (in_array($key, $fillable) && $key != 'id') {

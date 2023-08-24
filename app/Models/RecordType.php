@@ -30,7 +30,7 @@ class RecordType extends Model
     // Return 1 (Others) if not found
     public static function getIdByType($type)
     {
-        $record = RecordType::where('type', trim($type))->first();
+        $record = RecordType::where('type', 'ILIKE', trim($type))->first();
         return $record ? $record->id : 1;
     }
 
