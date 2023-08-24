@@ -156,6 +156,14 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="row align-items-center my-auto mb-1">
+                            <div class="col-sm-4" data-toggle="tooltip">
+                                Search within Description field?
+                            </div>
+                            <div class="col-sm-8">
+                                <input type="checkbox" id="searchdescription" name="searchdescription">
+                            </div>
+                        </div>
                         <label for="download" class="download-label"></label>
                         <div class="row align-items-center my-auto">
                             <div class="col-sm-4" data-toggle="tooltip" title="Download as a file instead of open in a browser window if you choose kml, csv or geojson.">
