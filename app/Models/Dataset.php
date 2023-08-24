@@ -7,6 +7,7 @@ use TLCMap\Http\Helpers\HtmlFilter;
 use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
+use TLCMap\Models\RecordType;
 
 class Dataset extends Model
 {
@@ -544,13 +545,10 @@ class Dataset extends Model
         $colheads = array_merge($colheads, $extkeys);
 
         // Apply any modification to the column headers for display.
+        $headerValueForDisplay = [ 'id' => 'ghap_id' , 'external_url' => 'linkback' , 'dataset_id' => 'layer_id' , 'recordtype_id' => 'RecordType' ];
         $displayHeaders = [];
         foreach ($colheads as $colhead) {
-            if ($colhead === 'id') {
-                $displayHeaders[] = 'ghap_id';
-            } else {
-                $displayHeaders[] = $colhead;
-            }
+            $displayHeaders[] = isset($headerValueForDisplay[$colhead]) ? $headerValueForDisplay[$colhead] : $colhead;
         }
 
         // add headings to csv
@@ -572,7 +570,14 @@ class Dataset extends Model
 
             // to make sure the cells are in the same order as the headings
             foreach ($colheads as $col) {
-                $cells[] = isset($vals[$col]) ? $vals[$col] : "";
+                $cellValue = isset($vals[$col]) ? $vals[$col] : "";
+
+                // Special handling for recordtype, store type instead of id
+                if ( $cellValue !== "" && $col === 'recordtype_id') {
+                    $cellValue = RecordType::getTypeById($cellValue);
+                }
+
+                $cells[] = $cellValue;
             }
 
 
