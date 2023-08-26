@@ -333,6 +333,11 @@ class GazetteerController extends Controller
                 $query->where('type', '=', $parameters['recordtype']); // Filter by recordtype value
             });
         }
+        if (isset($parameters['searchlayers']) && is_array($parameters['searchlayers'])) {
+            $dataitems->whereHas('dataset', function ($query) use ($parameters) {
+                $query->whereIn('dataset_id', $parameters['searchlayers']);
+            });
+        }
         if ($parameters['lga']) $dataitems->where('lga', '=', $parameters['lga']);
         if ($parameters['dataitemid']) $dataitems->where('id', '=', $parameters['dataitemid']);
         if ($parameters['from']) $dataitems->where('id', '>=', $parameters['from']);
@@ -511,6 +516,7 @@ class GazetteerController extends Controller
         $parameters['id'] = (isset($parameters['id'])) ? $parameters['id'] : null;
         $parameters['paging'] = (isset($parameters['paging'])) ? $parameters['paging'] : null;
         $parameters['recordtype'] = (isset($parameters['recordtype'])) ? $parameters['recordtype'] : null;
+        $parameters['searchlayers'] = (isset($parameters['searchlayers'])) ? $parameters['searchlayers'] : null;
         $parameters['lga'] = (isset($parameters['lga'])) ? $parameters['lga'] : null;
         $parameters['state'] = (isset($parameters['state'])) ? $parameters['state'] : null;
         $parameters['parish'] = (isset($parameters['parish'])) ? $parameters['parish'] : null;

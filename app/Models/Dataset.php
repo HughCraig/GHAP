@@ -50,6 +50,24 @@ class Dataset extends Model
     }
 
     /**
+     * Fetch all layers/datasets along with their IDs
+     *
+     * @return array
+     *   An array of objects with 'id' and 'name' properties.
+     */
+    public static function getAllLayersAndIDs()
+    {
+        $layers = self::select('id', 'name')->get();
+
+        return $layers->map(function($layer) {
+            return (object) [
+                'id' => $layer->id,
+                'name' => $layer->name
+            ];
+        })->all();
+    }
+
+    /**
      * Defines a dataitem relationship
      * 1 dataset has many dataitems
      */

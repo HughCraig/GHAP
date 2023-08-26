@@ -5,8 +5,10 @@ namespace TLCMap\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use TLCMap\Models\Dataitem;
+use TLCMap\Models\Dataset;
 use TLCMap\Models\Datasource;
 use TLCMap\Models\RecordType;
+use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
@@ -24,6 +26,8 @@ class HomeController extends Controller
 
         //feature_codes from DB
         $feature_terms = json_encode(Dataitem::getAllFeatures(), JSON_NUMERIC_CHECK);
+
+        $layers = json_encode(Dataset::getAllLayersAndIDs());
 
         //parishes from DB
         $parishes = json_encode(Dataitem::getAllParishes(), JSON_NUMERIC_CHECK);
@@ -45,6 +49,7 @@ class HomeController extends Controller
             'states' => $states,
             'count' => $count,
             'datasources' => $datasources,
+            'layers' => $layers
         ]);
     }
 

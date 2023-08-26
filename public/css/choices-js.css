@@ -1,0 +1,23 @@
+/* CSS style adjustment for chices.min.css style */
+
+.choices {
+    border: 1px solid #ccc;
+}
+
+.choices__list--multiple {
+    display: block;
+    max-width: 150px;
+}
+
+.choices .choices__inner {
+    padding-bottom: 0px;
+    padding-top: 0px;
+    border-radius: 4px;
+    background-color: white;
+    min-height: 36px;
+}
+
+.choices__list--dropdown .choices__item--selectable,
+.choices__list[aria-expanded] .choices__item--selectable {
+    padding-right: 0px;
+}
