@@ -545,7 +545,7 @@ class Dataset extends Model
         $colheads = array_merge($colheads, $extkeys);
 
         // Apply any modification to the column headers for display.
-        $headerValueForDisplay = [ 'id' => 'ghap_id' , 'external_url' => 'linkback' , 'dataset_id' => 'layer_id' , 'recordtype_id' => 'RecordType' ];
+        $headerValueForDisplay = [ 'id' => 'ghap_id' , 'external_url' => 'linkback' , 'dataset_id' => 'layer_id' , 'recordtype_id' => 'record_type' ];
         $displayHeaders = [];
         foreach ($colheads as $colhead) {
             $displayHeaders[] = isset($headerValueForDisplay[$colhead]) ? $headerValueForDisplay[$colhead] : $colhead;

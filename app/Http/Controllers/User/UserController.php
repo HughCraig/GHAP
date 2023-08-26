@@ -505,7 +505,7 @@ class UserController extends Controller
                 // we are looping each column and checking it's name looking to handle the crucial ones...
                 //if array has the "type" key, change it to "recordtype_id" and change all of the values to the actual id for the given type, or "Other" if it does not match
                 if (!in_array($key, $excludeColumns)) {
-                    if ($key == "type" || $key == "recordtype") {
+                    if ($key == "type" || $key == "record_type") {
                         //get the recordtype id from "type" name
                         $culled_array["recordtype_id"] = RecordType::getIdByType($value); //if recordtype does exist, set the recordtype_id to its id, otherwise set it to 1 (default "Other")
                     } else if($key == "layer_id"){
@@ -874,7 +874,7 @@ class UserController extends Controller
         // so need to retain case for other things like extended data. Noticed glitch between lcing everying in CSV, but not in KML, so was
         // no way out but this.
         $notForExtData = ["id", "title", "placename", "name", "description", "type", "linkback", "latitude", "longitude",
-            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url" , "RecordType"];
+            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url" , "record_type"];
         if (in_array(strtolower($s), array_map('strtolower', $notForExtData))) {
             $s = strtolower($s);
         }
