@@ -8,7 +8,6 @@ use TLCMap\Models\Dataitem;
 use TLCMap\Models\Dataset;
 use TLCMap\Models\Datasource;
 use TLCMap\Models\RecordType;
-use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
