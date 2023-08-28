@@ -809,6 +809,25 @@ div#mainnav {
     padding-top: 5%;
 }
 
+#helpVideoModal .btn-close {
+    z-index: 2;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: transparent;
+    border: none;
+    width: 3%;  
+    height: 5%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+#helpVideoModal .btn-close i.fa {
+    color: white;
+    font-size: 24px;  
+}
+
 .scrollable.modal-body {
     height: 70vh;
     overflow-y: scroll;

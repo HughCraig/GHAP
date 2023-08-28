@@ -1,4 +1,3 @@
-<button type="button" class="mt-3 mb-3 btn btn-primary" data-toggle="modal" data-target="#addCollaboratorModal">Add a Collaborator</button>
 <!-- MODAL popup -->
 <div class="modal fade" id="addCollaboratorModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">

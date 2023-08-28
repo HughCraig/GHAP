@@ -19,8 +19,6 @@ $(document).ready( function () {
     $( "#addfeatureterm, [name='feature_term']" ).autocomplete( "option", "appendTo", ".eventInsForm" );
 
     // Datepickers.
-    $('[name="editdatestartdiv"]').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
-    $('[name="editdateenddiv"]').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
     $('#editDateStartDiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
     $('#editDateEndDiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
 
@@ -110,10 +108,10 @@ $(document).ready( function () {
             $('#editState').val(dataitem.state);
         }
         if (dataitem.datestart) {
-            $('#editDateStartDiv').datepicker('setDate', dataitem.datestart);
+            $('#editDatestart').val(dataitem.datestart);
         }
         if (dataitem.dateend) {
-            $('#editDateEndDiv').datepicker('setDate', dataitem.dateend);
+            $('#editDateend').val(dataitem.dateend);
         }
         if (dataitem.lga) {
             $('#editLga').val(dataitem.lga);

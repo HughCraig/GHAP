@@ -78,6 +78,17 @@
                                   title="Some records may not be comprehensively tagged. Tags for records may differ between states.">
                             </span>
                         </p>
+                        <div class="row align-items-center my-auto">
+                            <div class="col-sm-4">Place Type:</div>
+                            <div class="col-sm-8">
+                                <select class="w3-white form-control" name="recordtype" id="recordtype">
+                                    <option label="" selected></option>
+                                    @foreach($recordtypes as $recordtype)
+                                        <option label="{{$recordtype->type}}">{{$recordtype->type}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                         <div class="row align-items-center my-auto" data-toggle="tooltip" title="Local Government Area.">
                             <div class="col-sm-4">LGA:</div>
                             <div class="col-sm-8">
