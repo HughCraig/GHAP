@@ -505,9 +505,11 @@ class UserController extends Controller
                 // we are looping each column and checking it's name looking to handle the crucial ones...
                 //if array has the "type" key, change it to "recordtype_id" and change all of the values to the actual id for the given type, or "Other" if it does not match
                 if (!in_array($key, $excludeColumns)) {
-                    if ($key == "type") {
-                        $recordtype = RecordType::where("type", trim($value))->first(); //get the this recordtype from "type" name
-                        $culled_array["recordtype_id"] = ($recordtype) ? $recordtype->id : 1; //if recordtype does exist, set the recordtype_id to its id, otherwise set it to 1 (default "Other")
+                    if ($key == "type" || $key == "record_type") {
+                        //get the recordtype id from "type" name
+                        $culled_array["recordtype_id"] = RecordType::getIdByType($value); //if recordtype does exist, set the recordtype_id to its id, otherwise set it to 1 (default "Other")
+                    } else if($key == "layer_id"){
+                        $culled_array["dataset_id"] = $value; 
                     } else if ($key == "linkback") {
                         $culled_array["external_url"] = $value;
                     } else if (in_array($key, $fillable) && $key != 'id') {
@@ -729,6 +731,8 @@ class UserController extends Controller
         $datestartindex = false;
         $dateendindex = false;
 
+        $latitudeIndex = false;
+        $longitudeIndex = false;
 
         try {
 
@@ -740,6 +744,9 @@ class UserController extends Controller
                 while (($data = fgetcsv($handle)) !== FALSE) {
                     // number of fields in the csv
                     $col_count = count($data);
+
+                   if(!$this->validateRow($data)) continue; //if the row is invalid, skip it
+
                     // sanitise headings
                     if ($row === 0) {
 
@@ -755,6 +762,9 @@ class UserController extends Controller
                         // dates might be in datestart or date end, or there may be a single date field.
                         $datestartindex = array_search('datestart', $header); //if the uploaded header includes datestart or dateend values, store the index
                         $dateendindex = array_search('dateend', $header);
+
+                        $latitudeIndex = array_search('latitude', $header);
+                        $longitudeIndex = array_search('longitude', $header);
 
 
                         if ($datestartindex === false) {
@@ -807,6 +817,15 @@ class UserController extends Controller
                             //if (!($fields[$dateendindex] = GeneralFunctions::dateMatchesRegexAndConvertString($fields[$dateendindex]))) return $row;
                         }
 
+                        if($latitudeIndex !== false){
+                            // Remove spaces, non-breaking spaces, and non-numeric characters.
+                            $fields[$latitudeIndex] = preg_replace('/[^\d\.-]/', '', str_replace("\xc2\xa0", ' ', $fields[$latitudeIndex]));
+                        }
+                        if($longitudeIndex !== false){
+                            // Remove spaces, non-breaking spaces, and non-numeric characters.
+                            $fields[$longitudeIndex] = preg_replace('/[^\d\.-]/', '', str_replace("\xc2\xa0", ' ', $fields[$longitudeIndex]));
+                        }
+
                         $outdata[] = array_combine($header, $fields); //data[this] is now an array mapping header to field eg data[this] = ['placename' => 'newcastle', ... => ..., etc]
 
                     }
@@ -829,6 +848,20 @@ class UserController extends Controller
         return $outdata; //return the array of lines
     }
 
+    /*
+    * Valid each row of the imported csv file.
+    * Ignore blank rows, rows are just empty space or rows are just comma
+    */ 
+    function validateRow($array) {
+        foreach ($array as $value) {
+            $trimmedValue = trim($value);
+            if ($trimmedValue !== '' && $trimmedValue !== ',' ) {
+                return true; 
+            }
+        }
+        return false;
+    }
+
     function sanitiseKey($s)
     {
         // remove spaces and dodgy characters
@@ -841,7 +874,7 @@ class UserController extends Controller
         // so need to retain case for other things like extended data. Noticed glitch between lcing everying in CSV, but not in KML, so was
         // no way out but this.
         $notForExtData = ["id", "title", "placename", "name", "description", "type", "linkback", "latitude", "longitude",
-            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url"];
+            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url" , "record_type"];
         if (in_array(strtolower($s), array_map('strtolower', $notForExtData))) {
             $s = strtolower($s);
         }
