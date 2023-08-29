@@ -26,7 +26,7 @@ class HomeController extends Controller
         //feature_codes from DB
         $feature_terms = json_encode(Dataitem::getAllFeatures(), JSON_NUMERIC_CHECK);
 
-        $layers = json_encode(Dataset::getAllLayersAndIDs());
+        $layers = json_encode(Dataset::getAllPublicLayersAndIDs());
 
         //parishes from DB
         $parishes = json_encode(Dataitem::getAllParishes(), JSON_NUMERIC_CHECK);

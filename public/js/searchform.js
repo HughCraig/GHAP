@@ -1,23 +1,46 @@
 $(document).ready(function () {
 
     //Layers Autocomplete.
-    var layersSelector = $("#searchlayers")[0];
-    const layersChoices = new Choices(layersSelector, {
-        choices: layers.map(function(layer) {
-            return {value: layer.id, label: layer.name};
-        }),
-        renderChoiceLimit: 40, //The amount of choices to be rendered within the dropdown list ("-1" indicates no limit). 
-        maxItemCount: 10, //The amount of items a user can input/select 
-        maxItemText: function (maxItemCount) {
-            return 'Only ' + maxItemCount + ' layers can be selected.';
+    var selectedLayers = [];
+
+    function split( val ) {
+        return val.split( /,\s*/ );
+    }
+    function extractLast( term ) {
+        return split( term ).pop();
+    }
+
+    $("#searchlayers").autocomplete({
+        minLength: 0,
+        source: function (request, response) {
+            // Use only the last term for matching
+            var term = extractLast(request.term);
+            var results = $.ui.autocomplete.filter(layers.map(layer => layer.name), term);
+            response(results.slice(0, 15)); // return only 15 results
         },
-        removeItemButton: true, //Whether each item should have a remove button.
-        allowHTML: false, //Whether HTML should be rendered in all Choices elements.
-        searchFields: ['label'], //Specify which fields should be used when a user is searching
-        searchResultLimit: 5, //The maximum amount of search results to show.
-        noResultsText: "No layer found", //The text to be displayed when a user's search has returned no results.
-        position: 'bottom', // Whether the dropdown should appear above
-        itemSelectText: '', //The text that is shown when a user hovers over a selectable choice.
+        focus: function () {
+            // prevent value inserted on focus
+            return false;
+        },
+        select: function (event, ui) {
+            var terms = split(this.value);
+            // Remove the current input
+            terms.pop();
+            // Add the selected layer
+            terms.push(ui.item.value);
+            // Add placeholder for the next layer
+            terms.push("");
+            this.value = terms.join(", ");
+            
+            // Find the selected layer by name and add its id to selectedLayers
+            var selectedLayer = layers.find(layer => layer.name === ui.item.value);
+            if (selectedLayer) {
+                selectedLayers.push(selectedLayer.id);
+            }
+
+            $("#selected-layers").val(selectedLayers.join(", "));
+            return false;
+        }
     });
 
     //LGA Autocomplete.

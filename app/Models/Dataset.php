@@ -50,14 +50,14 @@ class Dataset extends Model
     }
 
     /**
-     * Fetch all layers/datasets along with their IDs
+     * Fetch all public layers/datasets along with their IDs
      *
      * @return array
      *   An array of objects with 'id' and 'name' properties.
      */
-    public static function getAllLayersAndIDs()
+    public static function getAllPublicLayersAndIDs()
     {
-        $layers = self::select('id', 'name')->get();
+        $layers = self::where('public', 1)->select('id', 'name')->get();
 
         return $layers->map(function($layer) {
             return (object) [

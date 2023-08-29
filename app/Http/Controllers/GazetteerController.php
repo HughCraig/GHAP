@@ -274,28 +274,37 @@ class GazetteerController extends Controller
             if (!empty($names)) { //if we dont have an empty array
                 //If we are bulk searching from file, skip name and fuzzyname search and search from file instead
                 if ($parameters['names']) {
-                    $dataitems->where(function ($query) use ($names) {
+                    $dataitems->where(function ($query) use ($names , $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', $firstcase)->orWhere('placename', 'ILIKE', $firstcase);
                         foreach ($names as $line) {
                             $query->orWhere('title', 'ILIKE', $line)->orWhere('placename', 'ILIKE', $firstcase);
+                        };
+                        if ($parameters['searchdescription'] === 'on') {
+                            $query->orWhere('description', 'ILIKE', '%' . $parameters['name'] . '%');
                         }
                     });
                 } else if ($parameters['fuzzynames']) {
-                    $dataitems->where(function ($query) use ($names) {
+                    $dataitems->where(function ($query) use ($names , $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', '%' . $firstcase . '%')->orWhereRaw('placename % ?', $firstcase);
                         //$query->where('placename', 'ILIKE', '%'.$firstcase.'%')->orWhere('placename', 'SOUNDS LIKE', $firstcase);
                         foreach ($names as $line) {
                             $query->orWhere('title', 'ILIKE', '%' . $line . '%')->orWhereRaw('placename % ?', $line);
+                        };
+                        if ($parameters['searchdescription'] === 'on') {
+                            $query->orWhere('description', 'ILIKE', '%' . $parameters['fuzzyname'] . '%');
                         }
                     });
                 } else if ($parameters['containsnames']) {
-                    $dataitems->where(function ($query) use ($names) {
+                    $dataitems->where(function ($query) use ($names , $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', '%' . $firstcase . '%')->orWhere('placename', 'ILIKE', '%' . $firstcase . '%');
                         foreach ($names as $line) {
                             $query->orWhere('title', 'ILIKE', '%' . trim($line) . '%')->orWhere('placename', 'ILIKE', '%' . trim($line) . '%');
+                        }
+                        if ($parameters['searchdescription'] === 'on') {
+                            $query->orWhere('description', 'ILIKE', '%' . $parameters['containsname'] . '%');
                         }
                     });
                 }
@@ -333,9 +342,11 @@ class GazetteerController extends Controller
                 $query->where('type', '=', $parameters['recordtype']); // Filter by recordtype value
             });
         }
-        if (isset($parameters['searchlayers']) && is_array($parameters['searchlayers'])) {
-            $dataitems->whereHas('dataset', function ($query) use ($parameters) {
-                $query->whereIn('dataset_id', $parameters['searchlayers']);
+        if (isset($parameters['searchlayers'])) {
+            $searchLayerIDs = explode(',', $parameters['searchlayers']);
+            
+            $dataitems->whereHas('dataset', function ($query) use ($searchLayerIDs) {
+                $query->whereIn('dataset_id', $searchLayerIDs);
             });
         }
         if ($parameters['lga']) $dataitems->where('lga', '=', $parameters['lga']);

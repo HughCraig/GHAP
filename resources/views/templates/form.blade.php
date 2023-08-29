@@ -1,7 +1,5 @@
 @push('styles')
     <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
-    <link rel="stylesheet" href="{{ asset('css/choices-js.css') }}">
 @endpush
 
 @push('scripts')
@@ -13,7 +11,6 @@
         var feature_terms = {!! $feature_terms !!};
         var layers = {!! $layers !!};
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
     <!-- js-cookie library for cookie usages -->
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
     <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
@@ -104,7 +101,8 @@
                         <div class="row align-items-center my-auto">
                             <div class="col-sm-6">Layers:</div>
                             <div class="col-sm-6">
-                                <select name="searchlayers[]" id="searchlayers" multiple></select>
+                                <input type="text" class="w3-white form-control" id="searchlayers" autocomplete="off">
+                                <input type="hidden" name="searchlayers" id="selected-layers">
                             </div>
                         </div>
                         <div class="row align-items-center my-auto" data-toggle="tooltip" title="Local Government Area.">
