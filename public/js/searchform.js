@@ -43,6 +43,12 @@ $(document).ready(function () {
         }
     });
 
+    $("#searchlayers").on('change', function() {
+        var currentLayerNames = split(this.value).filter(name => name.trim().length > 0);
+        selectedLayers = layers.filter(layer => currentLayerNames.includes(layer.name)).map(layer => layer.id);
+        $("#selected-layers").val(selectedLayers.join(", "));
+    });
+
     //LGA Autocomplete.
     $("#lga").autocomplete({
         source: function (request, response) {
