@@ -293,7 +293,6 @@ class ROCrateGenerator
     {        
         if ($collection->datasets->count() > 0 || $collection->savedSearches->count() > 0) {
             $zip = new \ZipArchive();
-            $path = 'public';
             if (empty($path)) {
                 // Create a temporary file for the archive
                 $zipFile = tempnam(sys_get_temp_dir(), 'GHAP');
