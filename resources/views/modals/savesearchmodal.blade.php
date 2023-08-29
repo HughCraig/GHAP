@@ -15,7 +15,7 @@
                 <input type="hidden" id="save_search_query" value="{{ substr(url()->full(),strpos(url()->full(),'?')) }}" />
                 <input type="hidden" id="save_search_count" value="{{ $details->total() }}" />
                 <input type="text" class="smallerinputs w3-white form-control" id="save_search_name" placeholder="Name your search" maxlength="20"/>
-                <span class="red-asterisk">*</span>
+                <label class="text-danger">*</label>
             </div>
         </div>
         <div class="modal-footer">

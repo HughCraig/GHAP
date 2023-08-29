@@ -712,15 +712,6 @@ div#searchresults {
     padding: 0.5em 1em;
 }
 
-.red-asterisk {
-    color: red;
-    padding-left: 10px;
-}
-
-#saveSearchModal .modal-body input[type=text]{
-    width: 98%;
-}
-
 div.header {
     background-color: #f4f6f4;
     height: 160px;

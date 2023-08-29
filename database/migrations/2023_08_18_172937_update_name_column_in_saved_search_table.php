@@ -16,6 +16,11 @@ class UpdateNameColumnInSavedSearchTable extends Migration
     {
         // Update all the null entries to 'Search'
         DB::table('tlcmap.saved_search')->whereNull('name')->update(['name' => 'Search']);
+
+        // Change the name column to NOT NULL
+        Schema::table('tlcmap.saved_search', function (Blueprint $table) {
+            $table->string('name')->nullable(false)->change();
+        });
     }
 
     /**

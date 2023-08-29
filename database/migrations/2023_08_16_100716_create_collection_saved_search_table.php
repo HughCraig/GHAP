@@ -14,12 +14,11 @@ class CreateCollectionSavedSearchTable extends Migration
     public function up()
     {
         Schema::create('tlcmap.collection_saved_search', function (Blueprint $table) {
-            $table->bigIncrements('id');
             $table->unsignedBigInteger('collection_id');
             $table->unsignedBigInteger('saved_search_id');
 
-            $table->foreign('collection_id')->references('id')->on('tlcmap.collection')->onDelete('cascade');
-            $table->foreign('saved_search_id')->references('id')->on('tlcmap.saved_search')->onDelete('cascade');
+            // $table->foreign('collection_id')->references('id')->on('tlcmap.collection')->onDelete('cascade');
+            // $table->foreign('saved_search_id')->references('id')->on('tlcmap.saved_search')->onDelete('cascade');
         });
     }
 

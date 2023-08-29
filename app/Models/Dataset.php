@@ -473,7 +473,7 @@ class Dataset extends Model
      * @return \Illuminate\Support\Collection
      *   The dateitems with dates infilled.
      */
-    public function infillDataitemDates($items) {
+    public static function infillDataitemDates($items) {
         foreach ($items as &$item) {
             if (!empty($item->datestart) && empty($item->dateend)) {
                 $item->dateend = $item->datestart;

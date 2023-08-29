@@ -372,7 +372,7 @@ class GazetteerController extends Controller
 
         if (isset($parameters['sort'])  ||  (isset($parameters['line']) && $parameters['line'] === 'time')   ) {
 
-            $dataitems = (new Dataset())->infillDataitemDates($dataitems);
+            $dataitems = Dataset::infillDataitemDates($dataitems);
             $dataitems = $dataitems->where('datestart', '!=', '')->where('dateend', '!=', '');
 
             if ($parameters["sort"] === 'end') {

@@ -224,10 +224,11 @@ class ROCrateGenerator
             }
         }
     
-        $dataEntity = new DataEntity('Saved search', empty($directory) ? './' : $directory);
+        $dataEntity = new DataEntity('Dataset', empty($directory) ? './' : $directory);
         $dataEntity->set('name', 'GHAP search results: ' . $savedSearch->name);
         $dataEntity->set('description' , "Export of search results data from GHAP");
         $dataEntity->set('url', url("search?{$savedSearch->query}")); 
+        $dataEntity->set('creator', $savedSearch->getOwnerName());
         
         if (!empty($savedSearch->created_at)) {
             $dataEntity->set('datePublished', $savedSearch->created_at->toDateString());
@@ -274,6 +275,13 @@ class ROCrateGenerator
     /**
      * Create the RO-Crate zip archive for a collection.
      *
+     * TO BE REFACTORED
+     * 
+     * The current searching functions are tightly coupled with the search controller. To reuse the search
+     * functions, it has to create the dummy requests to the controller.
+     * 
+     * Ideally, the search functions should be refactored into independent modules which can be resued easily.
+     * 
      * @param Collection $collection
      *   The collection object.
      * @param $path
@@ -285,12 +293,13 @@ class ROCrateGenerator
     {        
         if ($collection->datasets->count() > 0 || $collection->savedSearches->count() > 0) {
             $zip = new \ZipArchive();
+            $path = 'public';
             if (empty($path)) {
                 // Create a temporary file for the archive
                 $zipFile = tempnam(sys_get_temp_dir(), 'GHAP');
             } else {
                 $zipFile = $path;
-            }            
+            }      
             if ($zipFile && $zip->open($zipFile, \ZipArchive::CREATE) === TRUE) {
                 $metadata = self::generateCollectionMetadata($collection);
                 $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT));
@@ -721,7 +730,7 @@ class ROCrateGenerator
      */
     public static function getSavedSearchDirectoryName(SavedSearch $savedSearch)
     {
-        return "saved-search-{$savedSearch->id}";
+        return "export-saved-search-{$savedSearch->id}";
     }
 
     /**

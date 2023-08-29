@@ -187,6 +187,9 @@ class FileFormatter
     /**
      * Takes a LengthAwarePaginator $results, and an array $sources where $sources[##] is the anps id that source belongs to
      * Returns a JSON representation of the data, in geoJSON compatible format
+     * 
+     * @param  array $parameters   Optional parameters to customize the output, with possible keys as follows:
+     *                             - 'line': When set, a LineString feature will be added to the GeoJSON connecting all points.
      *
      * Reworked to handle public dataitems
      * !!! could be merged with DatasetController->generateJSON

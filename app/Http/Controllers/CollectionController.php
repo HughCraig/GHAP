@@ -89,13 +89,10 @@ class CollectionController extends Controller
 
         // Get query string.
         $queryString = '';
-        $paramString = '';
         if (!empty($request->input('line'))) {
             $queryString = '?line=' . $request->input('line');
-            $paramString = '&line=' . $request->input('line');
         } elseif (!empty($request->input('sort'))) {
             $queryString = '?sort=' . $request->input('sort');
-            $paramString = '&sort=' . $request->input('sort');
         }
 
         $data['datasets'] = [];
@@ -120,7 +117,7 @@ class CollectionController extends Controller
             foreach ($savedSearches as $savedSearch) {
                 $data['datasets'][] = [
                     'name' => $savedSearch->name,
-                    'jsonURL' => url("/search" . $savedSearch->query . '&format=json' . $paramString),
+                    'jsonURL' => url("/places" . $savedSearch->query . '&format=json' . '&' . substr($queryString, 1)),
                 ];
             }
         }
