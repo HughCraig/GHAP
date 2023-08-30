@@ -601,6 +601,8 @@ class GazetteerController extends Controller
         }
         if ($parameters['format'] == 'csvContent'){
             //Internal process only
+            //Return the content of the csv report as string by stream_get_contents()
+            //Used for ro-crate export of saved search results on multilayers
             return FileFormatter::toCSVContent($results);
         }
         if ($parameters['format'] == "kml") {

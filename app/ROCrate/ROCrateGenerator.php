@@ -274,13 +274,6 @@ class ROCrateGenerator
 
     /**
      * Create the RO-Crate zip archive for a collection.
-     *
-     * TO BE REFACTORED
-     * 
-     * The current searching functions are tightly coupled with the search controller. To reuse the search
-     * functions, it has to create the dummy requests to the controller.
-     * 
-     * Ideally, the search functions should be refactored into independent modules which can be resued easily.
      * 
      * @param Collection $collection
      *   The collection object.
@@ -318,8 +311,14 @@ class ROCrateGenerator
 
                     $directory = self::getSavedSearchDirectoryName($savedSearch);
                     $zip->addEmptyDir($directory);
-                
+
+                    // TO BE REFACTORED
+                    // The current searching functions are tightly coupled with the search controller. To reuse the search
+                    // functions, it has to create the dummy requests to the controller.
+                    // Ideally, the search functions should be refactored into independent modules which can be resued easily.
+                                     
                     //Csv
+                    // &format=csvContent parameters returns the content of the csv as string by stream_get_contents()
                     $url = url("/search" . $savedSearch->query . '&format=csvContent');
                     parse_str(parse_url($url, PHP_URL_QUERY), $queryParameters);
                     $fakeRequest = Request::create('/dummy-path', 'GET', $queryParameters);

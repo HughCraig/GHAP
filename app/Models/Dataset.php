@@ -295,7 +295,7 @@ class Dataset extends Model
         $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
 
         // Infill any blank start/end dates.
-        $dataitems = $this->infillDataitemDates($dataset->dataitems);
+        $dataitems = self::infillDataitemDates($dataset->dataitems);
 
         if (isset($_GET["sort"])) {
             $dataitems = $dataitems->where('datestart', '!==', '')->where('dateend', '!==', '');
