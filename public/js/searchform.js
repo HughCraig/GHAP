@@ -43,7 +43,7 @@ $(document).ready(function () {
         }
     });
 
-    $("#searchlayers").on('change', function() {
+    $("#searchlayers").on('input', function() {
         var currentLayerNames = split(this.value).filter(name => name.trim().length > 0);
         selectedLayers = layers.filter(layer => currentLayerNames.includes(layer.name)).map(layer => layer.id);
         $("#selected-layers").val(selectedLayers.join(", "));
