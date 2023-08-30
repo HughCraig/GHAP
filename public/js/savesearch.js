@@ -6,25 +6,44 @@ $.ajaxSetup({
     }
 });
 
+const msgBanner = new MessageBanner($('#saveSearchModal .message-banner'));
+msgBanner.hide();
+
 /* Use AJAX to get values from form */
 $('#save_search_button').click(function () {
-    $.ajax({
-        type: 'POST',
-        url: ajaxsavesearch,
-        data: {
-            name: $("#save_search_name").val(),
-            searchquery: $("#save_search_query").val(),
-            count: $("#save_search_count").val()
-        },
-        success: function (data) {
-            $("#saveSearchModalButton").hide();
-            $("#save_search_name").hide();
-            $("#save_search_message").show();
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            alert(xhr.responseText); //error message with error info
-        }
-    });
+    // Validate the input.
+    let isValid = true;
+    msgBanner.clear();
+
+    if ($('#save_search_name').val() === '') {
+        isValid = false;
+        msgBanner.error('Search name must be filled');
+    }
+
+    if (isValid) {
+        $.ajax({
+            type: 'POST',
+            url: ajaxsavesearch,
+            data: {
+                name: $("#save_search_name").val(),
+                searchquery: $("#save_search_query").val(),
+                count: $("#save_search_count").val()
+            },
+            success: function (data) {
+                $("#saveSearchModalButton").hide();
+                $("#save_search_name").hide();
+                $("#save_search_message").show();
+                $("#saveSearchModal").modal('hide');
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                alert(xhr.responseText); //error message with error info
+            }
+        });
+    } else {
+        // Display and scroll to the message banner.
+        msgBanner.show();
+        $('#saveSearchModal').scrollTop(0); 
+    }
 });
 
 function copyLink(id, button, param) {

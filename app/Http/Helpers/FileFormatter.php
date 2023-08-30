@@ -187,11 +187,14 @@ class FileFormatter
     /**
      * Takes a LengthAwarePaginator $results, and an array $sources where $sources[##] is the anps id that source belongs to
      * Returns a JSON representation of the data, in geoJSON compatible format
+     * 
+     * @param  array $parameters   Optional parameters to customize the output, with possible keys as follows:
+     *                             - 'line': When set, a LineString feature will be added to the GeoJSON connecting all points.
      *
      * Reworked to handle public dataitems
      * !!! could be merged with DatasetController->generateJSON
      */
-    public static function toGeoJSON($results)
+    public static function toGeoJSON($results , $parameters = null)
     {
         $features = array();
 
@@ -248,6 +251,22 @@ class FileFormatter
                 $proppairs["dateend"] = $r->dateend;
             }
 
+            $unixepochdates = $r->datestart . "";
+            $unixepochdatee = $r->dateend . "";
+            if (strpos($unixepochdates, '-') === false) {
+                $unixepochdates = $unixepochdates . "-01-01";
+            }
+            if (strpos($unixepochdatee, '-') === false) {
+                $unixepochdatee = $unixepochdatee . "-01-01";
+            }
+
+            if (!empty($r->datestart)) {
+                $proppairs["udatestart"] = strtotime($unixepochdates) * 1000;
+            }
+            if (!empty($r->dateend)) {
+                $proppairs["udateend"] = strtotime($unixepochdates) * 1000;
+            }
+
             if (!empty($r->latitude)) {
                 $proppairs["latitude"] = $r->latitude;
             }
@@ -293,6 +312,25 @@ class FileFormatter
         }
         if (!isset($metadata)) {
             return "No search results to display.";
+        }
+
+        if (isset($parameters) && isset($parameters['line'])) {
+
+            $linecoords = array();
+
+            foreach ($results as $i) {
+                array_push($linecoords, [$i->longitude, $i->latitude]);
+            }
+
+            // Set line feature config.
+            $featureConfig = new FeatureConfig();
+            $featureConfig->setAllowedFields([]);
+
+            $features[] = array(
+                'type' => 'Feature',
+                'geometry' => array('type' => 'LineString', 'coordinates' => $linecoords),
+                'display' => $featureConfig->toArray(),
+            );
         }
 
         $allfeatures = array(

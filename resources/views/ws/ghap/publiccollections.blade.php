@@ -25,7 +25,7 @@
         @foreach($collections as $collection)
             <tr id="row_id_{{$collection->id}}">
                 <td><a href="{{url()->full()}}/{{$collection->id}}">{{ $collection->name }}</a></td>
-                <td>{{ count($collection->datasets) }}</td>
+                <td>{{count($collection->datasets) + count($collection->savedSearches)}}</td>
                 <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->warning) !!}</td>
                 <td>{{ $collection->created_at }}</td>
                 <td>{{ $collection->updated_at }}</td>

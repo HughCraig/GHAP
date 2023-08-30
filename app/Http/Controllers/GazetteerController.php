@@ -398,6 +398,18 @@ class GazetteerController extends Controller
             $dataitems = $this->diSubquery($dataitems, $parameters);
         }
 
+        if (isset($parameters['sort'])  ||  (isset($parameters['line']) && $parameters['line'] === 'time')   ) {
+
+            $dataitems = Dataset::infillDataitemDates($dataitems);
+            $dataitems = $dataitems->where('datestart', '!=', '')->where('dateend', '!=', '');
+
+            if ($parameters["sort"] === 'end') {
+                $dataitems = $dataitems->orderBy('dateend');
+            } else {
+                $dataitems = $dataitems->orderBy('datestart');
+            }
+        }
+
         $collection = $dataitems->get(); //needs to be applied a second time for some reason (maybe because of the subquery?)
 
         //Modifying the collection directly, as datestart and dateend fields are TEXT fields not dates, simpler this way (might be a little slower)
@@ -610,12 +622,18 @@ class GazetteerController extends Controller
             }
             $headers['Content-Type'] = 'application/json'; //set header content type
             if ($parameters['download']) $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.json"'; //if we are downloading, add a 'download attachment' header
-            return Response::make(FileFormatter::toGeoJSON($results), '200', $headers); //serve the file to browser (or download)
+            return Response::make(FileFormatter::toGeoJSON($results, $parameters), '200', $headers); //serve the file to browser (or download)
         }
         if ($parameters['format'] == "csv") {
             $headers["Content-Type"] = "text/csv"; //set header content type
             $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.csv"'; //always download csv
             return FileFormatter::toCSV($results, $headers); //Download
+        }
+        if ($parameters['format'] == 'csvContent'){
+            //Internal process only
+            //Return the content of the csv report as string by stream_get_contents()
+            //Used for ro-crate export of saved search results on multilayers
+            return FileFormatter::toCSVContent($results);
         }
         if ($parameters['format'] == "kml") {
             // Note: not sure this chuck part gets called anywhere. May delete this after verification.

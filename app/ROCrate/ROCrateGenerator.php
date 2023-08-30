@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Auth;
 use TLCMap\Http\Helpers\FileFormatter;
 use TLCMap\Models\Collection;
 use TLCMap\Models\Dataset;
+use TLCMap\Models\SavedSearch;
+use Illuminate\Http\Request;
+use TLCMap\Http\Controllers\GazetteerController;
 
 class ROCrateGenerator
 {
@@ -202,6 +205,60 @@ class ROCrateGenerator
     }
 
     /**
+     * Create the DataEntity for a saved search.
+     *
+     * @param SavedSearch $savedSearch
+     *   The dataset object.
+     * @param string $directory
+     *   The directory represents the dataset. Default is an empty string which points to the root directory.
+     * @return DataEntity
+     *   The DataEntity object.
+     * @throws \Exception
+     */
+    public static function createSavedSearchDataEntity(SavedSearch $savedSearch, $directory = '')
+    {
+        if (!empty($directory)) {
+            // Add tailing slash.
+            if (substr($directory, strlen($directory) - 1) !== '/') {
+                $directory .= '/';
+            }
+        }
+    
+        $dataEntity = new DataEntity('Dataset', empty($directory) ? './' : $directory);
+        $dataEntity->set('name', 'GHAP search results: ' . $savedSearch->name);
+        $dataEntity->set('description' , "Export of search results data from GHAP");
+        $dataEntity->set('url', url("search?{$savedSearch->query}")); 
+        $dataEntity->set('creator', $savedSearch->getOwnerName());
+        
+        if (!empty($savedSearch->created_at)) {
+            $dataEntity->set('datePublished', $savedSearch->created_at->toDateString());
+        }
+        if (!empty($savedSearch->updated_at)) {
+            $dataEntity->set('dateModified', $savedSearch->updated_at->toDateString());
+        }
+
+        //Add files
+        $csvEntity = new DataEntity('File', $directory . self::getSavedSearchExportFileName($savedSearch, 'csv'));
+        $csvEntity->set('name', "CSV export of search result {$savedSearch->name}");
+        $csvEntity->set('description', "CSV export of the search results");
+        $csvEntity->set('encodingFormat', 'text/csv'); 
+        $dataEntity->addPart($csvEntity);
+
+        $kmlEntity = new DataEntity('File', $directory . self::getSavedSearchExportFileName($savedSearch, 'kml'));
+        $kmlEntity->set('name', "KML export of search result {$savedSearch->name}");
+        $kmlEntity->set('description', "KML export of the search results");
+        $kmlEntity->set('encodingFormat', 'application/vnd.google-earth.kml+xml');
+        $dataEntity->addPart($kmlEntity);
+
+        $jsonEntity = new DataEntity('File', $directory . self::getSavedSearchExportFileName($savedSearch, 'json'));
+        $jsonEntity->set('name', "GeoJSON export of search result {$savedSearch->name}");
+        $jsonEntity->set('description', "GeoJSON export of the search results");
+        $jsonEntity->set('encodingFormat', 'application/geo+json');
+        $dataEntity->addPart($jsonEntity);
+
+        return $dataEntity;
+    }
+    /**
      * Generate the HTML of the dataset crate.
      *
      * @param array $metadata
@@ -217,7 +274,7 @@ class ROCrateGenerator
 
     /**
      * Create the RO-Crate zip archive for a collection.
-     *
+     * 
      * @param Collection $collection
      *   The collection object.
      * @param $path
@@ -226,15 +283,15 @@ class ROCrateGenerator
      *   The file path of the zip archive, or null on fail.
      */
     public static function generateCollectionCrate(Collection $collection, $path = null)
-    {
-        if ($collection->datasets->count() > 0) {
+    {        
+        if ($collection->datasets->count() > 0 || $collection->savedSearches->count() > 0) {
             $zip = new \ZipArchive();
             if (empty($path)) {
                 // Create a temporary file for the archive
                 $zipFile = tempnam(sys_get_temp_dir(), 'GHAP');
             } else {
                 $zipFile = $path;
-            }
+            }      
             if ($zipFile && $zip->open($zipFile, \ZipArchive::CREATE) === TRUE) {
                 $metadata = self::generateCollectionMetadata($collection);
                 $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT));
@@ -247,6 +304,60 @@ class ROCrateGenerator
                     $zip->addFromString($directory . '/' . self::getDatasetExportFileName($dataset, 'kml'), $dataset->kml());
                     $zip->addFromString($directory . '/' . self::getDatasetExportFileName($dataset, 'json'), $dataset->json());
                 }
+
+                //Add saved search files to zip
+                // Creating fake request to simulate an internal request to GazetteerController's search function
+                foreach ($collection->savedSearches as $savedSearch) {
+
+                    $directory = self::getSavedSearchDirectoryName($savedSearch);
+                    $zip->addEmptyDir($directory);
+
+                    // TO BE REFACTORED
+                    // The current searching functions are tightly coupled with the search controller. To reuse the search
+                    // functions, it has to create the dummy requests to the controller.
+                    // Ideally, the search functions should be refactored into independent modules which can be resued easily.
+                                     
+                    //Csv
+                    // &format=csvContent parameters returns the content of the csv as string by stream_get_contents()
+                    $url = url("/search" . $savedSearch->query . '&format=csvContent');
+                    parse_str(parse_url($url, PHP_URL_QUERY), $queryParameters);
+                    $fakeRequest = Request::create('/dummy-path', 'GET', $queryParameters);
+                    $res = (new GazetteerController())->search($fakeRequest);
+                    // Check if $res is a response object and extract content
+                    if($res instanceof \Illuminate\Http\Response) {
+                        $content = $res->getContent();
+                    } else {
+                        $content = $res;
+                    }
+                    $zip->addFromString($directory . '/' . self::getSavedSearchExportFileName($savedSearch, 'csv'), $content);
+
+                    //kml
+                    $url = url("/search" . $savedSearch->query . '&format=kml');
+                    parse_str(parse_url($url, PHP_URL_QUERY), $queryParameters);
+                    $fakeRequest = Request::create('/dummy-path', 'GET', $queryParameters);
+                    $res = (new GazetteerController())->search($fakeRequest);
+                    // Check if $res is a response object and extract content
+                    if($res instanceof \Illuminate\Http\Response) {
+                        $content = $res->getContent();
+                    } else {
+                        $content = $res;
+                    }
+                    $zip->addFromString($directory . '/' . self::getSavedSearchExportFileName($savedSearch, 'kml'), $content);
+
+                    //json
+                    $url = url("/search" . $savedSearch->query . '&format=json');
+                    parse_str(parse_url($url, PHP_URL_QUERY), $queryParameters);
+                    $fakeRequest = Request::create('/dummy-path', 'GET', $queryParameters);
+                    $res = (new GazetteerController())->search($fakeRequest);
+                    // Check if $res is a response object and extract content
+                    if($res instanceof \Illuminate\Http\Response) {
+                        $content = $res->getContent();
+                    } else {
+                        $content = $res;
+                    }
+                    $zip->addFromString($directory . '/' . self::getSavedSearchExportFileName($savedSearch, 'json'), $content);
+                }
+
                 $zip->close();
                 return $zipFile;
             }
@@ -340,6 +451,18 @@ class ROCrateGenerator
             $rootEntity->addPart($datasetDataEntity);
             // Add file IDs to list.
             $files = $datasetDataEntity->getParts();
+            foreach ($files as $file) {
+                $fileIDs[] = ['@id' => $file->id()];
+            }
+        }
+
+        // Handling Saved Searches
+        foreach ($collection->savedSearches as $savedSearch) {
+            $directory = self::getSavedSearchDirectoryName($savedSearch);
+            $savedSearchDataEntity = self::createSavedSearchDataEntity($savedSearch, $directory);
+            $rootEntity->addPart($savedSearchDataEntity);
+            // Add file IDs to list.
+            $files = $savedSearchDataEntity->getParts();
             foreach ($files as $file) {
                 $fileIDs[] = ['@id' => $file->id()];
             }
@@ -598,6 +721,17 @@ class ROCrateGenerator
     }
 
     /**
+     * Get the directory name of a saved search.
+     *
+     * @param SavedSearch $savedSearch
+     * @return string
+     */
+    public static function getSavedSearchDirectoryName(SavedSearch $savedSearch)
+    {
+        return "export-saved-search-{$savedSearch->id}";
+    }
+
+    /**
      * Get the export file name of a dataset.
      *
      * @param Dataset $dataset
@@ -608,6 +742,19 @@ class ROCrateGenerator
     public static function getDatasetExportFileName(Dataset $dataset, $extension)
     {
         return "TLCMLayer_{$dataset->id}.{$extension}";
+    }
+
+    /**
+     * Get the export file name of a saved search.
+     *
+     * @param SavedSearch $savedSearch
+     * @param string $extension
+     *   The file extension.
+     * @return string
+     */
+    public static function getSavedSearchExportFileName(SavedSearch $savedSearch, $extension)
+    {
+        return "GHAPSearchResult_{$savedSearch->id}.{$extension}";
     }
 
     /**

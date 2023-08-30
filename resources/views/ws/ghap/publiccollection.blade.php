@@ -95,7 +95,7 @@
         </div>
     </div>
 
-    @if (!empty($datasets))
+    @if (!empty($datasets) || !empty($collection->savedSearches))
         <table id="datasetsTable" class="display" style="width:100%">
             <thead class="w3-black"><tr><th>Name</th><th>Size</th><th>Type</th><th>Content Warning</th><th>Created</th><th>Updated</th><th>View Map</th></tr></thead>
             <tbody>
@@ -124,6 +124,39 @@
                                     <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('layers')}}/{{$ds->id}}/json?sort=start'))">Werekata Flight by Time</a>
                                     @if (!empty(config('app.views_temporal_earth_url')))
                                         <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url('layers')}}/{{$ds->id}}/kml')">Temporal Earth</a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
+
+            @foreach($collection->savedSearches as $ss)
+                <tr id="row_ss_id_{{$ss->id}}">
+                <td><a href="{{url('/search')}}{{$ss->query}}">{{$ss->name}}</a></td>
+                    <td>{{$ss->count}}</td>
+                    <td>Saved search</td>
+                    <td></td>
+                    <td>{{$ss->created_at}}</td>
+                    <td>{{$ss->updated_at}}</td>
+                    <td>
+                        @if (!empty(config('app.views_root_url')))
+                            <!-- Visualise-->
+                            <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    🌏 View Maps...
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json'))">3D Viewer</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json'))">Cluster</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json&line=route'))">Journey Route</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json&line=time'))">Journey Times</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json&sort=start'))">Timeline</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json'))">Werekata Flight by Route</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json&sort=start'))">Werekata Flight by Time</a>
+                                    @if (!empty(config('app.views_temporal_earth_url')))
+                                        <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=kml'))">Temporal Earth</a>
                                     @endif
                                 </div>
                             </div>

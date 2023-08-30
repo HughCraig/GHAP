@@ -45,4 +45,14 @@ class Collection extends Model
     {
         return $this->belongsToMany('TLCMap\Models\SubjectKeyword', 'tlcmap.collection_subject_keyword', 'collection_id', 'subject_keyword_id');
     }
+
+     /**
+     * The saved searches of the collection.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function savedSearches()
+    {
+        return $this->belongsToMany('TLCMap\Models\SavedSearch', 'tlcmap.collection_saved_search', 'collection_id', 'saved_search_id');
+    }
 }

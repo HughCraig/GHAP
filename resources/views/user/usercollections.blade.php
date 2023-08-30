@@ -31,7 +31,7 @@
         @foreach($collections as $collection)
             <tr id="row_id_{{$collection->id}}">
                 <td><a href="{{url()->full()}}/{{$collection->id}}">{{$collection->name}}</a></td>
-                <td>{{count($collection->datasets)}}</td>
+                <td>{{count($collection->datasets) + count($collection->savedSearches)}}</td>
                 <td>{{$collection->ownerUser->name}} (You)</td>
                 <td>
                     @if($collection->public)
