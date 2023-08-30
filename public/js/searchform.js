@@ -1,5 +1,54 @@
 $(document).ready(function () {
 
+    //Layers Autocomplete.
+    var selectedLayers = [];
+
+    function split( val ) {
+        return val.split( /,\s*/ );
+    }
+    function extractLast( term ) {
+        return split( term ).pop();
+    }
+
+    $("#searchlayers").autocomplete({
+        minLength: 0,
+        source: function (request, response) {
+            // Use only the last term for matching
+            var term = extractLast(request.term);
+            var results = $.ui.autocomplete.filter(layers.map(layer => layer.name), term);
+            response(results.slice(0, 15)); // return only 15 results
+        },
+        focus: function () {
+            // prevent value inserted on focus
+            return false;
+        },
+        select: function (event, ui) {
+            var terms = split(this.value);
+            // Remove the current input
+            terms.pop();
+            // Add the selected layer
+            terms.push(ui.item.value);
+            // Add placeholder for the next layer
+            terms.push("");
+            this.value = terms.join(", ");
+            
+            // Find the selected layer by name and add its id to selectedLayers
+            var selectedLayer = layers.find(layer => layer.name === ui.item.value);
+            if (selectedLayer) {
+                selectedLayers.push(selectedLayer.id);
+            }
+
+            $("#selected-layers").val(selectedLayers.join(", "));
+            return false;
+        }
+    });
+
+    $("#searchlayers").on('change', function() {
+        var currentLayerNames = split(this.value).filter(name => name.trim().length > 0);
+        selectedLayers = layers.filter(layer => currentLayerNames.includes(layer.name)).map(layer => layer.id);
+        $("#selected-layers").val(selectedLayers.join(", "));
+    });
+
     //LGA Autocomplete.
     $("#lga").autocomplete({
         source: function (request, response) {
