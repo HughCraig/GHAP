@@ -18,6 +18,11 @@ return [
     */
     'help_video_url' => env('HELP_VIDEO_URL', null),
 
+    # Whether to show help video on first landing
+    # 1: Do not show
+    # 0: show
+    'show_help_video_first_landing' => env('SHOW_HELP_VIDEO_FIRST_LANDING', '0'),
+
     /*
     |--------------------------------------------------------------------------
     | Views root URL
