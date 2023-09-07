@@ -4,7 +4,7 @@ $(document).ready(function () {
     var selectedLayers = [];
 
     function split( val ) {
-        return val.split( /,\s*/ );
+        return val.split( /;\s*/ );
     }
     function extractLast( term ) {
         return split( term ).pop();
@@ -30,7 +30,7 @@ $(document).ready(function () {
             terms.push(ui.item.value);
             // Add placeholder for the next layer
             terms.push("");
-            this.value = terms.join(", ");
+            this.value = terms.join(";");
             
             // Find the selected layer by name and add its id to selectedLayers
             var selectedLayer = layers.find(layer => layer.name === ui.item.value);
@@ -38,7 +38,7 @@ $(document).ready(function () {
                 selectedLayers.push(selectedLayer.id);
             }
 
-            $("#selected-layers").val(selectedLayers.join(", "));
+            $("#selected-layers").val(selectedLayers.join(","));
             return false;
         }
     });
@@ -46,7 +46,7 @@ $(document).ready(function () {
     $("#searchlayers").on('input', function() {
         var currentLayerNames = split(this.value).filter(name => name.trim().length > 0);
         selectedLayers = layers.filter(layer => currentLayerNames.includes(layer.name)).map(layer => layer.id);
-        $("#selected-layers").val(selectedLayers.join(", "));
+        $("#selected-layers").val(selectedLayers.join(","));
     });
 
     //LGA Autocomplete.
