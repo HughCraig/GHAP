@@ -22,7 +22,7 @@ class PasswordChanged extends Mailable
     public function __construct(string $name)
     {
         $this->name = $name;
-        $app_url = env('APP_URL');
+        $app_url = config('app.url');
         $this->url = "{$app_url}/password/reset";
     }
 

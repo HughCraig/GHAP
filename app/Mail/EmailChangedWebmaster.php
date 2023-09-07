@@ -22,7 +22,7 @@ class EmailChangedWebmaster extends Mailable
      */
     public function __construct(string $old_email, string $new_email)
     {
-        $this->webmaster_email = env('WEBMASTER_EMAIL');
+        $this->webmaster_email = config('mail.webmasteremail');
         $this->old_email = $old_email;
         $this->new_email = $new_email;
     }

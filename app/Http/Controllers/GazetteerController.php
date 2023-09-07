@@ -166,8 +166,8 @@ class GazetteerController extends Controller
         $that = $this;
 
         /* ENV VARS */
-        $MAX_PAGING = env('MAX_PAGING', false);     //should move the rest of the direct env calls to be config calls but this will take forever
-        $DEFAULT_PAGING = env('DEFAULT_PAGING', false);
+        $MAX_PAGING = config('app.maxpaging');     //should move the rest of the direct env calls to be config calls but this will take forever
+        $DEFAULT_PAGING = config('app.defaultpaging');
 
         /* PARAMETERS */
         $parameters = $this->getParameters($request->all());
