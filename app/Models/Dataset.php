@@ -52,8 +52,7 @@ class Dataset extends Model
 
     /**
      * Fetch all public layers/datasets along with their IDs
-     * Replace commma in names with ; to avoid conflicts when joining and splitting by comma.
-     * 
+     *
      * @return array
      *   An array of objects with 'id' and 'name' properties.
      */
@@ -64,7 +63,7 @@ class Dataset extends Model
         return $layers->map(function($layer) {
             return (object) [
                 'id' => $layer->id,
-                'name' => str_replace(',', ';', $layer->name)  // replace commas with semi-colons
+                'name' => $layer->name
             ];
         })->all();
     }
