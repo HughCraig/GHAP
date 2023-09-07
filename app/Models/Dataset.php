@@ -478,9 +478,37 @@ class Dataset extends Model
             'features' => $features,
             'display' => $featureCollectionConfig->toArray(),
         );
+      
+        if( count($features) == 0){
+            $dataset->description = null; 
+            $allfeatures['metadata']['warning'] = "0 results found";
+            $dataset->warning = "0 results found";
+            $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
+            $allfeatures['display'] = $featureCollectionConfig->toArray();
+        }
+        
         return json_encode($allfeatures, JSON_PRETTY_PRINT);
     }
 
+    /**
+     * Generate the GeoJSON when visiting a private dataset or non-exist dataset.
+     * show warning message at info block
+     */
+    public static function getRestrictedDatasetGeoJSON(){
+
+        $featureCollectionConfig = new FeatureCollectionConfig();
+        $featureCollectionConfig->setInfoContent(GhapConfig::createRestrictedDatasetInfoBlockContent());
+        $allfeatures = array(
+            'type' => 'FeatureCollection',
+            'metadata' => [
+                'warnnig' => 'This map either does not exist or has been set to "private" and therefore cannot be displayed.'
+            ],
+            'display' => $featureCollectionConfig->toArray(),
+            'features' => [],
+        );
+
+        return json_encode($allfeatures, JSON_PRETTY_PRINT);
+    }
     /**
      * Infill start/end dates for dataitems.
      *
