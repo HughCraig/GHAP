@@ -8,6 +8,7 @@ use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
 use TLCMap\Models\RecordType;
+use Illuminate\Support\Facades\Log;
 
 class Dataset extends Model
 {
@@ -297,7 +298,7 @@ class Dataset extends Model
         $dataset = $this;
         $features = array();  
         $linkback = isset($dataset->linkback) ? $dataset->linkback : null;
-        if ($dataset->public && !isset($dataset->linkback)) {
+        if (!isset($dataset->linkback)) {
             $linkback = url("layers/{$dataset->id}");
         }
         
