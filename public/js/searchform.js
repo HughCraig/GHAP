@@ -10,6 +10,7 @@ $(document).ready(function () {
         return split( term ).pop();
     }
 
+    //layers autocomplete.
     $("#searchlayers").autocomplete({
         minLength: 0,
         source: function (request, response) {
@@ -42,13 +43,36 @@ $(document).ready(function () {
             return false;
         }
     });
-
     $("#searchlayers").on('input', function() {
         var currentLayerNames = split(this.value).filter(name => name.trim().length > 0);
         selectedLayers = layers.filter(layer => currentLayerNames.includes(layer.name)).map(layer => layer.id);
         $("#selected-layers").val(selectedLayers.join(","));
     });
 
+    //feature_term autocomplete.
+    $("#feature_term").autocomplete({
+        minLength: 0,
+        source: function (request, response) {
+            // Use only the last term for matching
+            var term = extractLast(request.term);
+            var results = $.ui.autocomplete.filter(feature_terms, term);
+            response(results.slice(0, 15)); // return only 15 results
+        },
+        focus: function () {
+            // prevent value inserted on focus
+            return false;
+        },
+        select: function (event, ui) {
+            var terms = split(this.value);
+            terms.pop();
+            terms.push(ui.item.value);
+            terms.push("");
+            this.value = terms.join(";");
+            
+            return false;
+        }
+    });
+    
     //LGA Autocomplete.
     $("#lga").autocomplete({
         source: function (request, response) {
@@ -65,15 +89,6 @@ $(document).ready(function () {
         }
     });
     $("#addparish, [name='parish']").autocomplete("option", "appendTo", ".eventInsForm");
-
-    //feature_term autocomplete.
-    $("#feature_term, [name='feature_term']").autocomplete({
-        source: function (request, response) {
-            var results = $.ui.autocomplete.filter(feature_terms, request.term);
-            response(results.slice(0, 15)); //return only 20 results
-        }
-    });
-    $("#addfeatureterm, [name='feature_term']").autocomplete("option", "appendTo", ".eventInsForm");
 
     // Datepickers.
     $('#datefrom').datepicker({
