@@ -2,6 +2,7 @@
 
 namespace TLCMap\Http\Controllers;
 
+use Response;
 use TLCMap\Models\Dataitem;
 use Illuminate\Http\Request;
 
@@ -81,5 +82,56 @@ class DataitemController extends Controller
     public function destroy(Dataitem $di)
     {
         //
+    }
+
+    /**
+     * View a public data item as JSON
+     * Calls private function to generate JSON for a data item
+     * 
+     * @param string $id uid for the data item
+     * @return Response with JSON datatype, or redirect to public layers page if not found
+     */
+    public function viewPublicJSON(string $id)
+    {
+        $dataitem = Dataitem::searchScope()->where('uid', $id)
+            ->first();
+        if (!isset($dataitem)) {
+            return redirect()->route('layers');
+        }
+        return Response::make($dataitem->json(), 200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
+     * View a public data item as CSV
+     * Calls private function to generate CSV for a data item
+     * 
+     * @param string $id uid for the data item
+     * @return Response with CSV datatype, or redirect to public layers page if not found
+     */
+    public function viewPublicCSV(string $id)
+    {
+        $dataitem = Dataitem::searchScope()->where('uid', $id)
+            ->first();
+        if (!isset($dataitem)) {
+            return redirect()->route('layers');
+        }
+        return Response::make($dataitem->csv(), '200', array('Content-Type' => 'text/csv')); 
+    }
+
+    /**
+     * View a public data item as KML
+     * Calls private function to generate KML for a data item
+     * 
+     * @param string $id
+     * @return Response with KML datatype, or redirect to public layers page if not found
+     */
+    public function viewPublicKML(string $id)
+    {
+        $dataitem = Dataitem::searchScope()->where('uid', $id)
+            ->first();
+        if (!isset($dataitem)) {
+            return redirect()->route('layers');
+        }
+        return Response::make($dataitem->kml(), '200', array('Content-Type' => 'text/xml'));
     }
 }

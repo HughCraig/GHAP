@@ -30,6 +30,13 @@ Route::get('maxpagingredirect', 'GazetteerController@maxPagingRedirect')->name('
 Route::post('bulkfileparser', 'GazetteerController@bulkFileParser');
 
 /**
+ * Public dataitem
+ */
+Route::get('places/{id}/json', 'DataitemController@viewPublicJSON')->name('viewplacejson')->middleware('cors');
+Route::get('places/{id}/csv', 'DataitemController@viewPublicCSV')->name('viewplacecsv')->middleware('cors');
+Route::get('places/{id}/kml', 'DataitemController@viewPublicKML')->name('viewplacekml')->middleware('cors');
+
+/**
  * Public dataset pages
  */
 Route::get('publicdatasets/{path?}', function ($path = null) {
