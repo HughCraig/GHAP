@@ -8,6 +8,7 @@ use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
 use TLCMap\Models\RecordType;
+use Illuminate\Support\Facades\Log;
 
 class Dataset extends Model
 {
@@ -416,10 +417,10 @@ class Dataset extends Model
             }
 
 
-            if (!empty($i->latitude)) {
+            if (isset($i->latitude)) {
                 $proppairs["latitude"] = $i->latitude;
             }
-            if (!empty($i->longitude)) {
+            if (isset($i->longitude)) {
                 $proppairs["longitude"] = $i->longitude;
             }
 
