@@ -349,6 +349,106 @@ class GazetteerController extends Controller
                 $query->whereIn('dataset_id', $searchLayerIDs);
             });
         }
+        if (isset($parameters['extended_data'])) {
+            //Extended data
+            $extendedDataQueries = explode('AND', $parameters['extended_data']);
+            foreach ($extendedDataQueries as $extendedDataQuery) {
+
+                // Parse the attribute, condition, and value from each extended data query
+                // Limit : 3
+                $conditionComponents = preg_split("/\s+/", trim($extendedDataQuery), 3);
+                if (count($conditionComponents) !== 3) {
+                    continue;
+                }
+
+                list($attribute, $condition, $value) = $conditionComponents;
+                                
+                // Sanitize attribute
+                if (!preg_match('/^[a-zA-Z0-9_]+$/', $attribute)) {
+                    continue;
+                }
+
+                // Remove posible quotes
+                if ($value[0] === "'" && substr($value, -1) === "'" || $value[0] === '"' && substr($value, -1) === '"') {
+                    $value = substr($value, 1, -1);
+                }
+
+                $xpath_query = "//Data[@name=\"$attribute\"]/value";
+
+                switch (strtolower($condition)) {
+                    case 'textmatch':
+                        //Parameterized Queries
+                        $dataitems->whereNotNull('extended_data')
+                            ->whereRaw('LENGTH(extended_data) > 0')
+                            ->whereRaw("(xpath('string($xpath_query)', extended_data::xml))[1]::text ILIKE ?", ["%$value%"]);
+                        break;
+                    case '>':
+                        if (is_numeric($value)) {
+                            $dataitems->whereNotNull('extended_data')
+                                ->whereRaw('LENGTH(extended_data) > 0')
+                                ->whereRaw("CASE 
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\d+$' 
+                                                    THEN (xpath('string($xpath_query)', extended_data::xml))[1]::text::integer > $value
+                                                    ELSE false
+                                                END");
+                        }
+                        break;
+                    case '<':
+                        if (is_numeric($value)) {
+                            $dataitems->whereNotNull('extended_data')
+                                ->whereRaw('LENGTH(extended_data) > 0')
+                                ->whereRaw("CASE 
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\d+$' 
+                                                    THEN (xpath('string($xpath_query)', extended_data::xml))[1]::text::integer < $value
+                                                    ELSE false
+                                                END");
+                        }
+                        break;
+                    case '=':
+                        //Parameterized Queries
+                        $dataitems->whereNotNull('extended_data')
+                                ->whereRaw('LENGTH(extended_data) > 0')
+                                ->whereRaw("(xpath('string($xpath_query)', extended_data::xml))[1]::text = ?", [$value]);
+                        break;
+                    case 'before':
+                        //Supported date format : yyyy-mm-dd   yyyy-mm   yyyy
+                        if (preg_match('/^(\d{4}-\d{2}-\d{2}|\d{4}-\d{2}|\d{4})$/', $value)) {
+                            $dataitems->whereNotNull('extended_data')
+                                ->whereRaw('LENGTH(extended_data) > 0');
+
+                            $dataitems->whereRaw("
+                                                CASE 
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}-\\\\d{2}-\\\\d{2}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text, 'YYYY-MM-DD') < TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}-\\\\d{2}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text || '-01', 'YYYY-MM-DD') < TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text || '-01-01', 'YYYY-MM-DD') < TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    ELSE false
+                                                END = true");
+                        }
+                        break;
+                    case 'after':
+                        //Supported date format : yyyy-mm-dd   yyyy-mm   yyyy
+                        if (preg_match('/^(\d{4}-\d{2}-\d{2}|\d{4}-\d{2}|\d{4})$/', $value)) {
+                            $dataitems->whereNotNull('extended_data')
+                                ->whereRaw('LENGTH(extended_data) > 0');
+
+                            $dataitems->whereRaw("
+                                                CASE 
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}-\\\\d{2}-\\\\d{2}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text, 'YYYY-MM-DD') > TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}-\\\\d{2}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text || '-01', 'YYYY-MM-DD') > TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text || '-01-01', 'YYYY-MM-DD') > TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    ELSE false
+                                                END = true");
+                        }
+                        break;
+                }
+            }
+        }
         if ($parameters['lga']) $dataitems->where('lga', '=', $parameters['lga']);
         if ($parameters['dataitemid']) $dataitems->where('id', '=', $parameters['dataitemid']);
         if ($parameters['from']) $dataitems->where('id', '>=', $parameters['from']);
@@ -558,6 +658,7 @@ class GazetteerController extends Controller
         $parameters['chunks'] = (isset($parameters['chunks'])) ? $parameters['chunks'] : null;
         $parameters['dataitemid'] = (isset($parameters['dataitemid'])) ? $parameters['dataitemid'] : null;
         $parameters['feature_term'] = (isset($parameters['feature_term'])) ? $parameters['feature_term'] : null;
+        $parameters['extended_data'] = (isset($parameters['extended_data'])) ? $parameters['extended_data'] : null;
         $parameters['source'] = (isset($parameters['source'])) ? $parameters['source'] : null;
         $parameters['searchpublicdatasets'] = (isset($parameters['searchpublicdatasets'])) ? $parameters['searchpublicdatasets'] : null;
         $parameters['searchausgaz'] = (isset($parameters['searchausgaz'])) ? $parameters['searchausgaz'] : null;
