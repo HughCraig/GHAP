@@ -8,6 +8,7 @@ use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
 use TLCMap\Models\RecordType;
+use Illuminate\Support\Facades\Log;
 
 class Dataset extends Model
 {
@@ -295,14 +296,19 @@ class Dataset extends Model
     public function json()
     {
         $dataset = $this;
-        $features = array();
+        $features = array();  
+        $linkback = isset($dataset->linkback) ? $dataset->linkback : null;
+        if (!isset($dataset->linkback)) {
+            $linkback = url("layers/{$dataset->id}");
+        }
+        
         $metadata = array(
             'layerid' => $dataset->id,
             'name' => $dataset->name,
             'description' => $dataset->description,
             'warning' => $dataset->warning,
             'ghap_url' => $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"),
-            'linkback' => $dataset->linkback,
+            'linkback' => $linkback,
         );
 
         // Set the feature collection config.
