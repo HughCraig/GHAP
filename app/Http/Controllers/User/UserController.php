@@ -776,6 +776,9 @@ class UserController extends Controller
                             $datestartindex = array_search('start date', $header);
                         }
                         if ($datestartindex === false) {
+                            $datestartindex = array_search('start_date', $header);
+                        }
+                        if ($datestartindex === false) {
                             $datestartindex = array_search('begin', $header);
                         }
                         if ($dateendindex === false) {
@@ -783,6 +786,9 @@ class UserController extends Controller
                         }
                         if ($dateendindex === false) {
                             $dateendindex = array_search('end date', $header);
+                        }
+                        if ($dateendindex === false) {
+                            $dateendindex = array_search('end_date', $header);
                         }
                         if ($dateendindex === false) {
                             $dateendindex = array_search('end', $header);
