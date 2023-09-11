@@ -154,11 +154,15 @@ class GazetteerController extends Controller
      *  Gets search results from database relevant to search query
      *  Will serve a view or downloadable object to the user depending on parameters set
      */
-    public function search(Request $request, string $id = null)
+    public function search(Request $request, string $id = null , string $format = null)
     {
         if ($request->has('id')) {
-            // Redirect from places/?id={id} to places/{id}.
-            return redirect()->to('/places/' . $request->input('id'));
+            // Single place . Redirect to route places/{id}/{format?}'
+            $redirectUrl = '/places/' . $request->input('id');
+            if ($request->has('format')) {
+                $redirectUrl .= '/' . $request->input('format');
+            }
+            return redirect()->to($redirectUrl);
         }
 
         $starttime = microtime(true);
@@ -173,6 +177,9 @@ class GazetteerController extends Controller
         $parameters = $this->getParameters($request->all());
         if(isset($id)){
             $parameters['id'] = $id;
+        }
+        if(isset($format)){
+            $parameters['format'] = $format;
         }
 
         //app('log')->debug('Time after Parameter Get: ' . (microtime(true) - $starttime)); //DEBUG LOGGING TEST
