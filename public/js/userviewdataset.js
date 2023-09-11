@@ -1,22 +1,22 @@
 $(document).ready( function () {
 
     //LGA autocomplete.
-    $( "#addlga, [name='lga']" ).autocomplete({
+    $( "#editLga" ).autocomplete({
         source: function(request, response) {
             var results = $.ui.autocomplete.filter(lgas, request.term);
             response(results.slice(0, 20)); //return only 20 results
         }
     });
-    $( "#addlga, [name='lga']" ).autocomplete( "option", "appendTo", ".eventInsForm" );
+    $( "#editLga" ).autocomplete( "option", "appendTo", ".eventInsForm" );
 
     //feature_term autocomplete.
-    $( "#addfeatureterm, [name='feature_term']" ).autocomplete({
+    $( "#editFeatureterm" ).autocomplete({
         source: function(request, response) {
             var results = $.ui.autocomplete.filter(feature_terms, request.term);
             response(results.slice(0, 20)); //return only 20 results
         }
     });
-    $( "#addfeatureterm, [name='feature_term']" ).autocomplete( "option", "appendTo", ".eventInsForm" );
+    $( "#editFeatureterm" ).autocomplete( "option", "appendTo", ".eventInsForm" );
 
     // Datepickers.
     $('#editDateStartDiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
