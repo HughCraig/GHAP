@@ -21,7 +21,7 @@ return [
     # Whether to show help video on first landing
     # 1: Show
     # 0: Do not show
-    'show_help_video_first_landing' => env('SHOW_HELP_VIDEO_FIRST_LANDING', '1'),
+    'show_help_video_first_landing' => env('SHOW_HELP_VIDEO_FIRST_LANDING', '0'),
 
     /*
     |--------------------------------------------------------------------------
