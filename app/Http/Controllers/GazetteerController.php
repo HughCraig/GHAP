@@ -354,7 +354,10 @@ class GazetteerController extends Controller
         if ($parameters['from']) $dataitems->where('id', '>=', $parameters['from']);
         if ($parameters['to']) $dataitems->where('id', '<=', $parameters['to']);
         if ($parameters['state']) $dataitems->where('state', '=', $parameters['state']);
-        if ($parameters['feature_term']) $dataitems->where('feature_term', '=', $parameters['feature_term']);
+        if ($parameters['feature_term']){
+            $searchTerms = explode(';', $parameters['feature_term']);
+            $dataitems->wherein('feature_term', $searchTerms);
+        }
 
         if ($bbox) {
             $dataitems->where('latitude', '>=', $bbox['min_lat']);
