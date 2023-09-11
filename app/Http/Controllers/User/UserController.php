@@ -152,7 +152,7 @@ class UserController extends Controller
         //Send notification emails to old, new , and webmaster
         Mail::to($old_email)->send(new EmailChangedOld($old_email, $new_email));
         Mail::to($new_email)->send(new EmailChangedNew($old_email, $new_email));
-        Mail::to(env('WEBMASTER_EMAIL'))->send(new EmailChangedWebmaster($old_email, $new_email));
+        Mail::to(config('mail.webmasteremail'))->send(new EmailChangedWebmaster($old_email, $new_email));
 
         return redirect('myprofile')->with('success', 'Email updated!'); //if input passes validation redirect with success message
     }
