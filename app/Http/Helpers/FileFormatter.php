@@ -267,10 +267,10 @@ class FileFormatter
                 $proppairs["udateend"] = strtotime($unixepochdates) * 1000;
             }
 
-            if (!empty($r->latitude)) {
+            if (isset($r->latitude)) {
                 $proppairs["latitude"] = $r->latitude;
             }
-            if (!empty($r->longitude)) {
+            if (isset($r->longitude)) {
                 $proppairs["longitude"] = $r->longitude;
             }
 

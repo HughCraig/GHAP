@@ -422,10 +422,10 @@ class Dataset extends Model
             }
 
 
-            if (!empty($i->latitude)) {
+            if (isset($i->latitude)) {
                 $proppairs["latitude"] = $i->latitude;
             }
-            if (!empty($i->longitude)) {
+            if (isset($i->longitude)) {
                 $proppairs["longitude"] = $i->longitude;
             }
 
