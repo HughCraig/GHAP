@@ -125,7 +125,7 @@ $(document).ready(function () {
     }
 
     // Check whether the help video is loaded.
-    if ($('#helpVideoModal').length > 0) {
+    if ($('#helpVideoModal').length > 0 && (show_help_video_first_landing === '1')) {
         // Show help video at the first time visit.
         const helpVideoPlayed = Cookies.get('helpVideoPlayed');
         if (!helpVideoPlayed) {

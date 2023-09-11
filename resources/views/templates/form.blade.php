@@ -10,6 +10,7 @@
         var parishes = {!! $parishes !!};
         var feature_terms = {!! $feature_terms !!};
         var layers = {!! $layers !!};
+        var show_help_video_first_landing = "{{ config('app.show_help_video_first_landing') }}"
     </script>
     <!-- js-cookie library for cookie usages -->
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
