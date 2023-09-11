@@ -64,7 +64,7 @@
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                 @if (!empty(config('app.views_root_url')))
                                     <a class="dropdown-item grab-hover"
-                                       onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/places/' . $line->uid . '/json') }}`)">
+                                       onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(config('app.url'). '/places/' . $line->uid . '/json') }}`)">
                                         3D Viewer
                                     </a>
                                 @endif

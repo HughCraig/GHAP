@@ -176,9 +176,9 @@ class FileFormatter
             $datestart = (isset($r->datestart)) ? $r->datestart : '';
             $dateend = (isset($r->dateend)) ? $r->dateend : '';
             $external_url = (isset($r->external_url)) ? $r->external_url : '';
-            $ghap_url = env('APP_URL');
+            $ghap_url = config('app.url');
             $ghap_url .= (isset($r->uid)) ? "/search?id=" . $r->uid : '';
-            $layerlink = env('APP_URL');
+            $layerlink = config('app.url');
             $layerlink .= (isset($r->dataset_id)) ? ("/publicdatasets/" . $r->dataset_id) : '';
             fputcsv($file, array($id, $title, $r->placename, $state, $r->lga, $r->parish, $r->feature_term, $r->latitude, $r->longitude, $source, $r->flag, $r->description, $datestart, $dateend, $external_url, $ghap_url, $layerlink));
         }
@@ -285,7 +285,7 @@ class FileFormatter
                 $featureConfig->addLink("TLCMap Record: {$r->uid}", $proppairs["TLCMapLinkBack"]);
             }
 
-            $dataset_url = env('APP_URL');
+            $dataset_url = config('app.url');
             if (isset($r->dataset_id)) {
                 $proppairs["TLCMapDataset"] = url("publicdatasets/" . $r->dataset_id);
             } else {
@@ -373,11 +373,11 @@ class FileFormatter
             $ed = $place->appendChild($dom->createElement('ExtendedData'));
 
             //HTML table for ED data - we reuse this for the ghap_url element
-            $linkToItem = env('APP_URL');
+            $linkToItem = config('app.url');
             $linkToItem .= ($r->uid) ? "/search?id=" . $r->uid : '';
             $ed_table = "<br><br><table class='tlcmap'><tr><th>TLCMap</th><td><a href='{$linkToItem}'>{$linkToItem}</a></td></tr>";
 
-            $linkToLayer = env('APP_URL');
+            $linkToLayer = config('app.url');
             $linkToLayer .= ($r->dataset_id) ? "/publicdatasets/" . $r->dataset_id : '';
             $ed_table .= "<tr><th>TLCMap Layer</th><td><a href='{$linkToLayer}'>{$linkToLayer}</a></td></tr>";
 
