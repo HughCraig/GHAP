@@ -138,6 +138,14 @@
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">
+                            <div class="col-sm-6" data-toggle="tooltip">
+                                Extended Data:
+                            </div>
+                            <div class="col-sm-6">
+                                <input type="text" class="w3-white form-control" name="extended_data" id="extended_data" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="row align-items-center my-auto">
                             <div class="col-sm-6">From ID:</div>
                             <div class="col-sm-6">
                                 <input type="text" class="smallerinputs w3-white form-control" id="from" name="from">

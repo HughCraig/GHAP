@@ -557,7 +557,7 @@ class UserController extends Controller
                 foreach ($extendeddata as $ed) {
                     if (isset($arr[$i][$ed]) && $arr[$i][$ed] !== '') {
                         $extdata = $extdata .
-                            '<Data name="' . $ed . '"><value><![CDATA[' . $arr[$i][$ed] . ']]></value></Data>';
+                            '<Data name="' . trim($ed) . '"><value><![CDATA[' . trim($arr[$i][$ed]) . ']]></value></Data>';
                     }
                 }
                 if (!empty($extdata)) {
