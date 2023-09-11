@@ -481,8 +481,8 @@ class Dataset extends Model
       
         if( count($features) == 0){
             $dataset->description = null; 
-            $allfeatures['metadata']['warning'] = "0 results found";
-            $dataset->warning = "0 results found";
+            $dataset->warning .= "<p>0 results found</p>";
+            $allfeatures['metadata']['warning'] =  $dataset->warning ;
             $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
             $allfeatures['display'] = $featureCollectionConfig->toArray();
         }

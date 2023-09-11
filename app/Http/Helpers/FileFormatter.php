@@ -308,12 +308,8 @@ class FileFormatter
                 'display' => $featureConfig->toArray(),
             );
 
-
         }
-        if (!isset($metadata)) {
-            return "No search results to display.";
-        }
-
+    
         if (isset($parameters) && isset($parameters['line'])) {
 
             $linecoords = array();
@@ -335,10 +331,18 @@ class FileFormatter
 
         $allfeatures = array(
             'type' => 'FeatureCollection',
-            'metadata' => $metadata,
+            'metadata' => isset($metadata) ? $metadata : null,
             'features' => $features,
             'display' => $featureCollectionConfig->toArray()
         );
+
+        if (!isset($metadata)) {
+            $allfeatures['metadata']['warning'] = "<p>0 results found</p>";
+            $content = '<div class="warning-message"><strong>Warning</strong><br><p>0 results found</p></div>';
+            $featureCollectionConfig->setInfoContent($content);
+            $allfeatures['display'] = $featureCollectionConfig->toArray();
+        }
+
         return json_encode($allfeatures, JSON_PRETTY_PRINT);
     }
 
