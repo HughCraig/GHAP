@@ -125,7 +125,7 @@ class CollectionController extends Controller
         if(count($data['datasets']) == 0){
             $collection->description = null; 
             $collection->warning .= "<p>0 results found</p>";
-            $data['metadata']['warning'] =  $collection->warning ;
+            $data['metadata']['warning'] .=  "<p>0 results found</p>";
             $collectionConfig->setInfoContent(GhapConfig::createCollectionInfoBlockContent($collection));
             $data['display'] = $collectionConfig->toArray();
         }
