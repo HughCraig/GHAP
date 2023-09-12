@@ -22,6 +22,11 @@
 
                 <a href="{{route('index')}}#advancedsearch" class="btn btn-secondary tlcmgreen" role="button" id="advancedsearch" title="Search within an area, exact or fuzzy matching and filter by attributes.">Advanced Search</a>
 
+                <!-- Adjust for route places/{id}/{format?} -->
+                @php
+                    $url = url()->full();
+                    $separator = (parse_url($url, PHP_URL_QUERY) == NULL) ? '?' : '&';
+                @endphp
 
                 <!-- Export/Download -->
                 <div class="dropdown">
@@ -29,10 +34,10 @@
                         Download
                     </button>
                     <div class="dropdown-menu" aria-labelledby="downloadDropdown">
-                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=kml&download=on">KML</a>
-                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=csv&download=on">CSV</a>
-                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=json&download=on">GeoJSON</a>
-                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=rocrate&download=on">RO-Crate</a>
+                        <a class="dropdown-item grab-hover" href="{{ $url . $separator }}format=kml&download=on">KML</a>
+                        <a class="dropdown-item grab-hover" href="{{ $url . $separator }}format=csv&download=on">CSV</a>
+                        <a class="dropdown-item grab-hover" href="{{ $url . $separator }}format=json&download=on">GeoJSON</a>
+                        <a class="dropdown-item grab-hover" href="{{ $url . $separator }}format=rocrate&download=on">RO-Crate</a>
                     </div>
                 </div>
 
@@ -42,9 +47,9 @@
                         WS Feed
                     </button>
                     <div class="dropdown-menu" aria-labelledby="wsfeedDropdown">
-                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=kml">KML</a>
-                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=csv">CSV</a>
-                        <a class="dropdown-item grab-hover" href="{{url()->full()}}&format=json">GeoJSON</a>
+                        <a class="dropdown-item grab-hover" href="{{ $url . $separator }}format=kml">KML</a>
+                        <a class="dropdown-item grab-hover" href="{{ $url . $separator }}format=csv">CSV</a>
+                        <a class="dropdown-item grab-hover" href="{{ $url . $separator }}format=json">GeoJSON</a>
                     </div>
                 </div>
 

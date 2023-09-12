@@ -154,7 +154,7 @@ class GazetteerController extends Controller
      *  Gets search results from database relevant to search query
      *  Will serve a view or downloadable object to the user depending on parameters set
      */
-    public function search(Request $request, string $id = null , string $format = null)
+    public function search(Request $request, string $uid = null , string $format = null)
     {
         if ($request->has('id')) {
             // Single place . Redirect to route places/{id}/{format?}'
@@ -162,6 +162,18 @@ class GazetteerController extends Controller
             if ($request->has('format')) {
                 $redirectUrl .= '/' . $request->input('format');
             }
+            return redirect()->to($redirectUrl);
+        }
+
+        if (isset($uid) && $request->has('format')) {
+            //Redirect to route places/{uid}/{format?}
+            $redirectUrl = '/places/' . $uid   . '/' . $request->input('format');
+           
+            //Redirect to route places/{uid}/{format}?download=on
+            if ($request->has('download') && $request->input('download') === 'on') {
+                $redirectUrl .= '?download=on';
+            }
+
             return redirect()->to($redirectUrl);
         }
 
@@ -175,8 +187,8 @@ class GazetteerController extends Controller
 
         /* PARAMETERS */
         $parameters = $this->getParameters($request->all());
-        if(isset($id)){
-            $parameters['id'] = $id;
+        if(isset($uid)){
+            $parameters['id'] = $uid;
         }
         if(isset($format)){
             $parameters['format'] = $format;
