@@ -123,11 +123,8 @@ class CollectionController extends Controller
         }
 
         if(count($data['datasets']) == 0){
-            $collection->description = null; 
-            $collection->warning .= "<p>0 results found</p>";
             $data['metadata']['warning'] .=  "<p>0 results found</p>";
-            $collectionConfig->setInfoContent(GhapConfig::createCollectionInfoBlockContent($collection));
-            $data['display'] = $collectionConfig->toArray();
+            $data['display']['info']['content'] .= "<div class=\"warning-message\"><p>0 results found</p></div>";
         }
 
         return response()->json($data);
