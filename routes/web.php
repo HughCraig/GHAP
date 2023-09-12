@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 */
 
 $baseAuthMiddlewares = ['auth'];
-if (config('auth.check_verified')) {
+if (config('auth.new_account_email_verification')) {
     $baseAuthMiddlewares[] = 'verified';
 }
 

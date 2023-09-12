@@ -20,9 +20,9 @@ return [
 
 
     # Whether to check email verification for new users.
-    # 1: check
-    # 0: Do not check
-    'check_verified' => env('CHECK_VERIFIED', 0),
+    # 1: enable
+    # 0: disable
+    'new_account_email_verification' => env('NEW_ACCOUNT_EMAIL_VERIFICATION', 0),
 
     /*
     |--------------------------------------------------------------------------
