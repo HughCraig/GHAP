@@ -83,6 +83,21 @@ class GhapConfig
     }
 
     /**
+     * Create the content of the info block for a visiting an private layer.
+     *
+     * @return string
+     *   The HTML content.
+     */
+    public static function createRestrictedDatasetInfoBlockContent()
+    {
+        $content = '';
+        $content .= '<div class="warning-message"><strong>Warning</strong><br>This map either does not exist or has been set to "private" and therefore cannot be displayed.</div>';    
+        $content .= '<p><a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Help</a> | <a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Share</a></p>';
+        return $content;
+    }
+
+
+    /**
      * Create the content of the info block for a collection.
      *
      * @param Collection $collection

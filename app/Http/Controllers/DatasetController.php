@@ -83,7 +83,7 @@ class DatasetController extends Controller
         $dataset = Dataset::with(['dataitems' => function ($query) {
             $query->orderBy('id');
         }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
-        if (!$dataset) return redirect()->route('layers'); //redirect if not found (invalid id or not public)
+        if (!$dataset) return Response::make(Dataset::getRestrictedDatasetGeoJSON(), '200', array('Content-Type' => 'application/json'));
         return Response::make($dataset->json(), '200', array('Content-Type' => 'application/json')); //generate the json response
     }
 

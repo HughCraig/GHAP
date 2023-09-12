@@ -14,6 +14,7 @@ use TLCMap\ROCrate\ROCrateGenerator;
 use TLCMap\ViewConfig\CollectionConfig;
 use TLCMap\ViewConfig\DatasetConfig;
 use TLCMap\ViewConfig\GhapConfig;
+use Response;
 
 class CollectionController extends Controller
 {
@@ -71,8 +72,7 @@ class CollectionController extends Controller
             'public' => true,
         ])->first();
         if (!$collection) {
-            // If the collection is not found or private, return 404.
-            abort(404);
+            return Response::make(Collection::getRestrictedCollectionGeoJSON(), '200', array('Content-Type' => 'application/json'));
         }
         $result = $collection->toArray();
         $result['url'] = url("publiccollections/{$collection->id}");
@@ -121,6 +121,12 @@ class CollectionController extends Controller
                 ];
             }
         }
+
+        if(count($data['datasets']) == 0){
+            $data['metadata']['warning'] .=  "<p>0 results found</p>";
+            $data['display']['info']['content'] .= "<div class=\"warning-message\"><p>0 results found</p></div>";
+        }
+
         return response()->json($data);
     }
 
