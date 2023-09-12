@@ -18,6 +18,12 @@ return [
         'passwords' => 'users',
     ],
 
+
+    # Whether to check email verification for new users.
+    # 1: check
+    # 0: Do not check
+    'check_verified' => env('CHECK_VERIFIED', 0),
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Guards
