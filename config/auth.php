@@ -18,6 +18,12 @@ return [
         'passwords' => 'users',
     ],
 
+
+    # Whether to check email verification for new users.
+    # 1: enable
+    # 0: disable
+    'new_account_email_verification' => env('NEW_ACCOUNT_EMAIL_VERIFICATION', 0),
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Guards

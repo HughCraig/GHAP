@@ -11,6 +11,12 @@ use Illuminate\Http\Request;
 |
 */
 
+$baseAuthMiddlewares = ['auth'];
+if (config('auth.new_account_email_verification')) {
+    $baseAuthMiddlewares[] = 'verified';
+}
+
+
 /**
  * Home and search pages
  */
@@ -59,7 +65,7 @@ Route::get('multilayers/{id}/ro-crate', 'CollectionController@downloadPublicROCr
 /**
  * User Pages.
  */
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile', 'User\UserController@userProfile')->name('myProfile');
     Route::get('myprofile/mydatasets', 'User\UserController@userDatasets')->name('myDatasets'); //Only let users view own dataset
     Route::get('myprofile/mysearches', 'User\UserController@userSavedSearches')->name('mySearches');
@@ -88,7 +94,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 /**
  * User collection CRUD pages
  */
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mycollections', 'CollectionController@viewMyCollections');
     Route::get('myprofile/mycollections/newcollection', 'CollectionController@newCollection');
     Route::post('myprofile/mycollections/newcollection/create', 'CollectionController@createNewCollection');
@@ -115,7 +121,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
  */
 Route::post('ajaxbbox', 'AjaxController@ajaxbbox'); //Does not need to be logged in
 
-Route::middleware(['auth', 'verified'])->group(function () { //must be logged in for these
+Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in for these
     Route::post('ajaxsavesearch', 'AjaxController@ajaxsavesearch');
     Route::post('ajaxsubsearch', 'AjaxController@ajaxsubsearch');
     Route::post('ajaxdeletesearch', 'AjaxController@ajaxdeletesearch');
