@@ -34,11 +34,14 @@ class ROCrateGenerator
         }
         if ($zipFile && $zip->open($zipFile, \ZipArchive::CREATE) === TRUE) {
             $metadata = self::generateDatasetMetadata($dataset);
-            $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT));
+            $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             $zip->addFromString('ro-crate-preview.html', self::generateDatasetHtml($metadata));
             $zip->addFromString(self::getDatasetExportFileName($dataset, 'csv'), $dataset->csv());
             $zip->addFromString(self::getDatasetExportFileName($dataset, 'kml'), $dataset->kml());
-            $zip->addFromString(self::getDatasetExportFileName($dataset, 'json'), $dataset->json());
+
+            //Remove escape slashes from GeoJSON
+            $formattedGeoJSON = json_encode( json_decode($dataset->json()) , JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);  
+            $zip->addFromString(self::getSearchExportFileName('json'), $formattedGeoJSON);
             $zip->close();
             return $zipFile;
         }
@@ -294,7 +297,7 @@ class ROCrateGenerator
             }      
             if ($zipFile && $zip->open($zipFile, \ZipArchive::CREATE) === TRUE) {
                 $metadata = self::generateCollectionMetadata($collection);
-                $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT));
+                $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
                 $zip->addFromString('ro-crate-preview.html', self::generateCollectionHtml($metadata));
 
                 foreach ($collection->datasets as $dataset) {
@@ -302,7 +305,10 @@ class ROCrateGenerator
                     $zip->addEmptyDir($directory);
                     $zip->addFromString($directory . '/' . self::getDatasetExportFileName($dataset, 'csv'), $dataset->csv());
                     $zip->addFromString($directory . '/' . self::getDatasetExportFileName($dataset, 'kml'), $dataset->kml());
-                    $zip->addFromString($directory . '/' . self::getDatasetExportFileName($dataset, 'json'), $dataset->json());
+
+                    //Remove escape slashes from GeoJSON
+                    $formattedGeoJSON = json_encode( json_decode($dataset->json()) , JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);  
+                    $zip->addFromString($directory . '/' . self::getDatasetExportFileName($dataset, 'json'), $formattedGeoJSON );
                 }
 
                 //Add saved search files to zip
@@ -351,7 +357,7 @@ class ROCrateGenerator
                     $res = (new GazetteerController())->search($fakeRequest);
                     // Check if $res is a response object and extract content
                     if($res instanceof \Illuminate\Http\Response) {
-                        $content = $res->getContent();
+                        $content = json_encode(json_decode($res->getContent()),JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ;
                     } else {
                         $content = $res;
                     }
@@ -515,11 +521,14 @@ class ROCrateGenerator
         }
         if ($zipFile && $zip->open($zipFile, \ZipArchive::CREATE) === TRUE) {
             $metadata = self::generateSearchMetadata($parameters);
-            $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT));
+            $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             $zip->addFromString('ro-crate-preview.html', self::generateSearchHtml($metadata));
             $zip->addFromString(self::getSearchExportFileName('csv'), FileFormatter::toCSVContent($results));
             $zip->addFromString(self::getSearchExportFileName('kml'), FileFormatter::toKML2($results, $parameters));
-            $zip->addFromString(self::getSearchExportFileName('json'), FileFormatter::toGeoJSON($results));
+
+            //Remove escape slashes from GeoJSON
+            $formattedGeoJSON = json_encode( json_decode(FileFormatter::toGeoJSON($results)) , JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);  
+            $zip->addFromString(self::getSearchExportFileName('json'), $formattedGeoJSON);
             $zip->close();
             return $zipFile;
         }
@@ -629,7 +638,7 @@ class ROCrateGenerator
         if ($zipFile && $zip->open($zipFile, \ZipArchive::CREATE) === TRUE) {
             $timestamp = date("YmdHis");
             $metadata = self::generateGHAPMetadata($timestamp);
-            $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT));
+            $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             // Add the database dump.
             $dumpFile = self::createGHAPDatabaseDump(null, $pgdump);
             if ($dumpFile) {
