@@ -14,6 +14,7 @@ class ExportGhapRocrate extends Command
      */
     protected $signature = 'export:rocrate:ghap
                             {--dir= : The path of the target directory to hold the RO-Crate archive. Default to the current directory}
+                            {--name= : The file name of the RO-Crate archive. If not provided, a default name (timestamped) will be used}
                             {--pgdump=pg_dump : The path of "pg_dump" utility. Default to "pg_dump" as it is in the system path}';
 
     /**
@@ -50,8 +51,14 @@ class ExportGhapRocrate extends Command
                 $directory = substr($directory, 0, strlen($directory) - 1);
             }
         }
-        $timestamp = date("YmdHis");
-        $filePath = $directory . DIRECTORY_SEPARATOR . 'ghap-ro-crate-' . $timestamp . '.zip';
+        if (empty($this->option('name'))) {
+            $timestamp = date("YmdHis");
+            $filename = 'ghap-ro-crate-' . $timestamp . '.zip';
+        } else {
+            $filename = $this->option('name');
+        }
+
+        $filePath = $directory . DIRECTORY_SEPARATOR . $filename;
         try {
             $crate = ROCrateGenerator::generateGHAPCrate($filePath, $this->option('pgdump'));
             $this->info("RO-Crate has been created at {$crate}");
