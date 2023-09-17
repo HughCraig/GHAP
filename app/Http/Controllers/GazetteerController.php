@@ -371,27 +371,37 @@ class GazetteerController extends Controller
         if (isset($parameters['extended_data'])) {
             //Extended data
             $extendedDataQueries = explode('AND', $parameters['extended_data']);
+           
+            // List of allowed conditions
+            $allowed_conditions = ['textmatch', '>', '<', '=', 'before', 'after'];
+            $pattern = '/\s(' . implode('|', array_map('preg_quote', $allowed_conditions)) . ')\s/';
+
             foreach ($extendedDataQueries as $extendedDataQuery) {
 
-                // Parse the attribute, condition, and value from each extended data query
-                // Limit : 3
-                $conditionComponents = preg_split("/\s+/", trim($extendedDataQuery), 3);
-                if (count($conditionComponents) !== 3) {
+                $attribute = '';
+                $condition = '';
+                $value = '';
+
+                if (preg_match($pattern, $extendedDataQuery, $matches)) {
+                    $condition = trim($matches[1]);
+
+                    $parts = preg_split($pattern, $extendedDataQuery);
+
+                    if ( count($parts) === 2) {
+                        // Trim and remove quotes 
+                        $attribute = trim($parts[0], " '\"");
+                        $value = trim($parts[1], " '\"");
+                    } else {
+                        continue;
+                    }
+                } else {
                     continue;
                 }
 
-                list($attribute, $condition, $value) = $conditionComponents;
-                                
-                // Sanitize attribute
-                if (!preg_match('/^[a-zA-Z0-9_]+$/', $attribute)) {
+                //Sanitize attribute
+                if (!preg_match('/^[\w\s]+$/', $attribute)) {
                     continue;
                 }
-
-                // Remove posible quotes
-                if ($value[0] === "'" && substr($value, -1) === "'" || $value[0] === '"' && substr($value, -1) === '"') {
-                    $value = substr($value, 1, -1);
-                }
-
                 $xpath_query = "//Data[@name=\"$attribute\"]/value";
 
                 switch (strtolower($condition)) {
