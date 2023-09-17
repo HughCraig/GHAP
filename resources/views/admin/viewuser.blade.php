@@ -19,6 +19,7 @@
                 <select name="selectRole" id="selectRole" data-role="{{ $user->roles[0]['name'] }}">
                     <option value="REGULAR">REGULAR</option>
                     <option value="ADMIN">ADMIN</option>
+                    <option value="LOCKED">LOCKED</option>
                 </select>
                 <button type="submit">Update Role</button>
             </form>

@@ -7,6 +7,7 @@ use TLCMap\Models\Role;
 use TLCMap\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -67,5 +68,37 @@ class AdminController extends Controller
         }
         //Dont save user table, as we actually edited the user_roles pivot table
         return redirect('admin/users/' . $user->id . ''); //redirect to the page we were just on
+    }
+
+    public function deleteUser(Request $request)
+    {
+        $request->user()->authorizeRoles(['SUPER_ADMIN']);
+        $userId = $request->input('id');
+
+        $user = User::find($userId);
+
+        if (!$user) {
+            return redirect('admin/users'); 
+        }
+
+        // Delete datasets and dataitems
+        foreach ($user->datasets as $ds) {
+            $ds->users()->detach();
+            $ds->delete();
+        }
+
+        // Delete collections
+        foreach ($user->collections as $col) {
+            $col->subjectKeywords()->detach();
+            $col->datasets()->detach();
+            $col->delete();
+        }
+
+        // Delete role
+        $user->roles()->detach(); 
+
+        // Delete user
+        $user->delete();
+        return response()->json();
     }
 }
