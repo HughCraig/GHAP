@@ -28,7 +28,7 @@ Route::get('about', 'HomeController@aboutPage')->name('about');
 Route::post('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->name('searchFromKmlPolygon'); //search from file
 Route::get('search/{path?}', function (Request $request, $path = null) {
     return redirect()->to('/places/' . $path . '?' . $request->getQueryString());
-});
+})->middleware('checkmaxpaging', 'cors');
 Route::get('places', 'GazetteerController@search')->name('places')->middleware('checkmaxpaging', 'cors'); 
 Route::get('places/{id}/{format?}', 'GazetteerController@search')->name('places')->middleware('cors');  //shows places with id and optional format
 Route::get('maxpaging', 'GazetteerController@maxPagingMessage')->name('maxPagingMessage');
