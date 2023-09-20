@@ -15,7 +15,7 @@ return [
 
     'password' => 'Passwords must be at least eight characters and match the confirmation.',
     'reset' => 'Your password has been reset!',
-    'sent' => 'We have e-mailed your password reset link!',
+    'sent' => 'We have e-mailed your password reset link!  ' . PHP_EOL . PHP_EOL . ' If you do not see the message, please check your "spam", "junk" or "deleted" folder. If you did not receive the message, try adding access@tlcmap.org to your email "white list".' . PHP_EOL . ' If you still do not get the message please contact tlcmap@newcastle.edu.au"',
     'token' => 'This password reset token is invalid.',
     'user' => "We can't find a user with that e-mail address.",
 

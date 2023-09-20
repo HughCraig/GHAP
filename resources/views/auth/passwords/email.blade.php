@@ -10,7 +10,7 @@
                 <div class="card-body">
                     @if (session('status'))
                         <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
+                            {!! nl2br(e(session('status'))) !!}
                         </div>
                     @endif
 
