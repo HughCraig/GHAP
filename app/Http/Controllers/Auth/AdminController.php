@@ -8,6 +8,10 @@ use TLCMap\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
+use TLCMap\Mail\PasswordChanged;
 
 class AdminController extends Controller
 {
@@ -68,6 +72,46 @@ class AdminController extends Controller
         }
         //Dont save user table, as we actually edited the user_roles pivot table
         return redirect('admin/users/' . $user->id . ''); //redirect to the page we were just on
+    }
+
+    public function resetUserPassword(Request $request)
+    {
+
+        $request->user()->authorizeRoles(['SUPER_ADMIN']);
+
+        $id = $request->input('id');
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json('User not found.', 404); 
+        }
+
+        $notin = array_merge(explode(' ', strtolower($user->name)), explode('@', strtolower($user->email))); //cannot match username, or any part of the email address
+        $rules = [ //rules for the validator
+            'password' => [
+                'required', 'string', 'min:8', 'max:16', 'confirmed', //10+ chars, must match the password-confirm box
+                'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/', //must contain 1 of each: lowercase uppercase number and special character
+                'not_regex:/(.)\1{4,}/', //must not contain any repeating char 4 or more times
+                function ($attribute, $value, $fail) use ($notin) {
+                    $v = strtolower($value);
+                    foreach ($notin as $n) {
+                        if (strpos($v, $n) !== false) $fail('Password cannot contain any part of user name or email!');
+                    }
+                }
+            ],
+        ];
+
+        $validator = Validator::make($request->all(), $rules); 
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422); 
+        }
+        
+        $user->update(['password' => Hash::make($request->input('password'))]);
+
+        Mail::to($user->email)->send(new PasswordChanged($user->name));
+
+        return response()->json('Password updated',200);
     }
 
     public function deleteUser(Request $request)

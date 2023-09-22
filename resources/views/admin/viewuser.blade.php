@@ -1,11 +1,18 @@
 @extends('templates.layout')
 
 @push('scripts')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+        <script>
+            url = "{{ url()->full() }}";
+            userId = "{{ $user->id }}";
+        </script>
+
     <script src="{{ asset('js/viewuser.js') }}"></script>
 @endpush
 
 @section('content')
     <h2>User Management</h2>
+    <div class="alert alert-success mb-1" style="display: none;"></div>
     <a href="{{ url('/admin/users') }}" class="mb-3 btn btn-primary">Back</a><br>
     <table class="table table-striped">
         <tr><td>Email</td><td>{{ $user->email }}</td><td></td></tr>
@@ -42,5 +49,24 @@
                 @endif 
             </form>
         </tr>
+
+        @if($user->roles[0]['name'] != 'SUPER_ADMIN')
+        <tr>
+            <td>Reset Password</td>
+            <td>
+                <label for="password">New Password</label>
+                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autofocus>
+                <span class="invalid-feedback" role="alert">
+                    <strong></strong>
+                </span>
+
+                <label for="password-confirm">Confirm New Password</label>
+                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autofocus>
+            </td>
+            <td>
+                <button id="reset_user_password">Reset Password</button>
+            </td>
+        </tr>
+        @endif
     </table>
 @endsection
