@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
+use TLCMap\Models\Dataset;
 use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
@@ -276,6 +277,9 @@ class FileFormatter
 
             if (!empty($r->external_url)) {
                 $proppairs["linkback"] = $r->external_url;
+            }else if(!empty($r->dataset_id)){
+                $dataset = Dataset::find($r->dataset_id);
+                $proppairs["linkback"] = $dataset->linkback ?? url("layers/{$dataset->id}");
             }
 
             if (!empty($r->uid)) {
