@@ -50,6 +50,21 @@
             </form>
         </tr>
 
+        <tr>
+            <td>Verified</td>
+            <form method="POST" action="{{ url()->full() }}/setEmailAsVerified">
+                @csrf
+                @if($user->email_verified_at != null)
+                    <td class="text-success">Email has been verified</td>
+                @else
+                    <td class="text-danger">Email has not been verified</td>
+                    @if($user->roles[0]['name'] !== 'SUPER_ADMIN')
+                    <td><button type="Submit">Set To Verified</button></td>
+                    @endif
+                @endif 
+            </form>
+        </tr>
+
         @if($user->roles[0]['name'] != 'SUPER_ADMIN')
         <tr>
             <td>Reset Password</td>

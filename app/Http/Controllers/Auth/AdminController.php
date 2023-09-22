@@ -56,6 +56,22 @@ class AdminController extends Controller
         return redirect('admin/users/' . $user->id . ''); //redirect to the page we were just on
     }
 
+    public function setEmailAsVerified(Request $request, string $id = null)
+    {
+        $request->user()->authorizeRoles(['SUPER_ADMIN']);
+        $user = User::find($id); 
+        if (!$user) {
+            return response()->json('User not found.', 404); 
+        }
+
+        if ($user->email_verified_at === null) {
+            $user->email_verified_at = now();
+            $user->save(); //save Model to DB
+        }
+
+        return redirect('admin/users/' . $user->id . ''); 
+    }
+
     public function updateUserRole(Request $request, string $id = null)
     {
         $request->user()->authorizeRoles(['SUPER_ADMIN']);
