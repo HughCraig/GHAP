@@ -9,7 +9,10 @@ class SavedSearch extends Model
     protected $table = "tlcmap.saved_search";
 
     protected $fillable = [
-        'id', 'user_id', 'query', 'count', 'name'
+        'id', 'user_id', 'query', 'count', 'name', 
+        'description', 'recordtype_id', 'warning', 
+        'latitude_from', 'longitude_from', 'latitude_to', 'longitude_to', 
+        'temporal_from', 'temporal_to'
     ];
 
     public function collections()
@@ -26,4 +29,15 @@ class SavedSearch extends Model
     {
         return $this->user ? $this->user->name : '';
     }
+
+    public function recordtype()
+    {
+        return $this->belongsTo('TLCMap\Models\RecordType', 'recordtype_id');
+    }
+
+    public function subjectkeywords()
+    {
+        return $this->belongsToMany('TLCMap\Models\SubjectKeyword', 'tlcmap.savedsearch_subjectkeyword', 'saved_search_id', 'subject_keyword_id');
+    }
+
 }

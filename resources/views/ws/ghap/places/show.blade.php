@@ -1,13 +1,7 @@
 @extends('templates.layout')
 
 @push('scripts')
-    <script>
-        //Put the relative URL of our ajax functions into global vars for use in external .js files
-        var ajaxsavesearch = "{{url('ajaxsavesearch')}}";
-    </script>
-    <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('/js/subsearch.js') }}"></script>
-    <script src="{{ asset('/js/savesearch.js') }}"></script>
 @endpush
 
 @section('content')
