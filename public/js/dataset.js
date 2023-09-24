@@ -9,7 +9,7 @@ $(document).ready( function () {
         bRetrieve: true,
         aaSorting: [[ 0, "asc" ]],
         aoColumnDefs: [
-            { "aTargets": [ 7,8 ], "bSortable": false, "bSearchable": false },
+            { "aTargets": [ 6 ], "bSortable": false, "bSearchable": false },
         ],
         "pageLength": 25
     });
@@ -88,12 +88,10 @@ $(document).ready( function () {
                 var newrow = $('#datasettable').DataTable().row.add([
                     '<a href="' + result.url + '/' + result.dataset.id + '">' + result.dataset.name + '</a>',
                     result.count,
-                    result.owner,
                     result.dsrole,
                     'PRIVATE',
                     result.dataset.created_at,
                     result.dataset.updated_at,
-                    '<button name="leave_dataset_button" id="leave_dataset_button_' + result.dataset.id + '">Leave</button>',
                     ''
                 ]).draw().node();
 
@@ -109,34 +107,34 @@ $(document).ready( function () {
         });
     });
 
-    /*
-     *  LEAVE DATASET
-     */
-    $("main").on('click', '[name="leave_dataset_button"]', function () {
-        var parent_row = jQuery(this).parent().parent();
-        if (confirm('Are you sure you want to leave this dataset?')) {
-            var id = this.id.split("_")[3]; //id will be leave_dataset_button_##, we just want the number
-            $.ajax({
-                type: 'POST',
-                url: ajaxleavedataset,
-                data: {
-                    id: id
-                },
-                success: function (result) {
-                    //Show some kind of success message
-                    $("#notification_box").addClass("notification-success");
-                    $("#notification_message").text('Successfully left dataset!');
-                    setTimeout(function () {
-                        $("#notification_box").removeClass("notification-success");
-                    }, 4000);
+    // /*
+    //  *  LEAVE DATASET
+    //  */
+    // $("main").on('click', '[name="leave_dataset_button"]', function () {
+    //     var parent_row = jQuery(this).parent().parent();
+    //     if (confirm('Are you sure you want to leave this dataset?')) {
+    //         var id = this.id.split("_")[3]; //id will be leave_dataset_button_##, we just want the number
+    //         $.ajax({
+    //             type: 'POST',
+    //             url: ajaxleavedataset,
+    //             data: {
+    //                 id: id
+    //             },
+    //             success: function (result) {
+    //                 //Show some kind of success message
+    //                 $("#notification_box").addClass("notification-success");
+    //                 $("#notification_message").text('Successfully left dataset!');
+    //                 setTimeout(function () {
+    //                     $("#notification_box").removeClass("notification-success");
+    //                 }, 4000);
 
-                    //Some magic to make it disappear in the datasets
-                    $('#datasettable').DataTable().row(parent_row).remove().draw();
-                },
-                error: function (xhr, textStatus, errorThrown) {
-                    alert(xhr.responseText); //error message with error info
-                }
-            });
-        }
-    });
+    //                 //Some magic to make it disappear in the datasets
+    //                 $('#datasettable').DataTable().row(parent_row).remove().draw();
+    //             },
+    //             error: function (xhr, textStatus, errorThrown) {
+    //                 alert(xhr.responseText); //error message with error info
+    //             }
+    //         });
+    //     }
+    // });
 });
