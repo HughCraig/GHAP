@@ -18,6 +18,11 @@ class RecordType extends Model
         return RecordType::all()->pluck('type');
     }
 
+    public static function getIdTypeMap()
+    {
+        return RecordType::all()->pluck('type', 'id');
+    }
+
     //Get recordtype type by id
     // Return "Other" if not found
     public static function getTypeById($id)
@@ -33,5 +38,4 @@ class RecordType extends Model
         $record = RecordType::where('type', 'ILIKE', trim($type))->first();
         return $record ? $record->id : 1;
     }
-
 }
