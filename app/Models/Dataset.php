@@ -3,6 +3,12 @@
 namespace TLCMap\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use TLCMap\Http\Helpers\HtmlFilter;
+use TLCMap\ViewConfig\FeatureCollectionConfig;
+use TLCMap\ViewConfig\FeatureConfig;
+use TLCMap\ViewConfig\GhapConfig;
+use TLCMap\Models\RecordType;
+use Illuminate\Support\Facades\Log;
 
 class Dataset extends Model
 {
@@ -43,6 +49,24 @@ class Dataset extends Model
     public function subjectkeywords()
     {
         return $this->belongsToMany(SubjectKeyword::class, 'tlcmap.dataset_subject_keyword')->withPivot('dataset_id', 'subject_keyword_id');
+    }
+
+    /**
+     * Fetch all public layers/datasets along with their IDs
+     *
+     * @return array
+     *   An array of objects with 'id' and 'name' properties.
+     */
+    public static function getAllPublicLayersAndIDs()
+    {
+        $layers = self::where('public', 1)->select('id', 'name')->get();
+
+        return $layers->map(function($layer) {
+            return (object) [
+                'id' => $layer->id,
+                'name' => $layer->name
+            ];
+        })->all();
     }
 
     /**
@@ -272,18 +296,30 @@ class Dataset extends Model
     public function json()
     {
         $dataset = $this;
-        $features = array();
+        $features = array();  
+        $linkback = isset($dataset->linkback) ? $dataset->linkback : null;
+        if (!isset($dataset->linkback)) {
+            $linkback = url("layers/{$dataset->id}");
+        }
+        
         $metadata = array(
             'layerid' => $dataset->id,
             'name' => $dataset->name,
             'description' => $dataset->description,
             'warning' => $dataset->warning,
             'ghap_url' => $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"),
-            'linkback' => $dataset->linkback,
+            'linkback' => $linkback,
         );
 
+        // Set the feature collection config.
+        $featureCollectionConfig = new FeatureCollectionConfig();
+        $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
+        $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
+        $featureCollectionConfig->setInfoTitle($metadata['name'], $metadata['ghap_url']);
+        $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
+
         // Infill any blank start/end dates.
-        $dataitems = $this->infillDataitemDates($dataset->dataitems);
+        $dataitems = self::infillDataitemDates($dataset->dataitems);
 
         if (isset($_GET["sort"])) {
             $dataitems = $dataitems->where('datestart', '!==', '')->where('dateend', '!==', '');
@@ -293,30 +329,6 @@ class Dataset extends Model
             } else {
                 $dataitems = $dataitems->sortBy('datestart')->values()->all();
             }
-        }
-
-        if (isset($_GET["line"])) {
-
-
-            if ($_GET["line"] === 'time') {
-                $dataitems = $dataitems->sortBy('datestart')->values()->all();
-            }
-
-            $linecoords = array();
-
-            foreach ($dataitems as $i) {
-                array_push($linecoords, [$i->longitude, $i->latitude]);
-            }
-            $proppairs["name"] = $dataset->name;
-            $features[] = array(
-                'type' => 'Feature',
-                'geometry' => array('type' => 'LineString', 'coordinates' => $linecoords),
-                'properties' => $proppairs
-            );
-
-
-            $allfeatures = array('type' => 'FeatureCollection', 'metadata' => $metadata, 'features' => $features);
-            return json_encode($allfeatures, JSON_PRETTY_PRINT);
         }
 
         if (isset($_GET["metadata"])) {
@@ -335,8 +347,8 @@ class Dataset extends Model
                 // if only one of them is filled, we need to populate with the other
             }
 
-
-            $contribution = 'Contribution: "' . $dataset->name . '"<br> by User: ' . $dataset->ownerName();
+            // Set feature config.
+            $featureConfig = new FeatureConfig();
 
             $proppairs = array();
             if (!empty($i->title)) {
@@ -410,10 +422,10 @@ class Dataset extends Model
             }
 
 
-            if (!empty($i->latitude)) {
+            if (isset($i->latitude)) {
                 $proppairs["latitude"] = $i->latitude;
             }
-            if (!empty($i->longitude)) {
+            if (isset($i->longitude)) {
                 $proppairs["longitude"] = $i->longitude;
             }
 
@@ -426,21 +438,80 @@ class Dataset extends Model
             }
 
             $proppairs["TLCMapLinkBack"] = url("search?id=" . $i->uid);
-            $proppairs["TLCMapDataset"] = url("publicdatasets/" . $dataset->id);
+            $proppairs["TLCMapDataset"] = $metadata['ghap_url'];
+
+            // Set footer links.
+            $featureConfig->addLink("TLCMap Record: {$i->uid}", $proppairs["TLCMapLinkBack"]);
+            $featureConfig->addLink('TLCMap Layer', $proppairs["TLCMapDataset"]);
 
             if (isset($proppairs["longitude"]) && isset($proppairs["latitude"])) {
                 $features[] = array(
                     'type' => 'Feature',
                     'geometry' => array('type' => 'Point', 'coordinates' => array((float)$proppairs["longitude"], (float)$proppairs["latitude"])),
-                    'properties' => $proppairs
+                    'properties' => $proppairs,
+                    'display' => $featureConfig->toArray(),
                 );
             }
         }
 
-        $allfeatures = array('type' => 'FeatureCollection', 'metadata' => $metadata, 'features' => $features);
+        // Include the lines features if the query string has the parameter "line".
+        if (isset($_GET["line"])) {
+            if ($_GET["line"] === 'time') {
+                $dataitems = $dataitems->sortBy('datestart')->values()->all();
+            }
+
+            $linecoords = array();
+
+            foreach ($dataitems as $i) {
+                array_push($linecoords, [$i->longitude, $i->latitude]);
+            }
+
+            // Set line feature config.
+            $featureConfig = new FeatureConfig();
+            $featureConfig->setAllowedFields([]);
+
+            $features[] = array(
+                'type' => 'Feature',
+                'geometry' => array('type' => 'LineString', 'coordinates' => $linecoords),
+                'properties' => ['name' => $dataset->name],
+                'display' => $featureConfig->toArray(),
+            );
+        }
+
+        $allfeatures = array(
+            'type' => 'FeatureCollection',
+            'metadata' => $metadata,
+            'features' => $features,
+            'display' => $featureCollectionConfig->toArray(),
+        );
+      
+        if( count($features) == 0){
+            $allfeatures['metadata']['warning'] .=  "<p>0 results found</p>";
+            $allfeatures['display']['info']['content'] .= "<div class=\"warning-message\"><p>0 results found</p></div>";
+        }
+        
         return json_encode($allfeatures, JSON_PRETTY_PRINT);
     }
 
+    /**
+     * Generate the GeoJSON when visiting a private dataset or non-exist dataset.
+     * show warning message at info block
+     */
+    public static function getRestrictedDatasetGeoJSON(){
+
+        $featureCollectionConfig = new FeatureCollectionConfig();
+        $featureCollectionConfig->setInfoContent(GhapConfig::createRestrictedDatasetInfoBlockContent());
+        $allfeatures = array(
+            'type' => 'FeatureCollection',
+            'metadata' => [
+                'warnnig' => 'This map either does not exist or has been set to "private" and therefore cannot be displayed.'
+            ],
+            'display' => $featureCollectionConfig->toArray(),
+            'features' => [],
+        );
+
+        return json_encode($allfeatures, JSON_PRETTY_PRINT);
+    }
     /**
      * Infill start/end dates for dataitems.
      *
@@ -451,7 +522,7 @@ class Dataset extends Model
      * @return \Illuminate\Support\Collection
      *   The dateitems with dates infilled.
      */
-    private function infillDataitemDates($items) {
+    public static function infillDataitemDates($items) {
         foreach ($items as &$item) {
             if (!empty($item->datestart) && empty($item->dateend)) {
                 $item->dateend = $item->datestart;
@@ -523,13 +594,10 @@ class Dataset extends Model
         $colheads = array_merge($colheads, $extkeys);
 
         // Apply any modification to the column headers for display.
+        $headerValueForDisplay = [ 'id' => 'ghap_id' , 'external_url' => 'linkback' , 'dataset_id' => 'layer_id' , 'recordtype_id' => 'record_type' ];
         $displayHeaders = [];
         foreach ($colheads as $colhead) {
-            if ($colhead === 'id') {
-                $displayHeaders[] = 'ghap_id';
-            } else {
-                $displayHeaders[] = $colhead;
-            }
+            $displayHeaders[] = isset($headerValueForDisplay[$colhead]) ? $headerValueForDisplay[$colhead] : $colhead;
         }
 
         // add headings to csv
@@ -551,7 +619,14 @@ class Dataset extends Model
 
             // to make sure the cells are in the same order as the headings
             foreach ($colheads as $col) {
-                $cells[] = isset($vals[$col]) ? $vals[$col] : "";
+                $cellValue = isset($vals[$col]) ? $vals[$col] : "";
+
+                // Special handling for recordtype, store type instead of id
+                if ( $cellValue !== "" && $col === 'recordtype_id') {
+                    $cellValue = RecordType::getTypeById($cellValue);
+                }
+
+                $cells[] = $cellValue;
             }
 
 

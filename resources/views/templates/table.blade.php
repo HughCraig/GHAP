@@ -26,7 +26,7 @@
                                     onclick="copyLink('{{ $line->uid }}',this,'id')">
                                 C
                             </button>
-                            <a href="{{ URL::to('/') }}/search?id={{ $line->uid }}">
+                            <a href="{{ URL::to('/') }}/places/{{ $line->uid }}">
                                 @if(isset($line->title)){{$line->title}}@else{{$line->placename}}@endif
                             </a>
                         </h4>
@@ -37,7 +37,7 @@
                             @endif
                             @if(isset($line->dataset))
                                 <dt>Layer</dt>
-                                <dd><a href="{{route('publicdatasets')}}/{{$line->dataset_id}}">{{$line->dataset->name}}</a></dd>
+                                <dd><a href="{{route('layers')}}/{{$line->dataset_id}}">{{$line->dataset->name}}</a></dd>
                             @elseif (isset($line->datasource))
                                 <dt>Layer</dt>
                                 <dd><a href="{{ $line->datasource->link }}">{{ $line->datasource->description }}</a></dd>
@@ -64,7 +64,7 @@
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                 @if (!empty(config('app.views_root_url')))
                                     <a class="dropdown-item grab-hover"
-                                       onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(env('APP_URL') . '/search?id=' . $line->uid . '&format=json') }}`)">
+                                       onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(config('app.url'). '/places/' . $line->uid . '/json') }}`)">
                                         3D Viewer
                                     </a>
                                 @endif

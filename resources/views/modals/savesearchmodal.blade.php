@@ -10,13 +10,16 @@
             </button>
         </div>
         <div class="modal-body">
-            <input type="hidden" id="save_search_query" value="{{ substr(url()->full(),strpos(url()->full(),'?')) }}" />
-            <input type="hidden" id="save_search_count" value="{{ $details->total() }}" />
-            <input type="text" class="smallerinputs w3-white form-control" id="save_search_name" placeholder="Name your search" maxlength="20"/>
-            
+            <div class="message-banner"></div>
+            <div class="flexdiv">
+                <input type="hidden" id="save_search_query" value="{{ substr(url()->full(),strpos(url()->full(),'?')) }}" />
+                <input type="hidden" id="save_search_count" value="{{ $details->total() }}" />
+                <input type="text" class="smallerinputs w3-white form-control" id="save_search_name" placeholder="Name your search" maxlength="20"/>
+                <label class="text-danger">*</label>
+            </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-primary" id="save_search_button" type="button" data-dismiss="modal">Save your search</button>
+            <button class="btn btn-primary" id="save_search_button" type="button">Save your search</button>
             <button type="button" class="btn btn-secondary" id="saveSearchCloseButton" data-dismiss="modal">Close</button>
         </div>
         </div>

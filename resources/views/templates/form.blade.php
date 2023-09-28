@@ -9,6 +9,8 @@
         var lgas = {!! $lgas !!};
         var parishes = {!! $parishes !!};
         var feature_terms = {!! $feature_terms !!};
+        var layers = {!! $layers !!};
+        var show_help_video_first_landing = "{{ config('app.show_help_video_first_landing') }}"
     </script>
     <!-- js-cookie library for cookie usages -->
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
@@ -78,15 +80,49 @@
                                   title="Some records may not be comprehensively tagged. Tags for records may differ between states.">
                             </span>
                         </p>
+                        <div class="row align-items-center my-auto mb-1">
+                            <div class="col-sm-6" data-toggle="tooltip">
+                                Search Description
+                            </div>
+                            <div class="col-sm-6">
+                                <input type="checkbox" id="searchdescription" name="searchdescription">
+                            </div>
+                        </div>
+                        <div class="row align-items-center my-auto">
+                            <div class="col-sm-6">Place Type:</div>
+                            <div class="col-sm-6">
+                                <select class="w3-white form-control" name="recordtype" id="recordtype">
+                                    <option label="" selected></option>
+                                    @foreach($recordtypes as $recordtype)
+                                        <option label="{{$recordtype->type}}">{{$recordtype->type}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row align-items-center my-auto">
+                            <div class="col-sm-6">Layers:</div>
+                            <div class="col-sm-6">
+                                <input type="text" class="w3-white form-control" id="searchlayers" autocomplete="off">
+                                <input type="hidden" name="searchlayers" id="selected-layers">
+                            </div>
+                        </div>
+                        <div class="row align-items-center my-auto">
+                            <div class="col-sm-6" data-toggle="tooltip" title="This enables nuanced search and map creation within layers and needs special sytax, see under 'Search' in the GHAP Guide.">
+                                <a href="https://tlcmap.org/help/guides/ghap-guide/" style="color: #000000; text-decoration: none;" target="_blank">Extended Data?</a>
+                            </div>
+                            <div class="col-sm-6">
+                                <input type="text" class="w3-white form-control" name="extended_data" id="extended_data" autocomplete="off">
+                            </div>
+                        </div>
                         <div class="row align-items-center my-auto" data-toggle="tooltip" title="Local Government Area.">
-                            <div class="col-sm-4">LGA:</div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-6">LGA:</div>
+                            <div class="col-sm-6">
                                 <input type="text" class="w3-white form-control" name="lga" id="lga" autocomplete="off">
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">
-                            <div class="col-sm-4">State:</div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-6">State:</div>
+                            <div class="col-sm-6">
                                 <select class="w3-white form-control" name="state" id="state">
                                     <option label="" selected></option>
                                     @foreach($states as $state)
@@ -96,46 +132,46 @@
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">
-                            <div class="col-sm-4">Parish:</div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-6">Parish:</div>
+                            <div class="col-sm-6">
                                 <input type="text" class="w3-white form-control" name="parish" id="parish" autocomplete="off">
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">
-                            <div class="col-sm-4" data-toggle="tooltip" title="Not all places are tagged with their feature for all states, so this will return only partial results for some areas.">
+                            <div class="col-sm-6" data-toggle="tooltip" title="Not all places are tagged with their feature for all states, so this will return only partial results for some areas.">
                                 Feature:
                             </div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-6">
                                 <input type="text" class="w3-white form-control" name="feature_term" id="feature_term" autocomplete="off">
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">
-                            <div class="col-sm-4">From ID:</div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-6">From ID:</div>
+                            <div class="col-sm-6">
                                 <input type="text" class="smallerinputs w3-white form-control" id="from" name="from">
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">
-                            <div class="col-sm-4">To ID:</div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-6">To ID:</div>
+                            <div class="col-sm-6">
                                 <input type="text" class="w3-white form-control" id="to" name="to">
                             </div>
                         </div>
                         <div class="row align-items-center my-auto" data-toggle="tooltip" title="Places without dates associated are not included.">
-                            <div class="col-sm-4">Date From:</div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-6">Date From:</div>
+                            <div class="col-sm-6">
                                 <input type="text" class="smallerinputs w3-white form-control" id="datefrom" name="datefrom">
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">
-                            <div class="col-sm-4">Date To:</div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-6">Date To:</div>
+                            <div class="col-sm-6">
                                 <input type="text" class="w3-white form-control" id="dateto" name="dateto">
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">
-                            <div class="col-sm-4">Format:</div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-6">Format:</div>
+                            <div class="col-sm-6">
                                 <select name="format" class="w3-white form-control" id="format">
                                     <option label=""></option>
                                     <option label="Web Page">html</option>
@@ -147,16 +183,16 @@
                         </div>
                         <label for="download" class="download-label"></label>
                         <div class="row align-items-center my-auto">
-                            <div class="col-sm-4" data-toggle="tooltip" title="Download as a file instead of open in a browser window if you choose kml, csv or geojson.">
+                            <div class="col-sm-6" data-toggle="tooltip" title="Download as a file instead of open in a browser window if you choose kml, csv or geojson.">
                                 Download?
                             </div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-6">
                                 <input type="checkbox" id="download" name="download">
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">
-                            <div class="col-sm-4">Results per page:</div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-6">Results per page:</div>
+                            <div class="col-sm-6">
                                 <input type="text" class="w3-white form-control" id="paging" name="paging">
                             </div>
                         </div>

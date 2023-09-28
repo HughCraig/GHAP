@@ -1,5 +1,5 @@
 <?php
-
+use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -11,6 +11,12 @@
 |
 */
 
+$baseAuthMiddlewares = ['auth'];
+if (config('auth.new_account_email_verification')) {
+    $baseAuthMiddlewares[] = 'verified';
+}
+
+
 /**
  * Home and search pages
  */
@@ -20,8 +26,11 @@ Route::get('/home', function () {
 Route::get('', 'HomeController@index')->name('index');
 Route::get('about', 'HomeController@aboutPage')->name('about');
 Route::post('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->name('searchFromKmlPolygon'); //search from file
-Route::get('places/{id?}', 'GazetteerController@search')->name('places'); //shows places with optional id, if no id is given it uses all results before applying filters
-Route::get('search', 'GazetteerController@search')->name('search')->middleware('checkmaxpaging', 'cors');
+Route::get('search/{path?}', function (Request $request, $path = null) {
+    return redirect()->to('/places/' . $path . '?' . $request->getQueryString());
+})->middleware('checkmaxpaging', 'cors');
+Route::get('places', 'GazetteerController@search')->name('places')->middleware('checkmaxpaging', 'cors'); 
+Route::get('places/{id}/{format?}', 'GazetteerController@search')->name('places')->middleware('cors');  //shows places with id and optional format
 Route::get('maxpaging', 'GazetteerController@maxPagingMessage')->name('maxPagingMessage');
 Route::get('maxpagingredirect', 'GazetteerController@maxPagingRedirect')->name('maxPagingRedirect');
 Route::post('bulkfileparser', 'GazetteerController@bulkFileParser');
@@ -29,28 +38,34 @@ Route::post('bulkfileparser', 'GazetteerController@bulkFileParser');
 /**
  * Public dataset pages
  */
-Route::get('publicdatasets', 'DatasetController@viewPublicDatasets')->name('publicdatasets');
-Route::get('publicdatasets/{id}', 'DatasetController@viewPublicDataset')->name('publicdataset');
-Route::get('publicdatasets/{id}/kml', 'DatasetController@viewPublicKML')->name('viewpublicdatasetkml')->middleware('cors');
-Route::get('publicdatasets/{id}/kml/download', 'DatasetController@downloadPublicKML')->name('downloadpublicdatasetkml');
-Route::get('publicdatasets/{id}/json', 'DatasetController@viewPublicJSON')->name('viewpublicdatasetjson')->middleware('cors');
-Route::get('publicdatasets/{id}/json/download', 'DatasetController@downloadPublicJSON')->name('downloadpublicdatasetjson');
-Route::get('publicdatasets/{id}/csv', 'DatasetController@viewPublicCSV')->name('viewpublicdatasetcsv')->middleware('cors');
-Route::get('publicdatasets/{id}/csv/download', 'DatasetController@downloadPublicCSV')->name('downloadpublicdatasetcsv');
-Route::get('publicdatasets/{id}/ro-crate', 'DatasetController@downloadPublicROCrate');
+Route::get('publicdatasets/{path?}', function ($path = null) {
+    return redirect('layers/' . $path);
+});
+Route::get('layers', 'DatasetController@viewPublicDatasets')->name('layers');
+Route::get('layers/{id}', 'DatasetController@viewPublicDataset')->name('layer');
+Route::get('layers/{id}/kml', 'DatasetController@viewPublicKML')->name('viewlayerkml')->middleware('cors');
+Route::get('layers/{id}/kml/download', 'DatasetController@downloadPublicKML')->name('downloadlayerkml');
+Route::get('layers/{id}/json', 'DatasetController@viewPublicJSON')->name('viewlayerjson')->middleware('cors');
+Route::get('layers/{id}/json/download', 'DatasetController@downloadPublicJSON')->name('downloadlayerjson');
+Route::get('layers/{id}/csv', 'DatasetController@viewPublicCSV')->name('viewlayercsv')->middleware('cors');
+Route::get('layers/{id}/csv/download', 'DatasetController@downloadPublicCSV')->name('downloadlayercsv');
+Route::get('layers/{id}/ro-crate', 'DatasetController@downloadPublicROCrate');
 
 /**
  * Public collection pages.
  */
-Route::get('publiccollections', 'CollectionController@viewPublicCollections');
-Route::get('publiccollections/{id}', 'CollectionController@viewPublicCollection');
-Route::get('publiccollections/{id}/json', 'CollectionController@viewPublicJson')->middleware('cors');
-Route::get('publiccollections/{id}/ro-crate', 'CollectionController@downloadPublicROCrate');
+Route::get('publiccollections/{path?}', function ($path = null) {
+    return redirect('multilayers/' . $path);
+});
+Route::get('multilayers', 'CollectionController@viewPublicCollections')->name('multilayers');
+Route::get('multilayers/{id}', 'CollectionController@viewPublicCollection')->name('multilayer');
+Route::get('multilayers/{id}/json', 'CollectionController@viewPublicJson')->middleware('cors')->name('viewmultilayerjson');
+Route::get('multilayers/{id}/ro-crate', 'CollectionController@downloadPublicROCrate')->name('downloadmultilayerrocate');
 
 /**
  * User Pages.
  */
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile', 'User\UserController@userProfile')->name('myProfile');
     Route::get('myprofile/mydatasets', 'User\UserController@userDatasets')->name('myDatasets'); //Only let users view own dataset
     Route::get('myprofile/mysearches', 'User\UserController@userSavedSearches')->name('mySearches');
@@ -79,7 +94,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 /**
  * User collection CRUD pages
  */
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mycollections', 'CollectionController@viewMyCollections');
     Route::get('myprofile/mycollections/newcollection', 'CollectionController@newCollection');
     Route::post('myprofile/mycollections/newcollection/create', 'CollectionController@createNewCollection');
@@ -106,7 +121,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
  */
 Route::post('ajaxbbox', 'AjaxController@ajaxbbox'); //Does not need to be logged in
 
-Route::middleware(['auth', 'verified'])->group(function () { //must be logged in for these
+Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in for these
     Route::post('ajaxsavesearch', 'AjaxController@ajaxsavesearch');
     Route::post('ajaxsubsearch', 'AjaxController@ajaxsubsearch');
     Route::post('ajaxdeletesearch', 'AjaxController@ajaxdeletesearch');
@@ -132,6 +147,7 @@ Route::middleware(['auth', 'verified'])->group(function () { //must be logged in
      */
     Route::post('ajaxdeletecollection', 'CollectionController@ajaxDeleteCollection');
     Route::post('ajaxremovecollectiondataset', 'CollectionController@ajaxRemoveCollectionDataset');
+    Route::post('ajaxremovecollectionsavedsearch', 'CollectionController@ajaxRemoveCollectionSavedSearch');
     Route::post('ajaxaddcollectiondataset', 'CollectionController@ajaxAddCollectionDataset');
 
     /**
@@ -140,6 +156,12 @@ Route::middleware(['auth', 'verified'])->group(function () { //must be logged in
     Route::get('ajax/collections/{collection_id}/datasets/addable/public', 'CollectionController@ajaxGetPublicDatasetOptions');
     Route::get('ajax/collections/{collection_id}/datasets/addable/user', 'CollectionController@ajaxGetUserDatasetOptions');
     Route::get('ajax/collections/{collection_id}/datasets/addable/{dataset_id}/info', 'CollectionController@ajaxGetDatasetInfo');
+
+    /**
+     * Services used for saved search to collection.
+     */
+    Route::get('ajax/saved-searches', 'CollectionController@ajaxGetUserSavedSearch')->name('ajax.saved-searches');
+    Route::post('ajax/add-saved-search', 'CollectionController@ajaxAddSavedSearch')->name('ajax.add-saved-search');
 });
 
 /**

@@ -4,6 +4,7 @@
     <script>
         //Put the relative URL of our ajax functions into global vars for use in external .js files
         const removeCollectionDatasetService = "{{url('ajaxremovecollectiondataset')}}";
+        const removeCollectionSavedSearchService = "{{url('ajaxremovecollectionsavedsearch')}}";
     </script>
     <script src="{{ asset('js/userviewcollection.js') }}"></script>
     <script src="{{ asset('/js/collection.js') }}"></script>
@@ -28,20 +29,20 @@
         </div>
     </div>
 
-    @if (!empty(config('app.views_root_url')))
+    @if (!empty(config('app.views_root_url')) && $collection->public)
         <!-- Visualise-->
         <div class="dropdown">
             <button class="btn btn-secondary dropdown-toggle" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 View Map
             </button>
             <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-3d.html?load={{url('publiccollections')}}/{{$collection->id}}/json')">3D Viewer</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-cluster.html?load={{url('publiccollections')}}/{{$collection->id}}/json')">Cluster</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-journey.html?line=route&load={{url('publiccollections')}}/{{$collection->id}}/json')">Journey Route</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-journey.html?line=time&load={{url('publiccollections')}}/{{$collection->id}}/json')">Journey Times</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-timeline.html?load={{url('publiccollections')}}/{{$collection->id}}/json')">Timeline</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-werekata.html?&load={{url('publiccollections')}}/{{$collection->id}}/json')">Werekata Flight by Route</a>
-                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-werekata.html?sort=start&load={{url('publiccollections')}}/{{$collection->id}}/json')">Werekata Flight by Time</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-3d.html?load=' + encodeURIComponent('{{url('multilayers')}}/{{$collection->id}}/json'))">3D Viewer</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-cluster.html?load=' + encodeURIComponent('{{url('multilayers')}}/{{$collection->id}}/json'))">Cluster</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-journey.html?load=' + encodeURIComponent('{{url('multilayers')}}/{{$collection->id}}/json?line=route'))">Journey Route</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-journey.html?load=' + encodeURIComponent('{{url('multilayers')}}/{{$collection->id}}/json?line=time'))">Journey Times</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-timeline.html?load=' + encodeURIComponent('{{url('multilayers')}}/{{$collection->id}}/json?sort=start'))">Timeline</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-werekata.html?load=' + encodeURIComponent('{{url('multilayers')}}/{{$collection->id}}/json'))">Werekata Flight by Route</a>
+                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/collection-werekata.html?load=' + encodeURIComponent('{{url('multilayers')}}/{{$collection->id}}/json?sort=start'))">Werekata Flight by Time</a>
             </div>
         </div>
     @endif
@@ -109,8 +110,9 @@
 
     <!-- Add dataset Modal Button-->
     @include('modals.addcollectiondatasetmodal')
+    @include('modals.addsavedsearchmodal')
 
-    @if (!empty($collection->datasets))
+    @if ( !empty($collection->datasets) || !empty($collection->savedSearches) )
         <table id="datasetsTable" class="display" style="width:100%">
             <thead class="w3-black">
             <tr>
@@ -145,15 +147,15 @@
                                     🌏 View Maps...
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load={{url('publicdatasets')}}/{{$ds->id}}/json')">3D Viewer</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load={{url('publicdatasets')}}/{{$ds->id}}/json')">Cluster</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?line=route&load={{url('publicdatasets')}}/{{$ds->id}}/json')">Journey Route</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?line=time&load={{url('publicdatasets')}}/{{$ds->id}}/json')">Journey Times</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load={{url('publicdatasets')}}/{{$ds->id}}/json?sort=start')">Timeline</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?&load={{url('publicdatasets')}}/{{$ds->id}}/json')">Werekata Flight by Route</a>
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?sort=start&load={{url('publicdatasets')}}/{{$ds->id}}/json')">Werekata Flight by Time</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load=' + encodeURIComponent('{{url('layers')}}/{{$ds->id}}/json'))">3D Viewer</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load=' + encodeURIComponent('{{url('layers')}}/{{$ds->id}}/json'))">Cluster</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('layers')}}/{{$ds->id}}/json?line=route'))">Journey Route</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('layers')}}/{{$ds->id}}/json?line=time'))">Journey Times</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + encodeURIComponent('{{url('layers')}}/{{$ds->id}}/json?sort=start'))">Timeline</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('layers')}}/{{$ds->id}}/json'))">Werekata Flight by Route</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('layers')}}/{{$ds->id}}/json?sort=start'))">Werekata Flight by Time</a>
                                     @if (!empty(config('app.views_temporal_earth_url')))
-                                        <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url('publicdatasets')}}/{{$ds->id}}/kml')">Temporal Earth</a>
+                                        <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url('layers')}}/{{$ds->id}}/kml')">Temporal Earth</a>
                                     @endif
                                 </div>
                             </div>
@@ -161,6 +163,44 @@
                     </td>
                     <td>
                         <button name="remove_dataset_button" data-collection-id="{{ $collection->id }}" id="remove_dataset_button_{{$ds->id}}" type="Button">Remove</button>
+                    </td>
+                </tr>
+            @endforeach
+
+            @foreach($collection->savedSearches as $ss)
+                <tr id="row_ss_id_{{$ss->id}}">
+                    <td><a href="{{url('/search')}}{{$ss->query}}">{{$ss->name}}</a></td>
+                    <td>{{$ss->count}}</td>
+                    <td>Saved search</td>
+                    <td></td>
+                    <td></td>   
+                    <td></td>
+                    <td>{{$ss->created_at}}</td>
+                    <td>{{$ss->updated_at}}</td>
+                    <td>
+                        @if (!empty(config('app.views_root_url')))
+                            <!-- Visualise-->
+                            <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    🌏 View Maps...
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json'))">3D Viewer</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json'))">Cluster</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json&line=route'))">Journey Route</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json&line=time'))">Journey Times</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json&sort=start'))">Timeline</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json'))">Werekata Flight by Route</a>
+                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=json&sort=start'))">Werekata Flight by Time</a>
+                                    @if (!empty(config('app.views_temporal_earth_url')))
+                                        <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file=' + encodeURIComponent('{{url('places')}}{{$ss->query}}&format=kml')">Temporal Earth</a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </td>
+                    <td>
+                        <button name="remove_savedsearch_button" data-collection-id="{{ $collection->id }}" id="remove_savedsearch_button_{{$ss->id}}" type="Button">Remove</button>
                     </td>
                 </tr>
             @endforeach

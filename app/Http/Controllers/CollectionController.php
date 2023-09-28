@@ -5,10 +5,16 @@ namespace TLCMap\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use TLCMap\Http\Helpers\GeneralFunctions;
+use TLCMap\Http\Helpers\HtmlFilter;
 use TLCMap\Models\Collection;
+use TLCMap\Models\SavedSearch;
 use TLCMap\Models\Dataset;
 use TLCMap\Models\SubjectKeyword;
 use TLCMap\ROCrate\ROCrateGenerator;
+use TLCMap\ViewConfig\CollectionConfig;
+use TLCMap\ViewConfig\DatasetConfig;
+use TLCMap\ViewConfig\GhapConfig;
+use Response;
 
 class CollectionController extends Controller
 {
@@ -66,27 +72,62 @@ class CollectionController extends Controller
             'public' => true,
         ])->first();
         if (!$collection) {
-            // If the collection is not found or private, return 404.
-            abort(404);
+            return Response::make(Collection::getRestrictedCollectionGeoJSON(), '200', array('Content-Type' => 'application/json'));
         }
         $result = $collection->toArray();
         $result['url'] = url("publiccollections/{$collection->id}");
+        $data = [
+            'metadata' => $result
+        ];
+
+        // Set collection config.
+        $collectionConfig = new CollectionConfig();
+        $collectionConfig->setInfoTitle($result['name'], $result['url']);
+        $collectionConfig->setInfoContent(GhapConfig::createCollectionInfoBlockContent($collection));
+
+        $data['display'] = $collectionConfig->toArray();
+
+        // Get query string.
+        $queryString = '';
+        if (!empty($request->input('line'))) {
+            $queryString = '?line=' . $request->input('line');
+        } elseif (!empty($request->input('sort'))) {
+            $queryString = '?sort=' . $request->input('sort');
+        }
+
+        $data['datasets'] = [];
+
         $datasets = $collection->datasets()->where('public', true)->get();
         if (!empty($datasets) && count($datasets) > 0) {
-            $result['datasets'] = [];
             foreach ($datasets as $dataset) {
-                $result['datasets'][] = [
-                    'id' => $dataset->id,
+                // Set dataset config.
+                $datasetConfig = new DatasetConfig();
+                $datasetConfig->enableListPaneColor();
+                $datasetConfig->setListPaneContent(GhapConfig::createDatasetListPaneContent($dataset));
+
+                $data['datasets'][] = [
                     'name' => $dataset->name,
-                    'description' => $dataset->description,
-                    'warning' => $dataset->warning,
-                    'linkback' => $dataset->linkback,
-                    'url' => url("publicdatasets/{$dataset->id}"),
-                    'jsonURL' => url("publicdatasets/{$dataset->id}/json"),
+                    'jsonURL' => url("layers/{$dataset->id}/json{$queryString}"),
+                    'display' => $datasetConfig->toArray(),
                 ];
             }
         }
-        return response()->json($result);
+        $savedSearches = $collection->savedSearches;
+        if ($savedSearches && count($savedSearches) > 0) {
+            foreach ($savedSearches as $savedSearch) {
+                $data['datasets'][] = [
+                    'name' => $savedSearch->name,
+                    'jsonURL' => url("/places" . $savedSearch->query . '&format=json' . '&' . substr($queryString, 1)),
+                ];
+            }
+        }
+
+        if(count($data['datasets']) == 0){
+            $data['metadata']['warning'] .=  "<p>0 results found</p>";
+            $data['display']['info']['content'] .= "<div class=\"warning-message\"><p>0 results found</p></div>";
+        }
+
+        return response()->json($data);
     }
 
     /**
@@ -565,5 +606,98 @@ class CollectionController extends Controller
             'updated_at' => \Carbon\Carbon::parse($dataset->updated_at)->format('Y-m-d H:i:s'),
             'url' => url("publicdatasets/{$dataset->id}"),
         ]);
+    }
+
+    /**
+     * Ajax service to get the select options for the saved searches of the current user
+     * that haven't been added to the collection with specific id.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function ajaxGetUserSavedSearch(Request $request){
+        $user = auth()->user();
+        
+        $collectionID = $request->collectionID;
+        if (!isset($collectionID)) {
+            abort(400);
+        }
+
+        // Get the saved searches that are already linked to this collection.
+        $linkedSavedSearches = Collection::findOrFail($collectionID)->savedSearches()->pluck('saved_search.id')->toArray();;
+    
+        // Fetch saved searches not in the linked list.
+        $searches = SavedSearch::where('user_id', $user->id)
+                               ->whereNotIn('id', $linkedSavedSearches)
+                               ->get();
+    
+        return response()->json($searches);
+    }
+
+    /**
+     * Ajax service to to add the saved search to a collection.
+     * Add relationship to table collection_saved_search
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function ajaxAddSavedSearch(Request $request)
+    {
+        $collectionID = $request->collectionID;
+        $savedSearchID = $request->savedSearchID;
+        if (!isset($collectionID) || !isset($savedSearchID)) {
+            abort(400);
+        }
+
+        try {
+            $collection = Collection::findOrFail($collectionID);
+            $savedSearch = SavedSearch::findOrFail($savedSearchID);
+
+            // Check if the saved search already exists in this collection
+            if ($collection->savedSearches->contains($savedSearch->id)) {
+                return response()->json('Selected search already exists in this collection.', 409); // 409 Conflict
+            }
+            
+            $collection->savedSearches()->attach($savedSearch->id);
+
+            return response()->json('Saved search successfully added to collection.', 200); 
+
+        } catch (\Exception $e) {
+            return response()->json('Error adding saved search to collection.', 500); 
+        }
+    }
+
+    /**
+     * Ajax service to remove a saved search from a collection.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function ajaxRemoveCollectionSavedSearch(Request $request)
+    {
+        $collectionID = $request->collectionID;
+        $savedSearchID = $request->savedSearchID;
+        // Check if both collectionID and savedSearchID are provided in the request
+        if (!isset($collectionID) || !isset($savedSearchID)) {
+            abort(400);
+        }
+
+        $collection = Collection::where([
+            'id' => $collectionID,
+            'owner' => Auth::user()->id,
+        ])->first();
+        // Respond 404 not found if the collection is not found.
+        if (!$collection) {
+            abort(404);
+        }
+       
+        // Check if the saved search actually exists in this collection before attempting to remove
+        if (!$collection->savedSearches->contains($savedSearchID)) {
+            return response()->json('Saved search does not exist in this collection.', 404); 
+        }
+
+        // Remove the saved search from the collection
+        $collection->savedSearches()->detach($savedSearchID);
+
+        return response()->json('Saved search removed from collection successfully', 200); 
     }
 }

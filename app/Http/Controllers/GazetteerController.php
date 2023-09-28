@@ -154,18 +154,45 @@ class GazetteerController extends Controller
      *  Gets search results from database relevant to search query
      *  Will serve a view or downloadable object to the user depending on parameters set
      */
-    public function search(Request $request, string $id = null)
+    public function search(Request $request, string $uid = null , string $format = null)
     {
+        if ($request->has('id')) {
+            // Single place . Redirect to route places/{id}/{format?}'
+            $redirectUrl = '/places/' . $request->input('id');
+            if ($request->has('format')) {
+                $redirectUrl .= '/' . $request->input('format');
+            }
+            return redirect()->to($redirectUrl);
+        }
+
+        if (isset($uid) && $request->has('format')) {
+            //Redirect to route places/{uid}/{format?}
+            $redirectUrl = '/places/' . $uid   . '/' . $request->input('format');
+           
+            //Redirect to route places/{uid}/{format}?download=on
+            if ($request->has('download') && $request->input('download') === 'on') {
+                $redirectUrl .= '?download=on';
+            }
+
+            return redirect()->to($redirectUrl);
+        }
+
         $starttime = microtime(true);
 
         $that = $this;
 
         /* ENV VARS */
-        $MAX_PAGING = env('MAX_PAGING', false);     //should move the rest of the direct env calls to be config calls but this will take forever
-        $DEFAULT_PAGING = env('DEFAULT_PAGING', false);
+        $MAX_PAGING = config('app.maxpaging');     //should move the rest of the direct env calls to be config calls but this will take forever
+        $DEFAULT_PAGING = config('app.defaultpaging');
 
         /* PARAMETERS */
         $parameters = $this->getParameters($request->all());
+        if(isset($uid)){
+            $parameters['id'] = $uid;
+        }
+        if(isset($format)){
+            $parameters['format'] = $format;
+        }
 
         //app('log')->debug('Time after Parameter Get: ' . (microtime(true) - $starttime)); //DEBUG LOGGING TEST
 
@@ -180,7 +207,6 @@ class GazetteerController extends Controller
 
         // Search dataitems.
         $results = $this->searchDataitems($parameters);
-
         /* MAX SIZE CHECK */
         if ($this->maxSizeCheck($results, $parameters['format'], $MAX_PAGING)) return redirect()->route('maxPagingMessage'); //if results > $MAX_PAGING show warning msg
 
@@ -267,54 +293,200 @@ class GazetteerController extends Controller
             if (!empty($names)) { //if we dont have an empty array
                 //If we are bulk searching from file, skip name and fuzzyname search and search from file instead
                 if ($parameters['names']) {
-                    $dataitems->where(function ($query) use ($names) {
+                    $dataitems->where(function ($query) use ($names , $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', $firstcase)->orWhere('placename', 'ILIKE', $firstcase);
                         foreach ($names as $line) {
                             $query->orWhere('title', 'ILIKE', $line)->orWhere('placename', 'ILIKE', $firstcase);
+                        };
+                        if ($parameters['searchdescription'] === 'on') {
+                            $query->orWhere('description', 'ILIKE', '%' . $parameters['name'] . '%');
                         }
                     });
                 } else if ($parameters['fuzzynames']) {
-                    $dataitems->where(function ($query) use ($names) {
+                    $dataitems->where(function ($query) use ($names , $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', '%' . $firstcase . '%')->orWhereRaw('placename % ?', $firstcase);
                         //$query->where('placename', 'ILIKE', '%'.$firstcase.'%')->orWhere('placename', 'SOUNDS LIKE', $firstcase);
                         foreach ($names as $line) {
                             $query->orWhere('title', 'ILIKE', '%' . $line . '%')->orWhereRaw('placename % ?', $line);
+                        };
+                        if ($parameters['searchdescription'] === 'on') {
+                            $query->orWhere('description', 'ILIKE', '%' . $parameters['fuzzyname'] . '%');
                         }
                     });
                 } else if ($parameters['containsnames']) {
-                    $dataitems->where(function ($query) use ($names) {
+                    $dataitems->where(function ($query) use ($names , $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', '%' . $firstcase . '%')->orWhere('placename', 'ILIKE', '%' . $firstcase . '%');
                         foreach ($names as $line) {
                             $query->orWhere('title', 'ILIKE', '%' . trim($line) . '%')->orWhere('placename', 'ILIKE', '%' . trim($line) . '%');
                         }
+                        if ($parameters['searchdescription'] === 'on') {
+                            $query->orWhere('description', 'ILIKE', '%' . $parameters['containsname'] . '%');
+                        }
                     });
                 }
             } else $dataitems->where('title', '=', null); //we did a bulk search but all of the names equated to empty strings! Show no results
         } else {
-            if ($parameters['name']) $dataitems->where('title', 'ILIKE', $parameters['name']);
-            else if ($parameters['fuzzyname']) {
+            if ($parameters['name']){
+                $dataitems->where(function ($query) use ($parameters) {
+                    $query->where('title', 'ILIKE', $parameters['name']);
+                    if ($parameters['searchdescription'] === 'on') {
+                        $query->orWhere('description', 'ILIKE', '%' . $parameters['name'] . '%');
+                    }
+                });
+            } else if ($parameters['fuzzyname']) {
                 $dataitems->where(function ($query) use ($parameters) {
                     $query->where('title', 'ILIKE', '%' . $parameters['fuzzyname'] . '%')->orWhereRaw('title % ?', $parameters['fuzzyname'])
                         ->orWhere('placename', 'ILIKE', '%' . $parameters['fuzzyname'] . '%')->orWhereRaw('placename % ?', $parameters['fuzzyname']);
                     //$query->where('placename', 'ILIKE', '%'.$parameters['fuzzyname'].'%')->orWhere('placename', 'SOUNDS LIKE', $parameters['fuzzyname']);
+                    if ($parameters['searchdescription'] === 'on') {
+                        $query->orWhere('description', 'ILIKE', '%' . $parameters['fuzzyname'] . '%');
+                    }
                 });
             } else if ($parameters['containsname']) {
                 $dataitems->where(function ($query) use ($parameters) {
                     $query->where('title', 'ILIKE', '%' . $parameters['containsname'] . '%')->orWhere('placename', 'ILIKE', '%' . $parameters['containsname'] . '%');
+                    if ($parameters['searchdescription'] === 'on') {
+                        $query->orWhere('description', 'ILIKE', '%' . $parameters['containsname'] . '%');
+                    }
                 });
             }
         }
 
         /* BUILD SEARCH QUERY WITH PARAMS */
+        if (isset($parameters['recordtype']) && $parameters['recordtype']) {
+            $dataitems->whereHas('recordtype', function ($query) use ($parameters) {
+                $query->where('type', '=', $parameters['recordtype']); // Filter by recordtype value
+            });
+        }
+        if (isset($parameters['searchlayers'])) {
+            $searchLayerIDs = explode(',', $parameters['searchlayers']);
+            
+            $dataitems->whereHas('dataset', function ($query) use ($searchLayerIDs) {
+                $query->whereIn('dataset_id', $searchLayerIDs);
+            });
+        }
+        if (isset($parameters['extended_data'])) {
+            //Extended data
+            $extendedDataQueries = explode('AND', $parameters['extended_data']);
+           
+            // List of allowed conditions
+            $allowed_conditions = ['textmatch', '>', '<', '=', 'before', 'after'];
+            $pattern = '/\s(' . implode('|', array_map('preg_quote', $allowed_conditions)) . ')\s/';
+
+            foreach ($extendedDataQueries as $extendedDataQuery) {
+
+                $attribute = '';
+                $condition = '';
+                $value = '';
+
+                if (preg_match($pattern, $extendedDataQuery, $matches)) {
+                    $condition = trim($matches[1]);
+
+                    $parts = preg_split($pattern, $extendedDataQuery);
+
+                    if ( count($parts) === 2) {
+                        // Trim and remove quotes 
+                        $attribute = trim($parts[0], " '\"");
+                        $value = trim($parts[1], " '\"");
+                    } else {
+                        continue;
+                    }
+                } else {
+                    continue;
+                }
+
+                //Sanitize attribute
+                if (!preg_match('/^[\w\s]+$/', $attribute)) {
+                    continue;
+                }
+                $xpath_query = "//Data[@name=\"$attribute\"]/value";
+
+                switch (strtolower($condition)) {
+                    case 'textmatch':
+                        //Parameterized Queries
+                        $dataitems->whereNotNull('extended_data')
+                            ->whereRaw('LENGTH(extended_data) > 0')
+                            ->whereRaw("(xpath('string($xpath_query)', extended_data::xml))[1]::text ILIKE ?", ["%$value%"]);
+                        break;
+                    case '>':
+                        if (is_numeric($value)) {
+                            $dataitems->whereNotNull('extended_data')
+                                ->whereRaw('LENGTH(extended_data) > 0')
+                                ->whereRaw("CASE 
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\d+$' 
+                                                    THEN (xpath('string($xpath_query)', extended_data::xml))[1]::text::integer > $value
+                                                    ELSE false
+                                                END");
+                        }
+                        break;
+                    case '<':
+                        if (is_numeric($value)) {
+                            $dataitems->whereNotNull('extended_data')
+                                ->whereRaw('LENGTH(extended_data) > 0')
+                                ->whereRaw("CASE 
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\d+$' 
+                                                    THEN (xpath('string($xpath_query)', extended_data::xml))[1]::text::integer < $value
+                                                    ELSE false
+                                                END");
+                        }
+                        break;
+                    case '=':
+                        //Parameterized Queries
+                        $dataitems->whereNotNull('extended_data')
+                                ->whereRaw('LENGTH(extended_data) > 0')
+                                ->whereRaw("(xpath('string($xpath_query)', extended_data::xml))[1]::text = ?", [$value]);
+                        break;
+                    case 'before':
+                        //Supported date format : yyyy-mm-dd   yyyy-mm   yyyy
+                        if (preg_match('/^(\d{4}-\d{2}-\d{2}|\d{4}-\d{2}|\d{4})$/', $value)) {
+                            $dataitems->whereNotNull('extended_data')
+                                ->whereRaw('LENGTH(extended_data) > 0');
+
+                            $dataitems->whereRaw("
+                                                CASE 
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}-\\\\d{2}-\\\\d{2}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text, 'YYYY-MM-DD') < TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}-\\\\d{2}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text || '-01', 'YYYY-MM-DD') < TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text || '-01-01', 'YYYY-MM-DD') < TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    ELSE false
+                                                END = true");
+                        }
+                        break;
+                    case 'after':
+                        //Supported date format : yyyy-mm-dd   yyyy-mm   yyyy
+                        if (preg_match('/^(\d{4}-\d{2}-\d{2}|\d{4}-\d{2}|\d{4})$/', $value)) {
+                            $dataitems->whereNotNull('extended_data')
+                                ->whereRaw('LENGTH(extended_data) > 0');
+
+                            $dataitems->whereRaw("
+                                                CASE 
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}-\\\\d{2}-\\\\d{2}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text, 'YYYY-MM-DD') > TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}-\\\\d{2}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text || '-01', 'YYYY-MM-DD') > TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    WHEN (xpath('string($xpath_query)', extended_data::xml))[1]::text ~ E'^\\\\d{4}$' 
+                                                        THEN TO_TIMESTAMP((xpath('string($xpath_query)', extended_data::xml))[1]::text || '-01-01', 'YYYY-MM-DD') > TO_TIMESTAMP('$value', 'YYYY-MM-DD')
+                                                    ELSE false
+                                                END = true");
+                        }
+                        break;
+                }
+            }
+        }
         if ($parameters['lga']) $dataitems->where('lga', '=', $parameters['lga']);
         if ($parameters['dataitemid']) $dataitems->where('id', '=', $parameters['dataitemid']);
         if ($parameters['from']) $dataitems->where('id', '>=', $parameters['from']);
         if ($parameters['to']) $dataitems->where('id', '<=', $parameters['to']);
         if ($parameters['state']) $dataitems->where('state', '=', $parameters['state']);
-        if ($parameters['feature_term']) $dataitems->where('feature_term', '=', $parameters['feature_term']);
+        if ($parameters['feature_term']){
+            $searchTerms = explode(';', $parameters['feature_term']);
+            $dataitems->wherein('feature_term', $searchTerms);
+        }
 
         if ($bbox) {
             $dataitems->where('latitude', '>=', $bbox['min_lat']);
@@ -356,6 +528,18 @@ class GazetteerController extends Controller
         }
         if ($parameters['subquery']) {
             $dataitems = $this->diSubquery($dataitems, $parameters);
+        }
+
+        if (isset($parameters['sort'])  ||  (isset($parameters['line']) && $parameters['line'] === 'time')   ) {
+
+            $dataitems = Dataset::infillDataitemDates($dataitems);
+            $dataitems = $dataitems->where('datestart', '!=', '')->where('dateend', '!=', '');
+
+            if ($parameters["sort"] === 'end') {
+                $dataitems = $dataitems->orderBy('dateend');
+            } else {
+                $dataitems = $dataitems->orderBy('datestart');
+            }
         }
 
         $collection = $dataitems->get(); //needs to be applied a second time for some reason (maybe because of the subquery?)
@@ -486,6 +670,8 @@ class GazetteerController extends Controller
         // The 'id' parameter actually means 'uid'.
         $parameters['id'] = (isset($parameters['id'])) ? $parameters['id'] : null;
         $parameters['paging'] = (isset($parameters['paging'])) ? $parameters['paging'] : null;
+        $parameters['recordtype'] = (isset($parameters['recordtype'])) ? $parameters['recordtype'] : null;
+        $parameters['searchlayers'] = (isset($parameters['searchlayers'])) ? $parameters['searchlayers'] : null;
         $parameters['lga'] = (isset($parameters['lga'])) ? $parameters['lga'] : null;
         $parameters['state'] = (isset($parameters['state'])) ? $parameters['state'] : null;
         $parameters['parish'] = (isset($parameters['parish'])) ? $parameters['parish'] : null;
@@ -496,6 +682,7 @@ class GazetteerController extends Controller
         $parameters['fuzzyname'] = (isset($parameters['fuzzyname'])) ? $parameters['fuzzyname'] : null;
         $parameters['containsname'] = (isset($parameters['containsname'])) ? $parameters['containsname'] : null;
         $parameters['format'] = (isset($parameters['format'])) ? $parameters['format'] : null;
+        $parameters['searchdescription'] = (isset($parameters['searchdescription'])) ? $parameters['searchdescription'] : null;
         $parameters['download'] = (isset($parameters['download'])) ? $parameters['download'] : null;
         $parameters['bbox'] = (isset($parameters['bbox'])) ? $parameters['bbox'] : null;
         $parameters['polygon'] = (isset($parameters['polygon'])) ? $parameters['polygon'] : null;
@@ -503,6 +690,7 @@ class GazetteerController extends Controller
         $parameters['chunks'] = (isset($parameters['chunks'])) ? $parameters['chunks'] : null;
         $parameters['dataitemid'] = (isset($parameters['dataitemid'])) ? $parameters['dataitemid'] : null;
         $parameters['feature_term'] = (isset($parameters['feature_term'])) ? $parameters['feature_term'] : null;
+        $parameters['extended_data'] = (isset($parameters['extended_data'])) ? $parameters['extended_data'] : null;
         $parameters['source'] = (isset($parameters['source'])) ? $parameters['source'] : null;
         $parameters['searchpublicdatasets'] = (isset($parameters['searchpublicdatasets'])) ? $parameters['searchpublicdatasets'] : null;
         $parameters['searchausgaz'] = (isset($parameters['searchausgaz'])) ? $parameters['searchausgaz'] : null;
@@ -567,12 +755,18 @@ class GazetteerController extends Controller
             }
             $headers['Content-Type'] = 'application/json'; //set header content type
             if ($parameters['download']) $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.json"'; //if we are downloading, add a 'download attachment' header
-            return Response::make(FileFormatter::toGeoJSON($results), '200', $headers); //serve the file to browser (or download)
+            return Response::make(FileFormatter::toGeoJSON($results, $parameters), '200', $headers); //serve the file to browser (or download)
         }
         if ($parameters['format'] == "csv") {
             $headers["Content-Type"] = "text/csv"; //set header content type
             $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.csv"'; //always download csv
             return FileFormatter::toCSV($results, $headers); //Download
+        }
+        if ($parameters['format'] == 'csvContent'){
+            //Internal process only
+            //Return the content of the csv report as string by stream_get_contents()
+            //Used for ro-crate export of saved search results on multilayers
+            return FileFormatter::toCSVContent($results);
         }
         if ($parameters['format'] == "kml") {
             // Note: not sure this chuck part gets called anywhere. May delete this after verification.

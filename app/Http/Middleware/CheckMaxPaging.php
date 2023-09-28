@@ -16,8 +16,8 @@ class CheckMaxPaging
      */
     public function handle($request, Closure $next)
     {
-        $MAX_PAGING = env('MAX_PAGING', false);
-        $DEFAULT_PAGING = env('DEFAULT_PAGING', false);
+        $MAX_PAGING = config('app.maxpaging');
+        $DEFAULT_PAGING = config('app.defaultpaging');
 
         if ($request->input('page')) return $next($request); //if we were simply just accessing the next page
 

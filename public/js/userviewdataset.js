@@ -1,26 +1,24 @@
 $(document).ready( function () {
 
     //LGA autocomplete.
-    $( "#addlga, [name='lga']" ).autocomplete({
+    $( "#editLga" ).autocomplete({
         source: function(request, response) {
             var results = $.ui.autocomplete.filter(lgas, request.term);
             response(results.slice(0, 20)); //return only 20 results
         }
     });
-    $( "#addlga, [name='lga']" ).autocomplete( "option", "appendTo", ".eventInsForm" );
+    $( "#editLga" ).autocomplete( "option", "appendTo", ".eventInsForm" );
 
     //feature_term autocomplete.
-    $( "#addfeatureterm, [name='feature_term']" ).autocomplete({
+    $( "#editFeatureterm" ).autocomplete({
         source: function(request, response) {
             var results = $.ui.autocomplete.filter(feature_terms, request.term);
             response(results.slice(0, 20)); //return only 20 results
         }
     });
-    $( "#addfeatureterm, [name='feature_term']" ).autocomplete( "option", "appendTo", ".eventInsForm" );
+    $( "#editFeatureterm" ).autocomplete( "option", "appendTo", ".eventInsForm" );
 
     // Datepickers.
-    $('[name="editdatestartdiv"]').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
-    $('[name="editdateenddiv"]').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
     $('#editDateStartDiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
     $('#editDateEndDiv').datepicker({format: 'yyyy-mm-dd', todayBtn: true, forceParse: false, keyboardNavigation: false});
 
@@ -110,10 +108,10 @@ $(document).ready( function () {
             $('#editState').val(dataitem.state);
         }
         if (dataitem.datestart) {
-            $('#editDateStartDiv').datepicker('setDate', dataitem.datestart);
+            $('#editDatestart').val(dataitem.datestart);
         }
         if (dataitem.dateend) {
-            $('#editDateEndDiv').datepicker('setDate', dataitem.dateend);
+            $('#editDateend').val(dataitem.dateend);
         }
         if (dataitem.lga) {
             $('#editLga').val(dataitem.lga);
