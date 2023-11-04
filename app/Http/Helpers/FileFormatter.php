@@ -279,7 +279,9 @@ class FileFormatter
                 $proppairs["linkback"] = $r->external_url;
             }else if(!empty($r->dataset_id)){
                 $dataset = Dataset::find($r->dataset_id);
-                $proppairs["linkback"] = $dataset->linkback ?? url("layers/{$dataset->id}");
+                if( $dataset && $dataset->linkback){
+                    $proppairs["linkback"] = $dataset->linkback;
+                }
             }
 
             if (!empty($r->uid)) {
