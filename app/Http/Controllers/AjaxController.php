@@ -129,7 +129,7 @@ class AjaxController extends Controller
             $keywords = [];
             $tags = explode(",,;", $request->tags);
             foreach ($tags as $tag) {
-                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower($tag)]);
+                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
                 array_push($keywords, $subjectkeyword);
             }
             foreach ($keywords as $keyword) {
