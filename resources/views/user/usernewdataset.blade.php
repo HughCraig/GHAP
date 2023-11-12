@@ -21,7 +21,7 @@
     </h2>
     <p class="h4">See the <a href="https://www.tlcmap.org/guides/ghap/#contribute" target="_blank">Guide</a> for help and instructions on creating and adding to layers.</p>
     <div class="container-fluid border">
-        <form method="POST" id="new_dataset_form" action="{{url()->full()}}/create">
+        <form method="POST" id="new_dataset_form" action="{{url()->full()}}/create" enctype="multipart/form-data">
             @csrf
             <div class="row">
                 <div class="col-lg p-5">
@@ -104,6 +104,12 @@
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="The usage licence that applies to this layer. Open data is often under a <a href='https://creativecommons.org/licenses/' target='_blank'>Creative Commons</a> CC BY or CC BY-NC licence. If you created the information, you can choose the licence. If you obtained it from another source, select the licence specified there."></span>
                         <input type="text" class="mb-2 w3-white form-control" name="license"/>
+
+                    Image
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                      title="Max upload size 4MB">
+                    </span>
+                    <input type="file" name="image" id="datasetAddImage" accept="image/*"/>
                 </div>
                 <div class="col-lg p-5">
                     Temporal Coverage
@@ -156,7 +162,7 @@
                 </div>
             </div>
 
-            <button class="m-4 p-4 btn btn-primary" type="Submit">Create Layer</button>
+            <button class="m-4 p-4 btn btn-primary" type="Submit" id="addDatasetSaveButton">Create Layer</button>
         </form>
     </div>
     <div class="mt-4 m-0 row"><a href="{{url('myprofile/mydatasets')}}" class="mb-3 btn btn-primary">Back</a></div>

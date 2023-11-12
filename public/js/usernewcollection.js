@@ -29,4 +29,12 @@ $(document).ready( function () {
 
     //Make it look like the other inputs
     $('#tags_tagsinput').addClass('form-control').addClass('mb-2');
+
+    $('#addCollectionSaveButton').on('click', function () {
+        var file = $('#collectionAddImage')[0].files[0];
+        if (file && file.size > 4 * 1024 * 1024) { // 4MB in bytes
+            alert('The image size should be less than 4MB');
+            return false;
+        }
+    });
 });

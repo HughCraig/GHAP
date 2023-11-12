@@ -28,7 +28,7 @@
                 </button>
             </div>
 
-            <form method="POST" id="edit_dataset_form" action="{{url()->full()}}/edit">
+            <form method="POST" id="edit_dataset_form" action="{{url()->full()}}/edit" enctype="multipart/form-data">
                 <div class="modal-body">
                     @csrf
                     <div class="row">
@@ -82,6 +82,12 @@
                                   title="The usage licence that applies to this multilayer. Open data is often under a <a href='https://creativecommons.org/licenses/' target='_blank'>Creative Commons</a> CC BY or CC BY-NC licence. If you created the information, you can choose the licence. If you obtained it from another source, select the licence specified there."></span>
                             <input type="text" class=" mb-4 w3-white form-control" name="license"
                                    value="{{$collection->license}}"/>
+                            
+                            <p>Image</p>
+                            @if( $collection->image_path )
+                                <img src="{{ asset('storage/images/' . $collection->image_path) }}" alt="Collection Image" style="max-height: 150px;">
+                            @endif
+                            <input type="file" name="image" id="collectionEditImage" accept="image/*"/>
 
                             DOI
                             <span tabindex="0" data-html="true" data-animation="true"
@@ -183,7 +189,7 @@
 
                 <div class="modal-footer">
                     <span class="text-danger">* required fields</span>
-                    <input class="btn btn-primary" type="submit" value="Save" name="Save">
+                    <input class="btn btn-primary" type="submit" value="Save" name="Save" id="editCollectionSaveButton">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </form>

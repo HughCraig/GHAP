@@ -29,6 +29,13 @@
                     </span>
                 <input type="text" class="mb-3 form-control" id="addplacename" placeholder="Placename" required>
 
+                <!-- Image Upload -->
+                <label for="addImage">Image</label> 
+                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                      title="Max upload size 4MB">
+                </span>
+                <input type="file" class="form-control" id="addImage" name="image" accept="image/*">
+
                 <div class="map-picker">
                     <p><small>Either enter coordinates manually or click on the map and apply.</small></p>
 

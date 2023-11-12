@@ -90,6 +90,41 @@ $("main").on('click', '[name="delete_dataitem_button"]', function () {
 const msgBanner = new MessageBanner($('#addModal .message-banner'));
 msgBanner.hide();
 
+
+ /**
+ * Get the data to send to the dataitem add service.
+ *
+ * @returns {*}
+ *   The request data.
+ */
+ const getAddDataitemRequestData = function () {
+
+    const formData = new FormData();
+
+    formData.append('ds_id', $('#ds_id').val());
+    formData.append('title', $('#addtitle').val());
+    formData.append('placename', $('#addplacename').val());
+    formData.append('recordtype', $('#addrecordtype').children("option:selected").val());
+    formData.append('latitude', $('#addlatitude').val());
+    formData.append('longitude', $('#addlongitude').val());
+    formData.append('description', tinymce.get('adddescription').getContent());
+    formData.append('datestart', $('#adddatestart').val());
+    formData.append('dateend', $('#adddateend').val());
+    formData.append('state', $('#addstate').children("option:selected").val());
+    formData.append('featureterm', $('#addfeatureterm').val().toLowerCase());
+    formData.append('lga', $('#addlga').val().toUpperCase());
+    formData.append('parish', $('#addparish').val());
+    formData.append('source', tinymce.get('addsource').getContent());
+    formData.append('url', $('#addexternalurl').val());
+    formData.append('extendedData', JSON.stringify(new ExtendedDataEditor('#addModal .extended-data-editor').getData()));
+    // image file upload
+    if ($('#addImage').length && $('#addImage')[0].files[0]) {
+        formData.append('image', $('#addImage')[0].files[0]);
+    }
+
+    return formData;
+};    
+
 /*
  *  ADDING DATA ITEMS
 
@@ -131,30 +166,19 @@ $("main").on('click', '#add_dataitem_button_submit', function () {
         isValid = false;
         msgBanner.error('Linkback must be in valid URL format');
     }
+    var file = $('#addImage')[0].files[0];
+    if (file && file.size > 4 * 1024 * 1024) { 
+        isValid = false;
+        msgBanner.error('The image size should be less than 4MB');
+    }
 
     if (isValid) {
-        const extendedDataEditor = new ExtendedDataEditor('#addModal .extended-data-editor');
         $.ajax({
             type: 'POST',
             url: ajaxadddataitem,
-            data: {
-                ds_id: $('#ds_id').val(),
-                title: $('#addtitle').val(),
-                placename: $('#addplacename').val(),
-                recordtype: $('#addrecordtype').children("option:selected").val(),
-                latitude: $('#addlatitude').val(),
-                longitude: $('#addlongitude').val(),
-                description: tinymce.get('adddescription').getContent(),
-                datestart: $('#adddatestart').val(),
-                dateend: $('#adddateend').val(),
-                state: $('#addstate').children("option:selected").val(),
-                featureterm: $('#addfeatureterm').val().toLowerCase(),
-                lga: $('#addlga').val().toUpperCase(),
-                parish: $('#addparish').val(),
-                source: tinymce.get('addsource').getContent(),
-                url: $('#addexternalurl').val(),
-                extendedData: extendedDataEditor.getData()
-            },
+            data: getAddDataitemRequestData(),
+            contentType: false, 
+            processData: false, 
             success: function (result) {
                 location.reload();
             },

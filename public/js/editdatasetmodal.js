@@ -33,4 +33,13 @@ $(document).ready(function () {
     $.each(currentKeywords, function (index, value) {
         $('#tags').addTag(value.keyword);
     });
+
+
+    $('#editDatasetSaveButton').on('click', function () {
+        var file = $('#datasetEditImage')[0].files[0];
+        if (file && file.size > 4 * 1024 * 1024) { // 4MB in bytes
+            alert('The image size should be less than 4MB');
+            return false;
+        }
+    });
 });
