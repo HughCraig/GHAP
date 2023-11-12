@@ -130,6 +130,7 @@ Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in 
     Route::post('ajaxeditdataitem', 'AjaxController@ajaxeditdataitem');
     Route::post('ajaxadddataitem', 'AjaxController@ajaxadddataitem');
     Route::post('ajaxdeletedataitem', 'AjaxController@ajaxdeletedataitem');
+    Route::post('ajaxchangedataitemorder', 'AjaxController@ajaxchangedataitemorder');
 
     Route::post('ajaxdeletedataset', 'AjaxController@ajaxdeletedataset');
 

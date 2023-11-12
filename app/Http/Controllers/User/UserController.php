@@ -166,7 +166,7 @@ class UserController extends Controller
     {
         $user = auth()->user();
         $dataset = $user->datasets()->with(['dataitems' => function ($query) {
-            $query->orderBy('id');
+            $query->orderBy('dataset_order');
         }])->find($id);
     
         if (!$dataset) return redirect('myprofile/mydatasets');
