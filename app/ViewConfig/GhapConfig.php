@@ -5,6 +5,7 @@ namespace TLCMap\ViewConfig;
 use TLCMap\Http\Helpers\HtmlFilter;
 use TLCMap\Models\Collection;
 use TLCMap\Models\Dataset;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Class of common configurations for GHAP.
@@ -72,6 +73,12 @@ class GhapConfig
     public static function createDatasetInfoBlockContent(Dataset $dataset)
     {
         $content = '';
+
+        if (!empty($dataset->image_path)) {
+            $imageUrl = Storage::disk('public')->url('images/' . $dataset->image_path);
+            $content .= '<img src="' . $imageUrl . '" alt="Layer Image">';
+        }
+        
         if (!empty($dataset->description)) {
             $content .= "<div>" . HtmlFilter::simple($dataset->description) . "</div>";
         }
@@ -108,6 +115,12 @@ class GhapConfig
     public static function createCollectionInfoBlockContent(Collection $collection)
     {
         $content = '';
+
+        if (!empty($collection->image_path)) {
+            $imageUrl = Storage::disk('public')->url('images/' . $collection->image_path);
+            $content .= '<img src="' . $imageUrl . '" alt="Collection Image">';
+        }
+
         if (!empty($collection->description)) {
             $content .= "<div>" . HtmlFilter::simple($collection->description) . "</div>";
         }
