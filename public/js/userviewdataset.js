@@ -34,6 +34,50 @@ $(document).ready( function () {
     const editModalExtendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
     editModalExtendedDataEditor.init();
 
+    //Change place order 
+    var isDraggable = false; 
+    var orderChanged = false;
+    function makeDraggable() {
+        $(".place-list").sortable({
+            update: function() {
+                orderChanged = true;
+            }
+        });
+        $(".place-list").disableSelection();
+        $(".place-list .row .dragIcon").css('display', 'flex');
+    }
+
+    function destroyDraggable() {
+        $(".place-list").sortable("destroy");
+        $(".place-list .row .dragIcon").css('display', 'none');
+    }
+
+    $("#toggle-drag").click(function() {
+        isDraggable = !isDraggable;
+        if (isDraggable) {
+            makeDraggable();
+        } else {
+            if (orderChanged) {
+                $.ajax({
+                    type: 'POST',
+                    url: ajaxchangedataitemorder,
+                    data: {
+                        ds_id: dataset_id,
+                        newOrder: $(".place-list").sortable('toArray', { attribute: 'data-id' })
+                    },
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (xhr) {
+                        alert(xhr.responseText);
+                    }
+                });
+            }
+            destroyDraggable();
+        }
+        $(this).text(isDraggable ? 'Save Order' : 'Change Order');
+    });
+
     // Handle dataitem delete.
     $('.delete-dataitem-button').on('click', function () {
         const dataitemID = $(this).data('itemId');

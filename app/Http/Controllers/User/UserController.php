@@ -170,7 +170,7 @@ class UserController extends Controller
             return redirect('layers/' . $id); // Return to public view of dataset for non-logged in users
         }
         $dataset = $user->datasets()->with(['dataitems' => function ($query) {
-            $query->orderBy('id');
+            $query->orderBy('dataset_order');
         }])->find($id);
     
         if (!$dataset) return redirect('myprofile/mydatasets');
