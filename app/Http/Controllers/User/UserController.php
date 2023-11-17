@@ -48,6 +48,7 @@ class UserController extends Controller
         ["startdate", "enddate"],
         ["start date", "end date"],
         ["date start", "date end"],
+        ["start_date", "end_date"],
         ["date", "date"] // if there is a single date set begin and end to same
     ];
 
@@ -880,7 +881,7 @@ class UserController extends Controller
         // so need to retain case for other things like extended data. Noticed glitch between lcing everying in CSV, but not in KML, so was
         // no way out but this.
         $notForExtData = ["id", "title", "placename", "name", "description", "type", "linkback", "latitude", "longitude",
-            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url" , "record_type"];
+            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url" , "record_type" , "start_date", "end_date"];
         if (in_array(strtolower($s), array_map('strtolower', $notForExtData))) {
             $s = strtolower($s);
         }
