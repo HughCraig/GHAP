@@ -111,5 +111,14 @@ class User extends \Eloquent implements Authenticatable, CanResetPasswordContrac
         return $this->email_verfied_at === null ? false : true;
     }
 
+    /**
+     * Check if the user is locked
+     * @return bool
+     */
+    public function isLocked()
+    {
+        return $this->hasRole('LOCKED');
+    }
+
 }
 

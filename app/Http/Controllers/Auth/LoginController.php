@@ -67,8 +67,16 @@ class LoginController extends Controller
         if ($this->guard()->validate($this->credentials($request))) {
             $user = $this->guard()->getLastAttempted();
 
-            // Make sure the user is active
-            if ($user->is_active && $this->attemptLogin($request)) {
+            if($user->isLocked()){
+                // Increment the failed login attempts and redirect back to the
+                // login form with an error message.
+                $this->incrementLoginAttempts($request);
+                return redirect()
+                    ->back()
+                    ->withInput($request->only('email', 'remember'))
+                    ->withMessage('Your account has been locked. Please contact TLCMap : https://tlcmap.org/contact/');
+            } else if ($user->is_active && $this->attemptLogin($request)) {
+                // Make sure the user is active
                 // Send the normal successful login response
                 $this->redirectTo = url()->previous();
                 return $this->sendLoginResponse($request);

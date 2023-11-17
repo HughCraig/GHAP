@@ -111,9 +111,12 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin', 'Auth\AdminController@adminHome'); //Only let ADMIN or SUPER_ADMIN access this page
     Route::get('admin/users', 'Auth\AdminController@userManagement'); //Only let SUPER_ADMIN access this page
+    Route::post('admin/users/deleteUser', 'Auth\AdminController@deleteUser'); //Only let SUPER_ADMIN access this page
     Route::get('admin/users/{id}', 'Auth\AdminController@viewUser'); //Only let  SUPER_ADMIN access this page
     Route::post('admin/users/{email}/activateDeactivateUser', 'Auth\AdminController@activateDeactivateUser'); //Only let SUPER_ADMIN access this page
+    Route::post('admin/users/{email}/setEmailAsVerified', 'Auth\AdminController@setEmailAsVerified'); //Only let SUPER_ADMIN access this page
     Route::post('admin/users/{email}/updateUserRole', 'Auth\AdminController@updateUserRole'); //Only let SUPER_ADMIN access this page
+    Route::post('admin/users/{email}/resetUserPassword', 'Auth\AdminController@resetUserPassword'); //Only let SUPER_ADMIN access this page
 });
 
 /**
