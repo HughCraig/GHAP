@@ -297,10 +297,6 @@ class Dataset extends Model
     {
         $dataset = $this;
         $features = array();  
-        $linkback = isset($dataset->linkback) ? $dataset->linkback : null;
-        if (!isset($dataset->linkback)) {
-            $linkback = url("layers/{$dataset->id}");
-        }
         
         $metadata = array(
             'layerid' => $dataset->id,
@@ -308,7 +304,7 @@ class Dataset extends Model
             'description' => $dataset->description,
             'warning' => $dataset->warning,
             'ghap_url' => $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"),
-            'linkback' => $linkback,
+            'linkback' => $dataset->linkback
         );
 
         // Set the feature collection config.
@@ -431,7 +427,10 @@ class Dataset extends Model
 
             if (!empty($i->external_url)) {
                 $proppairs["linkback"] = $i->external_url;
+            }else if(!empty($dataset->linkback)){
+                $proppairs["linkback"] = $dataset->linkback;
             }
+
             if (!empty($i->extended_data)) {
                 $proppairs = array_merge($proppairs, $i->extDataAsKeyValues());
                 //$proppairs["extended_data"] = $i->extDataAsHTML();
