@@ -62,9 +62,11 @@ Route::get('multilayers/{id}', 'CollectionController@viewPublicCollection')->nam
 Route::get('multilayers/{id}/json', 'CollectionController@viewPublicJson')->middleware('cors')->name('viewmultilayerjson');
 Route::get('multilayers/{id}/ro-crate', 'CollectionController@downloadPublicROCrate')->name('downloadmultilayerrocate');
 
+
 /**
  * User Pages.
  */
+Route::get('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
 Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile', 'User\UserController@userProfile')->name('myProfile');
     Route::get('myprofile/mydatasets', 'User\UserController@userDatasets')->name('myDatasets'); //Only let users view own dataset
@@ -72,7 +74,7 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::post('myprofile/mysearches/delete', 'User\UserController@deleteUserSavedSearches');
     Route::get('myprofile/mydatasets/newdataset', 'User\UserController@newDatasetPage');
     Route::post('myprofile/mydatasets/newdataset/create', 'User\UserController@createNewDataset');
-    Route::get('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
+    
     Route::get('myprofile/mydatasets/{id}/collaborators', 'User\UserController@userEditCollaborators');
     Route::post('bulkadddataitem', 'User\UserController@bulkAddDataItem'); //not ajax as it is too much data
     Route::post('myprofile/mydatasets/{id}/edit', 'User\UserController@userEditDataset');

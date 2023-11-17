@@ -166,6 +166,9 @@ class UserController extends Controller
     public function userViewDataset(Request $request, int $id)
     {
         $user = auth()->user();
+        if(!$user){
+            return redirect('layers/' . $id); // Return to public view of dataset for non-logged in users
+        }
         $dataset = $user->datasets()->with(['dataitems' => function ($query) {
             $query->orderBy('id');
         }])->find($id);
