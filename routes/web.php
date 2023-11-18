@@ -62,9 +62,11 @@ Route::get('multilayers/{id}', 'CollectionController@viewPublicCollection')->nam
 Route::get('multilayers/{id}/json', 'CollectionController@viewPublicJson')->middleware('cors')->name('viewmultilayerjson');
 Route::get('multilayers/{id}/ro-crate', 'CollectionController@downloadPublicROCrate')->name('downloadmultilayerrocate');
 
+
 /**
  * User Pages.
  */
+Route::get('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
 Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile', 'User\UserController@userProfile')->name('myProfile');
     Route::get('myprofile/mydatasets', 'User\UserController@userDatasets')->name('myDatasets'); //Only let users view own dataset
@@ -72,7 +74,7 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::post('myprofile/mysearches/delete', 'User\UserController@deleteUserSavedSearches');
     Route::get('myprofile/mydatasets/newdataset', 'User\UserController@newDatasetPage');
     Route::post('myprofile/mydatasets/newdataset/create', 'User\UserController@createNewDataset');
-    Route::get('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
+    
     Route::get('myprofile/mydatasets/{id}/collaborators', 'User\UserController@userEditCollaborators');
     Route::post('bulkadddataitem', 'User\UserController@bulkAddDataItem'); //not ajax as it is too much data
     Route::post('myprofile/mydatasets/{id}/edit', 'User\UserController@userEditDataset');
@@ -111,9 +113,12 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin', 'Auth\AdminController@adminHome'); //Only let ADMIN or SUPER_ADMIN access this page
     Route::get('admin/users', 'Auth\AdminController@userManagement'); //Only let SUPER_ADMIN access this page
+    Route::post('admin/users/deleteUser', 'Auth\AdminController@deleteUser'); //Only let SUPER_ADMIN access this page
     Route::get('admin/users/{id}', 'Auth\AdminController@viewUser'); //Only let  SUPER_ADMIN access this page
     Route::post('admin/users/{email}/activateDeactivateUser', 'Auth\AdminController@activateDeactivateUser'); //Only let SUPER_ADMIN access this page
+    Route::post('admin/users/{email}/setEmailAsVerified', 'Auth\AdminController@setEmailAsVerified'); //Only let SUPER_ADMIN access this page
     Route::post('admin/users/{email}/updateUserRole', 'Auth\AdminController@updateUserRole'); //Only let SUPER_ADMIN access this page
+    Route::post('admin/users/{email}/resetUserPassword', 'Auth\AdminController@resetUserPassword'); //Only let SUPER_ADMIN access this page
 });
 
 /**
@@ -130,6 +135,7 @@ Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in 
     Route::post('ajaxeditdataitem', 'AjaxController@ajaxeditdataitem');
     Route::post('ajaxadddataitem', 'AjaxController@ajaxadddataitem');
     Route::post('ajaxdeletedataitem', 'AjaxController@ajaxdeletedataitem');
+    Route::post('ajaxchangedataitemorder', 'AjaxController@ajaxchangedataitemorder');
 
     Route::post('ajaxdeletedataset', 'AjaxController@ajaxdeletedataset');
 

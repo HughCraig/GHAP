@@ -249,7 +249,7 @@ class CollectionController extends Controller
             $tags = explode(",,;", $request->tags);
             //for each tag in the subjects array(?), get or create a new subjectkeyword
             foreach ($tags as $tag) {
-                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower($tag)]);
+                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
                 array_push($keywords, $subjectkeyword);
             }
         }
@@ -367,7 +367,7 @@ class CollectionController extends Controller
             $tags = explode(",,;", $request->tags);
             //for each tag in the subjects array(?), get or create a new subjectkeyword
             foreach ($tags as $tag) {
-                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower($tag)]);
+                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
                 array_push($keywords, $subjectkeyword);
             }
         }

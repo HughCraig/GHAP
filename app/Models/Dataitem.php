@@ -24,7 +24,7 @@ class Dataitem extends Model
     protected $fillable = [
         'id', 'dataset_id', 'recordtype_id', 'title', 'description', 'latitude', 'longitude',
         'datestart', 'dateend', 'state', 'feature_term', 'lga', 'source', 'external_url',
-        'extended_data', 'kml_style_url', 'placename', 'original_id', 'parish' , 'image_path'
+        'extended_data', 'kml_style_url', 'placename', 'original_id', 'parish' , 'image_path', 'dataset_order'
     ];
 
     /**
@@ -155,8 +155,10 @@ class Dataitem extends Model
         $extData = [];
         try {
             $extDataXML = simplexml_load_string($this->extended_data, 'SimpleXMLElement', LIBXML_NOCDATA);
-            foreach ($extDataXML->Data as $item) {
-                $extData[(string) $item->attributes()->name] = (string) $item->value;
+            if( isset($extDataXML->Data) ) {
+                foreach ($extDataXML->Data as $item) {
+                    $extData[(string) $item->attributes()->name] = (string) $item->value;
+                }
             }
         } catch (Exception $e) {
             return false;

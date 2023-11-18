@@ -174,6 +174,35 @@ class AjaxController extends Controller
     }
 
     /**
+    * Change the order of dataitems in one dataset
+    */
+    public function ajaxchangedataitemorder(Request $request)
+    {
+        $this->middleware('auth'); // Ensure the user is logged in
+        $user = auth()->user(); // Get the currently logged in user
+
+        $ds_id = $request->ds_id; //id of dataset
+        $dataset = $user->datasets()->find($ds_id);
+        if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN')) 
+            return redirect('myprofile/mydatasets'); //if dataset not found for this user OR not ADMIN, go back
+
+        $newOrder = $request->input('newOrder'); // The new order of the dataitems
+        if (is_null($newOrder)) {
+            return response()->json(['error' => 'Invalid order data'], 400); 
+        }
+
+        foreach ($newOrder as $order => $dataitemID) {
+            $dataitem = $dataset->dataitems()->find($dataitemID);
+            if ($dataitem) {
+                $dataitem->dataset_order = $order;
+                $dataitem->save();
+            }
+        }
+    
+        return response()->json(['message' => 'Order updated successfully']);
+    }
+
+    /**
      * Edit this dataitem
      */
     public function ajaxeditdataitem(Request $request)
@@ -313,6 +342,8 @@ class AjaxController extends Controller
             $filename = time() . '.' . $image->getClientOriginalExtension();
             Storage::disk('public')->putFileAs('images', $image, $filename);
         }
+        $maxOrder = $dataset->dataitems()->max('dataset_order');
+        $dataset_order = $maxOrder !== null ? $maxOrder + 1 : 0;
 
         $dataitem = Dataitem::create([
             'dataset_id' => $ds_id,
@@ -329,7 +360,8 @@ class AjaxController extends Controller
             'source' => $source,
             'external_url' => $external_url,
             'placename' => $placename,
-            'image_path' => $filename
+            'image_path' => $filename,
+            'dataset_order' => $dataset_order
         ]);
         $isDirty = false;
         // Generate UID.

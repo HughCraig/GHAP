@@ -106,6 +106,14 @@
                                 <input type="hidden" name="searchlayers" id="selected-layers">
                             </div>
                         </div>
+                        <div class="row align-items-center my-auto">
+                            <div class="col-sm-6" data-toggle="tooltip" title="This enables nuanced search and map creation within layers and needs special sytax, see under 'Search' in the GHAP Guide.">
+                                <a href="https://tlcmap.org/help/guides/ghap-guide/" style="color: #000000; text-decoration: none;" target="_blank">Extended Data?</a>
+                            </div>
+                            <div class="col-sm-6">
+                                <input type="text" class="w3-white form-control" name="extended_data" id="extended_data" autocomplete="off">
+                            </div>
+                        </div>
                         <div class="row align-items-center my-auto" data-toggle="tooltip" title="Local Government Area.">
                             <div class="col-sm-6">LGA:</div>
                             <div class="col-sm-6">
@@ -113,7 +121,7 @@
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">
-                            <div class="col-sm-6">State:</div>
+                            <div class="col-sm-6">State/Territory:</div>
                             <div class="col-sm-6">
                                 <select class="w3-white form-control" name="state" id="state">
                                     <option label="" selected></option>
@@ -135,14 +143,6 @@
                             </div>
                             <div class="col-sm-6">
                                 <input type="text" class="w3-white form-control" name="feature_term" id="feature_term" autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="row align-items-center my-auto">
-                            <div class="col-sm-6" data-toggle="tooltip">
-                                Extended Data:
-                            </div>
-                            <div class="col-sm-6">
-                                <input type="text" class="w3-white form-control" name="extended_data" id="extended_data" autocomplete="off">
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">

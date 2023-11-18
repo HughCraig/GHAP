@@ -63,7 +63,7 @@
                 <table class="table table-bordered">
                     <tr><th class="w-25">Name</th><td>{{$ds->name}}</td></tr>
 		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->description) !!}</td></tr>
-		            <tr><th>Type</th><td>{{$ds->type}}</td></tr>
+		            <tr><th>Type</th><td>{{$ds->recordtype->type}}</td></tr>
                     <tr style="height: 50px; overflow: auto"><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td></tr>
                     <tr><th>Contributor</th><td>{{$ds->ownerName()}}</td></tr>
                     <tr><th>Entries</th><td id="dscount">{{count($ds->dataitems)}}</td></tr>

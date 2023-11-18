@@ -781,6 +781,31 @@ div#mainnav {
     color: #F29469;
 }
 
+@media (max-width: 768px) {
+    div.header {
+        padding-bottom: 70%;
+    }
+
+    div#mainnav {
+        flex-direction: column;
+    } 
+
+    .main-site-logo svg,
+    .secondary-site-logo svg {
+        width: 90px; 
+        height: 90px;
+    }
+
+    .main-nav-content {
+        text-align: center;
+        margin: 0;
+    }
+
+    .site-name {
+        font-size: 1em; 
+    }
+}
+
 .secondary-nav {
     background-color: #17331C;
     color: #ffffff;

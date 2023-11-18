@@ -49,6 +49,7 @@ class UserController extends Controller
         ["startdate", "enddate"],
         ["start date", "end date"],
         ["date start", "date end"],
+        ["start_date", "end_date"],
         ["date", "date"] // if there is a single date set begin and end to same
     ];
 
@@ -166,8 +167,11 @@ class UserController extends Controller
     public function userViewDataset(Request $request, int $id)
     {
         $user = auth()->user();
+        if(!$user){
+            return redirect('layers/' . $id); // Return to public view of dataset for non-logged in users
+        }
         $dataset = $user->datasets()->with(['dataitems' => function ($query) {
-            $query->orderBy('id');
+            $query->orderBy('dataset_order');
         }])->find($id);
     
         if (!$dataset) return redirect('myprofile/mydatasets');
@@ -235,7 +239,7 @@ class UserController extends Controller
         $keywords = [];
         //for each tag in the subjects array(?), get or create a new subjectkeyword
         foreach ($tags as $tag) {
-            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower($tag)]);
+            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
             array_push($keywords, $subjectkeyword);
         }
 
@@ -318,7 +322,7 @@ class UserController extends Controller
         $keywords = [];
         //for each tag in the subjects array(?), get or create a new subjectkeyword
         foreach ($tags as $tag) {
-            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower($tag)]);
+            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
             array_push($keywords, $subjectkeyword);
         }
 
@@ -909,7 +913,7 @@ class UserController extends Controller
         // so need to retain case for other things like extended data. Noticed glitch between lcing everying in CSV, but not in KML, so was
         // no way out but this.
         $notForExtData = ["id", "title", "placename", "name", "description", "type", "linkback", "latitude", "longitude",
-            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url" , "record_type"];
+            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url" , "record_type" , "start_date", "end_date"];
         if (in_array(strtolower($s), array_map('strtolower', $notForExtData))) {
             $s = strtolower($s);
         }

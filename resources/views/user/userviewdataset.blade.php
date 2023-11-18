@@ -11,11 +11,14 @@
         var ajaxadddataitem = "{{url('ajaxadddataitem')}}";
         var ajaxeditdataitem = "{{url('ajaxeditdataitem')}}";
         var ajaxdeletedataitem = "{{url('ajaxdeletedataitem')}}";
+        var ajaxchangedataitemorder = "{{url('ajaxchangedataitemorder')}}";
 
         var lgas = {!! $lgas !!};
         var feature_terms = {!! $feature_terms !!};
         const max_upload_image_size = {{ config('app.max_upload_image_size') }};
+        var dataset_id = {!! $ds->id !!};
     </script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="{{ asset('js/map-picker.js') }}"></script>
     <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/validation.js') }}"></script>
@@ -33,6 +36,8 @@
 
         <!-- Edit Collaborators Button-->
         <a href="{{url()->full()}}/collaborators" class="btn btn-primary">Edit Collaborators</a>
+
+        <button id="toggle-drag" class="btn btn-primary">Change Order</button>
 
         <!-- Edit Dataset Modal Button-->
         @include('modals.editdatasetmodal')
@@ -180,12 +185,14 @@
     @endif
 
     <!-- Dataitem Table -->
-
     <div class="container-fluid">
         <div class="place-list">
             @foreach($ds->dataitems as $data)
-                <div class="row">
-                    <div class="col col-xl-3">
+                <div class="row" data-id="{{ $data->id }}">
+                    <div class="col dragIcon" style="max-width: 4%;display:none">
+                        <img src="{{ asset('img/draggable.svg') }}">
+                    </div>
+                    <div class="col col-xl-2">
                         <h4>
                             @if ($ds->public)
                                 <button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
@@ -237,7 +244,7 @@
                         @if(isset($data->feature_term))<dt>Feature Term</dt><dd>{{$data->feature_term}}</dd>@endif
 
                     </div>
-                    <div class="col col-xl-3">
+                    <div class="col col-xl-2">
 
                         <h4>Description</h4>
                         @if(isset($data->description))
