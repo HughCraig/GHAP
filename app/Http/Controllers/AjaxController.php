@@ -215,11 +215,19 @@ class AjaxController extends Controller
         if ($datestart === false || $dateend === false) return response()->json(['error' => 'Your date values are in the incorrect format.', 'e1' => $e1, 'e2' => $e2], 422); //if either didnt match, send error
 
         if ($request->hasFile('image')) {
+            $image = $request->file('image');
+
+            // Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+
             // Delete old image.
             if ($dataitem->image_path && Storage::disk('public')->exists('images/' . $dataitem->image_path)) {
                 Storage::disk('public')->delete('images/' . $dataitem->image_path);
             } 
-            $image = $request->file('image');
+    
+            // Save new image.
             $filename = time() . '.' . $image->getClientOriginalExtension();
             Storage::disk('public')->putFileAs('images', $image, $filename);
             $dataitem->image_path = $filename;
@@ -298,6 +306,10 @@ class AjaxController extends Controller
         $filename = null;
         if ($request->hasFile('image')) {
             $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
             $filename = time() . '.' . $image->getClientOriginalExtension();
             Storage::disk('public')->putFileAs('images', $image, $filename);
         }

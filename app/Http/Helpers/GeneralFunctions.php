@@ -166,4 +166,27 @@ class GeneralFunctions
         return ((float)$aout[1] > (float)$bout[1]) ? 1 : -1; //if a > b return 1, else return -1        
     }
 
+    /**
+     * Validates a user-uploaded image file.
+     * Check for file size and type.
+     * 
+     * @param UploadedFile $file The image file to be validated.
+     * @return bool Returns true for valid, false otherwise.
+     */
+    public static function validateUserUploadImage($file)
+    {
+        $maxSize = config('app.max_upload_image_size');
+        // Validate file size
+        if ($file->getSize() > $maxSize) {
+            return false;
+        }
+
+        // Validate file type
+        if (!$file->isValid() || !$file->isFile() || !$file->guessExtension() || !in_array($file->guessExtension(), ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg'])) {
+            return false;
+        }
+
+        return true;
+    }
+
 }

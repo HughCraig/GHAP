@@ -257,6 +257,10 @@ class CollectionController extends Controller
         $filename = null;
         if ($request->hasFile('image')) {
             $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
             $filename = time() . '.' . $image->getClientOriginalExtension();
             Storage::disk('public')->putFileAs('images', $image, $filename);
         }
@@ -369,11 +373,15 @@ class CollectionController extends Controller
         }
 
         if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
             // Delete old image.
             if ($collection->image_path && Storage::disk('public')->exists('images/' . $collection->image_path)) {
                 Storage::disk('public')->delete('images/' . $collection->image_path);
             } 
-            $image = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             Storage::disk('public')->putFileAs('images', $image, $filename);
             $collection->image_path = $filename;

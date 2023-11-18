@@ -10,6 +10,8 @@
     <script src="{{ asset('/js/form.js') }}"></script>
     <script>
         const currentKeywords = {!! $ds->subjectkeywords !!};
+    </script>
+    <script>
         const max_upload_image_size = {{ config('app.max_upload_image_size') }};
     </script>
     <script src="{{ asset('/js/editdatasetmodal.js') }}"></script>
