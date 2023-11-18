@@ -2,7 +2,7 @@
     <tbody>
         <tr>
             <td style="box-sizing:border-box;padding:25px 0;text-align:center">
-                <a href="https://ghap.tlcmap.org/" style="box-sizing:border-box;color:#bbbfc3;font-size:19px;font-weight:bold;text-decoration:none" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://u33125758.ct.sendgrid.net/ls/click?upn%3DfolzJiUXAQ97NwNE8JlD-2BNyy6R0HDAdAnjYloKzpZvcPUVs5RnirMOM0M1DM47zyjro-_F7j-2BNjtkZJWXJQwkuQqNUzm4O0qe9CGMd5KVkZB9Ogv1Ik7Es9JgtRCETKYxxW64TaJnNpwljVje-2FluaBw1tGAJVMJT45e5ylHwTA0iCUU3z0oaZgrP3ADCSUOSg3HWxDY9NuV7GSVWy35zlePKfBx6X7FqBjaRds-2FTT0N2MxecGxgcMk6SNtqvF3rAhzqlthbf5Zd9P0xknas7QP6Xowg-3D-3D&amp;source=gmail&amp;ust=1699937201761000&amp;usg=AOvVaw3d_M3akSAt3S7LimtcA-HI">
+                <a href=<?php echo config('app.url') ?> style="box-sizing:border-box;color:#bbbfc3;font-size:19px;font-weight:bold;text-decoration:none" target="_blank">
                     TLCMap Gazetteer of Historical Australian Places
                 </a>
             </td>
