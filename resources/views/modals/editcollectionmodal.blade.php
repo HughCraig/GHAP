@@ -8,6 +8,7 @@
     <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
     <script>
         const currentKeywords = {!! $collection->subjectKeywords !!};
+        const max_upload_image_size = {{ config('app.max_upload_image_size') }};
     </script>
     <script src="{{ asset('/js/editcollectionmodal.js') }}"></script>
 @endpush

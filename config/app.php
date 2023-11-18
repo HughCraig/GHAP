@@ -23,6 +23,9 @@ return [
     # 0: Do not show
     'show_help_video_first_landing' => env('SHOW_HELP_VIDEO_FIRST_LANDING', '0'),
 
+    # The max upload image size allowed in bytes. Default is 4MB.
+    'max_upload_image_size' => env('MAX_UPLOAD_IMAGE_SIZE', 4194304),
+
     /*
     |--------------------------------------------------------------------------
     | Views root URL

@@ -167,11 +167,10 @@ $("main").on('click', '#add_dataitem_button_submit', function () {
         msgBanner.error('Linkback must be in valid URL format');
     }
     var file = $('#addImage')[0].files[0];
-    if (file && file.size > 4 * 1024 * 1024) { 
+    if (file && file.size > max_upload_image_size) { 
         isValid = false;
-        msgBanner.error('The image size should be less than 4MB');
+        msgBanner.error('The image size should be less than ' + Math.floor(max_upload_image_size / (1024 * 1024)) + ' MB');
     }
-
     if (isValid) {
         $.ajax({
             type: 'POST',

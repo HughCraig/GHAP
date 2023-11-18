@@ -32,8 +32,8 @@ $(document).ready( function () {
 
     $('#addCollectionSaveButton').on('click', function () {
         var file = $('#collectionAddImage')[0].files[0];
-        if (file && file.size > 4 * 1024 * 1024) { // 4MB in bytes
-            alert('The image size should be less than 4MB');
+        if (file && file.size > max_upload_image_size) { 
+            alert('The image size should be less than ' + Math.floor(max_upload_image_size / (1024 * 1024)) + ' MB');
             return false;
         }
     });

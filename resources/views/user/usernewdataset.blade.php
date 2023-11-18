@@ -8,6 +8,9 @@
 @push('scripts')
     <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
     <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
+    <script> 
+        const max_upload_image_size = {{ config('app.max_upload_image_size') }};
+    </script>
     <script src="{{ asset('js/usernewdataset.js') }}"></script>
     <script src="{{ asset('/js/dataitem.js') }}"></script> <!-- So we can quickly reuse the URL validation code -->
     <script src="{{ asset('/js/form.js') }}"></script> <!-- So we can quickly reuse the date regex check code -->
