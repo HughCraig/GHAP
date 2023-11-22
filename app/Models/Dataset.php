@@ -47,7 +47,7 @@ class Dataset extends Model
         return $this->belongsTo(RecordType::class, 'recordtype_id');
     }
 
-    public function subjectkeywords()
+    public function subjectKeywords()
     {
         return $this->belongsToMany(SubjectKeyword::class, 'tlcmap.dataset_subject_keyword')->withPivot('dataset_id', 'subject_keyword_id');
     }

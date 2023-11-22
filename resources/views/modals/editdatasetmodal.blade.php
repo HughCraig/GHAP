@@ -9,7 +9,7 @@
     <!-- So we can quickly reuse the date regex check code -->
     <script src="{{ asset('/js/form.js') }}"></script>
     <script>
-        const currentKeywords = {!! $ds->subjectkeywords !!};
+        const currentKeywords = {!! $ds->subjectKeywords !!};
     </script>
     <script>
         const max_upload_image_size = {{ config('app.max_upload_image_size') }};

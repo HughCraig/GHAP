@@ -3,7 +3,6 @@
 @push('scripts')
     <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/publicdataset.js') }}"></script>
-    <script src="{{ asset('js/savesearch.js') }}"></script>
 @endpush
 
 @section('content')
@@ -79,11 +78,11 @@
                 <table class="table table-bordered">
                 <tr><th class="w-25">Subject</th>
                     <td>
-                        @for($i = 0; $i < count($ds->subjectkeywords); $i++)
-                            @if($i == count($ds->subjectkeywords)-1)
-                            {{$ds->subjectkeywords[$i]->keyword}}
+                        @for($i = 0; $i < count($ds->subjectKeywords); $i++)
+                            @if($i == count($ds->subjectKeywords)-1)
+                            {{$ds->subjectKeywords[$i]->keyword}}
                             @else
-                            {{$ds->subjectkeywords[$i]->keyword}},
+                            {{$ds->subjectKeywords[$i]->keyword}},
                             @endif
                         @endfor
                     </td>

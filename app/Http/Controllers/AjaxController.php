@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Mail;
 use TLCMap\Mail\CollaboratorEmail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use TLCMap\Models\SubjectKeyword;
 
 use TLCMap\Http\Helpers\GeneralFunctions;
 
@@ -65,9 +66,19 @@ class AjaxController extends Controller
     {
         $this->middleware('auth'); //Throw error if not logged in?
         $user_id = auth()->user()->id;
+
         $name = $request->name;
         $searchquery = $request->searchquery;
         $count = $request->count;
+        $description = $request->description;
+        $recordtype = $request->recordtype;
+        $warning = $request->warning;
+        $latitudefrom = $request->latitudefrom;
+        $longitudefrom = $request->longitudefrom;
+        $latitudeto = $request->latitudeto;
+        $longitudeto = $request->longitudeto;
+        $temporalfrom = $request->temporalfrom;
+        $temporalto = $request->temporalto;
 
         $msg = "";
         if (!isset($user_id)) {
@@ -79,14 +90,53 @@ class AjaxController extends Controller
         if (!isset($count)) {
             $msg .= "Count not set. ";
         }
+        if (!isset($name)) {
+            $msg .= "Search Name not set. ";
+        }
+        if (!isset($description)) {
+            $msg .= "Search description not set. ";
+        }
+        if( isset($temporalfrom) ){
+            $temporalfrom = GeneralFunctions::dateMatchesRegexAndConvertString($temporalfrom);
+            if( !$temporalfrom ){
+                $msg .= "Temporal from date is in incorrect format. ";
+            }
+        }
+        if( isset($temporalto) ){
+            $temporalto = GeneralFunctions::dateMatchesRegexAndConvertString($temporalto);
+            if( !$temporalto ){
+                $msg .= "Temporal to date is in incorrect format. ";
+            }
+        }
 
         if ($msg === "") {
-            SavedSearch::create([
+            $SavedSearch = SavedSearch::create([
                 'user_id' => $user_id,
                 'name' => $name,
                 'query' => $searchquery,
                 'count' => $count,
+                'description' => $description,
+                'recordtype_id' => RecordType::where('type', $recordtype)->first()->id,
+                'warning' => $warning,
+                'latitude_from' => $latitudefrom,
+                'longitude_from' => $longitudefrom,
+                'latitude_to' => $latitudeto,
+                'longitude_to' => $longitudeto,
+                'temporal_from' => $temporalfrom,
+                'temporal_to' => $temporalto
             ]); //create the savedsearch db entry
+
+            //Add subject keywords to relationship table
+            $keywords = [];
+            $tags = explode(",,;", $request->tags);
+            foreach ($tags as $tag) {
+                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
+                array_push($keywords, $subjectkeyword);
+            }
+            foreach ($keywords as $keyword) {
+                $SavedSearch->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
+            }
+
             return response()->json();
         } else {
             return response()->json($msg, 401);
@@ -112,7 +162,12 @@ class AjaxController extends Controller
 
 
         if ($msg === "") {
-            SavedSearch::where([['user_id', $user_id], ['id', $delete_id]])->delete(); //we ONLY delete if the user actually owns the row they are attempting to delete
+            $savedSearch = SavedSearch::where([['user_id', $user_id], ['id', $delete_id]])->first();
+            if($savedSearch){
+                $savedSearch->subjectKeywords()->detach();
+                $savedSearch->collections()->detach();
+                $savedSearch->delete();
+            }
             return response()->json();
         }
     }
