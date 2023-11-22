@@ -133,7 +133,7 @@ class AjaxController extends Controller
                 array_push($keywords, $subjectkeyword);
             }
             foreach ($keywords as $keyword) {
-                $SavedSearch->subjectkeywords()->attach(['subject_keyword_id' => $keyword->id]);
+                $SavedSearch->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
             }
 
             return response()->json();
@@ -163,7 +163,7 @@ class AjaxController extends Controller
         if ($msg === "") {
             $savedSearch = SavedSearch::where([['user_id', $user_id], ['id', $delete_id]])->first();
             if($savedSearch){
-                $savedSearch->subjectkeywords()->detach();
+                $savedSearch->subjectKeywords()->detach();
                 $savedSearch->collections()->detach();
                 $savedSearch->delete();
             }

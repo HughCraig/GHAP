@@ -18,6 +18,11 @@ class RecordType extends Model
         return RecordType::all()->pluck('type');
     }
 
+    /**
+     * Get a mapping of record types with IDs as keys and type as values.
+     *
+     * @return \Illuminate\Support\Collection Associative array of record types indexed by their IDs.
+     */
     public static function getIdTypeMap()
     {
         return RecordType::all()->pluck('type', 'id');

@@ -34,7 +34,7 @@ class SubjectKeyword extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function saved_search()
+    public function savedSearches()
     {
         return $this->belongsToMany('TLCMap\Models\SavedSearch', 'tlcmap.savedsearch_subjectkeyword', 'subject_keyword_id', 'saved_search_id');
     }

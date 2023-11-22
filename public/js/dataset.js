@@ -106,35 +106,4 @@ $(document).ready( function () {
             }
         });
     });
-
-    // /*
-    //  *  LEAVE DATASET
-    //  */
-    // $("main").on('click', '[name="leave_dataset_button"]', function () {
-    //     var parent_row = jQuery(this).parent().parent();
-    //     if (confirm('Are you sure you want to leave this dataset?')) {
-    //         var id = this.id.split("_")[3]; //id will be leave_dataset_button_##, we just want the number
-    //         $.ajax({
-    //             type: 'POST',
-    //             url: ajaxleavedataset,
-    //             data: {
-    //                 id: id
-    //             },
-    //             success: function (result) {
-    //                 //Show some kind of success message
-    //                 $("#notification_box").addClass("notification-success");
-    //                 $("#notification_message").text('Successfully left dataset!');
-    //                 setTimeout(function () {
-    //                     $("#notification_box").removeClass("notification-success");
-    //                 }, 4000);
-
-    //                 //Some magic to make it disappear in the datasets
-    //                 $('#datasettable').DataTable().row(parent_row).remove().draw();
-    //             },
-    //             error: function (xhr, textStatus, errorThrown) {
-    //                 alert(xhr.responseText); //error message with error info
-    //             }
-    //         });
-    //     }
-    // });
 });

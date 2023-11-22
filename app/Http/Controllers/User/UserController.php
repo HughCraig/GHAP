@@ -198,7 +198,7 @@ class UserController extends Controller
         $recordTypeMap = RecordType::getIdTypeMap();
         $subjectKeywordMap = [];
         foreach($searches as $search){
-            $subjectKeywordMap[$search->id] = $search->subjectkeywords->toArray();
+            $subjectKeywordMap[$search->id] = $search->subjectKeywords->toArray();
         }
         return view('user.usersavedsearches', ['searches' => $searches , 'recordTypeMap' => $recordTypeMap , 'subjectKeywordMap' => $subjectKeywordMap]);
     }
@@ -274,7 +274,7 @@ class UserController extends Controller
         $user->datasets()->attach($dataset, ['dsrole' => 'OWNER']); //attach creator to pivot table as OWNER
 
         foreach ($keywords as $keyword) {
-            $dataset->subjectkeywords()->attach(['subject_keyword_id' => $keyword->id]);
+            $dataset->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
         }
 
         return redirect('myprofile/mydatasets/' . $dataset->id);
@@ -344,11 +344,11 @@ class UserController extends Controller
 
         $dataset->save();
 
-        $dataset->subjectkeywords()->detach(); //detach all keywords
+        $dataset->subjectKeywords()->detach(); //detach all keywords
 
         //Attach the new ones
         foreach ($keywords as $keyword) {
-            $dataset->subjectkeywords()->attach(['subject_keyword_id' => $keyword->id]);
+            $dataset->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
         }
 
         return redirect('myprofile/mydatasets/' . $id);

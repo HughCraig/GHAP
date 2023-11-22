@@ -30,12 +30,22 @@ class SavedSearch extends Model
         return $this->user ? $this->user->name : '';
     }
 
+    /**
+     * The record type of the Saved search.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
     public function recordtype()
     {
         return $this->belongsTo('TLCMap\Models\RecordType', 'recordtype_id');
     }
-
-    public function subjectkeywords()
+    
+    /**
+     * The subject keywords of the Saved search.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function subjectKeywords()
     {
         return $this->belongsToMany('TLCMap\Models\SubjectKeyword', 'tlcmap.savedsearch_subjectkeyword', 'saved_search_id', 'subject_keyword_id');
     }
