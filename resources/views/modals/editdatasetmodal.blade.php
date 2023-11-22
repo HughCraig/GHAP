@@ -107,7 +107,10 @@
                                   title="The usage licence that applies to this layer. Open data is often under a <a href='https://creativecommons.org/licenses/' target='_blank'>Creative Commons</a> CC BY or CC BY-NC licence. If you created the information, you can choose the licence. If you obtained it from another source, select the licence specified there."></span>
                             <input type="text" class=" mb-4 w3-white form-control" name="license" value="{{$ds->license}}"/>
 
-                            <p>Image</p>
+                            Image
+                            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                            title='Max upload size {{ floor(config("app.max_upload_image_size") / (1024 * 1024)) . " MB" }}'>
+                            </span>
                             @if( $ds->image_path )
                                 <img src="{{ asset('storage/images/' . $ds->image_path) }}" alt="Layer Image" style="max-height: 150px;">
                             @endif

@@ -27,7 +27,7 @@
                 <!-- Image Upload -->
                 <label for="editImage">Image</label> 
                 <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                      title="Max upload size 4MB">
+                      title='Max upload size {{ floor(config("app.max_upload_image_size") / (1024 * 1024)) . " MB" }}'>
                     </span>
                 <div id="editImageContainer" class="mb-3" style="display: none;">
                     <img id="editImagePreview" src="#" alt="Place Image" style="max-height: 150px;">

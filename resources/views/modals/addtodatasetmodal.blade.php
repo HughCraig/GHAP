@@ -32,7 +32,7 @@
                 <!-- Image Upload -->
                 <label for="addImage">Image</label> 
                 <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                      title="Max upload size 4MB">
+                      title='Max upload size {{ floor(config("app.max_upload_image_size") / (1024 * 1024)) . " MB" }}'>
                 </span>
                 <input type="file" class="form-control" id="addImage" name="image" accept="image/*">
 
