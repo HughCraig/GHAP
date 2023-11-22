@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use TLCMap\Mail\CollaboratorEmail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use TLCMap\Models\SubjectKeyword;
 
 use TLCMap\Http\Helpers\GeneralFunctions;
@@ -282,8 +283,6 @@ class AjaxController extends Controller
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
         if (!$recordtype_id) return redirect('myprofile/mydatasets'); //invalid record type (likely caused by manually editing the html of the page)
 
-        //timestamp for updated_at is automatic!
-
         $dataset = $user->datasets()->find($ds_id);
         if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN')) return redirect('myprofile/mydatasets'); //if dataset not found for this user OR not ADMIN, go back
 
@@ -299,6 +298,25 @@ class AjaxController extends Controller
         if (isset($dateend)) $dateend = GeneralFunctions::dateMatchesRegexAndConvertString($dateend);
         if ($datestart === false || $dateend === false) return response()->json(['error' => 'Your date values are in the incorrect format.', 'e1' => $e1, 'e2' => $e2], 422); //if either didnt match, send error
 
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+
+            // Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+
+            // Delete old image.
+            if ($dataitem->image_path && Storage::disk('public')->exists('images/' . $dataitem->image_path)) {
+                Storage::disk('public')->delete('images/' . $dataitem->image_path);
+            } 
+    
+            // Save new image.
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+            $dataitem->image_path = $filename;
+        }
+
         $dataitem->fill([
             'title' => $title,
             'recordtype_id' => $recordtype_id,
@@ -312,9 +330,10 @@ class AjaxController extends Controller
             'lga' => $request->lga,
             'source' => $request->source,
             'external_url' => $request->url,
-            'placename' => $request->placename
+            'placename' => $request->placename,
+            'image_path' => $dataitem->image_path
         ]);
-        $dataitem->setExtendedData($extendedData);
+        $dataitem->setExtendedData(json_decode($extendedData, true));
         $dataitem->save();
 
         $dataset->updated_at = Carbon::now();
@@ -368,6 +387,16 @@ class AjaxController extends Controller
         if (isset($dateend)) $dateend = GeneralFunctions::dateMatchesRegexAndConvertString($dateend);
         if ($datestart === false || $dateend === false) return response()->json(['error' => 'Your date values are in the incorrect format.'], 422); //if either didnt match, send error
 
+        $filename = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+        }
         $maxOrder = $dataset->dataitems()->max('dataset_order');
         $dataset_order = $maxOrder !== null ? $maxOrder + 1 : 0;
 
@@ -386,6 +415,7 @@ class AjaxController extends Controller
             'source' => $source,
             'external_url' => $external_url,
             'placename' => $placename,
+            'image_path' => $filename,
             'dataset_order' => $dataset_order
         ]);
         $isDirty = false;
@@ -396,7 +426,7 @@ class AjaxController extends Controller
         }
         // Set extended data.
         if (!empty($extendedData)) {
-            $dataitem->setExtendedData($extendedData);
+            $dataitem->setExtendedData(json_decode($extendedData,true));
             $isDirty = true;
         }
         if ($isDirty) {

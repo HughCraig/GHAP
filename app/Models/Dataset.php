@@ -9,6 +9,7 @@ use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
 use TLCMap\Models\RecordType;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class Dataset extends Model
 {
@@ -19,7 +20,7 @@ class Dataset extends Model
     protected $fillable = [
         'id', 'name', 'description', 'creator', 'public', 'allowanps', 'publisher', 'contact', 'citation', 'doi',
         'source_url', 'linkback', 'latitude_from', 'longitude_from', 'latitude_to', 'longitude_to', 'language', 'license', 'rights',
-        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning'
+        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning' , 'image_path'
     ];
 
     /**
@@ -347,6 +348,12 @@ class Dataset extends Model
             $featureConfig = new FeatureConfig();
 
             $proppairs = array();
+
+            if (!empty($i->image_path)) {
+                $imageUrl = Storage::disk('public')->url('images/' . $i->image_path);
+                $proppairs["Image"] = '<img src="' . $imageUrl . '" alt="Place Image">';
+            }
+
             if (!empty($i->title)) {
                 $proppairs["name"] = $i->title;
             } else {

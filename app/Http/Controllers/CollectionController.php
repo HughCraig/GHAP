@@ -14,6 +14,7 @@ use TLCMap\ROCrate\ROCrateGenerator;
 use TLCMap\ViewConfig\CollectionConfig;
 use TLCMap\ViewConfig\DatasetConfig;
 use TLCMap\ViewConfig\GhapConfig;
+use Illuminate\Support\Facades\Storage;
 use Response;
 
 class CollectionController extends Controller
@@ -253,6 +254,17 @@ class CollectionController extends Controller
             }
         }
 
+        $filename = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+        }
+
         $collection = Collection::create([
             'name' => $collectionName,
             'description' => $description,
@@ -276,6 +288,7 @@ class CollectionController extends Controller
             'temporal_to' => $temporalto,
             'created' => $request->created,
             'warning' => $request->warning,
+            'image_path' => $filename
         ]);
 
         foreach ($keywords as $keyword) {
@@ -359,6 +372,21 @@ class CollectionController extends Controller
             }
         }
 
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+            // Delete old image.
+            if ($collection->image_path && Storage::disk('public')->exists('images/' . $collection->image_path)) {
+                Storage::disk('public')->delete('images/' . $collection->image_path);
+            } 
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+            $collection->image_path = $filename;
+        }
+
         $collection->fill([
             'name' => $collectionName,
             'description' => $description,
@@ -382,6 +410,7 @@ class CollectionController extends Controller
             'temporal_to' => $temporalto,
             'created' => $request->created,
             'warning' => $request->warning,
+            'image_path' => $collection->image_path
         ]);
         $collection->save();
 

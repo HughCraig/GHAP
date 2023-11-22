@@ -75,6 +75,14 @@
                     <tr><th>Linkback</th><td id="linkback">{{$collection->linkback}}</td></tr>
                     <tr><th>Date From</th><td>{{$collection->temporal_from}}</td></tr>
                     <tr><th>Date To</th><td>{{$collection->temporal_to}}</td></tr> 
+                    <tr>
+                        <th>Image</th>
+                        <td>
+                            @if($collection->image_path)
+                            <img src="{{ asset('storage/images/' . $collection->image_path) }}" alt="Collection Image" style="max-width: 100%; max-height:150px">
+                            @endif
+                        </td>
+                    </tr>
                 </table>
             </div>
         </div>

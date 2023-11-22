@@ -29,6 +29,7 @@ use TLCMap\Mail\PasswordChanged;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 
 use TLCMap\Http\Helpers\GeneralFunctions;
 
@@ -249,6 +250,17 @@ class UserController extends Controller
 
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
 
+        $filename = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+        }
+
         $dataset = Dataset::create([
             'name' => $datasetname,
             'description' => $description,
@@ -273,6 +285,7 @@ class UserController extends Controller
             'temporal_to' => $temporalto,
             'created' => $request->created,
             'warning' => $request->warning,
+            'image_path' => $filename
         ]);
 
         $user->datasets()->attach($dataset, ['dsrole' => 'OWNER']); //attach creator to pivot table as OWNER
@@ -320,6 +333,21 @@ class UserController extends Controller
 
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
 
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+            // Delete old image.
+            if ($dataset->image_path && Storage::disk('public')->exists('images/' . $dataset->image_path)) {
+                Storage::disk('public')->delete('images/' . $dataset->image_path);
+            } 
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+            $dataset->image_path = $filename;
+        }
+
         $dataset->fill([
             'name' => $datasetname,
             'description' => $description,
@@ -344,6 +372,7 @@ class UserController extends Controller
             'temporal_to' => $temporalto,
             'created' => $request->created,
             'warning' => $request->warning,
+            'image_path' => $dataset->image_path
         ]);
 
         $dataset->save();
