@@ -34,6 +34,8 @@ use TLCMap\Http\Helpers\GeneralFunctions;
 use TLCMap\Models\Datasource;
 use TLCMap\ROCrate\ROCrateGenerator;
 
+use TLCMap\Models\RecordType;
+
 class GazetteerController extends Controller
 {
     /********************/
@@ -785,8 +787,9 @@ class GazetteerController extends Controller
             }
         }
 
+        $recordtypes = RecordType::types();
         //else, format as html
-        return view('ws.ghap.places.show', ['details' => $results, 'query' => $results]);
+        return view('ws.ghap.places.show', ['details' => $results, 'query' => $results , 'recordtypes' => $recordtypes]);
     }
 
     /**
