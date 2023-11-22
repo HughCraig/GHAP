@@ -2,7 +2,7 @@
     <tbody>
         <tr>
             <td style="box-sizing:border-box;padding:25px 0;text-align:center">
-                <a href=<?php echo config('app.url') ?> style="box-sizing:border-box;color:#bbbfc3;font-size:19px;font-weight:bold;text-decoration:none" target="_blank">
+                <a href="{{ config('app.url') }}" style="box-sizing:border-box;color:#bbbfc3;font-size:19px;font-weight:bold;text-decoration:none" target="_blank">
                     TLCMap Gazetteer of Historical Australian Places
                 </a>
             </td>
