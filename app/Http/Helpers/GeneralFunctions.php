@@ -182,7 +182,7 @@ class GeneralFunctions
         }
 
         // Validate file type
-        if (!$file->isValid() || !$file->isFile() || !$file->guessExtension() || !in_array($file->guessExtension(), ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg'])) {
+        if (!$file->isValid() || !$file->isFile() || !$file->guessExtension() || !in_array($file->guessExtension(), ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg' , 'webp'])) {
             return false;
         }
 

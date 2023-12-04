@@ -316,7 +316,8 @@ $(document).ready( function () {
         }
 
         if (isValid) {
-            $(this).prop('disabled', 'disabled');
+            var saveButton = $(this); 
+            saveButton.prop('disabled', true);
             // Save the dataitem.
             $.ajax({
                 type: 'POST',
@@ -325,13 +326,12 @@ $(document).ready( function () {
                 contentType: false, 
                 processData: false, 
                 success: function (result) {
-                    $(this).removeProp('disabled');
+                    saveButton.prop('disabled', true);
                     $('#editDataitemModal').modal('hide');
                     location.reload();
                 },
                 error: function (xhr, textStatus, errorThrown) {
-                    $(this).removeProp('disabled');
-                    $('#editDataitemModal').modal('hide');
+                    saveButton.prop('disabled', false);
                     alert(xhr.responseText); //error message with error info
                 }
             });
