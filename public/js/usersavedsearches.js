@@ -202,7 +202,7 @@ $(document).ready(function () {
         };
     }
 
-    function validateAddSavedSearchFormValues(inputs) {
+    function validateEditSavedSearchFormValues(inputs) {
         let isValid = true;
         msgBanner.clear();
 
@@ -251,7 +251,7 @@ $(document).ready(function () {
 
     $("#editSaveSearchButton").on("click", function () {
         const inputs = getEditSavedSearchFormValues();
-        let isValid = validateAddSavedSearchFormValues(inputs);
+        let isValid = validateEditSavedSearchFormValues(inputs);
         console.log(inputs);
 
         if (isValid) {
