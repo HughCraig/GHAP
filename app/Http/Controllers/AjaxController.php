@@ -173,6 +173,88 @@ class AjaxController extends Controller
     }
 
     /**
+     * Get values from form and save to the metadata section of users saved search
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function ajaxeditsearch(Request $request)
+    {
+        $this->middleware('auth'); //Throw error if not logged in?
+        $user_id = auth()->user()->id;
+        $searchID = $request->id;
+
+        $savedSearch = SavedSearch::where([['user_id', $user_id], ['id', $searchID]])->first();
+        if(!$savedSearch){
+            return redirect('myprofile/mysearches'); 
+        }
+
+        $name = $request->name;
+        $description = $request->description;
+        $recordtype = $request->recordtype;
+        $warning = $request->warning;
+        $latitudefrom = $request->latitudefrom;
+        $longitudefrom = $request->longitudefrom;
+        $latitudeto = $request->latitudeto;
+        $longitudeto = $request->longitudeto;
+        $temporalfrom = $request->temporalfrom;
+        $temporalto = $request->temporalto;
+
+        $keywords = [];
+        $tags = explode(",,;", $request->tags);
+        foreach ($tags as $tag) {
+            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
+            array_push($keywords, $subjectkeyword);
+        }
+
+        $msg = "";
+        if (!isset($name)) {
+            $msg .= "Search Name not set. ";
+        }
+        if (!isset($description)) {
+            $msg .= "Search description not set. ";
+        }
+        if( isset($temporalfrom) ){
+            $temporalfrom = GeneralFunctions::dateMatchesRegexAndConvertString($temporalfrom);
+            if( !$temporalfrom ){
+                $msg .= "Temporal from date is in incorrect format. ";
+            }
+        }
+        if( isset($temporalto) ){
+            $temporalto = GeneralFunctions::dateMatchesRegexAndConvertString($temporalto);
+            if( !$temporalto ){
+                $msg .= "Temporal to date is in incorrect format. ";
+            }
+        }
+
+        if ($msg === "") {
+            $savedSearch->fill([
+                'name' => $name,
+                'description' => $description,
+                'recordtype_id' => RecordType::where('type', $recordtype)->first()->id,
+                'warning' => $warning,
+                'latitude_from' => $latitudefrom,
+                'longitude_from' => $longitudefrom,
+                'latitude_to' => $latitudeto,
+                'longitude_to' => $longitudeto,
+                'temporal_from' => $temporalfrom,
+                'temporal_to' => $temporalto
+            ]); 
+
+            $savedSearch->save();
+
+            $savedSearch->subjectKeywords()->detach(); //re attach subject keywords
+            foreach ($keywords as $keyword) {
+                $savedSearch->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
+            }
+
+            return response()->json();
+        } else {
+            return response()->json($msg, 401);
+        }
+    }
+
+    /**
      * View a dataitem.
      *
      * This controller only apply when a logged in user requesting a dataitem from one of his/her owned dataset.

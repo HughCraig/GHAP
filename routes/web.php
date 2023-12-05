@@ -131,6 +131,7 @@ Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in 
     Route::post('ajaxsavesearch', 'AjaxController@ajaxsavesearch');
     Route::post('ajaxsubsearch', 'AjaxController@ajaxsubsearch');
     Route::post('ajaxdeletesearch', 'AjaxController@ajaxdeletesearch');
+    Route::post('ajaxeditsearch', 'AjaxController@ajaxeditsearch');
 
     Route::get('ajaxviewdataitem', 'AjaxController@ajaxviewdataitem');
     Route::post('ajaxeditdataitem', 'AjaxController@ajaxeditdataitem');
