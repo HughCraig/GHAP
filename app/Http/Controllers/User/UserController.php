@@ -201,11 +201,12 @@ class UserController extends Controller
         $user = auth()->user();
         $searches = SavedSearch::where('user_id', $user->id)->get();
         $recordTypeMap = RecordType::getIdTypeMap();
+        $recordtypes = RecordType::types();
         $subjectKeywordMap = [];
         foreach($searches as $search){
             $subjectKeywordMap[$search->id] = $search->subjectKeywords->toArray();
         }
-        return view('user.usersavedsearches', ['searches' => $searches , 'recordTypeMap' => $recordTypeMap , 'subjectKeywordMap' => $subjectKeywordMap]);
+        return view('user.usersavedsearches', ['searches' => $searches , 'recordTypeMap' => $recordTypeMap , 'recordtypes' => $recordtypes, 'subjectKeywordMap' => $subjectKeywordMap]);
     }
 
     /*
