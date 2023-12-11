@@ -29,6 +29,7 @@ use TLCMap\Mail\PasswordChanged;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 
 use TLCMap\Http\Helpers\GeneralFunctions;
 
@@ -48,6 +49,7 @@ class UserController extends Controller
         ["startdate", "enddate"],
         ["start date", "end date"],
         ["date start", "date end"],
+        ["start_date", "end_date"],
         ["date", "date"] // if there is a single date set begin and end to same
     ];
 
@@ -165,8 +167,11 @@ class UserController extends Controller
     public function userViewDataset(Request $request, int $id)
     {
         $user = auth()->user();
+        if(!$user){
+            return redirect('layers/' . $id); // Return to public view of dataset for non-logged in users
+        }
         $dataset = $user->datasets()->with(['dataitems' => function ($query) {
-            $query->orderBy('id');
+            $query->orderBy('dataset_order');
         }])->find($id);
     
         if (!$dataset) return redirect('myprofile/mydatasets');
@@ -195,7 +200,13 @@ class UserController extends Controller
     {
         $user = auth()->user();
         $searches = SavedSearch::where('user_id', $user->id)->get();
-        return view('user.usersavedsearches', ['searches' => $searches]);
+        $recordTypeMap = RecordType::getIdTypeMap();
+        $recordtypes = RecordType::types();
+        $subjectKeywordMap = [];
+        foreach($searches as $search){
+            $subjectKeywordMap[$search->id] = $search->subjectKeywords->toArray();
+        }
+        return view('user.usersavedsearches', ['searches' => $searches , 'recordTypeMap' => $recordTypeMap , 'recordtypes' => $recordtypes, 'subjectKeywordMap' => $subjectKeywordMap]);
     }
 
     /*
@@ -234,11 +245,22 @@ class UserController extends Controller
         $keywords = [];
         //for each tag in the subjects array(?), get or create a new subjectkeyword
         foreach ($tags as $tag) {
-            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower($tag)]);
+            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
             array_push($keywords, $subjectkeyword);
         }
 
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
+
+        $filename = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+        }
 
         $dataset = Dataset::create([
             'name' => $datasetname,
@@ -264,12 +286,13 @@ class UserController extends Controller
             'temporal_to' => $temporalto,
             'created' => $request->created,
             'warning' => $request->warning,
+            'image_path' => $filename
         ]);
 
         $user->datasets()->attach($dataset, ['dsrole' => 'OWNER']); //attach creator to pivot table as OWNER
 
         foreach ($keywords as $keyword) {
-            $dataset->subjectkeywords()->attach(['subject_keyword_id' => $keyword->id]);
+            $dataset->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
         }
 
         return redirect('myprofile/mydatasets/' . $dataset->id);
@@ -305,11 +328,26 @@ class UserController extends Controller
         $keywords = [];
         //for each tag in the subjects array(?), get or create a new subjectkeyword
         foreach ($tags as $tag) {
-            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower($tag)]);
+            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
             array_push($keywords, $subjectkeyword);
         }
 
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+            // Delete old image.
+            if ($dataset->image_path && Storage::disk('public')->exists('images/' . $dataset->image_path)) {
+                Storage::disk('public')->delete('images/' . $dataset->image_path);
+            } 
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+            $dataset->image_path = $filename;
+        }
 
         $dataset->fill([
             'name' => $datasetname,
@@ -335,15 +373,16 @@ class UserController extends Controller
             'temporal_to' => $temporalto,
             'created' => $request->created,
             'warning' => $request->warning,
+            'image_path' => $dataset->image_path
         ]);
 
         $dataset->save();
 
-        $dataset->subjectkeywords()->detach(); //detach all keywords
+        $dataset->subjectKeywords()->detach(); //detach all keywords
 
         //Attach the new ones
         foreach ($keywords as $keyword) {
-            $dataset->subjectkeywords()->attach(['subject_keyword_id' => $keyword->id]);
+            $dataset->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
         }
 
         return redirect('myprofile/mydatasets/' . $id);
@@ -880,7 +919,7 @@ class UserController extends Controller
         // so need to retain case for other things like extended data. Noticed glitch between lcing everying in CSV, but not in KML, so was
         // no way out but this.
         $notForExtData = ["id", "title", "placename", "name", "description", "type", "linkback", "latitude", "longitude",
-            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url" , "record_type"];
+            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url" , "record_type" , "start_date", "end_date"];
         if (in_array(strtolower($s), array_map('strtolower', $notForExtData))) {
             $s = strtolower($s);
         }

@@ -151,14 +151,14 @@
                     </div>
                     <div class="main-menu-item w3-dropdown-hover w3-mobile">
                         <a href="#">Layers <i class="fa fa-caret-down"></i></a>
-                        <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
+                        <div class="navb w3-dropdown-content w3-bar-block w3-card-4">
                             <a href="{{ url('publicdatasets') }}" class="w3-bar-item w3-button">Layers</a>
                             <a href="{{ url('publiccollections') }}" class="w3-bar-item w3-button">Multilayers</a>
                         </div>
                     </div>
                     <div class="main-menu-item w3-dropdown-hover w3-mobile">
                         <a href="#">Help <i class="fa fa-caret-down"></i></a>
-                        <div class="navb w3-dropdown-content w3-bar-block w3-card-4 w3-mobile">
+                        <div class="navb w3-dropdown-content w3-bar-block w3-card-4">
                             @if (!empty(config('app.help_video_url')))
                                 <a href="#" data-toggle="modal" data-target="#helpVideoModal" class="w3-bar-item w3-button">Quick start</a>
                             @endif

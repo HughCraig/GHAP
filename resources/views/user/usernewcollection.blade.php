@@ -8,6 +8,9 @@
 @push('scripts')
     <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
     <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
+    <script> 
+        const max_upload_image_size = {{ config('app.max_upload_image_size') }};
+    </script>
     <script src="{{ asset('js/usernewcollection.js') }}"></script>
 @endpush
 
@@ -20,7 +23,7 @@
     <p class="h4">See the <a href="https://www.tlcmap.org/guides/ghap/#contribute" target="_blank">Guide</a> for help
         and instructions on creating and adding to multilayers.</p>
     <div class="container-fluid border">
-        <form method="POST" id="new_dataset_form" action="{{url()->full()}}/create">
+        <form method="POST" id="new_dataset_form" action="{{url()->full()}}/create" enctype="multipart/form-data">
             @csrf
             <div class="row">
                 <div class="col-lg p-5">
@@ -102,6 +105,12 @@
                         class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="The usage licence that applies to this multilayer. Open data is often under a <a href='https://creativecommons.org/licenses/' target='_blank'>Creative Commons</a> CC BY or CC BY-NC licence. If you created the information, you can choose the licence. If you obtained it from another source, select the licence specified there."></span>
                     <input type="text" class="mb-2 w3-white form-control" name="license"/>
+
+                    Image
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                      title='Max upload size {{ floor(config("app.max_upload_image_size") / (1024 * 1024)) . " MB" }}'>
+                    </span>
+                    <input type="file" name="image" id="collectionAddImage" accept="image/*"/>
                 </div>
 
                 <div class="col-lg p-5">
@@ -164,7 +173,7 @@
                 </div>
             </div>
 
-            <button class="m-4 p-4 btn btn-primary" type="Submit">Create Multilayer</button>
+            <button class="m-4 p-4 btn btn-primary" type="Submit" id="addCollectionSaveButton">Create Multilayer</button>
         </form>
     </div>
     <div class="mt-4 m-0 row"><a href="{{url('myprofile/mycollections')}}" class="mb-3 btn btn-primary">Back</a></div>

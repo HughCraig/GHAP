@@ -121,7 +121,7 @@
                             </div>
                         </div>
                         <div class="row align-items-center my-auto">
-                            <div class="col-sm-6">State:</div>
+                            <div class="col-sm-6">State/Territory:</div>
                             <div class="col-sm-6">
                                 <select class="w3-white form-control" name="state" id="state">
                                     <option label="" selected></option>

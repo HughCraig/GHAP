@@ -36,6 +36,7 @@ class Kernel extends HttpKernel
             \TLCMap\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \TLCMap\Http\Middleware\LogoutInactiveUsers::class,
+            \TLCMap\Http\Middleware\LogoutLockedUsers::class,
         ],
 
         'api' => [

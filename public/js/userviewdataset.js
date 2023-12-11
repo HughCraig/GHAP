@@ -34,6 +34,50 @@ $(document).ready( function () {
     const editModalExtendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
     editModalExtendedDataEditor.init();
 
+    //Change place order 
+    var isDraggable = false; 
+    var orderChanged = false;
+    function makeDraggable() {
+        $(".place-list").sortable({
+            update: function() {
+                orderChanged = true;
+            }
+        });
+        $(".place-list").disableSelection();
+        $(".place-list .row .dragIcon").css('display', 'flex');
+    }
+
+    function destroyDraggable() {
+        $(".place-list").sortable("destroy");
+        $(".place-list .row .dragIcon").css('display', 'none');
+    }
+
+    $("#toggle-drag").click(function() {
+        isDraggable = !isDraggable;
+        if (isDraggable) {
+            makeDraggable();
+        } else {
+            if (orderChanged) {
+                $.ajax({
+                    type: 'POST',
+                    url: ajaxchangedataitemorder,
+                    data: {
+                        ds_id: dataset_id,
+                        newOrder: $(".place-list").sortable('toArray', { attribute: 'data-id' })
+                    },
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (xhr) {
+                        alert(xhr.responseText);
+                    }
+                });
+            }
+            destroyDraggable();
+        }
+        $(this).text(isDraggable ? 'Save Order' : 'Change Order');
+    });
+
     // Handle dataitem delete.
     $('.delete-dataitem-button').on('click', function () {
         const dataitemID = $(this).data('itemId');
@@ -126,6 +170,13 @@ $(document).ready( function () {
             const extendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
             extendedDataEditor.setData(dataitem.extendedData);
         }
+        // Handle Image Display and Label
+        if (dataitem.image_path) {
+            $('#editImagePreview').attr('src', '/storage/images/' + dataitem.image_path); 
+            $('#editImageContainer').show();
+        } else {
+            $('#editImageContainer').hide();
+        }
     };
 
     /**
@@ -135,41 +186,31 @@ $(document).ready( function () {
      *   The request data.
      */
     const getEditDataitemRequestData = function () {
-        const dataitemID = $('#editDataitemModal').data('itemId');
-        const datasetID = $('#editDataitemModal').data('setId');
-        const title = $('#editTitle').val();
-        const placename = $('#editPlacename').val();
-        const latitude = $('#editLatitude').val();
-        const longitude = $('#editLongitude').val();
-        const recordType = $('#editRecordtype').val();
-        const description = tinymce.get('editDescription').getContent();
-        const feature = $('#editFeatureterm').val();
-        const state = $('#editState').val();
-        const datestart = $('#editDatestart').val();
-        const dateend = $('#editDateend').val();
-        const lga = $('#editLga').val();
-        const externalUrl = $('#editExternalurl').val();
-        const source = tinymce.get('editSource').getContent();
-        const extendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
-        return {
-            id: dataitemID,
-            ds_id: datasetID,
-            title: title ? title : null,
-            placename: placename ? placename : null,
-            recordtype: recordType ? recordType : null,
-            latitude: latitude !== '' ? latitude : null,
-            longitude: longitude !== '' ? longitude : null,
-            description: description ? description : null,
-            datestart: datestart ? datestart : null,
-            dateend: dateend ? dateend : null,
-            state: state ? state : null,
-            featureterm: feature ? feature.toLowerCase() : null,
-            lga: lga ? lga.toUpperCase() : null,
-            source: source ? source : null,
-            url: externalUrl ? externalUrl : null,
-            extendedData: extendedDataEditor.getData()
-        };
-    };
+        const formData = new FormData();
+        formData.append('id', $('#editDataitemModal').data('itemId'));
+        formData.append('ds_id', $('#editDataitemModal').data('setId'));
+        formData.append('title', $('#editTitle').val());
+        formData.append('placename', $('#editPlacename').val());
+        formData.append('recordtype', $('#editRecordtype').val());
+        formData.append('latitude', $('#editLatitude').val());
+        formData.append('longitude', $('#editLongitude').val());
+        formData.append('description', tinymce.get('editDescription').getContent());
+        formData.append('datestart', $('#editDatestart').val());
+        formData.append('dateend', $('#editDateend').val());
+        formData.append('state', $('#editState').val());
+        formData.append('featureterm', $('#editFeatureterm').val().toLowerCase());
+        formData.append('lga', $('#editLga').val().toUpperCase());
+        formData.append('url', $('#editExternalurl').val());
+        formData.append('source', tinymce.get('editSource').getContent());
+        formData.append('extendedData', JSON.stringify(new ExtendedDataEditor('#editDataitemModal .extended-data-editor').getData()));
+    
+        // Handle the image file upload
+        if ($('#editImage').length && $('#editImage')[0].files[0]) {
+            formData.append('image', $('#editImage')[0].files[0]);
+        }
+    
+        return formData;
+    };    
 
     /**
      * Clear all values in the dataitem editing form.
@@ -268,22 +309,29 @@ $(document).ready( function () {
             isValid = false;
             msgBanner.error('Linkback must be in valid URL format');
         }
+        var file = $('#editImage')[0].files[0];
+        if (file && file.size > max_upload_image_size) { 
+            isValid = false;
+            msgBanner.error('The image size should be less than ' + Math.floor(max_upload_image_size / (1024 * 1024)) + ' MB');
+        }
 
         if (isValid) {
-            $(this).prop('disabled', 'disabled');
+            var saveButton = $(this); 
+            saveButton.prop('disabled', true);
             // Save the dataitem.
             $.ajax({
                 type: 'POST',
                 url: ajaxeditdataitem,
                 data: getEditDataitemRequestData(),
+                contentType: false, 
+                processData: false, 
                 success: function (result) {
-                    $(this).removeProp('disabled');
+                    saveButton.prop('disabled', true);
                     $('#editDataitemModal').modal('hide');
                     location.reload();
                 },
                 error: function (xhr, textStatus, errorThrown) {
-                    $(this).removeProp('disabled');
-                    $('#editDataitemModal').modal('hide');
+                    saveButton.prop('disabled', false);
                     alert(xhr.responseText); //error message with error info
                 }
             });

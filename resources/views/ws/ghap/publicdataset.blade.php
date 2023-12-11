@@ -3,7 +3,6 @@
 @push('scripts')
     <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/publicdataset.js') }}"></script>
-    <script src="{{ asset('js/savesearch.js') }}"></script>
 @endpush
 
 @section('content')
@@ -63,7 +62,7 @@
                 <table class="table table-bordered">
                     <tr><th class="w-25">Name</th><td>{{$ds->name}}</td></tr>
 		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->description) !!}</td></tr>
-		            <tr><th>Type</th><td>{{$ds->type}}</td></tr>
+		            <tr><th>Type</th><td>{{$ds->recordtype->type}}</td></tr>
                     <tr style="height: 50px; overflow: auto"><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td></tr>
                     <tr><th>Contributor</th><td>{{$ds->ownerName()}}</td></tr>
                     <tr><th>Entries</th><td id="dscount">{{count($ds->dataitems)}}</td></tr>
@@ -79,11 +78,11 @@
                 <table class="table table-bordered">
                 <tr><th class="w-25">Subject</th>
                     <td>
-                        @for($i = 0; $i < count($ds->subjectkeywords); $i++)
-                            @if($i == count($ds->subjectkeywords)-1)
-                            {{$ds->subjectkeywords[$i]->keyword}}
+                        @for($i = 0; $i < count($ds->subjectKeywords); $i++)
+                            @if($i == count($ds->subjectKeywords)-1)
+                            {{$ds->subjectKeywords[$i]->keyword}}
                             @else
-                            {{$ds->subjectkeywords[$i]->keyword}},
+                            {{$ds->subjectKeywords[$i]->keyword}},
                             @endif
                         @endfor
                     </td>
@@ -97,6 +96,14 @@
                     <tr><th>Linkback</th><td id="linkback">{{$ds->linkback}}</td></tr>
                     <tr><th>Date From</th><td>{{$ds->temporal_from}}</td></tr>
                     <tr><th>Date To</th><td>{{$ds->temporal_to}}</td></tr> 
+                    <tr>
+                        <th>Image</th>
+                        <td>
+                            @if($ds->image_path)
+                            <img src="{{ asset('storage/images/' . $ds->image_path) }}" alt="Layer Image" style="max-width: 100%; max-height:150px">
+                            @endif
+                        </td>
+                    </tr>
                 </table>
             </div>
         </div>
@@ -188,6 +195,11 @@
                         @if(isset($data->updated_at))<dt id="updatedat">Updated At</dt><dd>{{$data->updated_at}}</dd>@endif
 
                     </div>
+                    @if(!empty($data->image_path))
+                        <div class="col col-xl-2">
+                            <img src="{{ asset('storage/images/' . $data->image_path) }}" alt="Place image" style="max-width: 100%;max-height:150px">
+                        </div>
+                    @endif
                     <!-- end bootstrap row -->
                 </div>
             @endforeach

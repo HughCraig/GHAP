@@ -34,4 +34,12 @@ $(document).ready(function () {
     $.each(currentKeywords, function (index, value) {
         $('#tags').addTag(value.keyword);
     });
+
+    $('#editCollectionSaveButton').on('click', function () {
+        var file = $('#collectionEditImage')[0].files[0];
+        if (file && file.size > max_upload_image_size) { 
+            alert('The image size should be less than ' + Math.floor(max_upload_image_size / (1024 * 1024)) + ' MB');
+            return false;
+        }
+    });
 });
