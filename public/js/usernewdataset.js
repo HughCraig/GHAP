@@ -29,4 +29,12 @@ $(document).ready( function () {
 
     //Make it look like the other inputs
     $('#tags_tagsinput').addClass('form-control').addClass('mb-2');
+
+    $('#addDatasetSaveButton').on('click', function () {
+        var file = $('#datasetAddImage')[0].files[0];
+        if (file && file.size > max_upload_image_size) {
+            alert('The image size should be less than ' + Math.floor(max_upload_image_size / (1024 * 1024)) + ' MB');
+            return false;
+        }
+    });
 });

@@ -9,6 +9,7 @@ use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
 use TLCMap\Models\RecordType;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class Dataset extends Model
 {
@@ -19,7 +20,7 @@ class Dataset extends Model
     protected $fillable = [
         'id', 'name', 'description', 'creator', 'public', 'allowanps', 'publisher', 'contact', 'citation', 'doi',
         'source_url', 'linkback', 'latitude_from', 'longitude_from', 'latitude_to', 'longitude_to', 'language', 'license', 'rights',
-        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning'
+        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning' , 'image_path'
     ];
 
     /**
@@ -46,7 +47,7 @@ class Dataset extends Model
         return $this->belongsTo(RecordType::class, 'recordtype_id');
     }
 
-    public function subjectkeywords()
+    public function subjectKeywords()
     {
         return $this->belongsToMany(SubjectKeyword::class, 'tlcmap.dataset_subject_keyword')->withPivot('dataset_id', 'subject_keyword_id');
     }
@@ -297,10 +298,6 @@ class Dataset extends Model
     {
         $dataset = $this;
         $features = array();  
-        $linkback = isset($dataset->linkback) ? $dataset->linkback : null;
-        if (!isset($dataset->linkback)) {
-            $linkback = url("layers/{$dataset->id}");
-        }
         
         $metadata = array(
             'layerid' => $dataset->id,
@@ -308,7 +305,7 @@ class Dataset extends Model
             'description' => $dataset->description,
             'warning' => $dataset->warning,
             'ghap_url' => $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"),
-            'linkback' => $linkback,
+            'linkback' => $dataset->linkback
         );
 
         // Set the feature collection config.
@@ -351,6 +348,12 @@ class Dataset extends Model
             $featureConfig = new FeatureConfig();
 
             $proppairs = array();
+
+            if (!empty($i->image_path)) {
+                $imageUrl = Storage::disk('public')->url('images/' . $i->image_path);
+                $proppairs["Image"] = '<img src="' . $imageUrl . '" alt="Place Image">';
+            }
+
             if (!empty($i->title)) {
                 $proppairs["name"] = $i->title;
             } else {
@@ -431,7 +434,10 @@ class Dataset extends Model
 
             if (!empty($i->external_url)) {
                 $proppairs["linkback"] = $i->external_url;
+            }else if(!empty($dataset->linkback)){
+                $proppairs["linkback"] = $dataset->linkback;
             }
+
             if (!empty($i->extended_data)) {
                 $proppairs = array_merge($proppairs, $i->extDataAsKeyValues());
                 //$proppairs["extended_data"] = $i->extDataAsHTML();

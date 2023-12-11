@@ -11,10 +11,14 @@
         var ajaxadddataitem = "{{url('ajaxadddataitem')}}";
         var ajaxeditdataitem = "{{url('ajaxeditdataitem')}}";
         var ajaxdeletedataitem = "{{url('ajaxdeletedataitem')}}";
+        var ajaxchangedataitemorder = "{{url('ajaxchangedataitemorder')}}";
 
         var lgas = {!! $lgas !!};
         var feature_terms = {!! $feature_terms !!};
+        const max_upload_image_size = {{ config('app.max_upload_image_size') }};
+        var dataset_id = {!! $ds->id !!};
     </script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="{{ asset('js/map-picker.js') }}"></script>
     <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/validation.js') }}"></script>
@@ -32,6 +36,8 @@
 
         <!-- Edit Collaborators Button-->
         <a href="{{url()->full()}}/collaborators" class="btn btn-primary">Edit Collaborators</a>
+
+        <button id="toggle-drag" class="btn btn-primary">Change Order</button>
 
         <!-- Edit Dataset Modal Button-->
         @include('modals.editdatasetmodal')
@@ -117,11 +123,11 @@
                 <table class="table table-bordered">
                 <tr><th class="w-25">Subject</th>
                     <td>
-                        @for($i = 0; $i < count($ds->subjectkeywords); $i++)
-                            @if($i == count($ds->subjectkeywords)-1)
-                            {{$ds->subjectkeywords[$i]->keyword}}
+                        @for($i = 0; $i < count($ds->subjectKeywords); $i++)
+                            @if($i == count($ds->subjectKeywords)-1)
+                            {{$ds->subjectKeywords[$i]->keyword}}
                             @else
-                            {{$ds->subjectkeywords[$i]->keyword}},
+                            {{$ds->subjectKeywords[$i]->keyword}},
                             @endif
                         @endfor
                     </td>
@@ -135,6 +141,14 @@
                     <tr><th>Linkback</th><td id="linkback">{{$ds->linkback}}</td></tr>
                     <tr><th>Date From</th><td>{{$ds->temporal_from}}</td></tr>
                     <tr><th>Date To</th><td>{{$ds->temporal_to}}</td></tr>
+                    <tr>
+                        <th>Image</th>
+                        <td>
+                            @if($ds->image_path)
+                            <img src="{{ asset('storage/images/' . $ds->image_path) }}" alt="Layer Image" style="max-width: 100%; max-height:150px">
+                            @endif
+                        </td>
+                    </tr>
                 </table>
             </div>
         </div>
@@ -171,12 +185,14 @@
     @endif
 
     <!-- Dataitem Table -->
-
     <div class="container-fluid">
         <div class="place-list">
             @foreach($ds->dataitems as $data)
-                <div class="row">
-                    <div class="col col-xl-3">
+                <div class="row" data-id="{{ $data->id }}">
+                    <div class="col dragIcon" style="max-width: 4%;display:none">
+                        <img src="{{ asset('img/draggable.svg') }}">
+                    </div>
+                    <div class="col col-xl-2">
                         <h4>
                             @if ($ds->public)
                                 <button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
@@ -228,7 +244,7 @@
                         @if(isset($data->feature_term))<dt>Feature Term</dt><dd>{{$data->feature_term}}</dd>@endif
 
                     </div>
-                    <div class="col col-xl-3">
+                    <div class="col col-xl-2">
 
                         <h4>Description</h4>
                         @if(isset($data->description))
@@ -251,6 +267,11 @@
                         @if(isset($data->updated_at))<dt id="updatedat">Updated At</dt><dd>{{$data->updated_at}}</dd>@endif
 
                     </div>
+                    @if(!empty($data->image_path))
+                        <div class="col col-xl-2">
+                            <img src="{{ asset('storage/images/' . $data->image_path) }}" alt="Place image" style="max-width: 100%;max-height:150px">
+                        </div>
+                    @endif
                     <!-- end bootstrap row -->
                 </div>
             @endforeach
