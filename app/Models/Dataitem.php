@@ -24,7 +24,8 @@ class Dataitem extends Model
     protected $fillable = [
         'id', 'dataset_id', 'recordtype_id', 'title', 'description', 'latitude', 'longitude',
         'datestart', 'dateend', 'quantity', 'state', 'feature_term', 'lga', 'source', 'external_url',
-        'extended_data', 'kml_style_url', 'placename', 'original_id', 'parish'
+        'extended_data', 'kml_style_url', 'placename', 'original_id', 'parish', 'route_id', 'stop_idx',
+        'route_title', 'route_original_id'
     ];
 
     /**

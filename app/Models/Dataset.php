@@ -311,6 +311,8 @@ class Dataset extends Model
             return json_encode($allfeatures, JSON_PRETTY_PRINT);
         }
 
+        // Calculate the 4-quantitles of log of quantity (by default)
+        $quantityValues = array();
 
         foreach ($dataitems as $i) {
 
@@ -324,6 +326,7 @@ class Dataset extends Model
 
             // Set feature config.
             $featureConfig = new FeatureConfig();
+            $ismultiroute = FALSE;
 
             $proppairs = array();
             if (!empty($i->title)) {
@@ -339,6 +342,22 @@ class Dataset extends Model
             }
             if (!empty($i->quantity)) {
                 $proppairs["quantity"] = $i->quantity;
+                $quantityValues[] = $i->quantity; // Add quantity to the quantityValues array
+                $proppairs["logQuantity"] = round(log($i->quantity), 2);
+                // $proppairs["logQuantileRng"] = $this->matchToRange($proppairs["logQuantity"], $logQuantiles);
+            }
+            if (!empty($i->route_id)) {
+                $proppairs["route_id"] = $i->route_id;
+                $ismultiroute = TRUE;
+            }
+            if (!empty($i->route_title)) {
+                $proppairs["route_title"] = $i->route_title;
+            }
+            if (!empty($i->route_description)) {
+                $proppairs["route_description"] = $i->route_description;
+            }
+            if (!empty($i->stop_idx)) {
+                $proppairs["stop_idx"] = $i->stop_idx;
             }
             if (!empty($i->id)) {
                 $proppairs["id"] = $i->uid;
@@ -361,7 +380,6 @@ class Dataset extends Model
             if (!empty($i->source)) {
                 $proppairs["source"] = $i->source;
             }
-
             if (!empty($i->datestart)) {
                 $proppairs["datestart"] = $i->datestart;
             }
@@ -398,7 +416,6 @@ class Dataset extends Model
                     $proppairs["udateend"] = $proppairs["udatestart"];
                 }
             }
-
 
             if (!empty($i->latitude)) {
                 $proppairs["latitude"] = $i->latitude;
@@ -455,7 +472,6 @@ class Dataset extends Model
                 'display' => $featureConfig->toArray(),
             );
         }
-
         /**
          * Include the another type of polyline feature if the query string has the parameter "mobility".
          *
@@ -463,33 +479,102 @@ class Dataset extends Model
          * Only an enhanced version of journey geojson now.
          *
          * TODO:
-         * 1. add quantile of the quantity?
+         * 1. [DONE] add quantile of the log of quantity
          * 2. The polyline for "LineString" feature consist of a collection of (connected 2-point) lines, but not a collection of points.
          * The polyline still represents a single line now.
          * 1. The polyline for "LineString" feature should be extend to a multiple line segments
          * that can handle "JourneyID" later.
         */
         if (isset($_GET["mobility"])) {
-            if ($_GET["mobility"] === 'time') {
-                $dataitems = $dataitems->sortBy('datestart')->values()->all();
-            }
-
-            $linecoords = array();
-
-            foreach ($dataitems as $i) {
-                array_push($linecoords, [$i->longitude, $i->latitude]);
-            }
 
             // Set line feature config.
             $featureConfig = new FeatureConfig();
             $featureConfig->setAllowedFields([]);
 
-            $features[] = array(
-                'type' => 'Feature',
-                'geometry' => array('type' => 'LineString', 'coordinates' => $linecoords),
-                'properties' => ['name' => $dataset->name],
-                'display' => $featureConfig->toArray(),
-            );
+            $routeGroups = [];
+            // $ismultiroute = FALSE;
+            if ($ismultiroute === TRUE) {
+                foreach ($dataitems as $i) {
+                    $routeId = $i->route_id;
+                    if (!isset($routeGroups[$routeId])) {
+                        $routeGroups[$routeId] = [];
+                    }
+                    $routeGroups[$routeId][] = $i;
+                }
+                // Process each route group
+                foreach ($routeGroups as $routeId => $items) {
+                    // Sort items within each route group by stop_idx
+                    usort($items, function ($a, $b) {
+                        return $a->stop_idx - $b->stop_idx;
+                    });
+
+                    $routeCoords = [];
+                    foreach ($items as $item) {
+                        $routeCoords[] = [$item->longitude, $item->latitude];
+                    }
+                    // Initialize properties with default values
+                    $defaultRouteDescr = "No detailed description";
+                    $routeProps = [
+                        'title' => null,
+                        'route_id' => null,
+                        'route_title' => null,
+                        'route_description' => $defaultRouteDescr
+                    ];
+
+                    foreach ($items as $item) {
+                        if (empty($routeProps['route_id']) && !empty($item->route_id)) {
+                            $routeProps['route_id'] = $item->route_id;
+                        }
+                        if (empty($routeProps['route_title']) && !empty($item->route_title)) {
+                            $routeProps['route_title'] = $item->route_title;
+                            $routeProps['title'] = $item->route_title;
+                        }
+                        // Update route_description only if it's the default value
+                        if ($routeProps['route_description'] === $defaultRouteDescr && !empty($item->route_description)) {
+                            $routeProps['route_description'] = $item->route_description;
+                        }
+                    }
+
+                    // Create a geojson feature for this route
+                    $features[] = [
+                        'type' => 'Feature',
+                        'geometry' => [
+                            'type' => 'LineString',
+                            'coordinates' => $routeCoords
+                        ],
+                        'properties' => $routeProps
+                    ];
+                    file_put_contents("test.log", var_export($features, true));
+                }
+            } else {
+                $routeData = [];
+
+                foreach ($dataitems as $i) {
+                    array_push($routeData, [$i->longitude, $i->latitude]);
+                }
+
+                $features[] = array(
+                    'type' => 'Feature',
+                    'geometry' => array('type' => 'LineString', 'coordinates' => $routeData),
+                    'properties' => ['name' => $dataset->name],
+                    'display' => $featureConfig->toArray(),
+                );
+            }
+        }
+
+        if (!empty($quantityValues)){
+            $logQuantiles = $this->logQuantiles($quantityValues);
+            $metadata['log_quantiles'] = $logQuantiles;
+
+            // reset the blocked fields for mobility view
+            $allowedFields = [
+                'quantity', 'logQuantity',
+                "stop_idx", "route_title", "route_description",
+            ];
+            $featureCollectionConfig->setBlockedFields(
+                array_values(
+                    array_diff(GhapConfig::blockedFields(), $allowedFields)
+                ));
         }
 
         $allfeatures = array(
@@ -498,8 +583,11 @@ class Dataset extends Model
             'features' => $features,
             'display' => $featureCollectionConfig->toArray(),
         );
+
+
         return json_encode($allfeatures, JSON_PRETTY_PRINT);
     }
+
 
     /**
      * Infill start/end dates for dataitems.
@@ -511,7 +599,7 @@ class Dataset extends Model
      * @return \Illuminate\Support\Collection
      *   The dateitems with dates infilled.
      */
-    private function infillDataitemDates($items) {
+    public static function infillDataitemDates($items) {
         foreach ($items as &$item) {
             if (!empty($item->datestart) && empty($item->dateend)) {
                 $item->dateend = $item->datestart;
@@ -520,6 +608,36 @@ class Dataset extends Model
             }
         }
         return $items;
+    }
+
+    /**
+     * Calculate logarithmic quantiles and generate corresponding ranges for the given quantity values.
+     *
+     * This method calculates the logarithmic quantiles and returns an array containing quantile ranges
+     * and the original quantity values along with their logarithms and quantile indices.
+     *
+     * @param array $quantityValues
+     *   An array containing the quantity values.
+     * @param int $numQuantiles
+     *   The number of quantiles to be generated (default is 4).
+     * @return array
+     *   ...
+     */
+    public static function logQuantiles($quantityValues, $numQuantiles = 4) {
+        sort($quantityValues);
+        $logQty = array_map('log', $quantityValues);
+        $count = count($logQty);
+        $quantiles = [];
+
+        for ($i = 1; $i < $numQuantiles; $i++) {
+            $position = $i * ($count - 1) / $numQuantiles;
+            $lower = floor($position);
+            $fraction = $position - $lower;
+            $quantile = $logQty[$lower] + $fraction * ($logQty[$lower + 1] - $logQty[$lower]);
+            $quantiles[] = round($quantile, 2);
+        }
+
+        return $quantiles;
     }
 
     /**

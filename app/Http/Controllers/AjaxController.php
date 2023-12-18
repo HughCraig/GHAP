@@ -174,6 +174,8 @@ class AjaxController extends Controller
 
     /**
      * Edit this dataitem
+     * TODO:
+     * 1. How to change the order of the point (dataitem) of a mobility route?
      */
     public function ajaxeditdataitem(Request $request)
     {
@@ -250,6 +252,9 @@ class AjaxController extends Controller
     /**
      * Add a dataitem to this dataset
      * return data doesnt work as intended, so we set the ajax to just reload (dataitem.js::add data item)
+     * TODO:
+     * 1. How to add a new point (dataitem) to existing mobility route?
+     * 2. How to add new points (dataitems) to a new mobility route?
      */
     public function ajaxadddataitem(Request $request)
     {

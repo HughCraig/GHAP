@@ -57,6 +57,45 @@ class UserController extends Controller
         ["lat", "lng"]
     ];
 
+    public $generalCols = [
+        'id', 'title', 'type', 'linkback', 'external_url',
+        'route_id', 'stop_idx', 'route_title', //'route_original_id',
+    ];
+
+    public $commonCols = [
+        'placename', 'name', 'description', 'quantity',
+        'latitude', 'longitude', "lat", "long", "lat", "lng",
+    ];
+
+    public $commonDateStartCols = ['startdate', 'datestart', 'begin', 'date'];
+    public $commonDateEndCols = ['enddate', 'dateend', 'end', 'date'];
+
+    public $commonDateCols = [];
+
+    public $pairPointsPrefixes = [
+        'departure', "origin", "arrival", "destination"
+    ];
+
+    public $pairPointsCommonCols = [];
+
+    public $pointBasedNotForExtData = [];
+    public $pairBasedNotForExtData = [];
+
+    public function __construct() {
+        $this->commonDateCols = array_unique(array_merge($this->commonDateStartCols, $this->commonDateEndCols));
+        $this->generatePairPointsCommonCols();
+        $this->pointBasedNotForExtData = array_merge($this->generalCols, $this->commonCols, $this->commonDateCols);
+        $this->pairBasedNotForExtData = array_merge($this->generalCols, $this->commonDateCols, $this->pairPointsCommonCols);
+    }
+
+    private function generatePairPointsCommonCols() {
+        $allCommonCols = array_merge($this->commonCols, $this->commonDateCols);
+        foreach ($this->pairPointsPrefixes as $prefix) {
+            foreach ($allCommonCols as $allCommonCol) {
+                $this->pairPointsCommonCols[] = $prefix . '_' . $allCommonCol;
+            }
+        }
+    }
     public function userProfile(Request $request)
     {
         return view('user.userprofile');
@@ -168,7 +207,7 @@ class UserController extends Controller
         $dataset = $user->datasets()->with(['dataitems' => function ($query) {
             $query->orderBy('id');
         }])->find($id);
-    
+
         if (!$dataset) return redirect('myprofile/mydatasets');
 
         //lgas from DB
@@ -279,7 +318,7 @@ class UserController extends Controller
     {
         $user = auth()->user();
         $dataset = $user->datasets()->find($id);
-    
+
         if (!$dataset) return redirect('myprofile/mydatasets'); //couldn't find dataset
 
         //Mandatory Fields
@@ -356,6 +395,7 @@ class UserController extends Controller
     /*
         Add to the dataset from file - can be .csv, .kml, or .json
         Will return to dataset with error message if incorrect file extension or if incorrectly formatted data
+        TODO: Need to think about the bulk update of mobility!
     */
     public function bulkAddDataitem(Request $request)
     {
@@ -376,6 +416,8 @@ class UserController extends Controller
         //overwrite style?
         $appendStyle = $request->appendStyle;
         $overwriteJourney = $request->overwriteJourney;
+        //single point-based dataset or origin-destination dataset?
+        $pointBasedUpload = ($request->uploadODPairs == "on") ? false : true;
 
         //get file extension
         $ext = $file->getClientOriginalExtension();
@@ -388,11 +430,14 @@ class UserController extends Controller
             if (strcasecmp($ext, 'csv') == 0) {
                 //parse cs
 
-                $arr = $this->csvToArray($file);
-
+                $arr = $this->csvToArray($file, $pointBasedUpload);
                 if (!is_array($arr)) return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid date format in file on line ' . $arr); //if $arr is a number instead of an array, date format error where $arr is the offending line number
-
-                $this->createDataitems($arr, $ds_id);
+                // TODO !!!!
+                // If $arr is a pairBased array, convert it into a pointBased array
+                if ($pointBasedUpload == FALSE) {
+                    $arr = $this->convertPairToPoints($arr);
+                }
+                $this->createDataitems($arr, $ds_id, $pointBasedUpload);
 
             } else if (strcasecmp($ext, 'kml') == 0) { //now handles extended data, journey
                 $arr = $this->kmlToArray($file, $appendStyle);
@@ -404,20 +449,20 @@ class UserController extends Controller
                     if ($overwriteJourney == "on") $dataset->update(['kml_journey' => $arr['raw_journey']]);
                     unset($arr['raw_journey']); //remove the raw_journey from the end of the array
                 }
-                if (array_key_exists('raw_style', $arr)) {
+                if (array_key_exists('raw_style', $arr, $pointBasedUpload)) {
                     if ($appendStyle == "on") $dataset->update(['kml_style' => $dataset['kml_style'] . $arr['raw_style']]); //APPEND not overwrite
                     unset($arr['raw_style']); //remove the raw_style from the end of the array
                 }
 
                 //Call the function to create all the new data items from this array
-                $this->createDataitems($arr, $ds_id);
+                $this->createDataitems($arr, $ds_id, $pointBasedUpload);
 
             } else if (strcasecmp($ext, 'json') == 0 || strcasecmp($ext, 'geojson') == 0) {
                 //TODO extendeddata
                 $arr = $this->geoJSONToArray($file);
                 if (!is_array($arr)) return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid date format in file on line ' . $arr);
 
-                $this->createDataitems($arr, $ds_id);
+                $this->createDataitems($arr, $ds_id, $pointBasedUpload);
             } else {
                 return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid file format for bulk add!'); //not a valid format, reload page with error msg
             }
@@ -446,6 +491,152 @@ class UserController extends Controller
 
     }
 
+    /**
+     * Converts the Pair Points in the given array to a new representation of point-based mobility dataset.
+     *
+     * @param array $arr The original array representing OD Mobility Dataset.
+     * @return array The transformed array representing point-based mobility dataset.
+     */
+    function convertPairToPoints($arr) {
+        $routes = [];
+        $origin = [];
+        $destination = [];
+        $row = 0;
+        $newArr = [];
+
+        foreach ($arr as &$entry) {
+            foreach ($entry as $key => $value) {
+                $keyParts = explode('_', $key, 2);
+                if (count($keyParts) > 1 && in_array($keyParts[0], $this->pairPointsPrefixes)) {
+                    $prefix = $keyParts[0];
+                    $newKey = $keyParts[1];
+
+                    if ($prefix === 'origin' || $prefix === 'departure') {
+                        $origin[$newKey] = $value;
+                    } elseif ($prefix === 'destination' || $prefix === 'arrival') {
+                        $destination[$newKey] = $value;
+                    }
+                } else {
+                    $routes[$key] = $value;
+                }
+            }
+
+            if ($row === 0) {
+                $originStartValidKey = $this->getValidKey($origin, $this->commonDateStartCols);
+                $originEndValidKey = $this->getValidKey($origin, $this->commonDateEndCols);
+                $destStartValidKey = $this->getValidKey($origin, $this->commonDateStartCols);
+                $destEndValidKey = $this->getValidKey($origin, $this->commonDateEndCols);
+                $routeStartValidKey = $this->getValidKey($routes, $this->commonDateStartCols);
+                $routeEndValidKey = $this->getValidKey($routes, $this->commonDateEndCols);
+                $routeValidKeys = array_unique([$routeEndValidKey, $routeStartValidKey]);
+
+            }
+            // Handling missing time values
+            // complement startdate and enddate with any available of other item of the pair or "date"
+            // $origin['startdate'] = $origin[$originStartValidKey] ?? '';
+            // unset($origin[$originStartValidKey]);
+            // // if ($originStartValidKey !== 'startdate') {
+            // //     unset($origin[$originStartValidKey]);
+            // // }
+            // $origin['enddate'] = $origin[$originEndValidKey] ?? '';
+            // unset($origin[$originEndValidKey]);
+            // // if ($originEndValidKey !== 'enddate') {
+            // //     unset($origin[$originEndValidKey]);
+            // // }
+            // $destination['startdate'] = $destination[$destStartValidKey] ?? '';
+            // unset($destination[$destStartValidKey]);
+            // // if ($destination !== 'startdate') {
+            // //     unset($destination[$destStartValidKey]);
+            // // }
+            // $destination['enddate'] = $destination[$destEndValidKey] ?? '';
+            // unset($destination[$destEndValidKey]);
+            // if ($destEndValidKey !== 'enddate') {
+            //     unset($destination[$destEndValidKey]);
+            // }
+
+            // if ($origin['startdate'] === '' && $origin['enddate'] !== '') {
+            //     $origin['startdate'] = $origin['enddate'];
+            // }
+            // if ($origin['enddate'] === '' && $origin['startdate'] !== '') {
+            //     $origin['enddate'] = $origin['startdate'];
+            // }
+            // if ($destination['startdate'] === '' && $destination['enddate'] !== '') {
+            //     $destination['startdate'] = $destination['enddate'];
+            // }
+            // if ($destination['enddate'] === '' && $destination['startdate'] !== '') {
+            //     $destination['enddate'] = $destination['startdate'];
+            // }
+
+            // if ($origin['startdate'] !== '' && $origin['enddate'] !== '' && $destination['startdate'] !== '' && $destination['enddate'] !== '') {
+            //     // pass
+            // } else {
+            //     // complement startdate + enddate in origin/destination with startdate and enddate of route respectively
+            //     $routes['startdate'] = $routes[$routeStartValidKey] ?? '';
+            //     if ($routes !== 'startdate') {
+            //         unset($routes[$routeStartValidKey]);
+            //     }
+            //     $routes['enddate'] = $routes[$routeEndValidKey] ?? '';
+            //     if ($routes !== 'enddate') {
+            //         unset($routes[$routeEndValidKey]);
+            //     }
+            //     if ($origin['startdate'] !== '') {
+            //         $origin['startdate'] = $routes['startdate'];
+            //     }
+            //     if ($origin['enddate'] !== '') {
+            //         $origin['enddate'] = $routes['startdate'];
+            //     }
+            //     if ($destination['startdate'] !== '') {
+            //         $destination['startdate'] = $routes['startdate'];
+            //     }
+            //     if ($destination['enddate'] !== '') {
+            //         $destination['enddate'] = $routes['startdate'];
+            //     }
+            // }
+
+            if (!empty($origin) && !empty($destination)) {
+                // $keysToRemove = array('enddate', 'startdate');
+                // foreach ($keysToRemove as $key) {
+                //     if (array_key_exists($key, $routes)) {
+                //         unset($routes[$key]);
+                //     }
+                // }
+
+                $merged1 = array_merge($routes, $origin);
+                $newArr[] = $merged1;
+
+                $merged2 = array_merge($routes, $destination);
+                $newArr[] = $merged2;
+
+                // Reset arrays for the next iteration
+                $routes = [];
+                $origin = [];
+                $destination = [];
+            }
+            $row++;
+
+        }
+
+        unset($entry); // Unset reference to last element
+        return $newArr;
+    }
+
+    /**
+     * Helper function to get a valid key from an array based on an array of possible keys.
+     *
+     * @param array $data The array to search for the keys.
+     * @param array $possibleKeys An array of possible keys to look for.
+     * @return mixed|null The value if a valid key is found, otherwise null.
+     */
+    private function getValidKey($data, $possibleKeys) {
+        foreach ($possibleKeys as $key) {
+            if (array_key_exists($key, $data)) {
+                // return $data[$key];
+                return $key;
+            }
+        }
+        return "";
+    }
+
     function userEditCollaborators(Request $request, int $id)
     {
         $user = auth()->user(); //check authorization
@@ -459,24 +650,31 @@ class UserController extends Controller
 
       $arr takes an array where each entry represents a dataitem of the form (['ds_id' => thedatasetid, 'placename' => someplacename, 'latitude' => 123, => etc...])
       $ds_id is the id for the dataset to add this data item into
+
+      TODO: If the user hase stop_idx itself?
      */
-    function createDataitems($arr, $ds_id)
+    function createDataitems($arr, $ds_id, $pointBasedUpload)
     {
         $fillable = (new Dataitem)->getFillable(); //array of all the columns in the dataitem table that are fillable
 
         // detect names of fields that contain the dates and lat long
-
         $datecols = $this->aliasColPair($this->dateheadings, $arr);
         $llcols = $this->aliasColPair($this->llheadings, $arr);
 
-        $notForExtData = ["id", "title", "placename", "name", "description", "type", "linkback", "created_at", "updated_at", "ghap_id"]; // because of special handling, as with date and lat long cols
+        $notForExtData = [
+            "id", "title", "placename", "name", "description", "type", "linkback",
+            "quantity", "created_at", "updated_at", "ghap_id", "route_id", 'stop_idx',
+            "route_original_id", "route_title", ]; // because of special handling, as with date and lat long cols
 
         $extDataExclusions = array_merge($fillable, $datecols, $llcols, $notForExtData);
 
         // Exclude these columns.
-        $excludeColumns = ['uid', 'datasource_id'];
+        $excludeColumns = ['uid', 'datasource_id', ];
 
-
+        $route_meta = [];
+        $route_titles = [];
+        $route_id = 1;
+        $isMultiRoutes = true;
         for ($i = 0; $i < count($arr); $i++) { //FOREACH data item
             $culled_array = array(); //we will cull out all keys that are not present as fillable fields
             $extendeddata = array(); //and add anything else to extended data.
@@ -487,8 +685,9 @@ class UserController extends Controller
                     This preg_replace cuts out all characters from <Data> names other than letters and underscores so we don't fail comparisons due to invisible chars...
                     - works for that but ignores many valid names! find a better solution
                 */
-                $key = $this->sanitiseKey($key);
+                $key = $this->sanitiseKey($key, $notForExtData);
                 $value = $this->sanitiseValue($value);
+
                 //$key = preg_replace('/[^a-zA-Z_ ]/', '', $key); //REMOVE ALL NON ALPHA CHARACTERS FROM KEY NAME - some unseen chars were affecting string comparison ('placename' == 'placename' equating to false)
                 /**
                  * HERE IS THE SECTION FOR ADDING DATABASE ALIASES FOR USER UPLOADS OR FOR MANIPULATING DATA BEFORE ENTRY
@@ -540,16 +739,40 @@ class UserController extends Controller
             }
 
             // Handle possible names for date columns
-
             if (!isset($culled_array["datestart"]) && !empty($datecols)) {
                 $culled_array["datestart"] = $arr[$i][$datecols[0]];
                 $culled_array["dateend"] = $arr[$i][$datecols[1]];
             }
+
+            // Handle route meta columns including
+            // 1. Fill route_title with route_id if the former unexists.
+            // 2. Assign unique route_id and stop_idx to each route
+            if (isset($arr[$i]["route_id"])) {
+                $culled_array["route_original_id"] = $arr[$i]["route_id"];
+                if (!isset($arr[$i]["route_title"])) {
+                    $culled_array["route_title"] = $arr[$i]["route_id"];
+                }
+            }
+            if (!isset($culled_array["route_title"]) || ($culled_array["route_title"] === NULL)) {
+                $isMultiRoutes = false;
+            }
+            if (!isset($route_titles[$culled_array["route_title"]])) {
+                $route_titles[$culled_array["route_title"]] = $route_id;
+                $route_id++;
+            }
+            $culled_array["route_id"] = null;
+            $route_meta[$i]["route_id"] = $route_titles[$culled_array["route_title"]];
+            $route_meta[$i]["earliest_date"] = $this->assignEarliestDate($culled_array);
+            $route_meta[$i]["arr_idx"] = $i;
+            $route_meta[$i]["dataset_id"] = $ds_id;
+
+            // Handle possible names for latitude/longitude columns
             if (!isset($culled_array["longitude"]) && !empty($llcols)) {
                 $culled_array["latitude"] = $arr[$i][$llcols[0]];
                 $culled_array["longitude"] = $arr[$i][$llcols[1]];
             }
 
+            // Handle extended data columns
             if (!empty($extendeddata)) {
                 $extdata = '';
                 foreach ($extendeddata as $ed) {
@@ -565,13 +788,43 @@ class UserController extends Controller
                 }
             }
 
+            // Store the dataitem
             if (!empty($culled_array)) { //ignore empties
                 $dataitemUID = $arr[$i]['ghap_id'] ?? null;
                 $dataitemProperties = array_merge(array('dataset_id' => $ds_id), $culled_array);
+                $route_meta[$i]["ghap_id"] = $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
+            }
+        }
+
+        if ($isMultiRoutes) {
+            // Sort the $route_meta array by route_id, earliest_date, array_idx
+
+            usort($route_meta, array($this, 'customSort'));
+
+            // Assign stop_idx based on route_id grouping
+            $stopIdxCounter = [];
+            foreach ($route_meta as &$item) {
+                $routeId = $item['route_id'];
+                if (!array_key_exists($routeId, $stopIdxCounter)) {
+                    $stopIdxCounter[$routeId] = 1;
+                } else {
+                    $stopIdxCounter[$routeId]++;
+                }
+                $item['stop_idx'] = $stopIdxCounter[$routeId];
+
+            }
+            foreach ($route_meta as &$item) {
+                $dataitemUID = $item['ghap_id'];
+                $dataitemProperties = [
+                    'stop_idx' => $item['stop_idx'],
+                    'dataset_id' => $item['dataset_id'],
+                    'route_id' => $item['route_id'],
+                ];
                 $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
             }
-
         }
+
+
     }
 
     /**
@@ -585,7 +838,8 @@ class UserController extends Controller
      *   The dataitem properties.
      * @param string $uid
      *   The dataitem UID.
-     * @return void
+     * @return string $uid
+     *   The dataitem UID (existing / newly generated)
      */
     private function createOrUpdateDataitem($data, $uid = null)
     {
@@ -604,20 +858,21 @@ class UserController extends Controller
                 $dataitem->save();
             }
         }
+        return $dataitem->uid; // Return UID
     }
 
 // trawl for lat long col names
 
 
 // detect commonly used column or attribute names that come in pairs, such as 'begin' and 'end' or 'lat' and 'lng'.
-// Pass in array of arrays of possible headings for date and latlong columns, and the key value array of headings from the spreadsheet. 
-// Returns the 2 element array containing the matched keys/column headings, or empty array. 
+// Pass in array of arrays of possible headings for date and latlong columns, and the key value array of headings from the spreadsheet.
+// Returns the 2 element array containing the matched keys/column headings, or empty array.
 
 // This looks like it should be something simple. It may be that it could be made simple, but here's why it's complicated at the moment.
 // We can't just check if any of the headings match our list of possible date or lat lng keywords, because check if this heading isset in this other array is case sensitive.
 // we don't want to put every possible case combination in our list of key words to check so we want case insenstive matching.
-// You would think you could just loop through the first record, not the whole lot. TBH maybe you can and I haven't checked it properly, 
-// But one reason that maybe you can't is because null or empty values were left out of the key values pairs, so you have to loop the entire dataset, to see if there is a 
+// You would think you could just loop through the first record, not the whole lot. TBH maybe you can and I haven't checked it properly,
+// But one reason that maybe you can't is because null or empty values were left out of the key values pairs, so you have to loop the entire dataset, to see if there is a
 // named date column for just a few records, while most were null or empty.
     function aliasColPair($cols, $arr)
     {
@@ -661,16 +916,12 @@ class UserController extends Controller
 
     }
 
-
+    // abandoned function?
     function matchLL($arr)
     {
-        $llcols = [
-            ["latitude", "longitude"],
-            ["lat", "long"],
-            ["lat", "lng"]
-        ];
         for ($i = 0; $i < count($arr); $i++) {
-            foreach ($llcols as $llc) {
+            foreach ($this->llheadings as $llc) {
+            // foreach ($llcols as $llc) {
                 if ((isset($arr[$i][$llc[0]])) && (isset($arr[$i][$llc[1]]))) {
                     return $llc;
                 }
@@ -681,21 +932,14 @@ class UserController extends Controller
     }
 
 
-// trawl the data for possible date columns
+    // trawl the data for possible date columns
+    // abandoned function?
     function matchDates($arr)
     {
         // note that col headings in csv already have no whitespace and converted to lower case
-        $datecols = [
-            ["datestart", "dateend"],
-            ["date start", "date end"],
-            ["begin", "end"],
-            ["startdate", "enddate"],
-            ["start date", "end date"],
-            ["date", "date"] // if there is a single date set begin and end to same
-        ];
-
         for ($i = 0; $i < count($arr); $i++) {
-            foreach ($datecols as $dc) {
+            // foreach ($datecols as $dc) {
+            foreach ($this->dateheadings as $dc) {
                 if ((isset($arr[$i][$dc[0]])) && (isset($arr[$i][$dc[1]]))) {
                     return $dc;
                 }
@@ -703,25 +947,40 @@ class UserController extends Controller
         }
         return array();
     }
+
+
     /*
-      convert csv file to array
-      https://stackoverflow.com/questions/35220048/import-csv-file-to-laravel-controller-and-insert-data-to-two-tables
-  //$lines = str_getcsv($file->get(),"\n");
-      Note: Each line in the csv must contain a value for all entries in the header
+        Convert CSV file to array including:
+            1. Get the content from CSV.
+            2. Sanitize the headers.
+            3. Handle date formatting.
+
+        Source: https://stackoverflow.com/questions/35220048/import-csv-file-to-laravel-controller-and-insert-data-to-two-tables
+        Note: Each line in the CSV must contain a value for all entries in the header.
+        And handling the presence of columns by different names such as lat, lng, linkback, title, etc., is done elsewhere.
+
+        Input:
+        - $file: CSV file object to be converted.
+        - $delimiter: (Optional) Delimiter used in the CSV file, default is ','.
+
+        Output:
+        - Returns an array containing the CSV data.
+
+        !!!!!!
+        `$lines = str_getcsv($file->get(),"\n");`
+        This is failing to handle line breaks in cells. Need to handle that.
+        $lines = fgetcsv($file->get(), "\n");//Split entire file into array of lines on \n    OLD: explode(PHP_EOL,$file->get());
+        Try fgetcsv instead.
+
+        Refactoring this entirely, as the old way didn't handle multiline cells. Output should be the same.
+        The purpose of this section is to get the CSV, sanitize the headers, and handle date formatting.
+        Note that handling the presence of columns by different names such as lat, lng, linkback, title, etc., is done elsewhere.
+        (Feels like it could/should be done in the same process. But just need to get it working so not digressing...
+        and it might make sense after all since this is just for CSV but later we can handle any input after ingest)
+        And reformat like this:
+        data[this] is now an array mapping header to field eg data[this] = ['placename' => 'newcastle', ... => ..., etc]
     */
-// !!!!!! this is failing to handle line breaks in cells. Need to handle that.
-    //$lines = fgetcsv($file->get(), "\n");//Split entire file into array of lines on \n    OLD: explode(PHP_EOL,$file->get());
-    // Try fgetcsv instead.
-
-    // Refactoring this entirely, as the old way didn't handle multiline cells. Output should be the same.
-    // The purpose of this section is to get the CSV, sanitise the headers, and handle date formatting.
-    // Note that handling presence of columns by different names such as lat, lng, linkback, title etc is done elsewhere.
-    // (Feels like it could / should be done in the same process. But just need to get it working so not digressing...
-    // and it might make sense after all since this is just for CSV but later we can handle any input after ingest)
-    // and reformat like this:
-    //data[this] is now an array mapping header to field eg data[this] = ['placename' => 'newcastle', ... => ..., etc]
-
-    function csvToArray($file, $delimiter = ',')
+    function csvToArray($file,  $pointBasedUpload = TRUE, $delimiter = ',')
     {
 
         $header = null;
@@ -736,6 +995,11 @@ class UserController extends Controller
                 // necessary if a large csv file
                 set_time_limit(0);
                 $row = 0;
+                if ($pointBasedUpload == TRUE){
+                    $notForExtData = $this->pointBasedNotForExtData;
+                } else {
+                    $notForExtData = $this->pairBasedNotForExtData;
+                }
 
                 while (($data = fgetcsv($handle)) !== FALSE) {
                     // number of fields in the csv
@@ -746,65 +1010,71 @@ class UserController extends Controller
                         // sanitise and check for required fields
                         $header = $data;
                         foreach ($header as &$heading) {
-                            $heading = $this->sanitiseKey($heading);
-
+                            $heading = $this->sanitiseKey($heading, $notForExtData);
                         }
 
-
-                        //if the uploaded data includes datestart or dateend values, store the index
+                        // if the uploaded data includes datestart or dateend values, store the index
                         // dates might be in datestart or date end, or there may be a single date field.
-                        $datestartindex = array_search('datestart', $header); //if the uploaded header includes datestart or dateend values, store the index
-                        $dateendindex = array_search('dateend', $header);
+                        // ****************************
+                        // Ivy's comment
+                        // It seems that "datestart"/"startdate"/"start date"/"begin" has priority? (which not really make sense)
+                        // Keep it anyway
+                        // The previous method default there would only be one date column or one pair of date columns
+                        // Regarding the mobility origin-destination dataset format for mobility mapping, the dataset could have
+                        // more than one/one pair of column(s). Hence the the index storage should be an array rather than an integer
+                        // TODO: the current method is too clumsy, but regarding there would not be a wide spreadsheet uploaded, just make it work for now
+                        $dataStartStrings = ['datestart', 'startdate', 'start date', 'begin'];
+                        $dateEndStrings = ['dateend', 'enddate', 'end date', 'end'];
+                        if ($pointBasedUpload == FALSE) {
+                            $dataStartStrings = array_merge($dataStartStrings, [
+                                'departure_startdate', 'origin_startdate', 'arrival_startdate', 'destination_startdate',
+                                'departure_datestart', 'origin_datestart', 'arrival_datestart', 'destination_datestart',
+                                'departure_begin', 'origin_begin', 'arrival_begin', 'destination_begin',
+                                'departure_date', 'origin_date'
+                            ]);
+                            $dateEndStrings = array_merge($dateEndStrings, [
+                                'departure_enddate', 'origin_enddate', 'arrival_enddate', 'destination_enddate',
+                                'departure_dateend', 'origin_dateend', 'arrival_dateend', 'destination_dateend',
+                                'departure_end', 'origin_end', 'arrival_end', 'destination_end',
+                                'arrival_date', 'destination_date'
+                            ]);
+                        }
+                        $datestartindices = [];
+                        $dateendindices = [];
 
-
-                        if ($datestartindex === false) {
-
-                            $datestartindex = array_search('startdate', $header);
-
+                        foreach ($dataStartStrings as $dataStartString) {
+                            $index = array_search($dataStartString, $header);
+                            if ($index !== false) {
+                                $datestartindices[] = $index;
+                            }
                         }
-                        if ($datestartindex === false) {
-                            $datestartindex = array_search('start date', $header);
-                        }
-                        if ($datestartindex === false) {
-                            $datestartindex = array_search('begin', $header);
-                        }
-                        if ($dateendindex === false) {
-                            $dateendindex = array_search('enddate', $header);
-                        }
-                        if ($dateendindex === false) {
-                            $dateendindex = array_search('end date', $header);
-                        }
-                        if ($dateendindex === false) {
-                            $dateendindex = array_search('end', $header);
+                        foreach ($dateEndStrings as $dateEndString) {
+                            $index = array_search($dateEndString, $header);
+                            if ($index !== false) {
+                                $dateendindices[] = $index;
+                            }
                         }
 
                         // this part is just for checking the date formatting. We'll handle default and mapping fields back in the calling function.
-                        if (($datestartindex === false) && ($dateendindex === false)) {
-                            $datestartindex = array_search('date', $header);
-                            $dateendindex = array_search('date', $header);
+                        if (empty($datestartindices) && empty($dateendindices)) {
+                            $datestartindices[] = array_search('date', $header);
+                            $dateendindices[] = array_search('date', $header);
                         }
-
                     } else { // not a heading format the dates
                         $fields = $data;
 
-                        if ($datestartindex !== false) {
-
-                            $parsedate = GeneralFunctions::dateMatchesRegexAndConvertString($fields[$datestartindex]);
-                            if ($parsedate === -1) {
-                                return $row;
-                            } else {
-                                $fields[$datestartindex] = $parsedate;
+                        $dateIndices = array_merge($datestartindices, $dateendindices);
+                        // Check if $dateIndices contains only false values, then set it to an empty array
+                        if (count(array_unique($dateIndices)) === 1 && reset($dateIndices) === false) {
+                        } else {
+                            foreach ($dateIndices as $dateIndex) {
+                                $parsedate = GeneralFunctions::dateMatchesRegexAndConvertString($fields[$dateIndex]);
+                                if ($parsedate === -1) {
+                                    return $row;
+                                } else {
+                                    $fields[$dateIndex] = $parsedate;
+                                }
                             }
-                            //if (!($fields[$datestartindex] = GeneralFunctions::dateMatchesRegexAndConvertString($fields[$datestartindex]))) return $row; //if datestart or dateend exist, check the values on this line
-                        }
-                        if ($dateendindex !== false) {
-                            $parsedate = GeneralFunctions::dateMatchesRegexAndConvertString($fields[$dateendindex]);
-                            if ($parsedate === -1) {
-                                return $row;
-                            } else {
-                                $fields[$dateendindex] = $parsedate;
-                            }
-                            //if (!($fields[$dateendindex] = GeneralFunctions::dateMatchesRegexAndConvertString($fields[$dateendindex]))) return $row;
                         }
 
                         $outdata[] = array_combine($header, $fields); //data[this] is now an array mapping header to field eg data[this] = ['placename' => 'newcastle', ... => ..., etc]
@@ -826,10 +1096,17 @@ class UserController extends Controller
         }
 
 
-        return $outdata; //return the array of lines
+        return $outdata; //return the array of lines and headers
     }
 
-    function sanitiseKey($s)
+    /**
+     * Sanitizes and standardizes the key (column names).
+     *
+     * @param string $s The input string to be sanitized.
+     * @return string The sanitized string after removing spaces, dodgy characters,
+     *                converting to UTF-8, and applying lowercase handling for specific keys.
+     */
+    function sanitiseKey($s, $notForExtData)
     {
         // remove spaces and dodgy characters
         $s = trim($s);
@@ -840,8 +1117,7 @@ class UserController extends Controller
         // convert in a lot of clumsy comparison elsewhere, yet we can't just lc everything, cause we can't assume the case when outputting,
         // so need to retain case for other things like extended data. Noticed glitch between lcing everying in CSV, but not in KML, so was
         // no way out but this.
-        $notForExtData = ["id", "title", "placename", "name", "description", "type", "linkback", "latitude", "longitude",
-            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url"];
+
         if (in_array(strtolower($s), array_map('strtolower', $notForExtData))) {
             $s = strtolower($s);
         }
@@ -949,7 +1225,7 @@ class UserController extends Controller
         }
 
 
-        //Grab all of the extended data - we cull irrelevant fields in the createDataItems function
+        //Grab all of the extended data - we cull irrelevant fields in the createDataitems function
         if (!empty($place->ExtendedData)) {
             $ed_raw = $place->ExtendedData->asXml();
             foreach ($place->ExtendedData->Data as $ed) { //for each entry in extended data
@@ -1023,4 +1299,53 @@ class UserController extends Controller
         return $data;
     }
 
+    function assignEarliestDate($dates_array) {
+        $earliestDate = null;
+
+        // Check if datestart exists and is not null
+        if (isset($dates_array["datestart"]) && $dates_array["datestart"] !== null) {
+            // Parse datestart and handle different date formats
+            $earliestDate = $dates_array["datestart"];
+        }
+
+        // Check if dateend exists and is not null
+        if (isset($dates_array["dateend"]) && $dates_array["dateend"] !== null) {
+            if ($earliestDate === null || $dates_array["dateend"] < $earliestDate) {
+                $earliestDate = $dates_array["dateend"];
+            }
+        }
+
+        // Return the earliest date
+        return $earliestDate;
+    }
+
+    // Define a custom sorting function for route metadata
+    // function customSort($a, $b) {
+    //     if ($a['route_id'] == $b['route_id']) {
+    //         if ($a['earliest_date'] == $b['earliest_date']) {
+    //             return $a['arr_idx'] - $b['arr_idx'];
+    //         }
+    //         return strtotime($a['earliest_date']) - strtotime($b['earliest_date']);
+    //     }
+    //     return $a['route_id'] - $b['route_id'];
+    // }
+    function customSort($a, $b) {
+    // 首先按照 'route_id' 的值进行排序
+    $routeIdComparison = strcmp($a['route_id'], $b['route_id']);
+    if ($routeIdComparison !== 0) {
+        return $routeIdComparison;
+    }
+
+    // 对于相同的 'route_id'，按照 'earliest_date' 的日期先后顺序进行排序
+    $earliestDateComparison = $a['earliest_date'] - $b['earliest_date'];
+    if ($earliestDateComparison !== 0) {
+        return $earliestDateComparison;
+    }
+
+    // 对于同一 'route_id' 和 'earliest_date'，按照 'arr_idx' 的值进行排序
+    return $a['arr_idx'] - $b['arr_idx'];
 }
+
+}
+
+

@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddQuantityColumnToDataitemTable extends Migration
+class AddRouteColumnsToDataitemTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +14,10 @@ class AddQuantityColumnToDataitemTable extends Migration
     public function up()
     {
         Schema::table('tlcmap.dataitem', function (Blueprint $table) {
-            $table->integer('quantity')->nullable();
+            $table->bigInteger('route_id')->index()->nullable();
+            $table->string('route_original_id', 100)->nullable();
+            $table->string('route_title', 100)->nullable();
+            $table->integer('stop_idx')->index()->nullable();
         });
     }
 
@@ -26,7 +29,10 @@ class AddQuantityColumnToDataitemTable extends Migration
     public function down()
     {
         Schema::table('tlcmap.dataitem', function (Blueprint $table) {
-            $table->dropColumn(['quantity']);
+            $table->dropColumn(['route_id']);
+            $table->dropColumn(['route_original_id']);
+            $table->dropColumn(['route_title']);
+            $table->dropColumn(['stop_idx']);
         });
     }
 }
