@@ -1,0 +1,502 @@
+array (
+  0 => 
+  array (
+    'type' => 'Feature',
+    'geometry' => 
+    array (
+      'type' => 'Point',
+      'coordinates' => 
+      array (
+        0 => 153.0251,
+        1 => -27.4698,
+      ),
+    ),
+    'properties' => 
+    array (
+      'name' => 'Brisbane',
+      'placename' => 'Brisbane',
+      'description' => 'ehuqh v',
+      'quantity' => 900,
+      'logQuantity' => 6.8,
+      'route_id' => 1,
+      'route_title' => 'Title of Journey A',
+      'stop_idx' => 1,
+      'id' => 'tb5224',
+      'datestart' => '1723',
+      'dateend' => '1723',
+      'udatestart' => -7794612000000,
+      'udateend' => -7794612000000,
+      'latitude' => '-27.4698',
+      'longitude' => '153.0251',
+      'route_description' => 'Description of A',
+      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5224',
+      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
+    ),
+    'display' => 
+    array (
+      'popup' => 
+      array (
+        'links' => 
+        array (
+          0 => 
+          array (
+            'text' => 'TLCMap Record: tb5224',
+            'link' => 'http://ghap.test/search?id=tb5224',
+          ),
+          1 => 
+          array (
+            'text' => 'TLCMap Layer',
+            'link' => 'http://ghap.test/publicdatasets/562',
+          ),
+        ),
+      ),
+    ),
+  ),
+  1 => 
+  array (
+    'type' => 'Feature',
+    'geometry' => 
+    array (
+      'type' => 'Point',
+      'coordinates' => 
+      array (
+        0 => 145.7781,
+        1 => -16.9186,
+      ),
+    ),
+    'properties' => 
+    array (
+      'name' => 'Cairns',
+      'placename' => 'Cairns',
+      'description' => 'feqhuw',
+      'quantity' => 221,
+      'logQuantity' => 5.4,
+      'route_id' => 1,
+      'route_title' => 'Title of Journey A',
+      'stop_idx' => 2,
+      'id' => 'tb5225',
+      'datestart' => '1782',
+      'dateend' => '1782',
+      'udatestart' => -5932692000000,
+      'udateend' => -5932692000000,
+      'latitude' => '-16.9186',
+      'longitude' => '145.7781',
+      'route_description' => 'Description of A',
+      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5225',
+      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
+    ),
+    'display' => 
+    array (
+      'popup' => 
+      array (
+        'links' => 
+        array (
+          0 => 
+          array (
+            'text' => 'TLCMap Record: tb5225',
+            'link' => 'http://ghap.test/search?id=tb5225',
+          ),
+          1 => 
+          array (
+            'text' => 'TLCMap Layer',
+            'link' => 'http://ghap.test/publicdatasets/562',
+          ),
+        ),
+      ),
+    ),
+  ),
+  2 => 
+  array (
+    'type' => 'Feature',
+    'geometry' => 
+    array (
+      'type' => 'Point',
+      'coordinates' => 
+      array (
+        0 => -2.9916,
+        1 => 53.4084,
+      ),
+    ),
+    'properties' => 
+    array (
+      'name' => 'Liverpool',
+      'placename' => 'Liverpool',
+      'description' => 'ghueoiq',
+      'quantity' => 1412,
+      'logQuantity' => 7.25,
+      'route_id' => 1,
+      'route_title' => 'Title of Journey A',
+      'stop_idx' => 3,
+      'id' => 'tb5222',
+      'datestart' => '1800',
+      'dateend' => '1800',
+      'udatestart' => -5364698400000,
+      'udateend' => -5364698400000,
+      'latitude' => '53.4084',
+      'longitude' => '-2.9916',
+      'route_description' => 'Description of A',
+      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5222',
+      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
+    ),
+    'display' => 
+    array (
+      'popup' => 
+      array (
+        'links' => 
+        array (
+          0 => 
+          array (
+            'text' => 'TLCMap Record: tb5222',
+            'link' => 'http://ghap.test/search?id=tb5222',
+          ),
+          1 => 
+          array (
+            'text' => 'TLCMap Layer',
+            'link' => 'http://ghap.test/publicdatasets/562',
+          ),
+        ),
+      ),
+    ),
+  ),
+  3 => 
+  array (
+    'type' => 'Feature',
+    'geometry' => 
+    array (
+      'type' => 'Point',
+      'coordinates' => 
+      array (
+        0 => 153.0251,
+        1 => -27.4698,
+      ),
+    ),
+    'properties' => 
+    array (
+      'name' => 'Brisbane',
+      'placename' => 'Brisbane',
+      'description' => 'enfuqp',
+      'quantity' => 1000,
+      'logQuantity' => 6.91,
+      'route_id' => 1,
+      'route_title' => 'Title of Journey A',
+      'stop_idx' => 4,
+      'id' => 'tb5223',
+      'datestart' => '1801',
+      'dateend' => '1801',
+      'udatestart' => -5333162400000,
+      'udateend' => -5333162400000,
+      'latitude' => '-27.4698',
+      'longitude' => '153.0251',
+      'route_description' => 'Description of A',
+      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5223',
+      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
+    ),
+    'display' => 
+    array (
+      'popup' => 
+      array (
+        'links' => 
+        array (
+          0 => 
+          array (
+            'text' => 'TLCMap Record: tb5223',
+            'link' => 'http://ghap.test/search?id=tb5223',
+          ),
+          1 => 
+          array (
+            'text' => 'TLCMap Layer',
+            'link' => 'http://ghap.test/publicdatasets/562',
+          ),
+        ),
+      ),
+    ),
+  ),
+  4 => 
+  array (
+    'type' => 'Feature',
+    'geometry' => 
+    array (
+      'type' => 'Point',
+      'coordinates' => 
+      array (
+        0 => -1.087,
+        1 => 50.8195,
+      ),
+    ),
+    'properties' => 
+    array (
+      'name' => 'Portsmouth',
+      'placename' => 'Portsmouth',
+      'description' => 'ehquep',
+      'quantity' => 834,
+      'logQuantity' => 6.73,
+      'route_id' => 2,
+      'route_title' => 'Title of Journey C',
+      'stop_idx' => 1,
+      'id' => 'tb5226',
+      'datestart' => '1787',
+      'dateend' => '1787',
+      'udatestart' => -5774925600000,
+      'udateend' => -5774925600000,
+      'latitude' => '50.8195',
+      'longitude' => '-1.087',
+      'route_description' => 'Description of C',
+      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5226',
+      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
+    ),
+    'display' => 
+    array (
+      'popup' => 
+      array (
+        'links' => 
+        array (
+          0 => 
+          array (
+            'text' => 'TLCMap Record: tb5226',
+            'link' => 'http://ghap.test/search?id=tb5226',
+          ),
+          1 => 
+          array (
+            'text' => 'TLCMap Layer',
+            'link' => 'http://ghap.test/publicdatasets/562',
+          ),
+        ),
+      ),
+    ),
+  ),
+  5 => 
+  array (
+    'type' => 'Feature',
+    'geometry' => 
+    array (
+      'type' => 'Point',
+      'coordinates' => 
+      array (
+        0 => 151.2093,
+        1 => -33.8688,
+      ),
+    ),
+    'properties' => 
+    array (
+      'name' => 'Sydney',
+      'placename' => 'Sydney',
+      'description' => 'fenqiuwpe',
+      'quantity' => 500,
+      'logQuantity' => 6.21,
+      'route_id' => 2,
+      'route_title' => 'Title of Journey C',
+      'stop_idx' => 2,
+      'id' => 'tb5227',
+      'datestart' => '1788',
+      'dateend' => '1788',
+      'udatestart' => -5743389600000,
+      'udateend' => -5743389600000,
+      'latitude' => '-33.8688',
+      'longitude' => '151.2093',
+      'route_description' => 'Description of C',
+      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5227',
+      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
+    ),
+    'display' => 
+    array (
+      'popup' => 
+      array (
+        'links' => 
+        array (
+          0 => 
+          array (
+            'text' => 'TLCMap Record: tb5227',
+            'link' => 'http://ghap.test/search?id=tb5227',
+          ),
+          1 => 
+          array (
+            'text' => 'TLCMap Layer',
+            'link' => 'http://ghap.test/publicdatasets/562',
+          ),
+        ),
+      ),
+    ),
+  ),
+  6 => 
+  array (
+    'type' => 'Feature',
+    'geometry' => 
+    array (
+      'type' => 'Point',
+      'coordinates' => 
+      array (
+        0 => 151.2093,
+        1 => -33.8688,
+      ),
+    ),
+    'properties' => 
+    array (
+      'name' => 'Sydney',
+      'placename' => 'Sydney',
+      'description' => 'ehquipe',
+      'quantity' => 500,
+      'logQuantity' => 6.21,
+      'route_id' => 2,
+      'route_title' => 'Title of Journey C',
+      'stop_idx' => 3,
+      'id' => 'tb5228',
+      'datestart' => '1788',
+      'dateend' => '1788',
+      'udatestart' => -5743389600000,
+      'udateend' => -5743389600000,
+      'latitude' => '-33.8688',
+      'longitude' => '151.2093',
+      'route_description' => 'Description of C',
+      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5228',
+      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
+    ),
+    'display' => 
+    array (
+      'popup' => 
+      array (
+        'links' => 
+        array (
+          0 => 
+          array (
+            'text' => 'TLCMap Record: tb5228',
+            'link' => 'http://ghap.test/search?id=tb5228',
+          ),
+          1 => 
+          array (
+            'text' => 'TLCMap Layer',
+            'link' => 'http://ghap.test/publicdatasets/562',
+          ),
+        ),
+      ),
+    ),
+  ),
+  7 => 
+  array (
+    'type' => 'Feature',
+    'geometry' => 
+    array (
+      'type' => 'Point',
+      'coordinates' => 
+      array (
+        0 => 144.9631,
+        1 => -37.8136,
+      ),
+    ),
+    'properties' => 
+    array (
+      'name' => 'Melbourne',
+      'placename' => 'Melbourne',
+      'description' => 'fenquip',
+      'quantity' => 200,
+      'logQuantity' => 5.3,
+      'route_id' => 2,
+      'route_title' => 'Title of Journey C',
+      'stop_idx' => 4,
+      'id' => 'tb5229',
+      'datestart' => '1788',
+      'dateend' => '1788',
+      'udatestart' => -5743389600000,
+      'udateend' => -5743389600000,
+      'latitude' => '-37.8136',
+      'longitude' => '144.9631',
+      'route_description' => 'Description of C',
+      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5229',
+      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
+    ),
+    'display' => 
+    array (
+      'popup' => 
+      array (
+        'links' => 
+        array (
+          0 => 
+          array (
+            'text' => 'TLCMap Record: tb5229',
+            'link' => 'http://ghap.test/search?id=tb5229',
+          ),
+          1 => 
+          array (
+            'text' => 'TLCMap Layer',
+            'link' => 'http://ghap.test/publicdatasets/562',
+          ),
+        ),
+      ),
+    ),
+  ),
+  8 => 
+  array (
+    'type' => 'Feature',
+    'geometry' => 
+    array (
+      'type' => 'LineString',
+      'coordinates' => 
+      array (
+        0 => 
+        array (
+          0 => '153.0251',
+          1 => '-27.4698',
+        ),
+        1 => 
+        array (
+          0 => '145.7781',
+          1 => '-16.9186',
+        ),
+        2 => 
+        array (
+          0 => '-2.9916',
+          1 => '53.4084',
+        ),
+        3 => 
+        array (
+          0 => '153.0251',
+          1 => '-27.4698',
+        ),
+      ),
+    ),
+    'properties' => 
+    array (
+      'title' => 'Title of Journey A',
+      'route_id' => 1,
+      'route_title' => 'Title of Journey A',
+      'route_description' => 'No detailed description',
+    ),
+  ),
+  9 => 
+  array (
+    'type' => 'Feature',
+    'geometry' => 
+    array (
+      'type' => 'LineString',
+      'coordinates' => 
+      array (
+        0 => 
+        array (
+          0 => '-1.087',
+          1 => '50.8195',
+        ),
+        1 => 
+        array (
+          0 => '151.2093',
+          1 => '-33.8688',
+        ),
+        2 => 
+        array (
+          0 => '151.2093',
+          1 => '-33.8688',
+        ),
+        3 => 
+        array (
+          0 => '144.9631',
+          1 => '-37.8136',
+        ),
+      ),
+    ),
+    'properties' => 
+    array (
+      'title' => 'Title of Journey C',
+      'route_id' => 2,
+      'route_title' => 'Title of Journey C',
+      'route_description' => 'No detailed description',
+    ),
+  ),
+)

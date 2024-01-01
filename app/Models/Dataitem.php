@@ -24,8 +24,8 @@ class Dataitem extends Model
     protected $fillable = [
         'id', 'dataset_id', 'recordtype_id', 'title', 'description', 'latitude', 'longitude',
         'datestart', 'dateend', 'quantity', 'state', 'feature_term', 'lga', 'source', 'external_url',
-        'extended_data', 'kml_style_url', 'placename', 'original_id', 'parish', 'route_id', 'stop_idx',
-        'route_title', 'route_original_id'
+        'extended_data', 'kml_style_url', 'placename', 'original_id', 'parish' , 'image_path', 'dataset_order',
+        'route_id', 'stop_idx', 'route_title', 'route_original_id'
     ];
 
     /**
@@ -133,7 +133,7 @@ class Dataitem extends Model
         if (!empty($extendedData)) {
             $items = [];
             foreach ($extendedData as $key => $value) {
-                $items[] = '<Data name="' . $key . '"><value><![CDATA[' . $value . ']]></value></Data>';
+                $items[] = '<Data name="' . trim($key) . '"><value><![CDATA[' . trim($value) . ']]></value></Data>';
             }
             $this->extended_data = '<ExtendedData>' . implode('', $items) . '</ExtendedData>';
         } else {
@@ -156,8 +156,10 @@ class Dataitem extends Model
         $extData = [];
         try {
             $extDataXML = simplexml_load_string($this->extended_data, 'SimpleXMLElement', LIBXML_NOCDATA);
-            foreach ($extDataXML->Data as $item) {
-                $extData[(string) $item->attributes()->name] = (string) $item->value;
+            if( isset($extDataXML->Data) ) {
+                foreach ($extDataXML->Data as $item) {
+                    $extData[(string) $item->attributes()->name] = (string) $item->value;
+                }
             }
         } catch (Exception $e) {
             return false;

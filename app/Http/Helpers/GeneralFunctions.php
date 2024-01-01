@@ -22,6 +22,7 @@ class GeneralFunctions
      *
      * accepted formats (6 ISO friendly, 2 Excel friendly):
      *      - Year  (accepts negatives, leading zeroes, 1 to n characters, cannot be 0)                             Results in an array of size 2: [0] is full string, [1] is Year
+     *      - Year-Month yyyy-mm format
      *      - Year-Month-Day (as above, and day/month cannot be single digits... eg: 1993-02-12 not 1993-2-12)      Results in an array of size 5: [1] is Year, [3] is Month, [4] is Day
      *      - Year-Month-DayThh      AS above but with time in hours                                                Results in an array of size 7: [1] is Year, [3] is Month, [4] is Day, [6] is Hour
      *      - Year-Month-DayThh:mm      AS above but with time in hours and minutes, minutes must be 2 digits       Results in an array of size 9: [1] is Year, [3] is Month, [4] is Day, [6] is Hour, [8] is minute
@@ -54,6 +55,9 @@ class GeneralFunctions
         if (preg_match('/00\/00\/[1-9]+/', $dateString)) {
             return strstr($dateString, "/", 1);
         }
+        if (preg_match('/^([0-9]{4})-(0[1-9]|1[012])$/', $dateString)) {
+            return $dateString;
+        } //yyyy-mm
         if (preg_match(
             '/^(-?[0-9]*[1-9]+0*)(-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])(T(0?[0-9]|1[0-9]|2[0-3])(:(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])(:(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])([.][0-9]+)?)?)?)?)?$/',
             $dateString)) {
@@ -175,6 +179,29 @@ class GeneralFunctions
             } else return 0; //if years match and one or more of the parameters is JUST a year, return equality
         }
         return ((float)$aout[1] > (float)$bout[1]) ? 1 : -1; //if a > b return 1, else return -1
+    }
+
+    /**
+     * Validates a user-uploaded image file.
+     * Check for file size and type.
+     *
+     * @param UploadedFile $file The image file to be validated.
+     * @return bool Returns true for valid, false otherwise.
+     */
+    public static function validateUserUploadImage($file)
+    {
+        $maxSize = config('app.max_upload_image_size');
+        // Validate file size
+        if ($file->getSize() > $maxSize) {
+            return false;
+        }
+
+        // Validate file type
+        if (!$file->isValid() || !$file->isFile() || !$file->guessExtension() || !in_array($file->guessExtension(), ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg' , 'webp'])) {
+            return false;
+        }
+
+        return true;
     }
 
 }

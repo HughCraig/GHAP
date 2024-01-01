@@ -7,6 +7,9 @@ use TLCMap\Http\Helpers\HtmlFilter;
 use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
+use TLCMap\Models\RecordType;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class Dataset extends Model
 {
@@ -17,7 +20,7 @@ class Dataset extends Model
     protected $fillable = [
         'id', 'name', 'description', 'creator', 'public', 'allowanps', 'publisher', 'contact', 'citation', 'doi',
         'source_url', 'linkback', 'latitude_from', 'longitude_from', 'latitude_to', 'longitude_to', 'language', 'license', 'rights',
-        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning'
+        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning' , 'image_path'
     ];
 
     /**
@@ -44,9 +47,27 @@ class Dataset extends Model
         return $this->belongsTo(RecordType::class, 'recordtype_id');
     }
 
-    public function subjectkeywords()
+    public function subjectKeywords()
     {
         return $this->belongsToMany(SubjectKeyword::class, 'tlcmap.dataset_subject_keyword')->withPivot('dataset_id', 'subject_keyword_id');
+    }
+
+    /**
+     * Fetch all public layers/datasets along with their IDs
+     *
+     * @return array
+     *   An array of objects with 'id' and 'name' properties.
+     */
+    public static function getAllPublicLayersAndIDs()
+    {
+        $layers = self::where('public', 1)->select('id', 'name')->get();
+
+        return $layers->map(function($layer) {
+            return (object) [
+                'id' => $layer->id,
+                'name' => $layer->name
+            ];
+        })->all();
     }
 
     /**
@@ -277,13 +298,14 @@ class Dataset extends Model
     {
         $dataset = $this;
         $features = array();
+
         $metadata = array(
             'layerid' => $dataset->id,
             'name' => $dataset->name,
             'description' => $dataset->description,
             'warning' => $dataset->warning,
             'ghap_url' => $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"),
-            'linkback' => $dataset->linkback,
+            'linkback' => $dataset->linkback
         );
 
         // Set the feature collection config.
@@ -294,7 +316,7 @@ class Dataset extends Model
         $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
 
         // Infill any blank start/end dates.
-        $dataitems = $this->infillDataitemDates($dataset->dataitems);
+        $dataitems = self::infillDataitemDates($dataset->dataitems);
 
         if (isset($_GET["sort"])) {
             $dataitems = $dataitems->where('datestart', '!==', '')->where('dateend', '!==', '');
@@ -329,6 +351,12 @@ class Dataset extends Model
             $ismultiroute = FALSE;
 
             $proppairs = array();
+
+            if (!empty($i->image_path)) {
+                $imageUrl = Storage::disk('public')->url('images/' . $i->image_path);
+                $proppairs["Image"] = '<img src="' . $imageUrl . '" alt="Place Image">';
+            }
+
             if (!empty($i->title)) {
                 $proppairs["name"] = $i->title;
             } else {
@@ -380,6 +408,7 @@ class Dataset extends Model
             if (!empty($i->source)) {
                 $proppairs["source"] = $i->source;
             }
+
             if (!empty($i->datestart)) {
                 $proppairs["datestart"] = $i->datestart;
             }
@@ -417,16 +446,19 @@ class Dataset extends Model
                 }
             }
 
-            if (!empty($i->latitude)) {
+            if (isset($i->latitude)) {
                 $proppairs["latitude"] = $i->latitude;
             }
-            if (!empty($i->longitude)) {
+            if (isset($i->longitude)) {
                 $proppairs["longitude"] = $i->longitude;
             }
 
             if (!empty($i->external_url)) {
                 $proppairs["linkback"] = $i->external_url;
+            }else if(!empty($dataset->linkback)){
+                $proppairs["linkback"] = $dataset->linkback;
             }
+
             if (!empty($i->extended_data)) {
                 $proppairs = array_merge($proppairs, $i->extDataAsKeyValues());
                 //$proppairs["extended_data"] = $i->extDataAsHTML();
@@ -584,11 +616,33 @@ class Dataset extends Model
             'display' => $featureCollectionConfig->toArray(),
         );
 
+        if( count($features) == 0){
+            $allfeatures['metadata']['warning'] .=  "<p>0 results found</p>";
+            $allfeatures['display']['info']['content'] .= "<div class=\"warning-message\"><p>0 results found</p></div>";
+        }
 
         return json_encode($allfeatures, JSON_PRETTY_PRINT);
     }
 
+    /**
+     * Generate the GeoJSON when visiting a private dataset or non-exist dataset.
+     * show warning message at info block
+     */
+    public static function getRestrictedDatasetGeoJSON(){
 
+        $featureCollectionConfig = new FeatureCollectionConfig();
+        $featureCollectionConfig->setInfoContent(GhapConfig::createRestrictedDatasetInfoBlockContent());
+        $allfeatures = array(
+            'type' => 'FeatureCollection',
+            'metadata' => [
+                'warnnig' => 'This map either does not exist or has been set to "private" and therefore cannot be displayed.'
+            ],
+            'display' => $featureCollectionConfig->toArray(),
+            'features' => [],
+        );
+
+        return json_encode($allfeatures, JSON_PRETTY_PRINT);
+    }
     /**
      * Infill start/end dates for dataitems.
      *
@@ -701,13 +755,10 @@ class Dataset extends Model
         $colheads = array_merge($colheads, $extkeys);
 
         // Apply any modification to the column headers for display.
+        $headerValueForDisplay = [ 'id' => 'ghap_id' , 'external_url' => 'linkback' , 'dataset_id' => 'layer_id' , 'recordtype_id' => 'record_type' ];
         $displayHeaders = [];
         foreach ($colheads as $colhead) {
-            if ($colhead === 'id') {
-                $displayHeaders[] = 'ghap_id';
-            } else {
-                $displayHeaders[] = $colhead;
-            }
+            $displayHeaders[] = isset($headerValueForDisplay[$colhead]) ? $headerValueForDisplay[$colhead] : $colhead;
         }
 
         // add headings to csv
@@ -729,7 +780,14 @@ class Dataset extends Model
 
             // to make sure the cells are in the same order as the headings
             foreach ($colheads as $col) {
-                $cells[] = isset($vals[$col]) ? $vals[$col] : "";
+                $cellValue = isset($vals[$col]) ? $vals[$col] : "";
+
+                // Special handling for recordtype, store type instead of id
+                if ( $cellValue !== "" && $col === 'recordtype_id') {
+                    $cellValue = RecordType::getTypeById($cellValue);
+                }
+
+                $cells[] = $cellValue;
             }
 
 

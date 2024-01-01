@@ -29,6 +29,7 @@ use TLCMap\Mail\PasswordChanged;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 
 use TLCMap\Http\Helpers\GeneralFunctions;
 
@@ -48,6 +49,7 @@ class UserController extends Controller
         ["startdate", "enddate"],
         ["start date", "end date"],
         ["date start", "date end"],
+        ["start_date", "end_date"],
         ["date", "date"] // if there is a single date set begin and end to same
     ];
 
@@ -59,7 +61,7 @@ class UserController extends Controller
 
     public $generalCols = [
         'id', 'title', 'type', 'linkback', 'external_url',
-        'route_id', 'stop_idx', 'route_title', //'route_original_id',
+        'route_id', 'stop_idx', 'route_title'
     ];
 
     public $commonCols = [
@@ -67,35 +69,41 @@ class UserController extends Controller
         'latitude', 'longitude', "lat", "long", "lat", "lng",
     ];
 
-    public $commonDateStartCols = ['startdate', 'datestart', 'begin', 'date'];
-    public $commonDateEndCols = ['enddate', 'dateend', 'end', 'date'];
+    public $commonDateStartCols = ["datestart", "startdate", "begin", "date"];
+    public $commonDateEndCols = ["dateend", "enddate", "end", "date"];
 
     public $commonDateCols = [];
 
-    public $pairPointsPrefixes = [
+    public $pairBasedPrefixes = [
         'departure', "origin", "arrival", "destination"
     ];
 
-    public $pairPointsCommonCols = [];
+    public $pairBasedDateStartCols = [];
+    public $pairBasedDateEndCols = [];
+    // The common attributes and date attributes of pair of points
+    public $pairBasedCommonCols = [];
 
     public $pointBasedNotForExtData = [];
     public $pairBasedNotForExtData = [];
 
     public function __construct() {
         $this->commonDateCols = array_unique(array_merge($this->commonDateStartCols, $this->commonDateEndCols));
-        $this->generatePairPointsCommonCols();
+        // Construct pair-based attributes
+        $this->generatePairBasedCols($this->commonDateStartCols, $this->pairBasedDateStartCols);
+        $this->generatePairBasedCols($this->commonDateEndCols, $this->pairBasedDateEndCols);
+        $this->generatePairBasedCols($this->commonCols,  $this->pairBasedCommonCols);
         $this->pointBasedNotForExtData = array_merge($this->generalCols, $this->commonCols, $this->commonDateCols);
-        $this->pairBasedNotForExtData = array_merge($this->generalCols, $this->commonDateCols, $this->pairPointsCommonCols);
+        $this->pairBasedNotForExtData = array_merge($this->generalCols, $this->pairBasedCommonCols, $this->pairBasedDateStartCols, $this->pairBasedDateEndCols);
     }
 
-    private function generatePairPointsCommonCols() {
-        $allCommonCols = array_merge($this->commonCols, $this->commonDateCols);
-        foreach ($this->pairPointsPrefixes as $prefix) {
-            foreach ($allCommonCols as $allCommonCol) {
-                $this->pairPointsCommonCols[] = $prefix . '_' . $allCommonCol;
+    private function generatePairBasedCols($sourceCols, &$targetArray) {
+        foreach ($this->pairBasedPrefixes as $prefix) {
+            foreach ($sourceCols as $col) {
+                $targetArray[] = $prefix . '_' . $col;
             }
         }
     }
+
     public function userProfile(Request $request)
     {
         return view('user.userprofile');
@@ -191,7 +199,7 @@ class UserController extends Controller
         //Send notification emails to old, new , and webmaster
         Mail::to($old_email)->send(new EmailChangedOld($old_email, $new_email));
         Mail::to($new_email)->send(new EmailChangedNew($old_email, $new_email));
-        Mail::to(env('WEBMASTER_EMAIL'))->send(new EmailChangedWebmaster($old_email, $new_email));
+        Mail::to(config('mail.webmasteremail'))->send(new EmailChangedWebmaster($old_email, $new_email));
 
         return redirect('myprofile')->with('success', 'Email updated!'); //if input passes validation redirect with success message
     }
@@ -204,8 +212,11 @@ class UserController extends Controller
     public function userViewDataset(Request $request, int $id)
     {
         $user = auth()->user();
+        if(!$user){
+            return redirect('layers/' . $id); // Return to public view of dataset for non-logged in users
+        }
         $dataset = $user->datasets()->with(['dataitems' => function ($query) {
-            $query->orderBy('id');
+            $query->orderBy('dataset_order');
         }])->find($id);
 
         if (!$dataset) return redirect('myprofile/mydatasets');
@@ -234,7 +245,13 @@ class UserController extends Controller
     {
         $user = auth()->user();
         $searches = SavedSearch::where('user_id', $user->id)->get();
-        return view('user.usersavedsearches', ['searches' => $searches]);
+        $recordTypeMap = RecordType::getIdTypeMap();
+        $recordtypes = RecordType::types();
+        $subjectKeywordMap = [];
+        foreach($searches as $search){
+            $subjectKeywordMap[$search->id] = $search->subjectKeywords->toArray();
+        }
+        return view('user.usersavedsearches', ['searches' => $searches , 'recordTypeMap' => $recordTypeMap , 'recordtypes' => $recordtypes, 'subjectKeywordMap' => $subjectKeywordMap]);
     }
 
     /*
@@ -273,11 +290,22 @@ class UserController extends Controller
         $keywords = [];
         //for each tag in the subjects array(?), get or create a new subjectkeyword
         foreach ($tags as $tag) {
-            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower($tag)]);
+            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
             array_push($keywords, $subjectkeyword);
         }
 
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
+
+        $filename = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+        }
 
         $dataset = Dataset::create([
             'name' => $datasetname,
@@ -303,12 +331,13 @@ class UserController extends Controller
             'temporal_to' => $temporalto,
             'created' => $request->created,
             'warning' => $request->warning,
+            'image_path' => $filename
         ]);
 
         $user->datasets()->attach($dataset, ['dsrole' => 'OWNER']); //attach creator to pivot table as OWNER
 
         foreach ($keywords as $keyword) {
-            $dataset->subjectkeywords()->attach(['subject_keyword_id' => $keyword->id]);
+            $dataset->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
         }
 
         return redirect('myprofile/mydatasets/' . $dataset->id);
@@ -344,11 +373,26 @@ class UserController extends Controller
         $keywords = [];
         //for each tag in the subjects array(?), get or create a new subjectkeyword
         foreach ($tags as $tag) {
-            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => strtolower($tag)]);
+            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
             array_push($keywords, $subjectkeyword);
         }
 
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+            // Delete old image.
+            if ($dataset->image_path && Storage::disk('public')->exists('images/' . $dataset->image_path)) {
+                Storage::disk('public')->delete('images/' . $dataset->image_path);
+            }
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+            $dataset->image_path = $filename;
+        }
 
         $dataset->fill([
             'name' => $datasetname,
@@ -374,15 +418,16 @@ class UserController extends Controller
             'temporal_to' => $temporalto,
             'created' => $request->created,
             'warning' => $request->warning,
+            'image_path' => $dataset->image_path
         ]);
 
         $dataset->save();
 
-        $dataset->subjectkeywords()->detach(); //detach all keywords
+        $dataset->subjectKeywords()->detach(); //detach all keywords
 
         //Attach the new ones
         foreach ($keywords as $keyword) {
-            $dataset->subjectkeywords()->attach(['subject_keyword_id' => $keyword->id]);
+            $dataset->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
         }
 
         return redirect('myprofile/mydatasets/' . $id);
@@ -475,7 +520,11 @@ class UserController extends Controller
             if (isset($arr)) {
                 $extrainfo = $extrainfo . " Error on line " . json_encode($arr);
             }
-            LOG::error("Import error. " . date(DATE_ATOM, mktime(0, 0, 0, 7, 1, 2000)) . " " . $e->getMessage() . " extra info " . $extrainfo);
+            // Get the file and line number where the exception occurred
+            $file = $e->getFile();
+            $line = $e->getLine();
+
+            LOG::error("Import error $file:$line - " . date(DATE_ATOM, mktime(0, 0, 0, 7, 1, 2000)) . " " . $e->getMessage() . " extra info " . $extrainfo);
             return redirect('myprofile/mydatasets/' . $ds_id)
                 ->with('error', 'Error processing file. Please check it is in the right format and is less than 10Mb. If CSV, it must have
                 a title or placename column. Check that lat, long and any dates are correct. ' .
@@ -507,7 +556,7 @@ class UserController extends Controller
         foreach ($arr as &$entry) {
             foreach ($entry as $key => $value) {
                 $keyParts = explode('_', $key, 2);
-                if (count($keyParts) > 1 && in_array($keyParts[0], $this->pairPointsPrefixes)) {
+                if (count($keyParts) > 1 && in_array($keyParts[0], $this->pairBasedPrefixes)) {
                     $prefix = $keyParts[0];
                     $newKey = $keyParts[1];
 
@@ -674,7 +723,7 @@ class UserController extends Controller
         $route_meta = [];
         $route_titles = [];
         $route_id = 1;
-        $isMultiRoutes = true;
+        $isMultiRoutes = NULL;
         for ($i = 0; $i < count($arr); $i++) { //FOREACH data item
             $culled_array = array(); //we will cull out all keys that are not present as fillable fields
             $extendeddata = array(); //and add anything else to extended data.
@@ -685,7 +734,7 @@ class UserController extends Controller
                     This preg_replace cuts out all characters from <Data> names other than letters and underscores so we don't fail comparisons due to invisible chars...
                     - works for that but ignores many valid names! find a better solution
                 */
-                $key = $this->sanitiseKey($key, $notForExtData);
+                $key = $this->sanitiseKey($key);
                 $value = $this->sanitiseValue($value);
 
                 //$key = preg_replace('/[^a-zA-Z_ ]/', '', $key); //REMOVE ALL NON ALPHA CHARACTERS FROM KEY NAME - some unseen chars were affecting string comparison ('placename' == 'placename' equating to false)
@@ -704,9 +753,11 @@ class UserController extends Controller
                 // we are looping each column and checking it's name looking to handle the crucial ones...
                 //if array has the "type" key, change it to "recordtype_id" and change all of the values to the actual id for the given type, or "Other" if it does not match
                 if (!in_array($key, $excludeColumns)) {
-                    if ($key == "type") {
-                        $recordtype = RecordType::where("type", trim($value))->first(); //get the this recordtype from "type" name
-                        $culled_array["recordtype_id"] = ($recordtype) ? $recordtype->id : 1; //if recordtype does exist, set the recordtype_id to its id, otherwise set it to 1 (default "Other")
+                    if ($key == "type" || $key == "record_type") {
+                        //get the recordtype id from "type" name
+                        $culled_array["recordtype_id"] = RecordType::getIdByType($value); //if recordtype does exist, set the recordtype_id to its id, otherwise set it to 1 (default "Other")
+                    } else if($key == "layer_id"){
+                        $culled_array["dataset_id"] = $value;
                     } else if ($key == "linkback") {
                         $culled_array["external_url"] = $value;
                     } else if (in_array($key, $fillable) && $key != 'id') {
@@ -744,28 +795,6 @@ class UserController extends Controller
                 $culled_array["dateend"] = $arr[$i][$datecols[1]];
             }
 
-            // Handle route meta columns including
-            // 1. Fill route_title with route_id if the former unexists.
-            // 2. Assign unique route_id and stop_idx to each route
-            if (isset($arr[$i]["route_id"])) {
-                $culled_array["route_original_id"] = $arr[$i]["route_id"];
-                if (!isset($arr[$i]["route_title"])) {
-                    $culled_array["route_title"] = $arr[$i]["route_id"];
-                }
-            }
-            if (!isset($culled_array["route_title"]) || ($culled_array["route_title"] === NULL)) {
-                $isMultiRoutes = false;
-            }
-            if (!isset($route_titles[$culled_array["route_title"]])) {
-                $route_titles[$culled_array["route_title"]] = $route_id;
-                $route_id++;
-            }
-            $culled_array["route_id"] = null;
-            $route_meta[$i]["route_id"] = $route_titles[$culled_array["route_title"]];
-            $route_meta[$i]["earliest_date"] = $this->assignEarliestDate($culled_array);
-            $route_meta[$i]["arr_idx"] = $i;
-            $route_meta[$i]["dataset_id"] = $ds_id;
-
             // Handle possible names for latitude/longitude columns
             if (!isset($culled_array["longitude"]) && !empty($llcols)) {
                 $culled_array["latitude"] = $arr[$i][$llcols[0]];
@@ -778,7 +807,7 @@ class UserController extends Controller
                 foreach ($extendeddata as $ed) {
                     if (isset($arr[$i][$ed]) && $arr[$i][$ed] !== '') {
                         $extdata = $extdata .
-                            '<Data name="' . $ed . '"><value><![CDATA[' . $arr[$i][$ed] . ']]></value></Data>';
+                            '<Data name="' . trim($ed) . '"><value><![CDATA[' . trim($arr[$i][$ed]) . ']]></value></Data>';
                     }
                 }
                 if (!empty($extdata)) {
@@ -788,12 +817,45 @@ class UserController extends Controller
                 }
             }
 
+            // TODO: define $isMultiRoutes in input para
+            if ($isMultiRoutes === NULL) {
+                if (!isset($culled_array["route_title"]) && !isset($culled_array["route_id"])) {
+                    $isMultiRoutes = false;
+                } else {
+                    $isMultiRoutes = true;
+                }
+            }
+            if ($isMultiRoutes === false) {
+            } else if ($isMultiRoutes === true) {
+                file_put_contents("test.log", var_export("whyFWEFWe", true), FILE_APPEND);
+                if (isset($arr[$i]["route_id"])) {
+                    file_put_contents("test.log", var_export($arr[$i]["route_id"], true));
+                    $culled_array["route_original_id"] = $arr[$i]["route_id"];
+                    if (!isset($arr[$i]["route_title"])) {
+                        $culled_array["route_title"] = $arr[$i]["route_id"];
+                    }
+                } else {
+                    file_put_contents("test.log", var_export("whye", true), FILE_APPEND);
+                }
+                if (!isset($route_titles[$culled_array["route_title"]])) {
+                    $route_titles[$culled_array["route_title"]] = $route_id;
+                    $route_id++;
+                }
+                $culled_array["route_id"] = null;
+                $route_meta[$i]["route_id"] = $route_titles[$culled_array["route_title"]];
+                $route_meta[$i]["earliest_date"] = $this->assignEarliestDate($culled_array);
+                $route_meta[$i]["arr_idx"] = $i;
+                $route_meta[$i]["dataset_id"] = $ds_id;
+            }
+
+
             // Store the dataitem
             if (!empty($culled_array)) { //ignore empties
                 $dataitemUID = $arr[$i]['ghap_id'] ?? null;
                 $dataitemProperties = array_merge(array('dataset_id' => $ds_id), $culled_array);
                 $route_meta[$i]["ghap_id"] = $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
             }
+
         }
 
         if ($isMultiRoutes) {
@@ -985,9 +1047,11 @@ class UserController extends Controller
 
         $header = null;
         $data = array();
-        $datestartindex = false;
-        $dateendindex = false;
+        // $datestartindex = false;
+        // $dateendindex = false;
 
+        $latitudeIndex = false;
+        $longitudeIndex = false;
 
         try {
 
@@ -1004,13 +1068,16 @@ class UserController extends Controller
                 while (($data = fgetcsv($handle)) !== FALSE) {
                     // number of fields in the csv
                     $col_count = count($data);
+
+                   if(!$this->validateRow($data)) continue; //if the row is invalid, skip it
+
                     // sanitise headings
                     if ($row === 0) {
 
                         // sanitise and check for required fields
                         $header = $data;
                         foreach ($header as &$heading) {
-                            $heading = $this->sanitiseKey($heading, $notForExtData);
+                            $heading = $this->sanitiseKey($heading);
                         }
 
                         // if the uploaded data includes datestart or dateend values, store the index
@@ -1023,22 +1090,19 @@ class UserController extends Controller
                         // Regarding the mobility origin-destination dataset format for mobility mapping, the dataset could have
                         // more than one/one pair of column(s). Hence the the index storage should be an array rather than an integer
                         // TODO: the current method is too clumsy, but regarding there would not be a wide spreadsheet uploaded, just make it work for now
-                        $dataStartStrings = ['datestart', 'startdate', 'start date', 'begin'];
-                        $dateEndStrings = ['dateend', 'enddate', 'end date', 'end'];
+                        // $datestartindex = array_search('datestart', $header); //if the uploaded header includes datestart or dateend values, store the index
+                        // $dateendindex = array_search('dateend', $header);
+                        $dataStartStrings = $this->commonDateStartCols;
+                        $dateEndStrings = $this->commonDateEndCols;
+
                         if ($pointBasedUpload == FALSE) {
-                            $dataStartStrings = array_merge($dataStartStrings, [
-                                'departure_startdate', 'origin_startdate', 'arrival_startdate', 'destination_startdate',
-                                'departure_datestart', 'origin_datestart', 'arrival_datestart', 'destination_datestart',
-                                'departure_begin', 'origin_begin', 'arrival_begin', 'destination_begin',
-                                'departure_date', 'origin_date'
-                            ]);
-                            $dateEndStrings = array_merge($dateEndStrings, [
-                                'departure_enddate', 'origin_enddate', 'arrival_enddate', 'destination_enddate',
-                                'departure_dateend', 'origin_dateend', 'arrival_dateend', 'destination_dateend',
-                                'departure_end', 'origin_end', 'arrival_end', 'destination_end',
-                                'arrival_date', 'destination_date'
-                            ]);
+                            $dataStartStrings = $this->pairBasedDateStartCols;
+                            $dateEndStrings = $this->pairBasedDateEndCols;
                         }
+
+                        $latitudeIndex = array_search('latitude', $header);
+                        $longitudeIndex = array_search('longitude', $header);
+
                         $datestartindices = [];
                         $dateendindices = [];
 
@@ -1077,6 +1141,15 @@ class UserController extends Controller
                             }
                         }
 
+                        if($latitudeIndex !== false){
+                            // Remove spaces, non-breaking spaces, and non-numeric characters.
+                            $fields[$latitudeIndex] = preg_replace('/[^\d\.-]/', '', str_replace("\xc2\xa0", ' ', $fields[$latitudeIndex]));
+                        }
+                        if($longitudeIndex !== false){
+                            // Remove spaces, non-breaking spaces, and non-numeric characters.
+                            $fields[$longitudeIndex] = preg_replace('/[^\d\.-]/', '', str_replace("\xc2\xa0", ' ', $fields[$longitudeIndex]));
+                        }
+
                         $outdata[] = array_combine($header, $fields); //data[this] is now an array mapping header to field eg data[this] = ['placename' => 'newcastle', ... => ..., etc]
 
                     }
@@ -1099,6 +1172,20 @@ class UserController extends Controller
         return $outdata; //return the array of lines and headers
     }
 
+    /*
+    * Valid each row of the imported csv file.
+    * Ignore blank rows, rows are just empty space or rows are just comma
+    */
+    function validateRow($array) {
+        foreach ($array as $value) {
+            $trimmedValue = trim($value);
+            if ($trimmedValue !== '' && $trimmedValue !== ',' ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Sanitizes and standardizes the key (column names).
      *
@@ -1106,7 +1193,7 @@ class UserController extends Controller
      * @return string The sanitized string after removing spaces, dodgy characters,
      *                converting to UTF-8, and applying lowercase handling for specific keys.
      */
-    function sanitiseKey($s, $notForExtData)
+    function sanitiseKey($s)
     {
         // remove spaces and dodgy characters
         $s = trim($s);
@@ -1117,7 +1204,11 @@ class UserController extends Controller
         // convert in a lot of clumsy comparison elsewhere, yet we can't just lc everything, cause we can't assume the case when outputting,
         // so need to retain case for other things like extended data. Noticed glitch between lcing everying in CSV, but not in KML, so was
         // no way out but this.
-
+        $notForExtData = [
+            "id", "title", "placename", "name", "description", "type", "linkback", "latitude", "longitude",
+            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url" ,
+            "record_type" , "start_date", "end_date"
+        ];
         if (in_array(strtolower($s), array_map('strtolower', $notForExtData))) {
             $s = strtolower($s);
         }

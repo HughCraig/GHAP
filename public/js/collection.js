@@ -55,4 +55,29 @@ $(document).ready(function () {
             });
         }
     });
+
+    $('button[name="remove_savedsearch_button"]').on('click', function () {
+        if (confirm('Are you sure you want to remove this search from this collection?')) {
+            const savedSearchID = this.id.split("_")[3]; //id will be remove_savedsearch_button_##, we jst want the number
+            const row_id = '#row_ss_id_' + savedSearchID; //get the id of the row to be deleted
+            const collectionID = $(this).data('collection-id');
+            $.ajax({
+                type: 'POST',
+                url: removeCollectionSavedSearchService,
+                data: {
+                    collectionID: collectionID,
+                    savedSearchID: savedSearchID,
+                },
+                success: function (result) {
+                    $(row_id).remove();
+                    //jQuery datatable updating
+                    $('#collectionsTable').DataTable().row(row_id).remove().draw();
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    console.log(xhr.responseText); //error message with error info
+                    alert(xhr.responseText); //error message with error info
+                }
+            });
+        }
+    });
 });

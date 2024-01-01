@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use TLCMap\Mail\CollaboratorEmail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use TLCMap\Models\SubjectKeyword;
 
 use TLCMap\Http\Helpers\GeneralFunctions;
 
@@ -64,9 +66,19 @@ class AjaxController extends Controller
     {
         $this->middleware('auth'); //Throw error if not logged in?
         $user_id = auth()->user()->id;
+
         $name = $request->name;
         $searchquery = $request->searchquery;
         $count = $request->count;
+        $description = $request->description;
+        $recordtype = $request->recordtype;
+        $warning = $request->warning;
+        $latitudefrom = $request->latitudefrom;
+        $longitudefrom = $request->longitudefrom;
+        $latitudeto = $request->latitudeto;
+        $longitudeto = $request->longitudeto;
+        $temporalfrom = $request->temporalfrom;
+        $temporalto = $request->temporalto;
 
         $msg = "";
         if (!isset($user_id)) {
@@ -78,14 +90,53 @@ class AjaxController extends Controller
         if (!isset($count)) {
             $msg .= "Count not set. ";
         }
+        if (!isset($name)) {
+            $msg .= "Search Name not set. ";
+        }
+        if (!isset($description)) {
+            $msg .= "Search description not set. ";
+        }
+        if( isset($temporalfrom) ){
+            $temporalfrom = GeneralFunctions::dateMatchesRegexAndConvertString($temporalfrom);
+            if( !$temporalfrom ){
+                $msg .= "Temporal from date is in incorrect format. ";
+            }
+        }
+        if( isset($temporalto) ){
+            $temporalto = GeneralFunctions::dateMatchesRegexAndConvertString($temporalto);
+            if( !$temporalto ){
+                $msg .= "Temporal to date is in incorrect format. ";
+            }
+        }
 
         if ($msg === "") {
-            SavedSearch::create([
+            $SavedSearch = SavedSearch::create([
                 'user_id' => $user_id,
                 'name' => $name,
                 'query' => $searchquery,
                 'count' => $count,
+                'description' => $description,
+                'recordtype_id' => RecordType::where('type', $recordtype)->first()->id,
+                'warning' => $warning,
+                'latitude_from' => $latitudefrom,
+                'longitude_from' => $longitudefrom,
+                'latitude_to' => $latitudeto,
+                'longitude_to' => $longitudeto,
+                'temporal_from' => $temporalfrom,
+                'temporal_to' => $temporalto
             ]); //create the savedsearch db entry
+
+            //Add subject keywords to relationship table
+            $keywords = [];
+            $tags = explode(",,;", $request->tags);
+            foreach ($tags as $tag) {
+                $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
+                array_push($keywords, $subjectkeyword);
+            }
+            foreach ($keywords as $keyword) {
+                $SavedSearch->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
+            }
+
             return response()->json();
         } else {
             return response()->json($msg, 401);
@@ -111,8 +162,95 @@ class AjaxController extends Controller
 
 
         if ($msg === "") {
-            SavedSearch::where([['user_id', $user_id], ['id', $delete_id]])->delete(); //we ONLY delete if the user actually owns the row they are attempting to delete
+            $savedSearch = SavedSearch::where([['user_id', $user_id], ['id', $delete_id]])->first();
+            if($savedSearch){
+                $savedSearch->subjectKeywords()->detach();
+                $savedSearch->collections()->detach();
+                $savedSearch->delete();
+            }
             return response()->json();
+        }
+    }
+
+    /**
+     * Get values from form and save to the metadata section of users saved search
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function ajaxeditsearch(Request $request)
+    {
+        $this->middleware('auth'); //Throw error if not logged in?
+        $user_id = auth()->user()->id;
+        $searchID = $request->id;
+
+        $savedSearch = SavedSearch::where([['user_id', $user_id], ['id', $searchID]])->first();
+        if(!$savedSearch){
+            return redirect('myprofile/mysearches');
+        }
+
+        $name = $request->name;
+        $description = $request->description;
+        $recordtype = $request->recordtype;
+        $warning = $request->warning;
+        $latitudefrom = $request->latitudefrom;
+        $longitudefrom = $request->longitudefrom;
+        $latitudeto = $request->latitudeto;
+        $longitudeto = $request->longitudeto;
+        $temporalfrom = $request->temporalfrom;
+        $temporalto = $request->temporalto;
+
+        $keywords = [];
+        $tags = explode(",,;", $request->tags);
+        foreach ($tags as $tag) {
+            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
+            array_push($keywords, $subjectkeyword);
+        }
+
+        $msg = "";
+        if (!isset($name)) {
+            $msg .= "Search Name not set. ";
+        }
+        if (!isset($description)) {
+            $msg .= "Search description not set. ";
+        }
+        if( isset($temporalfrom) ){
+            $temporalfrom = GeneralFunctions::dateMatchesRegexAndConvertString($temporalfrom);
+            if( !$temporalfrom ){
+                $msg .= "Temporal from date is in incorrect format. ";
+            }
+        }
+        if( isset($temporalto) ){
+            $temporalto = GeneralFunctions::dateMatchesRegexAndConvertString($temporalto);
+            if( !$temporalto ){
+                $msg .= "Temporal to date is in incorrect format. ";
+            }
+        }
+
+        if ($msg === "") {
+            $savedSearch->fill([
+                'name' => $name,
+                'description' => $description,
+                'recordtype_id' => RecordType::where('type', $recordtype)->first()->id,
+                'warning' => $warning,
+                'latitude_from' => $latitudefrom,
+                'longitude_from' => $longitudefrom,
+                'latitude_to' => $latitudeto,
+                'longitude_to' => $longitudeto,
+                'temporal_from' => $temporalfrom,
+                'temporal_to' => $temporalto
+            ]);
+
+            $savedSearch->save();
+
+            $savedSearch->subjectKeywords()->detach(); //re attach subject keywords
+            foreach ($keywords as $keyword) {
+                $savedSearch->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
+            }
+
+            return response()->json();
+        } else {
+            return response()->json($msg, 401);
         }
     }
 
@@ -173,6 +311,35 @@ class AjaxController extends Controller
     }
 
     /**
+    * Change the order of dataitems in one dataset
+    */
+    public function ajaxchangedataitemorder(Request $request)
+    {
+        $this->middleware('auth'); // Ensure the user is logged in
+        $user = auth()->user(); // Get the currently logged in user
+
+        $ds_id = $request->ds_id; //id of dataset
+        $dataset = $user->datasets()->find($ds_id);
+        if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN'))
+            return redirect('myprofile/mydatasets'); //if dataset not found for this user OR not ADMIN, go back
+
+        $newOrder = $request->input('newOrder'); // The new order of the dataitems
+        if (is_null($newOrder)) {
+            return response()->json(['error' => 'Invalid order data'], 400);
+        }
+
+        foreach ($newOrder as $order => $dataitemID) {
+            $dataitem = $dataset->dataitems()->find($dataitemID);
+            if ($dataitem) {
+                $dataitem->dataset_order = $order;
+                $dataitem->save();
+            }
+        }
+
+        return response()->json(['message' => 'Order updated successfully']);
+    }
+
+    /**
      * Edit this dataitem
      * TODO:
      * 1. How to change the order of the point (dataitem) of a mobility route?
@@ -201,8 +368,6 @@ class AjaxController extends Controller
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
         if (!$recordtype_id) return redirect('myprofile/mydatasets'); //invalid record type (likely caused by manually editing the html of the page)
 
-        //timestamp for updated_at is automatic!
-
         $dataset = $user->datasets()->find($ds_id);
         if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN')) return redirect('myprofile/mydatasets'); //if dataset not found for this user OR not ADMIN, go back
 
@@ -218,10 +383,24 @@ class AjaxController extends Controller
         if (isset($dateend)) $dateend = GeneralFunctions::dateMatchesRegexAndConvertString($dateend);
         if ($datestart === false || $dateend === false) return response()->json(['error' => 'Your date values are in the incorrect format.', 'e1' => $e1, 'e2' => $e2], 422); //if either didnt match, send error
 
-        //verify the format of editted quantity
-        // $eQTY = $quantity;
-        // if (isset($quantity)) $quantity = GeneralFunctions::naturalNumberMatchesRegex($quantity);
-        // if ($quantity === false) return response()->json(['error' => 'Your quantity values are in the incorrect format.', 'eQTY' => $eQTY], 422);
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+
+            // Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+
+            // Delete old image.
+            if ($dataitem->image_path && Storage::disk('public')->exists('images/' . $dataitem->image_path)) {
+                Storage::disk('public')->delete('images/' . $dataitem->image_path);
+            }
+
+            // Save new image.
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+            $dataitem->image_path = $filename;
+        }
 
         $dataitem->fill([
             'title' => $title,
@@ -237,9 +416,10 @@ class AjaxController extends Controller
             'lga' => $request->lga,
             'source' => $request->source,
             'external_url' => $request->url,
-            'placename' => $request->placename
+            'placename' => $request->placename,
+            'image_path' => $dataitem->image_path
         ]);
-        $dataitem->setExtendedData($extendedData);
+        $dataitem->setExtendedData(json_decode($extendedData, true));
         $dataitem->save();
 
         $dataset->updated_at = Carbon::now();
@@ -296,6 +476,19 @@ class AjaxController extends Controller
         if (isset($dateend)) $dateend = GeneralFunctions::dateMatchesRegexAndConvertString($dateend);
         if ($datestart === false || $dateend === false) return response()->json(['error' => 'Your date values are in the incorrect format.'], 422); //if either didnt match, send error
 
+        $filename = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+        }
+        $maxOrder = $dataset->dataitems()->max('dataset_order');
+        $dataset_order = $maxOrder !== null ? $maxOrder + 1 : 0;
+
         //verify the format of editted quantity
         $eQTY = $quantity;
         if (isset($quantity)) {
@@ -318,7 +511,9 @@ class AjaxController extends Controller
             'lga' => $lga,
             'source' => $source,
             'external_url' => $external_url,
-            'placename' => $placename
+            'placename' => $placename,
+            'image_path' => $filename,
+            'dataset_order' => $dataset_order
         ]);
         $isDirty = false;
         Log::debug('Quantity value: ' . $dataitem);
@@ -329,7 +524,7 @@ class AjaxController extends Controller
         }
         // Set extended data.
         if (!empty($extendedData)) {
-            $dataitem->setExtendedData($extendedData);
+            $dataitem->setExtendedData(json_decode($extendedData,true));
             $isDirty = true;
         }
         if ($isDirty) {

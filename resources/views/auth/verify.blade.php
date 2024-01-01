@@ -14,8 +14,10 @@
                         </div>
                     @endif
 
-                    {{ __('Please check your email for a verification link. Allow a few minutes for it to arrive and check your spam or clutter folder.') }}
-                    {{ __('If you did not receive the email') }}, <a href="{{ route('verification.resend') }}">{{ __('click here to request another') }}</a>.
+                    {{ __('Please check your email for a verification link. Allow a few minutes for it to arrive.') }} <br>
+                    {{ __('If you do not see the message, please check your \'spam\', \'junk\' or \'deleted\' folder. ') }} <br>
+                    {{ __('If you did not receive the email') }}, <a href="{{ route('verification.resend') }}">{{ __('click here to request another') }}</a>. <br><br>
+                    {{ __('If you did not receive the message, try adding access@tlcmap.org to your email \'white list\'. If you still do not get the message please contact tlcmap@newcastle.edu.au ') }} 
                 </div>
             </div>
         </div>

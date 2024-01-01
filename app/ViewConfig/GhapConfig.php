@@ -5,6 +5,7 @@ namespace TLCMap\ViewConfig;
 use TLCMap\Http\Helpers\HtmlFilter;
 use TLCMap\Models\Collection;
 use TLCMap\Models\Dataset;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Class of common configurations for GHAP.
@@ -83,6 +84,12 @@ class GhapConfig
     public static function createDatasetInfoBlockContent(Dataset $dataset)
     {
         $content = '';
+
+        if (!empty($dataset->image_path)) {
+            $imageUrl = Storage::disk('public')->url('images/' . $dataset->image_path);
+            $content .= '<img src="' . $imageUrl . '" alt="Layer Image">';
+        }
+        
         if (!empty($dataset->description)) {
             $content .= "<div>" . HtmlFilter::simple($dataset->description) . "</div>";
         }
@@ -92,6 +99,21 @@ class GhapConfig
         $content .= '<p><a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Help</a> | <a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Share</a></p>';
         return $content;
     }
+
+    /**
+     * Create the content of the info block for a visiting an private layer.
+     *
+     * @return string
+     *   The HTML content.
+     */
+    public static function createRestrictedDatasetInfoBlockContent()
+    {
+        $content = '';
+        $content .= '<div class="warning-message"><strong>Warning</strong><br>This map either does not exist or has been set to "private" and therefore cannot be displayed.</div>';    
+        $content .= '<p><a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Help</a> | <a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Share</a></p>';
+        return $content;
+    }
+
 
     /**
      * Create the content of the info block for a collection.
@@ -104,6 +126,12 @@ class GhapConfig
     public static function createCollectionInfoBlockContent(Collection $collection)
     {
         $content = '';
+
+        if (!empty($collection->image_path)) {
+            $imageUrl = Storage::disk('public')->url('images/' . $collection->image_path);
+            $content .= '<img src="' . $imageUrl . '" alt="Collection Image">';
+        }
+
         if (!empty($collection->description)) {
             $content .= "<div>" . HtmlFilter::simple($collection->description) . "</div>";
         }

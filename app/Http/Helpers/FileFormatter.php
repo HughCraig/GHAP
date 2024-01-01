@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
+use TLCMap\Models\Dataset;
 use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
@@ -176,9 +177,9 @@ class FileFormatter
             $datestart = (isset($r->datestart)) ? $r->datestart : '';
             $dateend = (isset($r->dateend)) ? $r->dateend : '';
             $external_url = (isset($r->external_url)) ? $r->external_url : '';
-            $ghap_url = env('APP_URL');
+            $ghap_url = config('app.url');
             $ghap_url .= (isset($r->uid)) ? "/search?id=" . $r->uid : '';
-            $layerlink = env('APP_URL');
+            $layerlink = config('app.url');
             $layerlink .= (isset($r->dataset_id)) ? ("/publicdatasets/" . $r->dataset_id) : '';
             fputcsv($file, array($id, $title, $r->placename, $state, $r->lga, $r->parish, $r->feature_term, $r->latitude, $r->longitude, $source, $r->flag, $r->description, $datestart, $dateend, $external_url, $ghap_url, $layerlink));
         }
@@ -188,10 +189,13 @@ class FileFormatter
      * Takes a LengthAwarePaginator $results, and an array $sources where $sources[##] is the anps id that source belongs to
      * Returns a JSON representation of the data, in geoJSON compatible format
      *
+     * @param  array $parameters   Optional parameters to customize the output, with possible keys as follows:
+     *                             - 'line': When set, a LineString feature will be added to the GeoJSON connecting all points.
+     *
      * Reworked to handle public dataitems
      * !!! could be merged with DatasetController->generateJSON
      */
-    public static function toGeoJSON($results)
+    public static function toGeoJSON($results , $parameters = null)
     {
         $features = array();
 
@@ -248,15 +252,36 @@ class FileFormatter
                 $proppairs["dateend"] = $r->dateend;
             }
 
-            if (!empty($r->latitude)) {
+            $unixepochdates = $r->datestart . "";
+            $unixepochdatee = $r->dateend . "";
+            if (strpos($unixepochdates, '-') === false) {
+                $unixepochdates = $unixepochdates . "-01-01";
+            }
+            if (strpos($unixepochdatee, '-') === false) {
+                $unixepochdatee = $unixepochdatee . "-01-01";
+            }
+
+            if (!empty($r->datestart)) {
+                $proppairs["udatestart"] = strtotime($unixepochdates) * 1000;
+            }
+            if (!empty($r->dateend)) {
+                $proppairs["udateend"] = strtotime($unixepochdates) * 1000;
+            }
+
+            if (isset($r->latitude)) {
                 $proppairs["latitude"] = $r->latitude;
             }
-            if (!empty($r->longitude)) {
+            if (isset($r->longitude)) {
                 $proppairs["longitude"] = $r->longitude;
             }
 
             if (!empty($r->external_url)) {
                 $proppairs["linkback"] = $r->external_url;
+            }else if(!empty($r->dataset_id)){
+                $dataset = Dataset::find($r->dataset_id);
+                if( $dataset && $dataset->linkback){
+                    $proppairs["linkback"] = $dataset->linkback;
+                }
             }
 
             if (!empty($r->quantity)) {
@@ -270,7 +295,7 @@ class FileFormatter
                 $featureConfig->addLink("TLCMap Record: {$r->uid}", $proppairs["TLCMapLinkBack"]);
             }
 
-            $dataset_url = env('APP_URL');
+            $dataset_url = config('app.url');
             if (isset($r->dataset_id)) {
                 $proppairs["TLCMapDataset"] = url("publicdatasets/" . $r->dataset_id);
             } else {
@@ -293,18 +318,41 @@ class FileFormatter
                 'display' => $featureConfig->toArray(),
             );
 
-
         }
-        if (!isset($metadata)) {
-            return "No search results to display.";
+
+        if (isset($parameters) && isset($parameters['line'])) {
+
+            $linecoords = array();
+
+            foreach ($results as $i) {
+                array_push($linecoords, [$i->longitude, $i->latitude]);
+            }
+
+            // Set line feature config.
+            $featureConfig = new FeatureConfig();
+            $featureConfig->setAllowedFields([]);
+
+            $features[] = array(
+                'type' => 'Feature',
+                'geometry' => array('type' => 'LineString', 'coordinates' => $linecoords),
+                'display' => $featureConfig->toArray(),
+            );
         }
 
         $allfeatures = array(
             'type' => 'FeatureCollection',
-            'metadata' => $metadata,
+            'metadata' => isset($metadata) ? $metadata : null,
             'features' => $features,
             'display' => $featureCollectionConfig->toArray()
         );
+
+        if (!isset($metadata)) {
+            $allfeatures['metadata']['warning'] = "<p>0 results found</p>";
+            $content = '<div class="warning-message"><strong>Warning</strong><br><p>0 results found</p></div>';
+            $featureCollectionConfig->setInfoContent($content);
+            $allfeatures['display'] = $featureCollectionConfig->toArray();
+        }
+
         return json_encode($allfeatures, JSON_PRETTY_PRINT);
     }
 
@@ -339,11 +387,11 @@ class FileFormatter
             $ed = $place->appendChild($dom->createElement('ExtendedData'));
 
             //HTML table for ED data - we reuse this for the ghap_url element
-            $linkToItem = env('APP_URL');
+            $linkToItem = config('app.url');
             $linkToItem .= ($r->uid) ? "/search?id=" . $r->uid : '';
             $ed_table = "<br><br><table class='tlcmap'><tr><th>TLCMap</th><td><a href='{$linkToItem}'>{$linkToItem}</a></td></tr>";
 
-            $linkToLayer = env('APP_URL');
+            $linkToLayer = config('app.url');
             $linkToLayer .= ($r->dataset_id) ? "/publicdatasets/" . $r->dataset_id : '';
             $ed_table .= "<tr><th>TLCMap Layer</th><td><a href='{$linkToLayer}'>{$linkToLayer}</a></td></tr>";
 

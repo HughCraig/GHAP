@@ -9,7 +9,10 @@
     <!-- So we can quickly reuse the date regex check code -->
     <script src="{{ asset('/js/form.js') }}"></script>
     <script>
-        const currentKeywords = {!! $ds->subjectkeywords !!};
+        const currentKeywords = {!! $ds->subjectKeywords !!};
+    </script>
+    <script>
+        const max_upload_image_size = {{ config('app.max_upload_image_size') }};
     </script>
     <script src="{{ asset('/js/editdatasetmodal.js') }}"></script>
 @endpush
@@ -31,7 +34,7 @@
                 </button>
             </div>
 
-            <form method="POST" id="edit_dataset_form" action="{{url()->full()}}/edit">
+            <form method="POST" id="edit_dataset_form" action="{{url()->full()}}/edit" enctype="multipart/form-data">
                 <div class="modal-body scrollable">
                     @csrf
                     <div class="row">
@@ -103,6 +106,16 @@
                                   class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                                   title="The usage licence that applies to this layer. Open data is often under a <a href='https://creativecommons.org/licenses/' target='_blank'>Creative Commons</a> CC BY or CC BY-NC licence. If you created the information, you can choose the licence. If you obtained it from another source, select the licence specified there."></span>
                             <input type="text" class=" mb-4 w3-white form-control" name="license" value="{{$ds->license}}"/>
+
+                            Image
+                            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                            title='Max upload size {{ floor(config("app.max_upload_image_size") / (1024 * 1024)) . " MB" }}'>
+                            </span>
+                            @if( $ds->image_path )
+                                <img src="{{ asset('storage/images/' . $ds->image_path) }}" alt="Layer Image" style="max-height: 150px;">
+                            @endif
+                            <input type="file" name="image" id="datasetEditImage" accept="image/*"/>
+
                         </div>
                         <div class="col-lg-6">
                             DOI
@@ -198,7 +211,7 @@
 
                 <div class="modal-footer">
                     <span class="text-danger">* required fields</span>
-                    <input class="btn btn-primary" type="submit" value="Save" name="Save">
+                    <input class="btn btn-primary" type="submit" value="Save" name="Save" id="editDatasetSaveButton">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </form>

@@ -11,6 +11,12 @@ use Illuminate\Http\Request;
 |
 */
 
+$baseAuthMiddlewares = ['auth'];
+if (config('auth.new_account_email_verification')) {
+    $baseAuthMiddlewares[] = 'verified';
+}
+
+
 /**
  * Home and search pages
  */
@@ -22,9 +28,9 @@ Route::get('about', 'HomeController@aboutPage')->name('about');
 Route::post('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->name('searchFromKmlPolygon'); //search from file
 Route::get('search/{path?}', function (Request $request, $path = null) {
     return redirect()->to('/places/' . $path . '?' . $request->getQueryString());
-});
+})->middleware('checkmaxpaging', 'cors');
 Route::get('places', 'GazetteerController@search')->name('places')->middleware('checkmaxpaging', 'cors');
-Route::get('places/{id?}', 'GazetteerController@search')->name('places')->middleware('cors'); //shows places with optional id, if no id is given it uses all results before applying filters
+Route::get('places/{id}/{format?}', 'GazetteerController@search')->name('places')->middleware('cors');  //shows places with id and optional format
 Route::get('maxpaging', 'GazetteerController@maxPagingMessage')->name('maxPagingMessage');
 Route::get('maxpagingredirect', 'GazetteerController@maxPagingRedirect')->name('maxPagingRedirect');
 Route::post('bulkfileparser', 'GazetteerController@bulkFileParser');
@@ -56,17 +62,20 @@ Route::get('multilayers/{id}', 'CollectionController@viewPublicCollection')->nam
 Route::get('multilayers/{id}/json', 'CollectionController@viewPublicJson')->middleware('cors')->name('viewmultilayerjson');
 Route::get('multilayers/{id}/ro-crate', 'CollectionController@downloadPublicROCrate')->name('downloadmultilayerrocate');
 
+
 /**
  * User Pages.
  */
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile', 'User\UserController@userProfile')->name('myProfile');
     Route::get('myprofile/mydatasets', 'User\UserController@userDatasets')->name('myDatasets'); //Only let users view own dataset
     Route::get('myprofile/mysearches', 'User\UserController@userSavedSearches')->name('mySearches');
     Route::post('myprofile/mysearches/delete', 'User\UserController@deleteUserSavedSearches');
     Route::get('myprofile/mydatasets/newdataset', 'User\UserController@newDatasetPage');
     Route::post('myprofile/mydatasets/newdataset/create', 'User\UserController@createNewDataset');
-    Route::get('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
+});
+Route::get('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
+Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mydatasets/{id}/collaborators', 'User\UserController@userEditCollaborators');
     Route::post('bulkadddataitem', 'User\UserController@bulkAddDataItem'); //not ajax as it is too much data
     Route::post('myprofile/mydatasets/{id}/edit', 'User\UserController@userEditDataset');
@@ -88,7 +97,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 /**
  * User collection CRUD pages
  */
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mycollections', 'CollectionController@viewMyCollections');
     Route::get('myprofile/mycollections/newcollection', 'CollectionController@newCollection');
     Route::post('myprofile/mycollections/newcollection/create', 'CollectionController@createNewCollection');
@@ -105,9 +114,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin', 'Auth\AdminController@adminHome'); //Only let ADMIN or SUPER_ADMIN access this page
     Route::get('admin/users', 'Auth\AdminController@userManagement'); //Only let SUPER_ADMIN access this page
+    Route::post('admin/users/deleteUser', 'Auth\AdminController@deleteUser'); //Only let SUPER_ADMIN access this page
     Route::get('admin/users/{id}', 'Auth\AdminController@viewUser'); //Only let  SUPER_ADMIN access this page
     Route::post('admin/users/{email}/activateDeactivateUser', 'Auth\AdminController@activateDeactivateUser'); //Only let SUPER_ADMIN access this page
+    Route::post('admin/users/{email}/setEmailAsVerified', 'Auth\AdminController@setEmailAsVerified'); //Only let SUPER_ADMIN access this page
     Route::post('admin/users/{email}/updateUserRole', 'Auth\AdminController@updateUserRole'); //Only let SUPER_ADMIN access this page
+    Route::post('admin/users/{email}/resetUserPassword', 'Auth\AdminController@resetUserPassword'); //Only let SUPER_ADMIN access this page
 });
 
 /**
@@ -115,15 +127,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
  */
 Route::post('ajaxbbox', 'AjaxController@ajaxbbox'); //Does not need to be logged in
 
-Route::middleware(['auth', 'verified'])->group(function () { //must be logged in for these
+Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in for these
     Route::post('ajaxsavesearch', 'AjaxController@ajaxsavesearch');
     Route::post('ajaxsubsearch', 'AjaxController@ajaxsubsearch');
     Route::post('ajaxdeletesearch', 'AjaxController@ajaxdeletesearch');
+    Route::post('ajaxeditsearch', 'AjaxController@ajaxeditsearch');
 
     Route::get('ajaxviewdataitem', 'AjaxController@ajaxviewdataitem');
     Route::post('ajaxeditdataitem', 'AjaxController@ajaxeditdataitem');
     Route::post('ajaxadddataitem', 'AjaxController@ajaxadddataitem');
     Route::post('ajaxdeletedataitem', 'AjaxController@ajaxdeletedataitem');
+    Route::post('ajaxchangedataitemorder', 'AjaxController@ajaxchangedataitemorder');
 
     Route::post('ajaxdeletedataset', 'AjaxController@ajaxdeletedataset');
 
@@ -141,6 +155,7 @@ Route::middleware(['auth', 'verified'])->group(function () { //must be logged in
      */
     Route::post('ajaxdeletecollection', 'CollectionController@ajaxDeleteCollection');
     Route::post('ajaxremovecollectiondataset', 'CollectionController@ajaxRemoveCollectionDataset');
+    Route::post('ajaxremovecollectionsavedsearch', 'CollectionController@ajaxRemoveCollectionSavedSearch');
     Route::post('ajaxaddcollectiondataset', 'CollectionController@ajaxAddCollectionDataset');
 
     /**
@@ -149,6 +164,12 @@ Route::middleware(['auth', 'verified'])->group(function () { //must be logged in
     Route::get('ajax/collections/{collection_id}/datasets/addable/public', 'CollectionController@ajaxGetPublicDatasetOptions');
     Route::get('ajax/collections/{collection_id}/datasets/addable/user', 'CollectionController@ajaxGetUserDatasetOptions');
     Route::get('ajax/collections/{collection_id}/datasets/addable/{dataset_id}/info', 'CollectionController@ajaxGetDatasetInfo');
+
+    /**
+     * Services used for saved search to collection.
+     */
+    Route::get('ajax/saved-searches', 'CollectionController@ajaxGetUserSavedSearch')->name('ajax.saved-searches');
+    Route::post('ajax/add-saved-search', 'CollectionController@ajaxAddSavedSearch')->name('ajax.add-saved-search');
 });
 
 /**

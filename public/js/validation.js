@@ -13,9 +13,24 @@ class Validation {
      * @returns {boolean}
      */
     static date(value) {
-        const regex = /^-?\d{1,4}(?:-(0?[1-9]|1[0-2])(?:-(0?[1-9]|[12]\d|3[01]))?)?$/;
-        const regex2 = /^(0?[1-9]|[12]\d|3[01])\/(0?[1-9]|1[0-2])\/(-?\d{1,4})$/;
-        return regex.test(value) || regex2.test((value));
+
+        // Matches dates like '1862-00-00'.
+        const regex1 = new RegExp('[1-9]+-00-00');
+        
+        // Matches dates like '00/00/1862'.
+        const regex2 = new RegExp('00\/00\/[1-9]+');
+        
+        // Matches dates in the 'yyyy-mm' format (e.g., '2023-09').
+        const regex3 = new RegExp('^([0-9]{4})-(0[1-9]|1[012])$');
+        
+        // Matches dates and optional times in an ISO 8601-like format. Supports BC/BCE years.
+        const regex4 = new RegExp('^(-?[0-9]*[1-9]+0*)(-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])(T(0?[0-9]|1[0-9]|2[0-3])(:(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])(:(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])([.][0-9]+)?)?)?)?)?$');
+        
+        // Matches dates in the 'DD/MM/YYYY' format with optional time in 'HH:MM' format.  Supports BC/BCE years.
+
+        const regex5 = /^(0?[1-9]|[12][0-9]|3[01])\/(0?[1-9]|1[012])\/(-?[0-9]*[1-9]+0*)( ((0?[0-9]|1[0-9]|2[0-3]):(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])))?$/;
+        
+        return regex1.test(value) || regex2.test((value)) || regex3.test(value) || regex4.test(value) || regex5.test(value);
     }
 
     /**

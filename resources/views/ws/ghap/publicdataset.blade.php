@@ -1,9 +1,8 @@
 @extends('templates.layout')
 
 @push('scripts')
-    <script src="{{ asset('js/publicdataset.js') }}">
-    </script>
-    <script src="{{ asset('js/savesearch.js') }}"></script>
+    <script src="{{ asset('js/message-banner.js') }}"></script>
+    <script src="{{ asset('js/publicdataset.js') }}"></script>
 @endpush
 
 @section('content')
@@ -90,7 +89,7 @@
                     </tr>
                     <tr>
                         <th>Type</th>
-                        <td>{{ $ds->type }}</td>
+                        <td>{{ $ds->recordtype->type }}</td>
                     </tr>
                     <tr style="height: 50px; overflow: auto">
                         <th>Content Warning</th>
@@ -132,11 +131,11 @@
                     <tr>
                         <th class="w-25">Subject</th>
                         <td>
-                            @for ($i = 0; $i < count($ds->subjectkeywords); $i++)
-                                @if ($i == count($ds->subjectkeywords) - 1)
-                                    {{ $ds->subjectkeywords[$i]->keyword }}
+                            @for ($i = 0; $i < count($ds->subjectKeywords); $i++)
+                                @if ($i == count($ds->subjectKeywords) - 1)
+                                    {{ $ds->subjectKeywords[$i]->keyword }}
                                 @else
-                                    {{ $ds->subjectkeywords[$i]->keyword }},
+                                    {{ $ds->subjectKeywords[$i]->keyword }},
                                 @endif
                             @endfor
                         </td>
@@ -176,6 +175,15 @@
                     <tr>
                         <th>Date To</th>
                         <td>{{ $ds->temporal_to }}</td>
+                    </tr>
+                    <tr>
+                        <th>Image</th>
+                        <td>
+                            @if ($ds->image_path)
+                                <img src="{{ asset('storage/images/' . $ds->image_path) }}" alt="Layer Image"
+                                    style="max-width: 100%; max-height:150px">
+                            @endif
+                        </td>
                     </tr>
                 </table>
             </div>
@@ -230,7 +238,8 @@
                     <div class="col col-xl-3">
                         <h4><button type="button" class="btn btn-primary btn-sm"
                                 onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
-                            <a href="{{ route('places', ['id' => \TLCMap\Http\Helpers\UID::create($data->id, 't')]) }}">
+                            <a
+                                href="{{ config('app.url') }}/places/{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
                                 @if (isset($data->title))
                                     {{ $data->title }}@else{{ $data->placename }}
                                 @endif
@@ -256,19 +265,8 @@
                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                     @if (!empty(config('app.views_root_url')))
                                         <a class="dropdown-item grab-hover"
-                                            onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ route('places', ['id' => \TLCMap\Http\Helpers\UID::create($data->id, 't'), 'format' => 'json']) }}`)">3D
+                                            onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(config('app.url') . '/places/' . \TLCMap\Http\Helpers\UID::create($data->id, 't') . '/json') }}`)">3D
                                             Viewer</a>
-                                    @endif
-                                    <a class="dropdown-item grab-hover"
-                                        onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{ $data->latitude }},{{ $data->longitude }}')">Google
-                                        Maps</a>
-                                    @if (isset($data->placename))
-                                        <a class="dropdown-item grab-hover" target="_blank"
-                                            href="https://trove.nla.gov.au/search?keyword={{ $data->placename }}">Trove
-                                            Search</a>
-                                    @else<a class="dropdown-item grab-hover" target="_blank"
-                                            href="https://trove.nla.gov.au/search?keyword={{ $data->title }}">Trove
-                                            Search</a>
                                     @endif
 
                                 </div>
@@ -356,6 +354,12 @@
             @endif
 
         </div>
+        @if (!empty($data->image_path))
+            <div class="col col-xl-2">
+                <img src="{{ asset('storage/images/' . $data->image_path) }}" alt="Place image"
+                    style="max-width: 100%;max-height:150px">
+            </div>
+        @endif
         <!-- end bootstrap row -->
     </div>
     @endforeach
