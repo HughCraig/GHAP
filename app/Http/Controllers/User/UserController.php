@@ -61,7 +61,7 @@ class UserController extends Controller
 
     public $generalCols = [
         'id', 'title', 'type', 'linkback', 'external_url',
-        'route_id', 'stop_idx', 'route_title'
+        'route_id', 'route_title',
     ];
 
     public $commonCols = [
@@ -220,6 +220,41 @@ class UserController extends Controller
         }])->find($id);
 
         if (!$dataset) return redirect('myprofile/mydatasets');
+
+        // Check if any dataitem has a route_id
+        // TODO: why I can't calculate stop_idx and set as one of the attributes in $dataset.$dataitem?
+        $hasRouteId = $dataset->dataitems()->whereNotNull('route_id')->exists();
+        // if ($hasRouteId) {
+        //     $dataset->load(['dataitems' => function ($query) {
+        //         $query->orderBy('route_id')
+        //             ->orderBy('datestart')
+        //             ->orderBy('dataset_order');
+        //     }]);
+
+        //     // Add stop_idx to each dataitem based on route_id starting from 1
+        //     $routeId = null;
+        //     $stopIdx = 1; // Start index from 1
+        //     foreach ($dataset->dataitems as $dataitem) {
+        //         if ($dataitem->route_id !== $routeId) {
+        //             $routeId = $dataitem->route_id;
+        //             $stopIdx = 1; // Reset index when route_id changes
+        //         }
+
+        //         // Add stop_idx to attributes
+        //         $attributes = $dataitem->getAttributes();
+        //         $attributes['stop_idx'] = $stopIdx;
+        //         $dataitem->setRawAttributes($attributes);
+        //         $stopIdx++; // Increment index for the next stop
+        //     }
+        // }
+        if ($hasRouteId) {
+            $dataset->load(['dataitems' => function ($query) {
+                $query->select('*', DB::raw('ROW_NUMBER() OVER(PARTITION BY route_id, datestart ORDER BY dataset_order) as row_number'))
+                    ->orderBy('route_id')
+                    ->orderBy('datestart')
+                    ->orderBy('dataset_order');
+            }]);
+        }
 
         //lgas from DB
         $lgas = json_encode(Dataitem::getAllLga(), JSON_NUMERIC_CHECK);
@@ -477,7 +512,6 @@ class UserController extends Controller
 
                 $arr = $this->csvToArray($file, $pointBasedUpload);
                 if (!is_array($arr)) return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid date format in file on line ' . $arr); //if $arr is a number instead of an array, date format error where $arr is the offending line number
-                // TODO !!!!
                 // If $arr is a pairBased array, convert it into a pointBased array
                 if ($pointBasedUpload == FALSE) {
                     $arr = $this->convertPairToPoints($arr);
@@ -699,8 +733,7 @@ class UserController extends Controller
 
       $arr takes an array where each entry represents a dataitem of the form (['ds_id' => thedatasetid, 'placename' => someplacename, 'latitude' => 123, => etc...])
       $ds_id is the id for the dataset to add this data item into
-
-      TODO: If the user hase stop_idx itself?
+      $pointBasedUpload is the boolean value to confirm whether the uploaded data is point-based
      */
     function createDataitems($arr, $ds_id, $pointBasedUpload)
     {
@@ -712,18 +745,47 @@ class UserController extends Controller
 
         $notForExtData = [
             "id", "title", "placename", "name", "description", "type", "linkback",
-            "quantity", "created_at", "updated_at", "ghap_id", "route_id", 'stop_idx',
-            "route_original_id", "route_title", ]; // because of special handling, as with date and lat long cols
+            "quantity", "created_at", "updated_at", "ghap_id",
+            "route_id", "route_original_id", "route_title",
+            ]; // because of special handling, as with date and lat long cols
 
         $extDataExclusions = array_merge($fillable, $datecols, $llcols, $notForExtData);
 
         // Exclude these columns.
         $excludeColumns = ['uid', 'datasource_id', ];
 
-        $route_meta = [];
-        $route_titles = [];
-        $route_id = 1;
-        $isMultiRoutes = NULL;
+        // Get the starting number of dataset_order and route_id.
+        $maxValues = DataItem::where('dataset_id', $ds_id)
+        ->selectRaw('MAX(dataset_order) AS max_dataset_order, MAX(route_id) AS max_route_id')
+        ->first();
+        $datasetOrder = $maxValues->max_dataset_order !== null ? $maxValues->max_dataset_order + 1 : 0;
+        $routeId = $maxValues->max_route_id !== null ? $maxValues->max_route_id + 1 : 1;
+        $routeResults = DataItem::where('dataset_id', $ds_id)
+        ->select('route_original_id', 'route_title', 'route_id')
+        ->get();
+        $route_metas = [];
+        foreach ($routeResults as $ele) {
+            $route_id = $ele['route_id'];
+            $route_title = $ele['route_title'];
+            $route_original_id = $ele['route_original_id'];
+
+            if (!isset($route_metas[$route_id])) {
+                $route_metas[$route_id] = [$route_title, $route_original_id];
+            } else {
+                if (!in_array($route_title, $route_metas[$route_id])) {
+                    $route_metas[$route_id][] = $route_title;
+                }
+                if (!in_array($route_original_id, $route_metas[$route_id])) {
+                    $route_metas[$route_id][] = $route_original_id;
+                }
+            }
+        }
+        $invertedRouteMetas = [];
+        foreach ($route_metas as $key => $value) {
+            $invertedRouteMetas[serialize($value)] = $key;
+        }
+        $route_metas = $invertedRouteMetas;
+
         for ($i = 0; $i < count($arr); $i++) { //FOREACH data item
             $culled_array = array(); //we will cull out all keys that are not present as fillable fields
             $extendeddata = array(); //and add anything else to extended data.
@@ -817,75 +879,64 @@ class UserController extends Controller
                 }
             }
 
-            // TODO: define $isMultiRoutes in input para
-            if ($isMultiRoutes === NULL) {
-                if (!isset($culled_array["route_title"]) && !isset($culled_array["route_id"])) {
-                    $isMultiRoutes = false;
-                } else {
-                    $isMultiRoutes = true;
-                }
-            }
-            if ($isMultiRoutes === false) {
-            } else if ($isMultiRoutes === true) {
-                file_put_contents("test.log", var_export("whyFWEFWe", true), FILE_APPEND);
-                if (isset($arr[$i]["route_id"])) {
-                    file_put_contents("test.log", var_export($arr[$i]["route_id"], true));
-                    $culled_array["route_original_id"] = $arr[$i]["route_id"];
-                    if (!isset($arr[$i]["route_title"])) {
-                        $culled_array["route_title"] = $arr[$i]["route_id"];
-                    }
-                } else {
-                    file_put_contents("test.log", var_export("whye", true), FILE_APPEND);
-                }
-                if (!isset($route_titles[$culled_array["route_title"]])) {
-                    $route_titles[$culled_array["route_title"]] = $route_id;
-                    $route_id++;
-                }
-                $culled_array["route_id"] = null;
-                $route_meta[$i]["route_id"] = $route_titles[$culled_array["route_title"]];
-                $route_meta[$i]["earliest_date"] = $this->assignEarliestDate($culled_array);
-                $route_meta[$i]["arr_idx"] = $i;
-                $route_meta[$i]["dataset_id"] = $ds_id;
+            // Initialize the value of dataset_order
+            $culled_array["dataset_order"] = $datasetOrder;
+            $datasetOrder++;
+
+            // Handle route related columns including (either route_id or route_title must be fullfilled)
+            // 1. Convert route_id as route_original_id if route_id exists.
+            // 2. Fill route_title with original route_id if route_title unexists.
+            // 3. Assign integer route_id.
+            $isMultiRoutes = false;
+            $route_meta = [];
+            // Dummy, but haven't found a better way yet
+            if (isset($culled_array["route_id"]) && isset($culled_array["route_title"])) {
+                $isMultiRoutes = true;
+                $culled_array["route_original_id"] = $culled_array["route_id"];
+                $route_meta[] = $culled_array["route_id"];
+                $route_meta[] = $culled_array["route_title"];
+            } else if (isset($culled_array["route_id"]) && !isset($culled_array["route_title"])) {
+                $isMultiRoutes = true;
+                $culled_array["route_original_id"] = $culled_array["route_id"];
+                $route_meta[] = $culled_array["route_id"];
+                $culled_array["route_title"] = $culled_array["route_id"];
+            } else if (!isset($culled_array["route_id"]) && isset($culled_array["route_title"])) {
+                $isMultiRoutes = true;
+                $route_meta[] = $culled_array["route_title"];
             }
 
+            if ($isMultiRoutes) {
+                $routeExisting = false;
+                // Check whether current route that the data item belongs to exists
+                foreach ($route_metas as $existingRoute => $existingRouteId) {
+                    $existingRouteMeta = unserialize($existingRoute);
+                    $intersection = array_intersect($existingRouteMeta, $route_meta);
+                    // Update route meta information of existing route_id
+                    if (!empty($intersection)) {
+                        $culled_array["route_id"] = $existingRouteId; // Use existing route_id
+                        $routeExisting = true;
+                        if (count($intersection) < min(count($existingRouteMeta), count($route_meta))) {
+                            $newMeta = serialize(array_unique(array_merge($existingRouteMeta, $route_meta)));
+                            $route_metas[$newMeta] = $existingRouteId;
+                            unset($route_metas[$existingRoute]);
+                        }
+                        break;
+                    }
+                }
+                if (!$routeExisting){
+                    $culled_array["route_id"] = $routeId;
+                    $route_metas[serialize($route_meta)] = $culled_array["route_id"];
+                    $routeId++;
+                }
+            }
 
             // Store the dataitem
             if (!empty($culled_array)) { //ignore empties
                 $dataitemUID = $arr[$i]['ghap_id'] ?? null;
                 $dataitemProperties = array_merge(array('dataset_id' => $ds_id), $culled_array);
-                $route_meta[$i]["ghap_id"] = $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
-            }
-
-        }
-
-        if ($isMultiRoutes) {
-            // Sort the $route_meta array by route_id, earliest_date, array_idx
-
-            usort($route_meta, array($this, 'customSort'));
-
-            // Assign stop_idx based on route_id grouping
-            $stopIdxCounter = [];
-            foreach ($route_meta as &$item) {
-                $routeId = $item['route_id'];
-                if (!array_key_exists($routeId, $stopIdxCounter)) {
-                    $stopIdxCounter[$routeId] = 1;
-                } else {
-                    $stopIdxCounter[$routeId]++;
-                }
-                $item['stop_idx'] = $stopIdxCounter[$routeId];
-
-            }
-            foreach ($route_meta as &$item) {
-                $dataitemUID = $item['ghap_id'];
-                $dataitemProperties = [
-                    'stop_idx' => $item['stop_idx'],
-                    'dataset_id' => $item['dataset_id'],
-                    'route_id' => $item['route_id'],
-                ];
                 $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
             }
         }
-
 
     }
 
@@ -1389,53 +1440,6 @@ class UserController extends Controller
         }
         return $data;
     }
-
-    function assignEarliestDate($dates_array) {
-        $earliestDate = null;
-
-        // Check if datestart exists and is not null
-        if (isset($dates_array["datestart"]) && $dates_array["datestart"] !== null) {
-            // Parse datestart and handle different date formats
-            $earliestDate = $dates_array["datestart"];
-        }
-
-        // Check if dateend exists and is not null
-        if (isset($dates_array["dateend"]) && $dates_array["dateend"] !== null) {
-            if ($earliestDate === null || $dates_array["dateend"] < $earliestDate) {
-                $earliestDate = $dates_array["dateend"];
-            }
-        }
-
-        // Return the earliest date
-        return $earliestDate;
-    }
-
-    // Define a custom sorting function for route metadata
-    // function customSort($a, $b) {
-    //     if ($a['route_id'] == $b['route_id']) {
-    //         if ($a['earliest_date'] == $b['earliest_date']) {
-    //             return $a['arr_idx'] - $b['arr_idx'];
-    //         }
-    //         return strtotime($a['earliest_date']) - strtotime($b['earliest_date']);
-    //     }
-    //     return $a['route_id'] - $b['route_id'];
-    // }
-    function customSort($a, $b) {
-    // 首先按照 'route_id' 的值进行排序
-    $routeIdComparison = strcmp($a['route_id'], $b['route_id']);
-    if ($routeIdComparison !== 0) {
-        return $routeIdComparison;
-    }
-
-    // 对于相同的 'route_id'，按照 'earliest_date' 的日期先后顺序进行排序
-    $earliestDateComparison = $a['earliest_date'] - $b['earliest_date'];
-    if ($earliestDateComparison !== 0) {
-        return $earliestDateComparison;
-    }
-
-    // 对于同一 'route_id' 和 'earliest_date'，按照 'arr_idx' 的值进行排序
-    return $a['arr_idx'] - $b['arr_idx'];
-}
 
 }
 

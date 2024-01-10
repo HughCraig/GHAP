@@ -17,7 +17,6 @@ class AddRouteColumnsToDataitemTable extends Migration
             $table->bigInteger('route_id')->index()->nullable();
             $table->string('route_original_id', 100)->nullable();
             $table->string('route_title', 100)->nullable();
-            $table->integer('stop_idx')->index()->nullable();
         });
     }
 
@@ -32,7 +31,6 @@ class AddRouteColumnsToDataitemTable extends Migration
             $table->dropColumn(['route_id']);
             $table->dropColumn(['route_original_id']);
             $table->dropColumn(['route_title']);
-            $table->dropColumn(['stop_idx']);
         });
     }
 }

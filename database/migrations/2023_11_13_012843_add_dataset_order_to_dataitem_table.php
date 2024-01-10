@@ -24,7 +24,7 @@ class AddDatasetOrderToDataitemTable extends Migration
             $datasets = Dataset::with(['dataitems' => function ($query) {
                 $query->orderBy('id');
             }])->get();
-        
+
             foreach ($datasets as $dataset) {
                 foreach ($dataset->dataitems as $index => $dataitem) {
                     $dataitem->dataset_order = $index;
@@ -32,7 +32,7 @@ class AddDatasetOrderToDataitemTable extends Migration
                 }
             }
         });
-        
+
     }
 
     /**
@@ -42,7 +42,7 @@ class AddDatasetOrderToDataitemTable extends Migration
      */
     public function down()
     {
-        Schema::table('tlcmap.dataitems', function (Blueprint $table) {
+        Schema::table('tlcmap.dataitem', function (Blueprint $table) {
             $table->dropColumn('dataset_order');
         });
     }
