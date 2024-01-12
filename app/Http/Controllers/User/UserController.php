@@ -215,46 +215,9 @@ class UserController extends Controller
         if(!$user){
             return redirect('layers/' . $id); // Return to public view of dataset for non-logged in users
         }
-        $dataset = $user->datasets()->with(['dataitems' => function ($query) {
-            $query->orderBy('dataset_order');
-        }])->find($id);
+        $dataset = Dataset::getPrivateDatasetById($user, $id);
 
         if (!$dataset) return redirect('myprofile/mydatasets');
-
-        // Check if any dataitem has a route_id
-        // TODO: why I can't calculate stop_idx and set as one of the attributes in $dataset.$dataitem?
-        $hasRouteId = $dataset->dataitems()->whereNotNull('route_id')->exists();
-        // if ($hasRouteId) {
-        //     $dataset->load(['dataitems' => function ($query) {
-        //         $query->orderBy('route_id')
-        //             ->orderBy('datestart')
-        //             ->orderBy('dataset_order');
-        //     }]);
-
-        //     // Add stop_idx to each dataitem based on route_id starting from 1
-        //     $routeId = null;
-        //     $stopIdx = 1; // Start index from 1
-        //     foreach ($dataset->dataitems as $dataitem) {
-        //         if ($dataitem->route_id !== $routeId) {
-        //             $routeId = $dataitem->route_id;
-        //             $stopIdx = 1; // Reset index when route_id changes
-        //         }
-
-        //         // Add stop_idx to attributes
-        //         $attributes = $dataitem->getAttributes();
-        //         $attributes['stop_idx'] = $stopIdx;
-        //         $dataitem->setRawAttributes($attributes);
-        //         $stopIdx++; // Increment index for the next stop
-        //     }
-        // }
-        if ($hasRouteId) {
-            $dataset->load(['dataitems' => function ($query) {
-                $query->select('*', DB::raw('ROW_NUMBER() OVER(PARTITION BY route_id, datestart ORDER BY dataset_order) as row_number'))
-                    ->orderBy('route_id')
-                    ->orderBy('datestart')
-                    ->orderBy('dataset_order');
-            }]);
-        }
 
         //lgas from DB
         $lgas = json_encode(Dataitem::getAllLga(), JSON_NUMERIC_CHECK);
@@ -728,12 +691,16 @@ class UserController extends Controller
         return view('user.usereditcollaborators', ['ds' => $dataset, 'user' => auth()->user()]);
     }
 
-    /*
-      Will create dataitems from the given array - will ignore column names that are not present in Dataitem
-
-      $arr takes an array where each entry represents a dataitem of the form (['ds_id' => thedatasetid, 'placename' => someplacename, 'latitude' => 123, => etc...])
-      $ds_id is the id for the dataset to add this data item into
-      $pointBasedUpload is the boolean value to confirm whether the uploaded data is point-based
+    /**
+     * Will create dataitems from the given array - will ignore column names that are not present in Dataitem
+     *
+     * @param array $arr
+     *   The array where each entry represents a dataitem of the form (['ds_id' => thedatasetid, 'placename' => someplacename, 'latitude' => 123, => etc...])
+     * @param string $ds_id
+     *   The id for the dataset to add this data item into.
+     * @param boolean $pointBasedUpload
+     *   The boolean value indicating whether the original uploaded file is a point-based dataset.
+     *
      */
     function createDataitems($arr, $ds_id, $pointBasedUpload)
     {
@@ -833,18 +800,19 @@ class UserController extends Controller
             }
 
             // BP: set title to placename if title is empty.
+            // Ivy: title is regarded as empty when it's an empty string like "" and "    ".
             //
             // Now having looked at some aliases for column names, we can look at being forgiving and handling various cases of columns
             // that have common names, and also the whole placename issue.
             //
             //Handle title and placename
-            if ((!isset($culled_array["title"])) && (isset($arr[$i]["placename"]))) {
+            if ((!isset($culled_array["title"]) || empty(trim($culled_array["title"]))) && (isset($arr[$i]["placename"]))) {
                 $culled_array["title"] = $arr[$i]["placename"];
             }
-            if ((!isset($culled_array["title"])) && (isset($arr[$i]["name"]))) {
+            if ((!isset($culled_array["title"]) || empty(trim($culled_array["title"]))) && (isset($arr[$i]["name"]))) {
                 $culled_array["title"] = $arr[$i]["name"];
             }
-            if (!isset($culled_array["title"])) {
+            if (!isset($culled_array["title"]) || empty(trim($culled_array["title"]))) {
                 throw new \Exception('Could not find a title, placename or name column to use as Title.');
             }
             if ($culled_array["title"] === NULL) {
@@ -861,6 +829,11 @@ class UserController extends Controller
             if (!isset($culled_array["longitude"]) && !empty($llcols)) {
                 $culled_array["latitude"] = $arr[$i][$llcols[0]];
                 $culled_array["longitude"] = $arr[$i][$llcols[1]];
+            }
+
+            //Handle quantity
+            if (!isset($culled_array["quantity"]) || empty(trim($culled_array["quantity"]))) {
+                $culled_array["quantity"] = null;
             }
 
             // Handle extended data columns
@@ -887,25 +860,25 @@ class UserController extends Controller
             // 1. Convert route_id as route_original_id if route_id exists.
             // 2. Fill route_title with original route_id if route_title unexists.
             // 3. Assign integer route_id.
-            $isMultiRoutes = false;
+            $hasRouteInfo = false;
             $route_meta = [];
             // Dummy, but haven't found a better way yet
             if (isset($culled_array["route_id"]) && isset($culled_array["route_title"])) {
-                $isMultiRoutes = true;
+                $hasRouteInfo = true;
                 $culled_array["route_original_id"] = $culled_array["route_id"];
                 $route_meta[] = $culled_array["route_id"];
                 $route_meta[] = $culled_array["route_title"];
             } else if (isset($culled_array["route_id"]) && !isset($culled_array["route_title"])) {
-                $isMultiRoutes = true;
+                $hasRouteInfo = true;
                 $culled_array["route_original_id"] = $culled_array["route_id"];
                 $route_meta[] = $culled_array["route_id"];
                 $culled_array["route_title"] = $culled_array["route_id"];
             } else if (!isset($culled_array["route_id"]) && isset($culled_array["route_title"])) {
-                $isMultiRoutes = true;
+                $hasRouteInfo = true;
                 $route_meta[] = $culled_array["route_title"];
             }
 
-            if ($isMultiRoutes) {
+            if ($hasRouteInfo) {
                 $routeExisting = false;
                 // Check whether current route that the data item belongs to exists
                 foreach ($route_metas as $existingRoute => $existingRouteId) {

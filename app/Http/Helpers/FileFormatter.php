@@ -166,7 +166,11 @@ class FileFormatter
     private static function addCSVContent($file, $results)
     {
         //unsure how to put multiple sources into csv
-        $columns = array("id", "title", "placename", "state", "lga", "parish", "feature_term", "latitude", "longitude", "source", "flag", "description", "datestart", "dateend", "linkback", "tlcmaplink", "layerlink");
+        $columns = array(
+            "id", "title", "placename", "state", "lga", "parish", "feature_term", "latitude", "longitude",
+            "description", "datestart", "dateend", "source", "flag", "linkback", "tlcmaplink", "layerlink",
+            // "quantity", "route_id", "route_original_id", "route_title",
+        );
         fputcsv($file, $columns);
         foreach ($results as $r) {
             // this is a bit wierd. It seems that if the results are from user layer, they are key value pairs so $r['title'] works, but if they are from ANPS they are properties of an object and only $r->title works
@@ -205,7 +209,7 @@ class FileFormatter
         $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
 
         foreach ($results as $r) {
-
+            file_put_contents('test.log', var_export($r, true), FILE_APPEND);
             $proppairs = array();
 
             // Set feature config.
@@ -275,6 +279,22 @@ class FileFormatter
                 $proppairs["longitude"] = $r->longitude;
             }
 
+            // if (!empty($r->quantity)) {
+            //     $proppairs["quantity"] = $r->quantity;
+            // }
+            // if (!empty($r->route_id)) {
+            //     $proppairs["route_id"] = $r->route_id;
+            // }
+            // if (!empty($r->route_original_id)) {
+            //     $proppairs["route_original_id"] = $r->route_original_id;
+            // }
+            // if (!empty($r->route_title)) {
+            //     $proppairs["route_title"] = $r->route_title;
+            // }
+            // if (!empty($r->stop_idx)) {
+            //     $proppairs["stop_idx"] = $r->stop_idx;
+            // }
+
             if (!empty($r->external_url)) {
                 $proppairs["linkback"] = $r->external_url;
             }else if(!empty($r->dataset_id)){
@@ -282,10 +302,6 @@ class FileFormatter
                 if( $dataset && $dataset->linkback){
                     $proppairs["linkback"] = $dataset->linkback;
                 }
-            }
-
-            if (!empty($r->quantity)) {
-                $proppairs["quantity"] = $r->quantity;
             }
 
             if (!empty($r->uid)) {

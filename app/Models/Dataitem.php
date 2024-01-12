@@ -26,6 +26,11 @@ class Dataitem extends Model
         'datestart', 'dateend', 'quantity', 'state', 'feature_term', 'lga', 'source', 'external_url',
         'extended_data', 'kml_style_url', 'placename', 'original_id', 'parish' , 'image_path', 'dataset_order',
         'route_id', 'route_title', 'route_original_id',
+        // Ivy's note:
+        // stop_idx is generated based on matching data items, not quite sure whether it should be
+        // added into $fillable, here it's added for the convenience of exporting dataset
+        'stop_idx'
+
     ];
 
     /**

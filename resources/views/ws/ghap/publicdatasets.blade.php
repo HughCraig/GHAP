@@ -66,8 +66,12 @@
                                     <a class="dropdown-item grab-hover"
                                         onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $ds->id }}/json?sort=start'))">Werekata
                                         Flight by Time</a>
-                                    <a class="dropdown-item grab-hover"
-                                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $ds->id }}/json?mobility'))">Mobility</a>
+                                    @if (collect($ds->dataitems)->contains(function ($dataitem) {
+                                            return isset($dataitem['quantity']) || isset($dataitem['route_id']);
+                                        }))
+                                        <a class="dropdown-item grab-hover"
+                                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility'))">Mobility</a>
+                                    @endif
                                     @if (!empty(config('app.views_temporal_earth_url')))
                                         <a class="dropdown-item grab-hover"
                                             onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{ url()->full() }}/{{ $ds->id }}/kml')">Temporal

@@ -8,6 +8,7 @@ use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
 use TLCMap\Models\RecordType;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -136,6 +137,115 @@ class Dataset extends Model
     }
 
     /**
+     * Generate CSV of the dataset.
+     *
+     * Return a generated csv
+     * TODO: Extended data is raw KML from DB - this is not ideal for csv output
+     * csv_encode automatically handles escaping quotes, etc
+     *
+     * Could be merged with FileFormatter->toGeoCSV
+     *
+     * @return string
+     *   The generated CSV.
+     */
+    public function csv()
+    {
+        $dataset = $this;
+        $f = fopen('php://memory', 'r+');
+        $delimiter = ',';
+        $enclosure = '"';
+        $escape_char = "\\";
+        // Exclude some columns.
+        $excludeColumns = ['uid', 'datasource_id'];
+
+        $dataitems = $dataset->dataitems;
+        $colheads = array();
+        $extkeys = array();
+        // !!!!!!!!!! actually also go through the headers and only put them in if at least one is not null.....
+
+        // Fudge to convert object with properties to key value pairs
+        $arr = json_decode(json_encode($dataitems[0]), true);
+
+        foreach ($dataitems as $i) {
+
+            // only headers with values
+            // must be an easier way than this but
+            // Fudge to convert object with properties to key value pairs
+            $arr = json_decode(json_encode($i), true);
+            foreach ($arr as $key => $value) {
+                if (!($value === NULL) && $key !== 'extended_data') {
+                    if (!in_array($key, $colheads) && !in_array($key, $excludeColumns)) {
+                        $colheads[] = $key;
+                    }
+                }
+            }
+        }
+        foreach ($dataitems as $i) {
+
+            // add extended data headers
+            $arr = $i->getExtendedData();
+            if (!empty($arr)) {
+                foreach ($arr as $key => $value) {
+                    if (!($value === NULL)) {
+                        if (!in_array($key, $colheads)) {
+                            $colheads[] = $key;
+                        }
+                    }
+                }
+            }
+        }
+        $colheads = array_merge($colheads, $extkeys);
+
+        // Apply any modification to the column headers for display.
+        $headerValueForDisplay = [ 'id' => 'ghap_id' , 'external_url' => 'linkback' , 'dataset_id' => 'layer_id' , 'recordtype_id' => 'record_type' ];
+        $displayHeaders = [];
+        foreach ($colheads as $colhead) {
+            $displayHeaders[] = isset($headerValueForDisplay[$colhead]) ? $headerValueForDisplay[$colhead] : $colhead;
+        }
+
+        // add headings to csv
+        fputcsv($f, $displayHeaders, $delimiter, $enclosure, $escape_char);
+
+        // now the data
+        foreach ($dataitems as &$i) {
+
+            $cells = array();
+
+            $vals = json_decode(json_encode($i), true);
+
+            $ext = $i->getExtendedData();
+            if (!empty($ext)) {
+                $vals = $vals + $ext;
+            }
+
+            $vals["id"] = $i->uid;
+
+            // to make sure the cells are in the same order as the headings
+            foreach ($colheads as $col) {
+                $cellValue = isset($vals[$col]) ? $vals[$col] : "";
+
+                // Special handling for recordtype, store type instead of id
+                if ( $cellValue !== "" && $col === 'recordtype_id') {
+                    $cellValue = RecordType::getTypeById($cellValue);
+                }
+
+                $cells[] = $cellValue;
+            }
+
+
+            fputcsv($f, $cells, $delimiter, $enclosure, $escape_char);
+
+
+        }
+        rewind($f);
+
+        // Loop over the array and passing in the values only.
+
+
+        return stream_get_contents($f);
+    }
+
+    /**
      * Generate the KML of the dataset.
      *
      * We dont need to generate the extended data again as exports from Gaz search do this for us.
@@ -251,6 +361,25 @@ class Dataset extends Model
                 $timespan->appendChild($dom->createElement('end', $i->dateend));
             }
 
+            // Get quantity if it exists
+            if (!empty($i->quantity)) {
+                $place->appendChild($dom->createElement('quantity', $i->quantity));
+            }
+
+             //Get RouteInfo if they exist
+             if (!empty($i->route_id)) {
+                $RouteInfo = $place->appendChild($dom->createElement('RouteInfo'));
+                $RouteInfo->appendChild($dom->createElement('routeId', $i->route_id));
+                if (!empty($i->route_original_id)) {
+                    $RouteInfo->appendChild($dom->createElement('routeOriginalId', $i->route_original_id));
+                }
+                if (!empty($i->route_title)) {
+                    $RouteInfo->appendChild($dom->createElement('routeTitle', $i->route_title));
+                }
+                if (!empty($i->stop_idx)) {
+                    $RouteInfo->appendChild($dom->createElement('routeStopNum', $i->stop_idx));
+                }
+            }
             /**
              * Get ExtendedData by raw xml - TODO: We might need to generate this again?
              *      Eg user generates a KML from Gaz search results
@@ -372,7 +501,6 @@ class Dataset extends Model
                 $proppairs["quantity"] = $i->quantity;
                 $quantityValues[] = $i->quantity; // Add quantity to the quantityValues array
                 $proppairs["logQuantity"] = round(log($i->quantity), 2);
-                // $proppairs["logQuantileRng"] = $this->matchToRange($proppairs["logQuantity"], $logQuantiles);
             }
             if (!empty($i->route_id)) {
                 $proppairs["route_id"] = $i->route_id;
@@ -466,6 +594,8 @@ class Dataset extends Model
 
             $proppairs["TLCMapLinkBack"] = url("search?id=" . $i->uid);
             $proppairs["TLCMapDataset"] = $metadata['ghap_url'];
+
+            file_put_contents('test.log', var_export($i, true), FILE_APPEND);
 
             // Set footer links.
             $featureConfig->addLink("TLCMap Record: {$i->uid}", $proppairs["TLCMapLinkBack"]);
@@ -595,8 +725,10 @@ class Dataset extends Model
         }
 
         if (!empty($quantityValues)){
-            $logQuantiles = $this->logQuantiles($quantityValues);
+            $logQuantiles = $this->getQuantiles($quantityValues, 'log');
             $metadata['log_quantiles'] = $logQuantiles;
+            $quantiles = $this->getQuantiles($quantityValues, function($x) { return $x; });
+            $metadata['quantiles'] = $quantiles;
 
             // reset the blocked fields for mobility view
             $allowedFields = [
@@ -665,6 +797,66 @@ class Dataset extends Model
     }
 
     /**
+     * Get public dataset by id with data items.
+     *
+     * If the dataset has route information, the returned dataset will be assigned a stop_idx for each
+     * data item and ordered by route_id, datastart, dataset_order respectively. If not, the matching dataset
+     * will be ordered by dataset_order only.
+     *
+     * @param int $ds_id The ID of the dataset
+     * @return mixed The public dataset with associated data items
+     */
+    public static function getPublicDatasetById(int $ds_id)
+    {
+        $query = self::where(['public' => 1, 'id' => $ds_id]); // get this dataset by id if it is also public
+
+        if (self::where(['id' => $ds_id])->whereHas('dataitems', function ($query) {
+            $query->whereNotNull('route_id');
+        })->exists()) {
+            $dataset = $query
+                ->with(['dataitems' => function ($query) {
+                    $query->select('*', DB::raw('ROW_NUMBER() OVER(PARTITION BY route_id ORDER BY datestart, dataset_order) as stop_idx'))
+                        ->orderBy('route_id')
+                        ->orderBy('datestart')
+                        ->orderBy('dataset_order');
+                }])
+                ->first();
+        } else {
+            $dataset = $query
+                ->with(['dataitems' => function ($query) {
+                    $query->orderBy('dataset_order');
+                }])
+                ->first();
+        }
+
+        return $dataset;
+    }
+
+    /**
+     * Get private dataset by ID with data items
+     *
+     * @param User $user The user (model) object
+     * @param int $ds_id The ID of the dataset
+     * @return mixed The private dataset with associated data items
+     */
+    public static function getPrivateDatasetById($user, $ds_id)
+    {
+        $dataset = $user->datasets()->with(['dataitems' => function ($query) use ($ds_id) {
+            // Check if any dataitem has a route_id
+            if (DB::table('tlcmap.dataitem')->whereNotNull('route_id')->exists()) {
+                $query->select('*', DB::raw('ROW_NUMBER() OVER(PARTITION BY route_id ORDER BY datestart, dataset_order) as stop_idx'))
+                    ->orderBy('route_id')
+                    ->orderBy('datestart')
+                    ->orderBy('dataset_order');
+            } else {
+                $query->orderBy('dataset_order');
+            }
+        }])->find($ds_id);
+
+        return $dataset;
+    }
+
+    /**
      * Calculate logarithmic quantiles and generate corresponding ranges for the given quantity values.
      *
      * This method calculates the logarithmic quantiles and returns an array containing quantile ranges
@@ -677,130 +869,21 @@ class Dataset extends Model
      * @return array
      *   ...
      */
-    public static function logQuantiles($quantityValues, $numQuantiles = 4) {
+    public static function getQuantiles($quantityValues, $mapFunc, $numQuantiles = 4) {
         sort($quantityValues);
-        $logQty = array_map('log', $quantityValues);
-        $count = count($logQty);
+        $resultQty = array_map($mapFunc, $quantityValues);
+        $count = count($resultQty);
         $quantiles = [];
 
         for ($i = 1; $i < $numQuantiles; $i++) {
             $position = $i * ($count - 1) / $numQuantiles;
             $lower = floor($position);
             $fraction = $position - $lower;
-            $quantile = $logQty[$lower] + $fraction * ($logQty[$lower + 1] - $logQty[$lower]);
+            $quantile = $resultQty[$lower] + $fraction * ($resultQty[$lower + 1] - $resultQty[$lower]);
             $quantiles[] = round($quantile, 2);
         }
 
         return $quantiles;
-    }
-
-    /**
-     * Generate CSV of the dataset.
-     *
-     * Return a generated csv
-     * TODO: Extended data is raw KML from DB - this is not ideal for csv output
-     * csv_encode automatically handles escaping quotes, etc
-     *
-     * Could be merged with FileFormatter->toGeoCSV
-     *
-     * @return string
-     *   The generated CSV.
-     */
-    public function csv()
-    {
-        $dataset = $this;
-        $f = fopen('php://memory', 'r+');
-        $delimiter = ',';
-        $enclosure = '"';
-        $escape_char = "\\";
-        // Exclude some columns.
-        $excludeColumns = ['uid', 'datasource_id'];
-
-        $dataitems = $dataset->dataitems;
-        $colheads = array();
-        $extkeys = array();
-        // !!!!!!!!!! actually also go through the headers and only put them in if at least one is not null.....
-
-        // Fudge to convert object with properties to key value pairs
-        $arr = json_decode(json_encode($dataitems[0]), true);
-
-        foreach ($dataitems as $i) {
-
-            // only headers with values
-            // must be an easier way than this but
-            // Fudge to convert object with properties to key value pairs
-            $arr = json_decode(json_encode($i), true);
-            foreach ($arr as $key => $value) {
-                if (!($value === NULL) && $key !== 'extended_data') {
-                    if (!in_array($key, $colheads) && !in_array($key, $excludeColumns)) {
-                        $colheads[] = $key;
-                    }
-                }
-            }
-        }
-        foreach ($dataitems as $i) {
-
-            // add extended data headers
-            $arr = $i->getExtendedData();
-            if (!empty($arr)) {
-                foreach ($arr as $key => $value) {
-                    if (!($value === NULL)) {
-                        if (!in_array($key, $colheads)) {
-                            $colheads[] = $key;
-                        }
-                    }
-                }
-            }
-        }
-        $colheads = array_merge($colheads, $extkeys);
-
-        // Apply any modification to the column headers for display.
-        $headerValueForDisplay = [ 'id' => 'ghap_id' , 'external_url' => 'linkback' , 'dataset_id' => 'layer_id' , 'recordtype_id' => 'record_type' ];
-        $displayHeaders = [];
-        foreach ($colheads as $colhead) {
-            $displayHeaders[] = isset($headerValueForDisplay[$colhead]) ? $headerValueForDisplay[$colhead] : $colhead;
-        }
-
-        // add headings to csv
-        fputcsv($f, $displayHeaders, $delimiter, $enclosure, $escape_char);
-
-        // now the data
-        foreach ($dataitems as &$i) {
-
-            $cells = array();
-
-            $vals = json_decode(json_encode($i), true);
-
-            $ext = $i->getExtendedData();
-            if (!empty($ext)) {
-                $vals = $vals + $ext;
-            }
-
-            $vals["id"] = $i->uid;
-
-            // to make sure the cells are in the same order as the headings
-            foreach ($colheads as $col) {
-                $cellValue = isset($vals[$col]) ? $vals[$col] : "";
-
-                // Special handling for recordtype, store type instead of id
-                if ( $cellValue !== "" && $col === 'recordtype_id') {
-                    $cellValue = RecordType::getTypeById($cellValue);
-                }
-
-                $cells[] = $cellValue;
-            }
-
-
-            fputcsv($f, $cells, $delimiter, $enclosure, $escape_char);
-
-
-        }
-        rewind($f);
-
-        // Loop over the array and passing in the values only.
-
-
-        return stream_get_contents($f);
     }
 
 }

@@ -63,8 +63,12 @@
                 <a class="dropdown-item grab-hover"
                     onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{ url()->full() }}/json?sort=start'))">Werekata
                     Flight by Time</a>
-                <a class="dropdown-item grab-hover"
-                    onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/json?mobility'))">Mobility</a>
+                @if (collect($ds->dataitems)->contains(function ($dataitem) {
+                        return isset($dataitem['quantity']) || isset($dataitem['route_id']);
+                    }))
+                    <a class="dropdown-item grab-hover"
+                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility'))">Mobility</a>
+                @endif
                 @if (!empty(config('app.views_temporal_earth_url')))
                     <a class="dropdown-item grab-hover"
                         onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{ url()->full() }}/kml')">Temporal
@@ -235,7 +239,7 @@
         <div class="place-list">
             @foreach ($ds->dataitems as $data)
                 <div class="row">
-                    <div class="col col-xl-3">
+                    <div class="col col-xl-2">
                         <h4><button type="button" class="btn btn-primary btn-sm"
                                 onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
                             <a
@@ -316,55 +320,74 @@
                         @endif
 
                     </div>
-                    <div class="col col-xl-3">
+                    <div class="col col-xl-2">
 
                         <h4>Description</h4>
                         @if (isset($data->description))
                             <div>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->description) !!}</div>
                         @endif
-                        @if (isset($data->extended_data))
                     </div>
+                    @if (isset($data->route_id))
+                        <div class="col col-xl-2">
+                            <h4>Route Details</h4>
+                            <dt>Route ID</dt>
+                            <dd>{{ $data->route_id }}</dd>
+                            @if (isset($data->route_original_id))
+                                <dt>Route Original ID</dt>
+                                <dd>{{ $data->route_original_id }}</dd>
+                            @endif
+                            @if (isset($data->route_title))
+                                <dt>Route Title</dt>
+                                <dd>{{ $data->route_title }}</dd>
+                            @endif
+                            @if (isset($data->stop_idx))
+                                <dt>Route Stop Number</dt>
+                                <dd>{{ $data->stop_idx }}</dd>
+                            @endif
+                        </div>
+                    @endif
                     <div class="col col-xl-2">
                         <h4>Extended Data</h4>
-                        {!! $data->extDataAsHTML() !!}
-            @endif
-        </div>
-        <div class="col col-xl-2">
-            <h4>Sources</h4>
-            @if (isset($data->uid))
-                <dt>TLCMap ID</dt>
-                <dd>{{ $data->uid }}</dd>
-            @endif
-            @if (isset($data->external_url))
-                <dt>Linkback</dt>
-                <dd><a href="{{ $data->external_url }}">{{ $data->external_url }}</a></dd>
-            @endif
-            @if (isset($data->source))
-                <dt>Source</dt>
-                <dd>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->source) !!}</dd>
-            @endif
+                        @if (isset($data->extended_data))
+                            {!! $data->extDataAsHTML() !!}
+                        @endif
+                    </div>
+                    <div class="col col-xl-2">
+                        <h4>Sources</h4>
+                        @if (isset($data->uid))
+                            <dt>TLCMap ID</dt>
+                            <dd>{{ $data->uid }}</dd>
+                        @endif
+                        @if (isset($data->external_url))
+                            <dt>Linkback</dt>
+                            <dd><a href="{{ $data->external_url }}">{{ $data->external_url }}</a></dd>
+                        @endif
+                        @if (isset($data->source))
+                            <dt>Source</dt>
+                            <dd>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->source) !!}</dd>
+                        @endif
 
-            @if (isset($data->created_at))
-                <dt>Created At</dt>
-                <dd>{{ $data->created_at }}</dd>
-            @endif
-            @if (isset($data->updated_at))
-                <dt id="updatedat">Updated At</dt>
-                <dd>{{ $data->updated_at }}</dd>
-            @endif
+                        @if (isset($data->created_at))
+                            <dt>Created At</dt>
+                            <dd>{{ $data->created_at }}</dd>
+                        @endif
+                        @if (isset($data->updated_at))
+                            <dt id="updatedat">Updated At</dt>
+                            <dd>{{ $data->updated_at }}</dd>
+                        @endif
 
+                    </div>
+                    @if (!empty($data->image_path))
+                        <div class="col col-xl-2">
+                            <img src="{{ asset('storage/images/' . $data->image_path) }}" alt="Place image"
+                                style="max-width: 100%;max-height:150px">
+                        </div>
+                    @endif
+                    <!-- end bootstrap row -->
+                </div>
+            @endforeach
         </div>
-        @if (!empty($data->image_path))
-            <div class="col col-xl-2">
-                <img src="{{ asset('storage/images/' . $data->image_path) }}" alt="Place image"
-                    style="max-width: 100%;max-height:150px">
-            </div>
-        @endif
-        <!-- end bootstrap row -->
-    </div>
-    @endforeach
-    </div>
-    <!-- end bootstrap container -->
+        <!-- end bootstrap container -->
     </div>
 
 

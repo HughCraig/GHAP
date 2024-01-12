@@ -55,9 +55,9 @@ class GhapConfig
             "dateend" => "Date End",
             "quantity" => 'Quantity',
             "logQuantity" => "Log of Quantity",
-            "stop_idx" => "#Stop",
-            "route_title" => 'Journey Title',
-            "route_description" => "Journey Description",
+            "stop_idx" => "Route Stop Number",
+            "route_title" => 'Route Title',
+            "route_description" => "Route Description",
             "latitude" => "Latitude",
             "longitude" => "Longitude",
             "state" => "State",
@@ -89,7 +89,7 @@ class GhapConfig
             $imageUrl = Storage::disk('public')->url('images/' . $dataset->image_path);
             $content .= '<img src="' . $imageUrl . '" alt="Layer Image">';
         }
-        
+
         if (!empty($dataset->description)) {
             $content .= "<div>" . HtmlFilter::simple($dataset->description) . "</div>";
         }
@@ -109,7 +109,7 @@ class GhapConfig
     public static function createRestrictedDatasetInfoBlockContent()
     {
         $content = '';
-        $content .= '<div class="warning-message"><strong>Warning</strong><br>This map either does not exist or has been set to "private" and therefore cannot be displayed.</div>';    
+        $content .= '<div class="warning-message"><strong>Warning</strong><br>This map either does not exist or has been set to "private" and therefore cannot be displayed.</div>';
         $content .= '<p><a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Help</a> | <a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Share</a></p>';
         return $content;
     }
