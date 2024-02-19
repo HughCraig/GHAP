@@ -706,4 +706,68 @@ class AjaxController extends Controller
     //     return null;
     // }
 
+    public function ajaxdbscan(Request $request)
+    {
+        $id = $request->id; 
+
+        //get datset
+        $ds = Dataset::with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); 
+
+        if($request->distance == null || $request->distance < 0 || !is_numeric($request->distance) ){
+            return response()->json(['error' => 'Invalid distance'], 400);
+        }
+
+        $clusterAnalysisResults = $ds->getClusterAnalysisDBScan($request->distance, $request->minPoints);
+    
+        return response()->json($clusterAnalysisResults);
+    }
+
+    public function ajaxkmeans(Request $request)
+    {   
+        $id = $request->id; 
+
+        $ds = Dataset::with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); 
+
+        $clusterAnalysisResults = $ds->getClusterAnalysisKmeans($request->numClusters, $request->withinRadius);
+    
+        return response()->json($clusterAnalysisResults);
+    }
+
+    public function ajaxtemporalclustering(Request $request)
+    {
+        $id = $request->id; //id of dataset 
+
+        //get datset
+        $ds = Dataset::with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); 
+
+        $res = $ds->getTemporalClustering($request->totalInterval);
+    
+        return response()->json($res);
+    }
+
+    public function ajaxclosenessanalysis(Request $request)
+    {    
+        $id = $request->dataset_id; //id of dataset 
+
+        //get datset
+        $ds = Dataset::with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->where(['public' => 1, 'id' => $id])->first();
+
+        if (!$ds) return redirect()->route('layers'); 
+        
+        $res = $ds->getClosenessAnalysis($request->targetDatasetId);
+    
+        return response()->json($res);
+    }
+
 }

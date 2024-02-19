@@ -166,6 +166,27 @@ class GeneralFunctions
         return ((float)$aout[1] > (float)$bout[1]) ? 1 : -1; //if a > b return 1, else return -1        
     }
 
+    public static function getMedian($arr) {
+        sort($arr);
+        $count = count($arr);
+        $middleIndex = floor($count / 2);
+    
+        if ($count % 2) {
+            return $arr[$middleIndex];
+        } else {
+            return ($arr[$middleIndex - 1] + $arr[$middleIndex]) / 2;
+        }
+    }
+
+    public static function getStandardDeviation($arr) {
+        $mean = array_sum($arr) / count($arr);
+        $variance = 0.0;
+        foreach ($arr as $i) {
+            $variance += pow($i - $mean, 2);
+        }
+        return (float)sqrt($variance / count($arr));
+    }
+
     /**
      * Validates a user-uploaded image file.
      * Check for file size and type.
