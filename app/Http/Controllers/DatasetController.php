@@ -56,6 +56,11 @@ class DatasetController extends Controller
         return view('statistic.basicstatistics', ['ds' => $ds , 'statistic' => $ds->getBasicStatistics() ]); 
     }
 
+    /**
+     * Displays basic statistics for a private dataset identified by its ID.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return view with dataset's basic statistics or redirect if dataset not found
+     */
     public function viewPrivateDatasetBasicStatistics(Request $request, int $id)
     {
         $user = auth()->user();
@@ -77,6 +82,11 @@ class DatasetController extends Controller
         return Response::make($ds->getBasicStatisticsJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
     }
 
+    /**
+     * Returns a JSON representation of basic statistics for a specified private dataset.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return JSON response with basic statistics or redirect if dataset not found
+     */
     public function viewPrivateDatasetBasicStatisticsJSON(Request $request, int $id)
     {
         $user = auth()->user();
@@ -97,6 +107,11 @@ class DatasetController extends Controller
         return view('statistic.advancedstatistics', ['ds' => $ds , 'statistic' => $ds->getAdvancedStatistics() ]); 
     }
 
+    /**
+     * Displays advanced statistics for a private dataset identified by its ID.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return view with dataset's advanced statistics or redirect if dataset not found
+     */
     public function viewPrivateDatasetAdvancedStatistics(Request $request, int $id)
     {
         $user = auth()->user();
@@ -116,6 +131,11 @@ class DatasetController extends Controller
         return view('statistic.clusteranalysis', ['ds' => $ds]);
     }
 
+    /**
+     * Displays the cluster analysis results for a private dataset identified by its ID.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return view with cluster analysis results or redirect if dataset not found
+     */
     public function viewPrivateDatasetClusterAnalysis(Request $request, int $id){
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
@@ -140,6 +160,11 @@ class DatasetController extends Controller
         return Response::make($ds->getClusterAnalysisDBScanJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
     }
 
+    /** 
+     * Returns a JSON representation of DBSCAN cluster analysis results for a specified private dataset.
+     * Validates input parameters and redirects if the dataset is not found or not public.
+     * @return JSON response with DBSCAN cluster analysis results or redirect if dataset not found
+     */
     public function viewPrivateDatasetClusterAnalysisDBScanJSON(Request $request, int $id)
     {
         $user = auth()->user();
@@ -165,6 +190,11 @@ class DatasetController extends Controller
         return Response::make($ds->getClusterAnalysisKmeansJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
     }
 
+    /**
+     * Returns a JSON representation of Kmeans cluster analysis results for a specified private dataset.
+     * Redirects if the specified dataset is not found or not public.
+     * @return JSON response with Kmeans cluster analysis results or redirect if dataset not found
+     */
     public function viewPrivateDatasetClusterAnalysisKmeansJSON(Request $request, int $id)
     {
         $user = auth()->user();
@@ -184,6 +214,11 @@ class DatasetController extends Controller
         return view('statistic.temporalclustering', ['ds' => $ds]);
     }
 
+    /**
+     * Displays the temporal clustering results for a private dataset identified by its ID.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return view with temporal clustering results or redirect if dataset not found
+     */
     public function viewPrivateDatasetTemporalClustering(Request $request, int $id){
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
@@ -203,6 +238,11 @@ class DatasetController extends Controller
         return Response::make($ds->getTemporalClusteringJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
     }
 
+    /**
+     * Returns a JSON representation of temporal clustering results for a specified private dataset.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return JSON response with temporal clustering results or redirect if dataset not found
+     */
     public function viewPrivateDatasetTemporalClusteringJSON(Request $request, int $id)
     {
         $user = auth()->user();
@@ -223,6 +263,11 @@ class DatasetController extends Controller
         return view('statistic.closenessanalysis', ['ds' => $ds, 'layers' => $layers]);
     }
 
+    /**
+     * Displays the closeness analysis interface for a private dataset identified by its ID.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return view with closeness analysis interface or redirect if dataset not found
+     */
     public function viewPrivateDatasetClosenessAnalysis(Request $request, int $id){
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
@@ -251,6 +296,11 @@ class DatasetController extends Controller
         return Response::make($ds->getClosenessAnalysisJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
     }
 
+    /**
+     * Returns a JSON representation of Closeness analysis results for a specified private dataset with another public dataset.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return JSON response with temporal clustering results or redirect if dataset not found
+     */
     public function viewPrivateDatasetClosenessAnalysisJSON(Request $request, int $id)
     {
         $user = auth()->user();

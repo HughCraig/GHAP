@@ -706,6 +706,15 @@ class AjaxController extends Controller
     //     return null;
     // }
 
+    /**
+     * Processes the DBSCAN clustering algorithm on a dataset.
+     * 
+     * Validates input parameterss for distance and minPoints, then retrieve dataset by ID.
+     * If the dataset is not found or parameters are invalid, return error response.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function ajaxdbscan(Request $request)
     {
         $id = $request->id; 
@@ -725,6 +734,15 @@ class AjaxController extends Controller
         return response()->json($clusterAnalysisResults);
     }
 
+    /**
+     * Processes the K-means clustering algorithm on a dataset.
+     * 
+     * Retrieves the dataset by ID a
+     * Redirects to 'layers' route if dataset not found.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function ajaxkmeans(Request $request)
     {   
         $id = $request->id; 
@@ -739,6 +757,15 @@ class AjaxController extends Controller
         return response()->json($clusterAnalysisResults);
     }
 
+    /**
+     * Processes temporal clustering on a dataset.
+     * 
+     * Retrieves the dataset by ID 
+     * Redirects to 'layers' route if dataset not found.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function ajaxtemporalclustering(Request $request)
     {
         $id = $request->id; //id of dataset 
@@ -754,6 +781,15 @@ class AjaxController extends Controller
         return response()->json($res);
     }
 
+    /**
+     * Performs a closeness analysis between two datasets.
+     * 
+     * Retrieves the source dataset by ID and performs a closeness analysis with a target dataset specified by the request.
+     * Redirects to 'layers' route if dataset not found.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function ajaxclosenessanalysis(Request $request)
     {    
         $id = $request->dataset_id; //id of dataset 

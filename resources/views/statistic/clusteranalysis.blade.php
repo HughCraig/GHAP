@@ -1,19 +1,20 @@
 @extends('templates.layout')
 
 @push('scripts')
-<meta name="csrf-token" content="{{ csrf_token() }}">
 <script>
     var ajaxdbscan = "{{ url('ajaxdbscan') }}";
     var ajaxkmeans = "{{ url('ajaxkmeans') }}";
     var viewsRootUrl = "{{ config('app.views_root_url') }}";
-    var currentUrl = "{{ url()->full() }}";
+    var currentUrl = "{{ url('/layers/' . $ds->id . '/clusteranalysis') }}";
 </script>
+<script src="{{ asset('/js/stmetrics-csv-download.js') }}"></script>
 <script src="{{ asset('/js/clusteranalysis.js') }}"></script>
 @endpush
 
 @section('content')
 <div class="container mt-4">
     <h2>Clustering Analysis</h2>
+    <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
     <input type="hidden" id="ds_id" value="{{ $ds->id }}" />
 
     <!-- Clustering Options Form -->
@@ -51,9 +52,17 @@
 
     <div class="result-output" style="display: none;">
         <button class="btn btn-secondary" id="backButton">Back</button>
-        <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mapViewButton">
-            🌏 View Map
-        </button>
+
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                View Maps
+            </button>
+            <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
+                <a class="dropdown-item grab-hover" id="collection-3d-map">3D Viewer</a>
+                <a class="dropdown-item grab-hover" id="collection-cluster-map">Cluster</a>
+            </div>
+        </div>
+
         <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="downloadCsvButton">
             Download CSV
         </button>

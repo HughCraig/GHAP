@@ -166,6 +166,12 @@ class GeneralFunctions
         return ((float)$aout[1] > (float)$bout[1]) ? 1 : -1; //if a > b return 1, else return -1        
     }
 
+    /**
+     * Returns the median of an array of numbers
+     * 
+     * @param array $arr The array of numbers
+     * @return float The median of the array
+     */
     public static function getMedian($arr) {
         sort($arr);
         $count = count($arr);
@@ -178,6 +184,12 @@ class GeneralFunctions
         }
     }
 
+    /**
+     * Returns the standard deviation of an array of numbers
+     * 
+     * @param array $arr The array of numbers
+     * @return float The standard deviation of the array
+     */
     public static function getStandardDeviation($arr) {
         $mean = array_sum($arr) / count($arr);
         $variance = 0.0;

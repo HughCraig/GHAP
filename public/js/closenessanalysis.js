@@ -1,7 +1,7 @@
 $(document).ready(function () {
     $.ajaxSetup({
         headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+            "X-CSRF-TOKEN": $('#csrfToken').val(),
         },
     });
 
@@ -92,30 +92,6 @@ $(document).ready(function () {
 
     //csv download
     $("#downloadCsvButton").click(function() {
-        if (!responseData) {
-            alert("No data available for download.");
-            return;
-        }
-        
-        // Start CSV string and add header
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Statistic,Value,Unit\n"; 
-
-        // Iterate through the response data and add each row
-        Object.keys(responseData).forEach(key => {
-            const value = responseData[key];
-            const unit = key.includes("Area") ? "km²" : "km";
-            csvContent += `"${key}","${value}","${unit}"\n`;
-        });
-
-        // Create a link and trigger download
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "closeness_analysis.csv");
-        document.body.appendChild(link); // Required for FF
-
-        link.click(); 
-        document.body.removeChild(link); 
+        downStatisticsDataAsCSV(responseData, "closeness_analysis.csv");
     });
 });

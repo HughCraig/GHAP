@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
@@ -88,17 +89,18 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
 });
 Route::get('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
 
-Route::get('myprofile/mydatasets/{id}/basicstatistics', 'DatasetController@viewPrivateDatasetBasicStatistics');
-Route::get('myprofile/mydatasets/{id}/basicstatistics/json', 'DatasetController@viewPrivateDatasetBasicStatisticsJSON')->middleware('cors');
-Route::get('myprofile/mydatasets/{id}/advancedstatistics', 'DatasetController@viewPrivateDatasetAdvancedStatistics');
-Route::get('myprofile/mydatasets/{id}/clusteranalysis', 'DatasetController@viewPrivateDatasetClusterAnalysis');
-Route::get('myprofile/mydatasets/{id}/clusteranalysis/dbscan/json', 'DatasetController@viewPrivateDatasetClusterAnalysisDBScanJSON')->middleware('cors');
-Route::get('myprofile/mydatasets/{id}/clusteranalysis/kmeans/json', 'DatasetController@viewPrivateDatasetClusterAnalysisKmeansJSON')->middleware('cors');
-Route::get('myprofile/mydatasets/{id}/temporalclustering', 'DatasetController@viewPrivateDatasetTemporalClustering');
-Route::get('myprofile/mydatasets/{id}/temporalclustering/json', 'DatasetController@viewPrivateDatasetTemporalClusteringJSON')->middleware('cors');
-Route::get('myprofile/mydatasets/{id}/closenessanalysis', 'DatasetController@viewPrivateDatasetClosenessAnalysis');
-Route::get('myprofile/mydatasets/{id}/closenessanalysis/json', 'DatasetController@viewPrivateDatasetClosenessAnalysisJSON')->middleware('cors');
-
+Route::middleware($baseAuthMiddlewares)->group(function () {
+    Route::get('myprofile/mydatasets/{id}/basicstatistics', 'DatasetController@viewPrivateDatasetBasicStatistics');
+    Route::get('myprofile/mydatasets/{id}/basicstatistics/json', 'DatasetController@viewPrivateDatasetBasicStatisticsJSON')->name('viewdatasetbasicstatisticsjson');
+    Route::get('myprofile/mydatasets/{id}/advancedstatistics', 'DatasetController@viewPrivateDatasetAdvancedStatistics');
+    Route::get('myprofile/mydatasets/{id}/clusteranalysis', 'DatasetController@viewPrivateDatasetClusterAnalysis');
+    Route::get('myprofile/mydatasets/{id}/clusteranalysis/dbscan/json', 'DatasetController@viewPrivateDatasetClusterAnalysisDBScanJSON')->middleware('cors');
+    Route::get('myprofile/mydatasets/{id}/clusteranalysis/kmeans/json', 'DatasetController@viewPrivateDatasetClusterAnalysisKmeansJSON')->middleware('cors');
+    Route::get('myprofile/mydatasets/{id}/temporalclustering', 'DatasetController@viewPrivateDatasetTemporalClustering');
+    Route::get('myprofile/mydatasets/{id}/temporalclustering/json', 'DatasetController@viewPrivateDatasetTemporalClusteringJSON')->middleware('cors');
+    Route::get('myprofile/mydatasets/{id}/closenessanalysis', 'DatasetController@viewPrivateDatasetClosenessAnalysis');
+    Route::get('myprofile/mydatasets/{id}/closenessanalysis/json', 'DatasetController@viewPrivateDatasetClosenessAnalysisJSON')->middleware('cors');
+});
 Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mydatasets/{id}/collaborators', 'User\UserController@userEditCollaborators');
     Route::post('bulkadddataitem', 'User\UserController@bulkAddDataItem'); //not ajax as it is too much data

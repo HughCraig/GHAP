@@ -1,12 +1,14 @@
 $(document).ready(function () {
     $.ajaxSetup({
         headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+            "X-CSRF-TOKEN": $('#csrfToken').val(),
         },
     });
 
+
     var clusteringResponseData = null;
 
+    // Function to toggle input fields based on the selected clustering method
     function toggleInputs(method) {
         if (method === "kmeans") {
             $(".dbscan-input").hide();
@@ -19,45 +21,11 @@ $(document).ready(function () {
     }
 
     $("#downloadCsvButton").click(function () {
-        if (
-            !clusteringResponseData ||
-            Object.keys(clusteringResponseData).length === 0
-        ) {
-            alert("No data available for download.");
-            return;
-        }
-
-        // Start CSV string and add header
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Cluster ID,Place ID,Place Name,Latitude,Longitude\n"; // Add your columns here
-
-
-        Object.entries(clusteringResponseData).forEach(
-            ([clusterId, places]) => {
-                places.forEach((place) => {
-                    let row = [
-                        parseInt(clusterId) + 1, 
-                        place.id, // Place ID
-                        `"${place.title.replace(/"/g, '""')}"`, 
-                        place.latitude, // Latitude
-                        place.longitude, // Longitude
-                    ].join(",");
-                    csvContent += row + "\n";
-                });
-            }
-        );
-
-        // Create a link and trigger download
-        var encodedUri = encodeURI(csvContent);
-        var link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "clustering_results.csv");
-        document.body.appendChild(link); // Required for FF
-
-        link.click(); // This will download the file
-        document.body.removeChild(link); // Clean up
+        const headers = ["Cluster ID", "id", "title", "latitude", "longitude"];
+        downloadClusterDataAsCSV(clusteringResponseData, "clustering_results.csv", headers);
     });
 
+    // Function to generate the result table based on response data
     function getClusterResultTable(response) {
         var clusterSummaryTable = "<h2>Cluster Summary</h2>";
 
@@ -116,9 +84,9 @@ $(document).ready(function () {
     });
 
     $("#backButton").click(function () {
-        $(".result-table").empty(); 
-        $(".result-output").hide(); 
-        $(".user-input").show(); 
+        $(".result-table").empty();
+        $(".result-output").hide();
+        $(".user-input").show();
     });
 
     $("#cluster_analysis").click(function (e) {
@@ -136,42 +104,42 @@ $(document).ready(function () {
 
         if (clusteringMethod === "dbscan") {
             data.distance = $("#distance").val();
-            if(!data.distance  || data.distance < 0) {
+            if (!data.distance || data.distance < 0) {
                 alert("Please enter a valid distance value.");
                 return;
             }
 
             data.minPoints = $("#minPoints").val();
-            mapviewUrl =
-                viewsRootUrl +
-                "/collection-cluster.html?load=" +
-                encodeURIComponent(
-                    currentUrl +
-                        "/dbscan/json?distance=" +
-                        data.distance +
-                        "&minPoints=" +
-                        data.minPoints
-                );
+            mapSourceUrl = encodeURIComponent(
+                currentUrl +
+                    "/dbscan/json?distance=" +
+                    data.distance +
+                    "&minPoints=" +
+                    data.minPoints
+            );
         } else {
             // KMeans
             data.numClusters = $("#numClusters").val();
-            if(!data.numClusters || data.numClusters < 0) {
+            if (!data.numClusters || data.numClusters < 0) {
                 alert("Please enter a valid number of clusters.");
                 return;
             }
 
             data.withinRadius = $("#withinRadius").val() || null;
-            mapviewUrl =
-                viewsRootUrl +
-                "/collection-cluster.html?load=" +
-                encodeURIComponent(
-                    currentUrl +
-                        "/kmeans/json?numClusters=" +
-                        data.numClusters +
-                        "&withinRadius=" +
-                        data.withinRadius
-                );
+            mapSourceUrl = encodeURIComponent(
+                currentUrl +
+                    "/kmeans/json?numClusters=" +
+                    data.numClusters +
+                    "&withinRadius=" +
+                    data.withinRadius
+            );
         }
+
+        var threeDMapviewUrl =
+            viewsRootUrl + "/collection-3d.html?load=" + mapSourceUrl;
+
+        var clusterMapviewUrl =
+            viewsRootUrl + "/collection-cluster.html?load=" + mapSourceUrl;
 
         $.ajax({
             type: "POST",
@@ -183,9 +151,14 @@ $(document).ready(function () {
                 var resultTable = getClusterResultTable(response);
                 $(".result-table").html(resultTable);
                 $(".result-output").show();
-                document.getElementById("mapViewButton").onclick = function () {
-                    window.open(mapviewUrl);
-                };
+                document.getElementById("collection-3d-map").onclick =
+                    function () {
+                        window.open(threeDMapviewUrl);
+                    };
+                document.getElementById("collection-cluster-map").onclick =
+                    function () {
+                        window.open(clusterMapviewUrl);
+                    };
             },
             error: function (xhr, textStatus, errorThrown) {
                 console.log(xhr.responseText);

@@ -1,21 +1,22 @@
 @extends('templates.layout')
 
 @push('scripts')
-<meta name="csrf-token" content="{{ csrf_token() }}">
 <script>
     var ajaxclosenessanalysis = "{{ url('ajaxclosenessanalysis') }}";
     var layers = {!! $layers !!};
     var viewsRootUrl = "{{ config('app.views_root_url') }}";
-    var currentUrl = "{{ url()->full() }}";
+    var currentUrl = "{{ url('/layers/' . $ds->id . '/closenessanalysis') }}";
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+<script src="{{ asset('/js/stmetrics-csv-download.js') }}"></script>
 <script src="{{ asset('/js/closenessanalysis.js') }}"></script>
 @endpush
 
 @section('content')
 <div class="container mt-4">
     <h2>Closeness Analysis</h2>
+    <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
     <input type="hidden" id="ds_id" value="{{ $ds->id }}" />
 
     <!-- Closeness Analysis Options Form -->

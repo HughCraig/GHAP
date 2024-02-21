@@ -1,5 +1,4 @@
 $(document).ready(function () {
-    console.log(layer_name);
     $("#download-csv").click(function () {
         var csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "Statistic,Value,Unit\n";

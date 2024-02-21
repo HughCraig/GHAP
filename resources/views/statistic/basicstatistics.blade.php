@@ -13,7 +13,7 @@
 <div class="container mt-4">
     <h2 class="pb-4">Basic Statistics</h2>
 
-    <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ config('app.views_root_url') }}journey.html?load=' + encodeURIComponent('{{url()->full()}}') + '/json')">
+    <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ config('app.views_root_url') }}journey.html?load=' + encodeURIComponent('{{ url('/layers/' . $ds->id . '/basicstatistics/json') }}'))">
         🌏 View Map
     </button>
     <button id="download-csv" class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false">
