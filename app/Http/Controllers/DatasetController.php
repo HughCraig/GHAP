@@ -44,6 +44,279 @@ class DatasetController extends Controller
     }
 
     /**
+     * Displays basic statistics for a public dataset identified by its ID.
+     * 
+     * @return view with dataset's basic statistics or redirect if dataset not found
+     */
+    public function viewPublicDatasetBasicStatistics(Request $request, int $id)
+    {
+        Log::info('viewPublicDatasetBasicStatistics');
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return view('statistic.basicstatistics', ['ds' => $ds , 'statistic' => $ds->getBasicStatistics() ]); 
+    }
+
+    /**
+     * Displays basic statistics for a private dataset identified by its ID.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return view with dataset's basic statistics or redirect if dataset not found
+     */
+    public function viewPrivateDatasetBasicStatistics(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return view('statistic.basicstatistics', ['ds' => $ds , 'statistic' => $ds->getBasicStatistics() ]); 
+    }
+
+    /**
+     * Returns a JSON representation of basic statistics for a specified public dataset.
+     * Redirects if the specified dataset is not found or not public.
+     * @return JSON response with basic statistics or redirect if dataset not found
+     */
+    public function viewPublicDatasetBasicStatisticsJSON(Request $request, int $id)
+    {
+
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return Response::make($ds->getBasicStatisticsJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * Returns a JSON representation of basic statistics for a specified private dataset.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return JSON response with basic statistics or redirect if dataset not found
+     */
+    public function viewPrivateDatasetBasicStatisticsJSON(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return Response::make($ds->getBasicStatisticsJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * Displays advanced statistics for a public dataset identified by its ID.
+     * Redirects to the list of public datasets if the specified dataset is not found or not public.
+     * @return view with dataset's advanced statistics or redirect if dataset not found
+     */
+    public function viewPublicDatasetAdvancedStatistics(Request $request, int $id)
+    {
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return view('statistic.advancedstatistics', ['ds' => $ds , 'statistic' => $ds->getAdvancedStatistics() ]); 
+    }
+
+    /**
+     * Displays advanced statistics for a private dataset identified by its ID.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return view with dataset's advanced statistics or redirect if dataset not found
+     */
+    public function viewPrivateDatasetAdvancedStatistics(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return view('statistic.advancedstatistics', ['ds' => $ds , 'statistic' => $ds->getAdvancedStatistics() ]); 
+    }
+
+    /**
+     * Displays the cluster analysis results for a public dataset identified by its ID.
+     * Redirects to the list of public datasets if the specified dataset is not found or not public.
+     * @return view with cluster analysis results or redirect if dataset not found
+     */
+    public function viewPublicDatasetClusterAnalysis(Request $request, int $id){
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return view('statistic.clusteranalysis', ['ds' => $ds]);
+    }
+
+    /**
+     * Displays the cluster analysis results for a private dataset identified by its ID.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return view with cluster analysis results or redirect if dataset not found
+     */
+    public function viewPrivateDatasetClusterAnalysis(Request $request, int $id){
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return view('statistic.clusteranalysis', ['ds' => $ds]);
+    }
+
+    /**
+     * Returns a JSON representation of DBSCAN cluster analysis results for a specified public dataset.
+     * Validates input parameters and redirects if the dataset is not found or not public.
+     * @return JSON response with DBSCAN cluster analysis results or redirect if dataset not found
+     */
+    public function viewPublicDatasetClusterAnalysisDBScanJSON(Request $request, int $id)
+    {
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+
+        if( $_GET["distance"] == null || $_GET["distance"] < 0 || !is_numeric($_GET["distance"]) ){
+            return response()->json(['error' => 'Invalid distance'], 400);
+        }
+
+        return Response::make($ds->getClusterAnalysisDBScanJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /** 
+     * Returns a JSON representation of DBSCAN cluster analysis results for a specified private dataset.
+     * Validates input parameters and redirects if the dataset is not found or not public.
+     * @return JSON response with DBSCAN cluster analysis results or redirect if dataset not found
+     */
+    public function viewPrivateDatasetClusterAnalysisDBScanJSON(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+
+        if( $_GET["distance"] == null || $_GET["distance"] < 0 || !is_numeric($_GET["distance"]) ){
+            return response()->json(['error' => 'Invalid distance'], 400);
+        }
+
+        return Response::make($ds->getClusterAnalysisDBScanJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * Returns a JSON representation of Kmeans cluster analysis results for a specified public dataset.
+     * Redirects if the specified dataset is not found or not public.
+     * @return JSON response with Kmeans cluster analysis results or redirect if dataset not found
+     */
+    public function viewPublicDatasetClusterAnalysisKmeansJSON(Request $request, int $id)
+    {
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return Response::make($ds->getClusterAnalysisKmeansJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * Returns a JSON representation of Kmeans cluster analysis results for a specified private dataset.
+     * Redirects if the specified dataset is not found or not public.
+     * @return JSON response with Kmeans cluster analysis results or redirect if dataset not found
+     */
+    public function viewPrivateDatasetClusterAnalysisKmeansJSON(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return Response::make($ds->getClusterAnalysisKmeansJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * Displays the temporal clustering results for a public dataset identified by its ID.
+     * Redirects to the list of public datasets if the specified dataset is not found or not public.
+     * @return view with temporal clustering results or redirect if dataset not found
+     */
+    public function viewPublicDatasetTemporalClustering(Request $request, int $id){
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return view('statistic.temporalclustering', ['ds' => $ds]);
+    }
+
+    /**
+     * Displays the temporal clustering results for a private dataset identified by its ID.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return view with temporal clustering results or redirect if dataset not found
+     */
+    public function viewPrivateDatasetTemporalClustering(Request $request, int $id){
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return view('statistic.temporalclustering', ['ds' => $ds]);
+    }
+
+    /**
+     * Returns a JSON representation of temporal clustering results for a specified public dataset.
+     * Redirects if the specified dataset is not found or not public.
+     * @return JSON response with temporal clustering results or redirect if dataset not found
+     */
+    public function viewPublicDatasetTemporalClusteringJSON(Request $request, int $id)
+    {
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return Response::make($ds->getTemporalClusteringJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * Returns a JSON representation of temporal clustering results for a specified private dataset.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return JSON response with temporal clustering results or redirect if dataset not found
+     */
+    public function viewPrivateDatasetTemporalClusteringJSON(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        return Response::make($ds->getTemporalClusteringJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * Displays the closeness analysis interface for a public dataset identified by its ID.
+     * @return view with closeness analysis interface or redirect if dataset not found
+     */
+    public function viewPublicDatasetClosenessAnalysis(Request $request, int $id){
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+
+        $layers = json_encode(Dataset::getAllPublicLayersAndIDs());
+        return view('statistic.closenessanalysis', ['ds' => $ds, 'layers' => $layers]);
+    }
+
+    /**
+     * Displays the closeness analysis interface for a private dataset identified by its ID.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return view with closeness analysis interface or redirect if dataset not found
+     */
+    public function viewPrivateDatasetClosenessAnalysis(Request $request, int $id){
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+
+        $layers = json_encode(Dataset::getAllPublicLayersAndIDs());
+        return view('statistic.closenessanalysis', ['ds' => $ds, 'layers' => $layers]);
+    }
+
+    /**
+     * Returns a JSON representation of closeness analysis results between the specified dataset and a target layer.
+     * 
+     * @return JSON response with closeness analysis results or error response if target layer is invalid
+     */
+    public function viewPublicDatasetClosenessAnalysisJSON(Request $request, int $id)
+    {
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+
+        if( !$_GET["targetLayer"] ){
+            return response()->json(['error' => 'Invalid target layer'], 400);
+        }
+        $targerDs = Dataset::where(['public' => 1, 'id' => $_GET["targetLayer"]])->first();
+        if (!$targerDs) return response()->json(['error' => 'Invalid target layer'], 400);
+
+        return Response::make($ds->getClosenessAnalysisJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * Returns a JSON representation of Closeness analysis results for a specified private dataset with another public dataset.
+     * Check ownership and redirects if the specified dataset is not found or not public.
+     * @return JSON response with temporal clustering results or redirect if dataset not found
+     */
+    public function viewPrivateDatasetClosenessAnalysisJSON(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+
+        if( !$_GET["targetLayer"] ){
+            return response()->json(['error' => 'Invalid target layer'], 400);
+        }
+        $targerDs = Dataset::where(['public' => 1, 'id' => $_GET["targetLayer"]])->first();
+        if (!$targerDs) return response()->json(['error' => 'Invalid target layer'], 400);
+
+        return Response::make($ds->getClosenessAnalysisJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
      * View a public dataset as a KML
      * Calls private function to generate KML for a dataset
      * @return Response with KML datatype, or redirect to public datasets page if not found

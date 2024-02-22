@@ -97,6 +97,20 @@
             </div>
         </div>
     @endif
+
+    <!-- Basic Statistics Feed -->
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Analyse
+        </button>
+        <div class="dropdown-menu" aria-labelledby="analyseDropdown">
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/basicstatistics">Basic Statistics</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/advancedstatistics">Advanced Statistics</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/clusteranalysis">Clustering Analysis</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/temporalclustering">Temporal Clustering</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/closenessanalysis">Closeness Analysis</a>
+        </div>
+    </div>
     
     <!-- Quick Info -->
     <div class="row mt-3">
