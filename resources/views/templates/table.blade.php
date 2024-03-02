@@ -160,6 +160,25 @@
                         </dl>
                     </div>
                 </div>
+                @if (isset($line->route_id))
+                    <div class="col col-xl-2">
+                        <h4>Route Details</h4>
+                        <dt>Route ID</dt>
+                        <dd>{{ $line->route_id }}</dd>
+                        @if (isset($line->route_original_id))
+                            <dt>Route Original ID</dt>
+                            <dd>{{ $line->route_original_id }}</dd>
+                        @endif
+                        @if (isset($line->route_title))
+                            <dt>Route Title</dt>
+                            <dd>{{ $line->route_title }}</dd>
+                        @endif
+                        @if (isset($line->stop_idx))
+                            <dt>Route Stop Number</dt>
+                            <dd>{{ $line->stop_idx }}</dd>
+                        @endif
+                    </div>
+                @endif
                 <div class="col col-xl-2">
                     <div>
                         <h4>Sources</h4>

@@ -171,6 +171,15 @@ $(document).ready(function () {
         if (dataitem.quantity) {
             $("#editQuantity").val(dataitem.quantity);
         }
+        if (dataitem.route_id) {
+            $("#editRouteId").val(dataitem.route_id);
+        }
+        if (dataitem.route_original_id) {
+            $("#editRouteOriId").val(dataitem.route_original_id);
+        }
+        if (dataitem.route_title) {
+            $("#editRouteTitle").val(dataitem.route_title);
+        }
         if (dataitem.feature_term) {
             $("#editFeatureterm").val(dataitem.feature_term);
         }
@@ -230,6 +239,9 @@ $(document).ready(function () {
             tinymce.get("editDescription").getContent()
         );
         formData.append("quantity", $("#editQuantity").val());
+        formData.append("routeId", $("#editRouteId").val());
+        formData.append("routeOriId", $("#editRouteOriId").val());
+        formData.append("routeTitle", $("#editRouteTitle").val());
         formData.append("datestart", $("#editDatestart").val());
         formData.append("dateend", $("#editDateend").val());
         formData.append("state", $("#editState").val());
@@ -267,7 +279,10 @@ $(document).ready(function () {
         $("#editLongitude").val("");
         $("#editRecordtype").val("");
         tinymce.get("editDescription").setContent("");
-        $("#editQuantity").val(null);
+        $("#editQuantity").val("");
+        $("#editRouteId").val("");
+        $("#editRouteOriId").val("");
+        $("#editRouteTitle").val("");
         $("#editFeatureterm").val("");
         $("#editState").val("");
         $("#editDateStartDiv").datepicker("setDate", null);
@@ -347,10 +362,24 @@ $(document).ready(function () {
             isValid = false;
             msgBanner.error("Longitude must be valid from -180 to 180");
         }
-        if (!Validation.naturalNumber($("#editQuantity").val())) {
+        if ($("#editQuantity").val() === "") {
+            // Value of quantity is allowed to be removed
+            isValid = true;
+        } else if (!Validation.naturalNumber($("#editQuantity").val())) {
             isValid = false;
             msgBanner.error(
                 "Quantity must be an integer greater or equal to 0"
+            );
+        }
+        var routeIdValue = $("#editRouteId").val();
+        if (
+            routeIdValue !== "" &&
+            routeIdValue !== "0" &&
+            !Validation.naturalNumber($("#editRouteId").val())
+        ) {
+            isValid = false;
+            msgBanner.error(
+                "GHAP Route ID must be an integer greater or equal to 1"
             );
         }
         if (

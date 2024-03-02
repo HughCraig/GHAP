@@ -65,7 +65,7 @@ class GazetteerController extends Controller
 
     public function bulkFileParser(Request $request)
     {
-        $bulkfile = $request->file->get();//get contents of file
+        $bulkfile = $request->file->get(); //get contents of file
         $names = str_replace(PHP_EOL, ',', $bulkfile); //replace all NEWLINES with commas
 
         //trim edges and replace extra spaces with a single space
@@ -156,7 +156,7 @@ class GazetteerController extends Controller
      *  Gets search results from database relevant to search query
      *  Will serve a view or downloadable object to the user depending on parameters set
      */
-    public function search(Request $request, string $uid = null , string $format = null)
+    public function search(Request $request, string $uid = null, string $format = null)
     {
         if ($request->has('id')) {
             // Single place . Redirect to route places/{id}/{format?}'
@@ -189,10 +189,10 @@ class GazetteerController extends Controller
 
         /* PARAMETERS */
         $parameters = $this->getParameters($request->all());
-        if(isset($uid)){
+        if (isset($uid)) {
             $parameters['id'] = $uid;
         }
-        if(isset($format)){
+        if (isset($format)) {
             $parameters['format'] = $format;
         }
 
@@ -209,6 +209,7 @@ class GazetteerController extends Controller
 
         // Search dataitems.
         $results = $this->searchDataitems($parameters);
+
         /* MAX SIZE CHECK */
         if ($this->maxSizeCheck($results, $parameters['format'], $MAX_PAGING)) return redirect()->route('maxPagingMessage'); //if results > $MAX_PAGING show warning msg
 
@@ -221,6 +222,15 @@ class GazetteerController extends Controller
 
         /* APPLY PAGING/LIMITING */
         $results = $this->paginate($results, $paging); //Turn into a LengthAwarePaginator - APPLIES LIMITING!
+
+        /* MOBILITY DATA CHECKING - whether the returned item having quantity or route_id attribute */
+        $parameters['hasmobinfo'] = [];
+        $parameters['hasmobinfo']['hasquantity'] = $results->contains(function ($item) {
+            return isset($item->quantity);
+        });
+        $parameters['hasmobinfo']['hasrouteid'] = $results->contains(function ($item) {
+            return isset($item->route_id);
+        });
 
         /* OUTPUT */
         return $this->outputs($parameters, $results);
@@ -295,7 +305,7 @@ class GazetteerController extends Controller
             if (!empty($names)) { //if we dont have an empty array
                 //If we are bulk searching from file, skip name and fuzzyname search and search from file instead
                 if ($parameters['names']) {
-                    $dataitems->where(function ($query) use ($names , $parameters) {
+                    $dataitems->where(function ($query) use ($names, $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', $firstcase)->orWhere('placename', 'ILIKE', $firstcase);
                         foreach ($names as $line) {
@@ -306,7 +316,7 @@ class GazetteerController extends Controller
                         }
                     });
                 } else if ($parameters['fuzzynames']) {
-                    $dataitems->where(function ($query) use ($names , $parameters) {
+                    $dataitems->where(function ($query) use ($names, $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', '%' . $firstcase . '%')->orWhereRaw('placename % ?', $firstcase);
                         //$query->where('placename', 'ILIKE', '%'.$firstcase.'%')->orWhere('placename', 'SOUNDS LIKE', $firstcase);
@@ -318,7 +328,7 @@ class GazetteerController extends Controller
                         }
                     });
                 } else if ($parameters['containsnames']) {
-                    $dataitems->where(function ($query) use ($names , $parameters) {
+                    $dataitems->where(function ($query) use ($names, $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', '%' . $firstcase . '%')->orWhere('placename', 'ILIKE', '%' . $firstcase . '%');
                         foreach ($names as $line) {
@@ -331,7 +341,7 @@ class GazetteerController extends Controller
                 }
             } else $dataitems->where('title', '=', null); //we did a bulk search but all of the names equated to empty strings! Show no results
         } else {
-            if ($parameters['name']){
+            if ($parameters['name']) {
                 $dataitems->where(function ($query) use ($parameters) {
                     $query->where('title', 'ILIKE', $parameters['name']);
                     if ($parameters['searchdescription'] === 'on') {
@@ -389,7 +399,7 @@ class GazetteerController extends Controller
 
                     $parts = preg_split($pattern, $extendedDataQuery);
 
-                    if ( count($parts) === 2) {
+                    if (count($parts) === 2) {
                         // Trim and remove quotes
                         $attribute = trim($parts[0], " '\"");
                         $value = trim($parts[1], " '\"");
@@ -438,8 +448,8 @@ class GazetteerController extends Controller
                     case '=':
                         //Parameterized Queries
                         $dataitems->whereNotNull('extended_data')
-                                ->whereRaw('LENGTH(extended_data) > 0')
-                                ->whereRaw("(xpath('string($xpath_query)', extended_data::xml))[1]::text = ?", [$value]);
+                            ->whereRaw('LENGTH(extended_data) > 0')
+                            ->whereRaw("(xpath('string($xpath_query)', extended_data::xml))[1]::text = ?", [$value]);
                         break;
                     case 'before':
                         //Supported date format : yyyy-mm-dd   yyyy-mm   yyyy
@@ -485,7 +495,7 @@ class GazetteerController extends Controller
         if ($parameters['from']) $dataitems->where('id', '>=', $parameters['from']);
         if ($parameters['to']) $dataitems->where('id', '<=', $parameters['to']);
         if ($parameters['state']) $dataitems->where('state', '=', $parameters['state']);
-        if ($parameters['feature_term']){
+        if ($parameters['feature_term']) {
             $searchTerms = explode(';', $parameters['feature_term']);
             $dataitems->wherein('feature_term', $searchTerms);
         }
@@ -532,7 +542,7 @@ class GazetteerController extends Controller
             $dataitems = $this->diSubquery($dataitems, $parameters);
         }
 
-        if (isset($parameters['sort'])  ||  (isset($parameters['line']) && $parameters['line'] === 'time')   ) {
+        if (isset($parameters['sort'])  ||  (isset($parameters['line']) && $parameters['line'] === 'time')) {
 
             $dataitems = Dataset::infillDataitemDates($dataitems);
             $dataitems = $dataitems->where('datestart', '!=', '')->where('dateend', '!=', '');
@@ -554,7 +564,6 @@ class GazetteerController extends Controller
         }
 
         return $collection;
-
     }
 
     /********************/
@@ -751,6 +760,7 @@ class GazetteerController extends Controller
         $headers = array(); //Create an array for headers
         $filename = "tlcmap_output"; //name for the output file
 
+        $headers["hasmobinfo"] = $parameters['hasmobinfo'];
         if ($parameters['format'] == "json") {
             // Note: not sure this chuck part gets called anywhere. May delete this after verification.
             if ($parameters['chunks']) { //if we have sent the chunks parameter through
@@ -765,11 +775,11 @@ class GazetteerController extends Controller
             $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.csv"'; //always download csv
             return FileFormatter::toCSV($results, $headers); //Download
         }
-        if ($parameters['format'] == 'csvContent'){
+        if ($parameters['format'] == 'csvContent') {
             //Internal process only
             //Return the content of the csv report as string by stream_get_contents()
             //Used for ro-crate export of saved search results on multilayers
-            return FileFormatter::toCSVContent($results);
+            return FileFormatter::toCSVContent($results, $parameters['hasmobinfo']);
         }
         if ($parameters['format'] == "kml") {
             // Note: not sure this chuck part gets called anywhere. May delete this after verification.
@@ -790,7 +800,7 @@ class GazetteerController extends Controller
 
         $recordtypes = RecordType::types();
         //else, format as html
-        return view('ws.ghap.places.show', ['details' => $results, 'query' => $results , 'recordtypes' => $recordtypes]);
+        return view('ws.ghap.places.show', ['details' => $results, 'query' => $results, 'recordtypes' => $recordtypes]);
     }
 
     /**
@@ -812,7 +822,6 @@ class GazetteerController extends Controller
         if (sizeOf($reg_out) != 8 && sizeOf($reg_out) != 9) return null;  //8 if final float has no decimals, 9 if it does
 
         return ['min_long' => (float)$reg_out[1], 'min_lat' => (float)$reg_out[3], 'max_long' => (float)$reg_out[5], 'max_lat' => (float)$reg_out[7]];
-
     }
 
     /**
@@ -920,5 +929,4 @@ class GazetteerController extends Controller
     }
 
     /* File Formatting related helper functions all moved to App/Http/Helpers/FileFormatter.php */
-
 }

@@ -96,15 +96,15 @@ class AjaxController extends Controller
         if (!isset($description)) {
             $msg .= "Search description not set. ";
         }
-        if( isset($temporalfrom) ){
+        if (isset($temporalfrom)) {
             $temporalfrom = GeneralFunctions::dateMatchesRegexAndConvertString($temporalfrom);
-            if( !$temporalfrom ){
+            if (!$temporalfrom) {
                 $msg .= "Temporal from date is in incorrect format. ";
             }
         }
-        if( isset($temporalto) ){
+        if (isset($temporalto)) {
             $temporalto = GeneralFunctions::dateMatchesRegexAndConvertString($temporalto);
-            if( !$temporalto ){
+            if (!$temporalto) {
                 $msg .= "Temporal to date is in incorrect format. ";
             }
         }
@@ -163,7 +163,7 @@ class AjaxController extends Controller
 
         if ($msg === "") {
             $savedSearch = SavedSearch::where([['user_id', $user_id], ['id', $delete_id]])->first();
-            if($savedSearch){
+            if ($savedSearch) {
                 $savedSearch->subjectKeywords()->detach();
                 $savedSearch->collections()->detach();
                 $savedSearch->delete();
@@ -185,7 +185,7 @@ class AjaxController extends Controller
         $searchID = $request->id;
 
         $savedSearch = SavedSearch::where([['user_id', $user_id], ['id', $searchID]])->first();
-        if(!$savedSearch){
+        if (!$savedSearch) {
             return redirect('myprofile/mysearches');
         }
 
@@ -214,15 +214,15 @@ class AjaxController extends Controller
         if (!isset($description)) {
             $msg .= "Search description not set. ";
         }
-        if( isset($temporalfrom) ){
+        if (isset($temporalfrom)) {
             $temporalfrom = GeneralFunctions::dateMatchesRegexAndConvertString($temporalfrom);
-            if( !$temporalfrom ){
+            if (!$temporalfrom) {
                 $msg .= "Temporal from date is in incorrect format. ";
             }
         }
-        if( isset($temporalto) ){
+        if (isset($temporalto)) {
             $temporalto = GeneralFunctions::dateMatchesRegexAndConvertString($temporalto);
-            if( !$temporalto ){
+            if (!$temporalto) {
                 $msg .= "Temporal to date is in incorrect format. ";
             }
         }
@@ -311,8 +311,8 @@ class AjaxController extends Controller
     }
 
     /**
-    * Change the order of dataitems in one dataset
-    */
+     * Change the order of dataitems in one dataset
+     */
     public function ajaxchangedataitemorder(Request $request)
     {
         $this->middleware('auth'); // Ensure the user is logged in
@@ -341,8 +341,7 @@ class AjaxController extends Controller
 
     /**
      * Edit this dataitem
-     * TODO:
-     * 1. How to change the order of the point (dataitem) of a mobility route?
+     * TODO: Shall I validate route meta information?
      */
     public function ajaxeditdataitem(Request $request)
     {
@@ -358,6 +357,9 @@ class AjaxController extends Controller
         $dateend = $request->dateend;
         $title = $request->title;
         $quantity = $request->quantity;
+        $route_id = $request->routeId;
+        $route_original_id = $request->routeOriId;
+        $route_title = $request->routeTitle;
         $extendedData = $request->extendedData;
 
         // records must have title, may have placename, if no title, assume placename is title
@@ -387,7 +389,7 @@ class AjaxController extends Controller
             $image = $request->file('image');
 
             // Validate image file.
-            if(!GeneralFunctions::validateUserUploadImage($image)){
+            if (!GeneralFunctions::validateUserUploadImage($image)) {
                 return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
             }
 
@@ -411,6 +413,9 @@ class AjaxController extends Controller
             'datestart' => $datestart,
             'dateend' => $dateend,
             'quantity' => $quantity,
+            "route_id" => $route_id,
+            "route_original_id" => $route_original_id,
+            "route_title" => $route_title,
             'state' => $request->state,
             'feature_term' => $request->featureterm,
             'lga' => $request->lga,
@@ -432,9 +437,6 @@ class AjaxController extends Controller
     /**
      * Add a dataitem to this dataset
      * return data doesnt work as intended, so we set the ajax to just reload (dataitem.js::add data item)
-     * TODO:
-     * 1. How to add a new point (dataitem) to existing mobility route?
-     * 2. How to add new points (dataitems) to a new mobility route?
      */
     public function ajaxadddataitem(Request $request)
     {
@@ -446,12 +448,16 @@ class AjaxController extends Controller
         if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN' && $dataset->pivot->dsrole != 'COLLABORATOR'))
             return redirect('myprofile/mydatasets'); //if dataset not found for this user or not ADMIN/COLLABORATOR, go back
 
+        $route_id = $request->route_id;
         $title = $request->title;
         $latitude = $request->latitude;
         $longitude = $request->longitude;
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
         $description = $request->description;
         $quantity = $request->quantity;
+        $route_id = $request->routeId;
+        $route_original_id = $request->routeOriId;
+        $route_title = $request->routeTitle;
         $datestart = $request->datestart;
         $dateend = $request->dateend;
         $state = $request->state;
@@ -480,7 +486,7 @@ class AjaxController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             //Validate image file.
-            if(!GeneralFunctions::validateUserUploadImage($image)){
+            if (!GeneralFunctions::validateUserUploadImage($image)) {
                 return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
             }
             $filename = time() . '.' . $image->getClientOriginalExtension();
@@ -489,13 +495,76 @@ class AjaxController extends Controller
         $maxOrder = $dataset->dataitems()->max('dataset_order');
         $dataset_order = $maxOrder !== null ? $maxOrder + 1 : 0;
 
-        //verify the format of editted quantity
+        //Validate the format of added quantity
         $eQTY = $quantity;
         if (isset($quantity)) {
             $quantity = GeneralFunctions::naturalNumberMatchesRegex($quantity);
         }
         if ($quantity === false) return response()->json(['error' => 'Your quantity values are in the incorrect format.', 'eQTY' => $eQTY], 422);
 
+        //Validate route information
+        /**
+         * 1. The priority of the route information columns is as follows: route_id > route_original_id > route_title.
+         * 2. If only one attribute exists, the system will find a matching route or create a new one.
+         *    If multiple attributes exist, the system will find the matching route following the priority order.
+         * 3. If the attribute of matched route is none, update the attribute with new added attribute.
+         *    However, if the attribute of matched route is not none, the value of newly added attribute would be ignored.
+         * 4. If no matching route found, a new route_id would be assigned to the newly added place(point).
+         * 5. The format of route_id is constrained to integer.
+         **/
+
+        $route_exists = false;
+        // Define the array of route attributes in priority order
+        $route_attrs = ['route_id', 'route_original_id', 'route_title'];
+
+        // Iterate over the route attributes
+        foreach ($route_attrs as $route_attr) {
+            // Set other route attributes
+            $other_route_attrs = array_diff($route_attrs, [$route_attr]);
+
+            // Check if the attribute is not null and not an empty string
+            if (!is_null($$route_attr) && $$route_attr !== '') {
+
+                // Check if a route exists for the current attribute
+                $route_exists = $dataset->dataitems()->get()->contains($route_attr, $$route_attr);
+
+                // If the matched route isn't found, break the loop
+                if ($route_exists === false) {
+                    continue;
+                }
+
+                // Retrieve the matched route
+                $matched_route = $dataset->dataitems()
+                    ->where($route_attr, $$route_attr)
+                    ->where(function ($query) use ($other_route_attrs) {
+                        // Check if any other attribute in priority order is not null
+                        foreach ($other_route_attrs as $other_route_attr) {
+                            $query->orWhereNotNull($other_route_attr);
+                        }
+                    })
+                    ->first();
+
+                // If a matched route is found, update other attributes if original route atrributes are null
+                if ($matched_route) {
+                    foreach ($other_route_attrs as $other_route_attr) {
+                        $$other_route_attr = $matched_route->$other_route_attr ?? $$other_route_attr;
+                    }
+                }
+
+                // If the matched route is found, and route information of matched route is updated, break the loop
+                if ($route_exists !== false) {
+                    break;
+                }
+            }
+        }
+
+        // If a route does not exist, assign a new route_id
+        if ($route_exists === false) {
+            $max_route_id = $dataset->dataitems()->max('route_id');
+            $route_id = $max_route_id !== null ? $max_route_id + 1 : 1;
+        }
+
+        //match added route information
         $dataitem = Dataitem::create([
             'dataset_id' => $ds_id,
             'title' => $title,
@@ -504,6 +573,9 @@ class AjaxController extends Controller
             'longitude' => $longitude,
             'description' => $description,
             'quantity' => $quantity,
+            'route_id' => $route_id,
+            'route_original_id' => $route_original_id,
+            'route_title' => $route_title,
             'datestart' => $datestart,
             'dateend' => $dateend,
             'state' => $state,
@@ -524,7 +596,7 @@ class AjaxController extends Controller
         }
         // Set extended data.
         if (!empty($extendedData)) {
-            $dataitem->setExtendedData(json_decode($extendedData,true));
+            $dataitem->setExtendedData(json_decode($extendedData, true));
             $isDirty = true;
         }
         if ($isDirty) {

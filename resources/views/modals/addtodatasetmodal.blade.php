@@ -84,6 +84,44 @@
                     {{-- TODO: Not sure how can I validate the number properliy, use the string validation like coordinates for now. --}}
                     {{-- <input type="number" min="0" step="1" class="mb-3 form-control" id="addquantity" placeholder="10"> --}}
 
+                    <!-- Route Info-->
+                    <div class="route-info border p-3">
+                        <p><small>Set the route information if you want to add a place into an exsiting route or create
+                                a place for a new route.</small></p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="addRouteId">
+                                    Route ID</label>
+                                <span tabindex="0" data-html="true" data-animation="true"
+                                    class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
+                                    data-placement="right"
+                                    title="Use the existing Route ID if you want to add a place into an exsiting route in GHAP."></span>
+                                <input type="text" class="mb-3 form-control" id="addRouteId"
+                                    placeholder="Route ID Shown in GHAP">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addRouteOriId">Route Original ID</label>
+                                <span tabindex="1" data-html="true" data-animation="true"
+                                    class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
+                                    data-placement="right"
+                                    title="The Route Original ID will be searched in the exsiting original Route IDs to find the existing system-generated Route ID in this layer. If there is nothing found, a new GHAP Route ID will be generated for this original Route ID"></span>
+                                <input type="text" class="mb-3 form-control" id="addRouteOriId"
+                                    placeholder="Route ID in Your Dataset">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label for="addRouteTitle">Route Title</label>
+                                <span tabindex="1" data-html="true" data-animation="true"
+                                    class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
+                                    data-placement="right"
+                                    title="The Route Title will be searched in the exsiting original Route Titles to find the existing Route Titles in this layer. If there is nothing found, a new GHAP Route ID will be generated for this Route Title."></span>
+                                <input type="text" class="mb-3 form-control" id="addRouteTitle"
+                                    placeholder="Route Title in Your Dataset">
+                            </div>
+                        </div>
+                    </div>
+
                     <label for="addfeatureterm">Feature Term
                         <a href="/guides/featureterms.php" target="_blank">
                             <span tabindex="0" data-html="true" data-animation="true"

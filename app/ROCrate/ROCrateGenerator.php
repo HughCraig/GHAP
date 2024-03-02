@@ -40,7 +40,7 @@ class ROCrateGenerator
             $zip->addFromString(self::getDatasetExportFileName($dataset, 'kml'), $dataset->kml());
 
             //Remove escape slashes from GeoJSON
-            $formattedGeoJSON = json_encode( json_decode($dataset->json()) , JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);  
+            $formattedGeoJSON = json_encode(json_decode($dataset->json()), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             $zip->addFromString(self::getSearchExportFileName('json'), $formattedGeoJSON);
             $zip->close();
             return $zipFile;
@@ -226,13 +226,13 @@ class ROCrateGenerator
                 $directory .= '/';
             }
         }
-    
+
         $dataEntity = new DataEntity('Dataset', empty($directory) ? './' : $directory);
         $dataEntity->set('name', 'GHAP search results: ' . $savedSearch->name);
-        $dataEntity->set('description' , "Export of search results data from GHAP");
-        $dataEntity->set('url', url("search?{$savedSearch->query}")); 
+        $dataEntity->set('description', "Export of search results data from GHAP");
+        $dataEntity->set('url', url("search?{$savedSearch->query}"));
         $dataEntity->set('creator', $savedSearch->getOwnerName());
-        
+
         if (!empty($savedSearch->created_at)) {
             $dataEntity->set('datePublished', $savedSearch->created_at->toDateString());
         }
@@ -244,7 +244,7 @@ class ROCrateGenerator
         $csvEntity = new DataEntity('File', $directory . self::getSavedSearchExportFileName($savedSearch, 'csv'));
         $csvEntity->set('name', "CSV export of search result {$savedSearch->name}");
         $csvEntity->set('description', "CSV export of the search results");
-        $csvEntity->set('encodingFormat', 'text/csv'); 
+        $csvEntity->set('encodingFormat', 'text/csv');
         $dataEntity->addPart($csvEntity);
 
         $kmlEntity = new DataEntity('File', $directory . self::getSavedSearchExportFileName($savedSearch, 'kml'));
@@ -277,7 +277,7 @@ class ROCrateGenerator
 
     /**
      * Create the RO-Crate zip archive for a collection.
-     * 
+     *
      * @param Collection $collection
      *   The collection object.
      * @param $path
@@ -286,7 +286,7 @@ class ROCrateGenerator
      *   The file path of the zip archive, or null on fail.
      */
     public static function generateCollectionCrate(Collection $collection, $path = null)
-    {        
+    {
         if ($collection->datasets->count() > 0 || $collection->savedSearches->count() > 0) {
             $zip = new \ZipArchive();
             if (empty($path)) {
@@ -294,7 +294,7 @@ class ROCrateGenerator
                 $zipFile = tempnam(sys_get_temp_dir(), 'GHAP');
             } else {
                 $zipFile = $path;
-            }      
+            }
             if ($zipFile && $zip->open($zipFile, \ZipArchive::CREATE) === TRUE) {
                 $metadata = self::generateCollectionMetadata($collection);
                 $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
@@ -307,8 +307,8 @@ class ROCrateGenerator
                     $zip->addFromString($directory . '/' . self::getDatasetExportFileName($dataset, 'kml'), $dataset->kml());
 
                     //Remove escape slashes from GeoJSON
-                    $formattedGeoJSON = json_encode( json_decode($dataset->json()) , JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);  
-                    $zip->addFromString($directory . '/' . self::getDatasetExportFileName($dataset, 'json'), $formattedGeoJSON );
+                    $formattedGeoJSON = json_encode(json_decode($dataset->json()), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                    $zip->addFromString($directory . '/' . self::getDatasetExportFileName($dataset, 'json'), $formattedGeoJSON);
                 }
 
                 //Add saved search files to zip
@@ -322,7 +322,7 @@ class ROCrateGenerator
                     // The current searching functions are tightly coupled with the search controller. To reuse the search
                     // functions, it has to create the dummy requests to the controller.
                     // Ideally, the search functions should be refactored into independent modules which can be resued easily.
-                                     
+
                     //Csv
                     // &format=csvContent parameters returns the content of the csv as string by stream_get_contents()
                     $url = url("/search" . $savedSearch->query . '&format=csvContent');
@@ -330,7 +330,7 @@ class ROCrateGenerator
                     $fakeRequest = Request::create('/dummy-path', 'GET', $queryParameters);
                     $res = (new GazetteerController())->search($fakeRequest);
                     // Check if $res is a response object and extract content
-                    if($res instanceof \Illuminate\Http\Response) {
+                    if ($res instanceof \Illuminate\Http\Response) {
                         $content = $res->getContent();
                     } else {
                         $content = $res;
@@ -343,7 +343,7 @@ class ROCrateGenerator
                     $fakeRequest = Request::create('/dummy-path', 'GET', $queryParameters);
                     $res = (new GazetteerController())->search($fakeRequest);
                     // Check if $res is a response object and extract content
-                    if($res instanceof \Illuminate\Http\Response) {
+                    if ($res instanceof \Illuminate\Http\Response) {
                         $content = $res->getContent();
                     } else {
                         $content = $res;
@@ -356,8 +356,8 @@ class ROCrateGenerator
                     $fakeRequest = Request::create('/dummy-path', 'GET', $queryParameters);
                     $res = (new GazetteerController())->search($fakeRequest);
                     // Check if $res is a response object and extract content
-                    if($res instanceof \Illuminate\Http\Response) {
-                        $content = json_encode(json_decode($res->getContent()),JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ;
+                    if ($res instanceof \Illuminate\Http\Response) {
+                        $content = json_encode(json_decode($res->getContent()), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
                     } else {
                         $content = $res;
                     }
@@ -523,11 +523,15 @@ class ROCrateGenerator
             $metadata = self::generateSearchMetadata($parameters);
             $zip->addFromString('ro-crate-metadata.json', json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             $zip->addFromString('ro-crate-preview.html', self::generateSearchHtml($metadata));
-            $zip->addFromString(self::getSearchExportFileName('csv'), FileFormatter::toCSVContent($results));
+            if (isset($parameters['hasmobinfo'])) {
+                $zip->addFromString(self::getSearchExportFileName('csv'), FileFormatter::toCSVContent($results, $parameters['hasmobinfo']));
+            } else {
+                $zip->addFromString(self::getSearchExportFileName('csv'), FileFormatter::toCSVContent($results));
+            }
             $zip->addFromString(self::getSearchExportFileName('kml'), FileFormatter::toKML2($results, $parameters));
 
             //Remove escape slashes from GeoJSON
-            $formattedGeoJSON = json_encode( json_decode(FileFormatter::toGeoJSON($results)) , JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);  
+            $formattedGeoJSON = json_encode(json_decode(FileFormatter::toGeoJSON($results)), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             $zip->addFromString(self::getSearchExportFileName('json'), $formattedGeoJSON);
             $zip->close();
             return $zipFile;

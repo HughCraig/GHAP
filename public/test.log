@@ -1,502 +1,227 @@
-array (
-  0 => 
+Illuminate\Http\Request::__set_state(array(
+   'json' => NULL,
+   'convertedFiles' => 
   array (
-    'type' => 'Feature',
-    'geometry' => 
-    array (
-      'type' => 'Point',
-      'coordinates' => 
-      array (
-        0 => 153.0251,
-        1 => -27.4698,
-      ),
-    ),
-    'properties' => 
-    array (
-      'name' => 'Brisbane',
-      'placename' => 'Brisbane',
-      'description' => 'ehuqh v',
-      'quantity' => 900,
-      'logQuantity' => 6.8,
-      'route_id' => 1,
-      'route_title' => 'Title of Journey A',
-      'stop_idx' => 1,
-      'id' => 'tb5224',
-      'datestart' => '1723',
-      'dateend' => '1723',
-      'udatestart' => -7794612000000,
-      'udateend' => -7794612000000,
-      'latitude' => '-27.4698',
-      'longitude' => '153.0251',
-      'route_description' => 'Description of A',
-      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5224',
-      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
-    ),
-    'display' => 
-    array (
-      'popup' => 
-      array (
-        'links' => 
-        array (
-          0 => 
-          array (
-            'text' => 'TLCMap Record: tb5224',
-            'link' => 'http://ghap.test/search?id=tb5224',
-          ),
-          1 => 
-          array (
-            'text' => 'TLCMap Layer',
-            'link' => 'http://ghap.test/publicdatasets/562',
-          ),
-        ),
-      ),
-    ),
   ),
-  1 => 
-  array (
-    'type' => 'Feature',
-    'geometry' => 
+   'userResolver' => 
+  Closure::__set_state(array(
+  )),
+   'routeResolver' => 
+  Closure::__set_state(array(
+  )),
+   'attributes' => 
+  Symfony\Component\HttpFoundation\ParameterBag::__set_state(array(
+     'parameters' => 
     array (
-      'type' => 'Point',
-      'coordinates' => 
-      array (
-        0 => 145.7781,
-        1 => -16.9186,
-      ),
     ),
-    'properties' => 
+  )),
+   'request' => 
+  Symfony\Component\HttpFoundation\ParameterBag::__set_state(array(
+     'parameters' => 
     array (
-      'name' => 'Cairns',
-      'placename' => 'Cairns',
-      'description' => 'feqhuw',
-      'quantity' => 221,
-      'logQuantity' => 5.4,
-      'route_id' => 1,
-      'route_title' => 'Title of Journey A',
-      'stop_idx' => 2,
-      'id' => 'tb5225',
-      'datestart' => '1782',
-      'dateend' => '1782',
-      'udatestart' => -5932692000000,
-      'udateend' => -5932692000000,
-      'latitude' => '-16.9186',
-      'longitude' => '145.7781',
-      'route_description' => 'Description of A',
-      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5225',
-      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
-    ),
-    'display' => 
-    array (
-      'popup' => 
-      array (
-        'links' => 
-        array (
-          0 => 
-          array (
-            'text' => 'TLCMap Record: tb5225',
-            'link' => 'http://ghap.test/search?id=tb5225',
-          ),
-          1 => 
-          array (
-            'text' => 'TLCMap Layer',
-            'link' => 'http://ghap.test/publicdatasets/562',
-          ),
-        ),
-      ),
-    ),
-  ),
-  2 => 
-  array (
-    'type' => 'Feature',
-    'geometry' => 
-    array (
-      'type' => 'Point',
-      'coordinates' => 
-      array (
-        0 => -2.9916,
-        1 => 53.4084,
-      ),
-    ),
-    'properties' => 
-    array (
-      'name' => 'Liverpool',
-      'placename' => 'Liverpool',
-      'description' => 'ghueoiq',
-      'quantity' => 1412,
-      'logQuantity' => 7.25,
-      'route_id' => 1,
-      'route_title' => 'Title of Journey A',
-      'stop_idx' => 3,
-      'id' => 'tb5222',
-      'datestart' => '1800',
-      'dateend' => '1800',
-      'udatestart' => -5364698400000,
-      'udateend' => -5364698400000,
-      'latitude' => '53.4084',
-      'longitude' => '-2.9916',
-      'route_description' => 'Description of A',
-      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5222',
-      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
-    ),
-    'display' => 
-    array (
-      'popup' => 
-      array (
-        'links' => 
-        array (
-          0 => 
-          array (
-            'text' => 'TLCMap Record: tb5222',
-            'link' => 'http://ghap.test/search?id=tb5222',
-          ),
-          1 => 
-          array (
-            'text' => 'TLCMap Layer',
-            'link' => 'http://ghap.test/publicdatasets/562',
-          ),
-        ),
-      ),
-    ),
-  ),
-  3 => 
-  array (
-    'type' => 'Feature',
-    'geometry' => 
-    array (
-      'type' => 'Point',
-      'coordinates' => 
-      array (
-        0 => 153.0251,
-        1 => -27.4698,
-      ),
-    ),
-    'properties' => 
-    array (
-      'name' => 'Brisbane',
-      'placename' => 'Brisbane',
-      'description' => 'enfuqp',
-      'quantity' => 1000,
-      'logQuantity' => 6.91,
-      'route_id' => 1,
-      'route_title' => 'Title of Journey A',
-      'stop_idx' => 4,
-      'id' => 'tb5223',
-      'datestart' => '1801',
-      'dateend' => '1801',
-      'udatestart' => -5333162400000,
-      'udateend' => -5333162400000,
-      'latitude' => '-27.4698',
-      'longitude' => '153.0251',
-      'route_description' => 'Description of A',
-      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5223',
-      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
-    ),
-    'display' => 
-    array (
-      'popup' => 
-      array (
-        'links' => 
-        array (
-          0 => 
-          array (
-            'text' => 'TLCMap Record: tb5223',
-            'link' => 'http://ghap.test/search?id=tb5223',
-          ),
-          1 => 
-          array (
-            'text' => 'TLCMap Layer',
-            'link' => 'http://ghap.test/publicdatasets/562',
-          ),
-        ),
-      ),
-    ),
-  ),
-  4 => 
-  array (
-    'type' => 'Feature',
-    'geometry' => 
-    array (
-      'type' => 'Point',
-      'coordinates' => 
-      array (
-        0 => -1.087,
-        1 => 50.8195,
-      ),
-    ),
-    'properties' => 
-    array (
-      'name' => 'Portsmouth',
-      'placename' => 'Portsmouth',
-      'description' => 'ehquep',
-      'quantity' => 834,
-      'logQuantity' => 6.73,
-      'route_id' => 2,
-      'route_title' => 'Title of Journey C',
-      'stop_idx' => 1,
-      'id' => 'tb5226',
-      'datestart' => '1787',
-      'dateend' => '1787',
-      'udatestart' => -5774925600000,
-      'udateend' => -5774925600000,
-      'latitude' => '50.8195',
-      'longitude' => '-1.087',
-      'route_description' => 'Description of C',
-      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5226',
-      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
-    ),
-    'display' => 
-    array (
-      'popup' => 
-      array (
-        'links' => 
-        array (
-          0 => 
-          array (
-            'text' => 'TLCMap Record: tb5226',
-            'link' => 'http://ghap.test/search?id=tb5226',
-          ),
-          1 => 
-          array (
-            'text' => 'TLCMap Layer',
-            'link' => 'http://ghap.test/publicdatasets/562',
-          ),
-        ),
-      ),
-    ),
-  ),
-  5 => 
-  array (
-    'type' => 'Feature',
-    'geometry' => 
-    array (
-      'type' => 'Point',
-      'coordinates' => 
-      array (
-        0 => 151.2093,
-        1 => -33.8688,
-      ),
-    ),
-    'properties' => 
-    array (
-      'name' => 'Sydney',
+      'id' => '742541',
+      'ds_id' => '575',
+      'title' => 'Sydney',
       'placename' => 'Sydney',
-      'description' => 'fenqiuwpe',
-      'quantity' => 500,
-      'logQuantity' => 6.21,
-      'route_id' => 2,
-      'route_title' => 'Title of Journey C',
-      'stop_idx' => 2,
-      'id' => 'tb5227',
-      'datestart' => '1788',
-      'dateend' => '1788',
-      'udatestart' => -5743389600000,
-      'udateend' => -5743389600000,
-      'latitude' => '-33.8688',
-      'longitude' => '151.2093',
-      'route_description' => 'Description of C',
-      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5227',
-      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
+      'recordtype' => 'Other',
+      'latitude' => '-33.8698',
+      'longitude' => '151.2083',
+      'description' => NULL,
+      'quantity' => '210',
+      'routeId' => '1',
+      'routeOriId' => 'A',
+      'routeTitle' => 'Title of Journey A',
+      'datestart' => '1823',
+      'dateend' => '1823',
+      'state' => NULL,
+      'featureterm' => NULL,
+      'lga' => NULL,
+      'url' => NULL,
+      'source' => NULL,
+      'extendedData' => '{"route_description":"fjwio"}',
     ),
-    'display' => 
+  )),
+   'query' => 
+  Symfony\Component\HttpFoundation\ParameterBag::__set_state(array(
+     'parameters' => 
     array (
-      'popup' => 
+    ),
+  )),
+   'server' => 
+  Symfony\Component\HttpFoundation\ServerBag::__set_state(array(
+     'parameters' => 
+    array (
+      'REDIRECT_STATUS' => '200',
+      'HTTP_HOST' => 'ghap.test',
+      'HTTP_CONNECTION' => 'keep-alive',
+      'CONTENT_LENGTH' => '2036',
+      'HTTP_ACCEPT' => '*/*',
+      'HTTP_X_CSRF_TOKEN' => 'iqe9mb6DEzgVp2wfrJ4wbmhIC2PFYU1OpXuoXUl0',
+      'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
+      'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      'CONTENT_TYPE' => 'multipart/form-data; boundary=----WebKitFormBoundaryG89DVsWaIdba1wdp',
+      'HTTP_ORIGIN' => 'http://ghap.test',
+      'HTTP_REFERER' => 'http://ghap.test/myprofile/mydatasets/575',
+      'HTTP_ACCEPT_ENCODING' => 'gzip, deflate',
+      'HTTP_ACCEPT_LANGUAGE' => 'zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7',
+      'HTTP_COOKIE' => 'helpVideoPlayed=1; remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6Im9NeHVrNDUyanFJMStaR3hcLzZiQ1hRPT0iLCJ2YWx1ZSI6IjBra2I3NWp4TzRwOEg5dEd1N1Fld3M4WTBLd29xcGJidkJpMjd6UEdLT3dDeU9IV1NXYlhCdE4wbXYwZUpmaTNvNThiMzFzVGdhTGUrcUhHQWxzSVYweDZZTGdGTUxia25DUHJKMldyU3o1R2IyMHp2bis3QjNVcXJDQXMzOFRvd29TQkN2b2s4UWZjaDAycTZHQ3VIUHVTSnZQVFcrTGU5WWRtM1BpUXFHdz0iLCJtYWMiOiI2MGM1OThkMzI0ODNhNDJiYzI2NmI4OTdjMjFjZjBjYmE0OGY5MGIwNWZkMzk4MjJmYjNjZGNiOGQ3ZmIwZTdlIn0%3D; _gid=GA1.2.1354365337.1709272336; _gat_gtag_UA_144578859_1=1; _ga_XDYZQTNPQP=GS1.1.1709352052.90.1.1709352493.0.0.0; _ga=GA1.1.1495135631.1701304131; XSRF-TOKEN=eyJpdiI6Ilo3NEJVSlpUZmZFK1wvdWZUVDc0ZXBRPT0iLCJ2YWx1ZSI6IjEyQXA5XC9ma200NmRJWjV6OEp4b0xpSngrVFU3dlBIRm9hZmNMTHhpK1g3SndIVGMwMEFkSGpQT3h0ell6WTIyIiwibWFjIjoiYWM0OTYyNzcxMDBkMTFhMzJhMGE0ZjljOTE2MTAwMjdiNmI5ZWJhNjc0N2YxZjVlMjI1NzMwNmEzYWRkMTgwYyJ9; ghap_session=eyJpdiI6IkZpTGRqMExOSnBrXC9VVFd1Ykw4eTd3PT0iLCJ2YWx1ZSI6IlhxUnJCNDZcL3I5NEE3XC9QdzNsUUY3RHB2em0wVlF0ZDE3WjFERkFBZTVJUVhPdk9weFkzanAwQ3pDT0NXcm1qRCIsIm1hYyI6IjYxYmY3MTYxMzg1NTdkYjZjMDlhODBjM2ZlZDdhZWVkZWI4ZmNjOGZmZWM5ZWI2YzI5MWVjNjFjYjVmYWQ2NGYifQ%3D%3D',
+      'PATH' => 'C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\PuTTY\\;C:\\Program Files\\nodejs\\;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Oracle\\VirtualBox\\;C:\\Program Files\\PostgreSQL\\13\\bin;C:\\laragon\\bin;C:\\laragon\\bin\\apache\\httpd-2.4.54-win64-VS16\\bin;C:\\laragon\\bin\\composer;C:\\laragon\\bin\\git\\bin;C:\\laragon\\bin\\git\\cmd;C:\\laragon\\bin\\git\\mingw64\\bin;C:\\laragon\\bin\\git\\usr\\bin;C:\\laragon\\bin\\laragon\\utils;C:\\laragon\\bin\\mysql\\mysql-8.0.30-winx64\\bin;C:\\laragon\\bin\\nginx\\nginx-1.22.0;C:\\laragon\\bin\\ngrok;C:\\laragon\\bin\\nodejs\\node-v18;C:\\laragon\\bin\\notepad++;C:\\laragon\\bin\\php\\php-7.1.30-Win32-VC14-x64;C:\\laragon\\bin\\python\\python-3.10;C:\\laragon\\bin\\python\\python-3.10\\Scripts;C:\\laragon\\bin\\redis\\redis-x64-5.0.14.1;C:\\laragon\\bin\\telnet;C:\\laragon\\usr\\bin;C:\\Users\\zheng\\AppData\\Local\\Yarn\\config\\global\\node_modules\\.bin;C:\\Users\\zheng\\AppData\\Roaming\\Composer\\vendor\\bin;C:\\Users\\zheng\\AppData\\Roaming\\npm;C:\\Program Files\\MySQL\\MySQL Shell 8.0\\bin\\;C:\\Users\\zheng\\AppData\\Local\\Microsoft\\WindowsApps;D:\\Portable Program Files\\rclone;C:\\Users\\zheng\\AppData\\Local\\GitHubDesktop\\bin;',
+      'SystemRoot' => 'C:\\Windows',
+      'COMSPEC' => 'C:\\Windows\\system32\\cmd.exe',
+      'PATHEXT' => '.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC',
+      'WINDIR' => 'C:\\Windows',
+      'SERVER_SIGNATURE' => '',
+      'SERVER_SOFTWARE' => 'Apache/2.4.54 (Win64) OpenSSL/1.1.1m PHP/7.2.5',
+      'SERVER_NAME' => 'ghap.test',
+      'SERVER_ADDR' => '127.0.0.1',
+      'SERVER_PORT' => '80',
+      'REMOTE_ADDR' => '127.0.0.1',
+      'DOCUMENT_ROOT' => 'C:/ProjectCollections/Programs/TLCMap/GHAP/public',
+      'REQUEST_SCHEME' => 'http',
+      'CONTEXT_PREFIX' => '',
+      'CONTEXT_DOCUMENT_ROOT' => 'C:/ProjectCollections/Programs/TLCMap/GHAP/public',
+      'SERVER_ADMIN' => 'admin@example.com',
+      'SCRIPT_FILENAME' => 'C:/ProjectCollections/Programs/TLCMap/GHAP/public/index.php',
+      'REMOTE_PORT' => '1800',
+      'REDIRECT_URL' => '/ajaxeditdataitem',
+      'GATEWAY_INTERFACE' => 'CGI/1.1',
+      'SERVER_PROTOCOL' => 'HTTP/1.1',
+      'REQUEST_METHOD' => 'POST',
+      'QUERY_STRING' => '',
+      'REQUEST_URI' => '/ajaxeditdataitem',
+      'SCRIPT_NAME' => '/index.php',
+      'PHP_SELF' => '/index.php',
+      'REQUEST_TIME_FLOAT' => 1709352542.039,
+      'REQUEST_TIME' => 1709352542,
+    ),
+  )),
+   'files' => 
+  Symfony\Component\HttpFoundation\FileBag::__set_state(array(
+     'parameters' => 
+    array (
+    ),
+  )),
+   'cookies' => 
+  Symfony\Component\HttpFoundation\ParameterBag::__set_state(array(
+     'parameters' => 
+    array (
+      'helpVideoPlayed' => NULL,
+      'remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d' => '102|TGuCLn3E9uo6m8HcW9KUBsgS1EYn3AwJ4nGIliMhbSqJqRJV3gy7Suib45sB|$2y$10$6PSx2JzYEJfeNqUai91P4ezJQaDVXWIujQMgG1qqJ4IkUFhyXhbum',
+      '_gid' => NULL,
+      '_gat_gtag_UA_144578859_1' => NULL,
+      '_ga_XDYZQTNPQP' => NULL,
+      '_ga' => NULL,
+      'XSRF-TOKEN' => 'iqe9mb6DEzgVp2wfrJ4wbmhIC2PFYU1OpXuoXUl0',
+      'ghap_session' => 'ym19SJUjgIgbu7UHDVSL5qKwU4Bpw00UNoj8mB9L',
+    ),
+  )),
+   'headers' => 
+  Symfony\Component\HttpFoundation\HeaderBag::__set_state(array(
+     'headers' => 
+    array (
+      'host' => 
       array (
-        'links' => 
-        array (
-          0 => 
-          array (
-            'text' => 'TLCMap Record: tb5227',
-            'link' => 'http://ghap.test/search?id=tb5227',
-          ),
-          1 => 
-          array (
-            'text' => 'TLCMap Layer',
-            'link' => 'http://ghap.test/publicdatasets/562',
-          ),
-        ),
+        0 => 'ghap.test',
+      ),
+      'connection' => 
+      array (
+        0 => 'keep-alive',
+      ),
+      'content-length' => 
+      array (
+        0 => '2036',
+      ),
+      'accept' => 
+      array (
+        0 => '*/*',
+      ),
+      'x-csrf-token' => 
+      array (
+        0 => 'iqe9mb6DEzgVp2wfrJ4wbmhIC2PFYU1OpXuoXUl0',
+      ),
+      'x-requested-with' => 
+      array (
+        0 => 'XMLHttpRequest',
+      ),
+      'user-agent' => 
+      array (
+        0 => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      ),
+      'content-type' => 
+      array (
+        0 => 'multipart/form-data; boundary=----WebKitFormBoundaryG89DVsWaIdba1wdp',
+      ),
+      'origin' => 
+      array (
+        0 => 'http://ghap.test',
+      ),
+      'referer' => 
+      array (
+        0 => 'http://ghap.test/myprofile/mydatasets/575',
+      ),
+      'accept-encoding' => 
+      array (
+        0 => 'gzip, deflate',
+      ),
+      'accept-language' => 
+      array (
+        0 => 'zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7',
+      ),
+      'cookie' => 
+      array (
+        0 => 'helpVideoPlayed=1; remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d=eyJpdiI6Im9NeHVrNDUyanFJMStaR3hcLzZiQ1hRPT0iLCJ2YWx1ZSI6IjBra2I3NWp4TzRwOEg5dEd1N1Fld3M4WTBLd29xcGJidkJpMjd6UEdLT3dDeU9IV1NXYlhCdE4wbXYwZUpmaTNvNThiMzFzVGdhTGUrcUhHQWxzSVYweDZZTGdGTUxia25DUHJKMldyU3o1R2IyMHp2bis3QjNVcXJDQXMzOFRvd29TQkN2b2s4UWZjaDAycTZHQ3VIUHVTSnZQVFcrTGU5WWRtM1BpUXFHdz0iLCJtYWMiOiI2MGM1OThkMzI0ODNhNDJiYzI2NmI4OTdjMjFjZjBjYmE0OGY5MGIwNWZkMzk4MjJmYjNjZGNiOGQ3ZmIwZTdlIn0%3D; _gid=GA1.2.1354365337.1709272336; _gat_gtag_UA_144578859_1=1; _ga_XDYZQTNPQP=GS1.1.1709352052.90.1.1709352493.0.0.0; _ga=GA1.1.1495135631.1701304131; XSRF-TOKEN=eyJpdiI6Ilo3NEJVSlpUZmZFK1wvdWZUVDc0ZXBRPT0iLCJ2YWx1ZSI6IjEyQXA5XC9ma200NmRJWjV6OEp4b0xpSngrVFU3dlBIRm9hZmNMTHhpK1g3SndIVGMwMEFkSGpQT3h0ell6WTIyIiwibWFjIjoiYWM0OTYyNzcxMDBkMTFhMzJhMGE0ZjljOTE2MTAwMjdiNmI5ZWJhNjc0N2YxZjVlMjI1NzMwNmEzYWRkMTgwYyJ9; ghap_session=eyJpdiI6IkZpTGRqMExOSnBrXC9VVFd1Ykw4eTd3PT0iLCJ2YWx1ZSI6IlhxUnJCNDZcL3I5NEE3XC9QdzNsUUY3RHB2em0wVlF0ZDE3WjFERkFBZTVJUVhPdk9weFkzanAwQ3pDT0NXcm1qRCIsIm1hYyI6IjYxYmY3MTYxMzg1NTdkYjZjMDlhODBjM2ZlZDdhZWVkZWI4ZmNjOGZmZWM5ZWI2YzI5MWVjNjFjYjVmYWQ2NGYifQ%3D%3D',
       ),
     ),
-  ),
-  6 => 
-  array (
-    'type' => 'Feature',
-    'geometry' => 
+     'cacheControl' => 
     array (
-      'type' => 'Point',
-      'coordinates' => 
-      array (
-        0 => 151.2093,
-        1 => -33.8688,
-      ),
     ),
-    'properties' => 
+  )),
+   'content' => NULL,
+   'languages' => NULL,
+   'charsets' => NULL,
+   'encodings' => NULL,
+   'acceptableContentTypes' => NULL,
+   'pathInfo' => '/ajaxeditdataitem',
+   'requestUri' => '/ajaxeditdataitem',
+   'baseUrl' => '',
+   'basePath' => NULL,
+   'method' => 'POST',
+   'format' => NULL,
+   'session' => 
+  Illuminate\Session\Store::__set_state(array(
+     'id' => 'ym19SJUjgIgbu7UHDVSL5qKwU4Bpw00UNoj8mB9L',
+     'name' => 'ghap_session',
+     'attributes' => 
     array (
-      'name' => 'Sydney',
-      'placename' => 'Sydney',
-      'description' => 'ehquipe',
-      'quantity' => 500,
-      'logQuantity' => 6.21,
-      'route_id' => 2,
-      'route_title' => 'Title of Journey C',
-      'stop_idx' => 3,
-      'id' => 'tb5228',
-      'datestart' => '1788',
-      'dateend' => '1788',
-      'udatestart' => -5743389600000,
-      'udateend' => -5743389600000,
-      'latitude' => '-33.8688',
-      'longitude' => '151.2093',
-      'route_description' => 'Description of C',
-      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5228',
-      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
-    ),
-    'display' => 
-    array (
-      'popup' => 
+      '_token' => 'iqe9mb6DEzgVp2wfrJ4wbmhIC2PFYU1OpXuoXUl0',
+      'login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d' => 102,
+      '_flash' => 
       array (
-        'links' => 
+        'old' => 
         array (
-          0 => 
-          array (
-            'text' => 'TLCMap Record: tb5228',
-            'link' => 'http://ghap.test/search?id=tb5228',
-          ),
-          1 => 
-          array (
-            'text' => 'TLCMap Layer',
-            'link' => 'http://ghap.test/publicdatasets/562',
-          ),
+        ),
+        'new' => 
+        array (
         ),
       ),
-    ),
-  ),
-  7 => 
-  array (
-    'type' => 'Feature',
-    'geometry' => 
-    array (
-      'type' => 'Point',
-      'coordinates' => 
+      '_previous' => 
       array (
-        0 => 144.9631,
-        1 => -37.8136,
+        'url' => 'http://ghap.test/myprofile/mydatasets/575',
       ),
     ),
-    'properties' => 
-    array (
-      'name' => 'Melbourne',
-      'placename' => 'Melbourne',
-      'description' => 'fenquip',
-      'quantity' => 200,
-      'logQuantity' => 5.3,
-      'route_id' => 2,
-      'route_title' => 'Title of Journey C',
-      'stop_idx' => 4,
-      'id' => 'tb5229',
-      'datestart' => '1788',
-      'dateend' => '1788',
-      'udatestart' => -5743389600000,
-      'udateend' => -5743389600000,
-      'latitude' => '-37.8136',
-      'longitude' => '144.9631',
-      'route_description' => 'Description of C',
-      'TLCMapLinkBack' => 'http://ghap.test/search?id=tb5229',
-      'TLCMapDataset' => 'http://ghap.test/publicdatasets/562',
-    ),
-    'display' => 
-    array (
-      'popup' => 
-      array (
-        'links' => 
-        array (
-          0 => 
-          array (
-            'text' => 'TLCMap Record: tb5229',
-            'link' => 'http://ghap.test/search?id=tb5229',
-          ),
-          1 => 
-          array (
-            'text' => 'TLCMap Layer',
-            'link' => 'http://ghap.test/publicdatasets/562',
-          ),
-        ),
-      ),
-    ),
-  ),
-  8 => 
-  array (
-    'type' => 'Feature',
-    'geometry' => 
-    array (
-      'type' => 'LineString',
-      'coordinates' => 
-      array (
-        0 => 
-        array (
-          0 => '153.0251',
-          1 => '-27.4698',
-        ),
-        1 => 
-        array (
-          0 => '145.7781',
-          1 => '-16.9186',
-        ),
-        2 => 
-        array (
-          0 => '-2.9916',
-          1 => '53.4084',
-        ),
-        3 => 
-        array (
-          0 => '153.0251',
-          1 => '-27.4698',
-        ),
-      ),
-    ),
-    'properties' => 
-    array (
-      'title' => 'Title of Journey A',
-      'route_id' => 1,
-      'route_title' => 'Title of Journey A',
-      'route_description' => 'No detailed description',
-    ),
-  ),
-  9 => 
-  array (
-    'type' => 'Feature',
-    'geometry' => 
-    array (
-      'type' => 'LineString',
-      'coordinates' => 
-      array (
-        0 => 
-        array (
-          0 => '-1.087',
-          1 => '50.8195',
-        ),
-        1 => 
-        array (
-          0 => '151.2093',
-          1 => '-33.8688',
-        ),
-        2 => 
-        array (
-          0 => '151.2093',
-          1 => '-33.8688',
-        ),
-        3 => 
-        array (
-          0 => '144.9631',
-          1 => '-37.8136',
-        ),
-      ),
-    ),
-    'properties' => 
-    array (
-      'title' => 'Title of Journey C',
-      'route_id' => 2,
-      'route_title' => 'Title of Journey C',
-      'route_description' => 'No detailed description',
-    ),
-  ),
-)
+     'handler' => 
+    Illuminate\Session\FileSessionHandler::__set_state(array(
+       'files' => 
+      Illuminate\Filesystem\Filesystem::__set_state(array(
+      )),
+       'path' => 'C:\\ProjectCollections\\Programs\\TLCMap\\GHAP\\storage\\framework/sessions',
+       'minutes' => '120',
+    )),
+     'started' => true,
+  )),
+   'locale' => NULL,
+   'defaultLocale' => 'en',
+   'preferredFormat' => NULL,
+   'isHostValid' => true,
+   'isForwardedValid' => true,
+))

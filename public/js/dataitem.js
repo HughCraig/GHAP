@@ -108,6 +108,10 @@ const getAddDataitemRequestData = function () {
     formData.append("latitude", $("#addlatitude").val());
     formData.append("longitude", $("#addlongitude").val());
     formData.append("description", tinymce.get("adddescription").getContent());
+    formData.append("quantity", $("#addquantity").val());
+    formData.append("routeId", $("#addRouteId").val());
+    formData.append("routeOriId", $("#addRouteOriId").val());
+    formData.append("routeTitle", $("#addRouteTitle").val());
     formData.append("datestart", $("#adddatestart").val());
     formData.append("dateend", $("#adddateend").val());
     formData.append("state", $("#addstate").children("option:selected").val());
@@ -165,6 +169,17 @@ $("main").on("click", "#add_dataitem_button_submit", function () {
     ) {
         isValid = false;
         msgBanner.error("Quantity must be an integer greater or equal to 0");
+    }
+    var routeIdValue = $("#addRouteId").val();
+    if (
+        routeIdValue !== "" &&
+        routeIdValue !== "0" &&
+        !Validation.naturalNumber($("#addRouteId").val())
+    ) {
+        isValid = false;
+        msgBanner.error(
+            "GHAP Route ID must be an integer greater or equal to 1"
+        );
     }
     if (
         $("#adddatestart").val() !== "" &&
@@ -231,6 +246,17 @@ $("main").on("click", "#add_dataitem_button_submit", function () {
                 else
                     document
                         .getElementById("addquantity")
+                        .classList.remove("is-invalid");
+                if (
+                    result.hasOwnProperty("routeId") &&
+                    result.eRouteId === false
+                )
+                    document
+                        .getElementById("addRouteId")
+                        .classList.add("is-invalid");
+                else
+                    document
+                        .getElementById("addRouteId")
                         .classList.remove("is-invalid");
                 if (result.hasOwnProperty("error")) alert(result.error);
                 else alert(xhr.responseText); //error message with error info
@@ -331,9 +357,18 @@ $("main").on("click", '[name="edit_dataitem_button"]', function () {
     var description = $("#row_id_" + id + " td")
         .find("#description")
         .val();
-    var quantity = $("#row_id_" + id + " td")
-        .find("#quantity")
-        .val();
+    // var quantity = $("#row_id_" + id + " td")
+    //     .find("#quantity")
+    //     .val();
+    // var routeId = $("#row_id_" + id + " td")
+    //     .find("#routeId")
+    //     .val();
+    // var routeOriId = $("#row_id_" + id + " td")
+    //     .find("#quantity")
+    //     .val();
+    // var routeTitle = $("#row_id_" + id + " td")
+    //     .find("#quantity")
+    //     .val();
     var datestart = $("#row_id_" + id + " td")
         .find("#datestart")
         .val();
