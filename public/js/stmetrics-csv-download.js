@@ -16,10 +16,10 @@ function downloadClusterDataAsCSV(data, filename, headers) {
 
     let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
 
-    Object.entries(data).forEach(([clusterId, places]) => {
+    Object.entries(data).forEach(([clusterId, clusterData]) => {
+        const places = clusterData.records ? clusterData.records : clusterData;    
         places.forEach((place) => {
             let row = headers.map(header => {
-                console.log(place);
                 if(header === "Cluster ID") {
                     return parseInt(clusterId) + 1;
                 } else if (typeof place[header] === 'string') {

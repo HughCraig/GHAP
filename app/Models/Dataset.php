@@ -1304,30 +1304,36 @@ class Dataset extends Model
         })->filter(function ($record) {
             return $record->geom_date !== null;
         })->sortBy('geom_date');
-
+        $processedRecords = $processedRecords->values();
+        
         $clusters = [];
         $currentCluster = [];
         $previousDate = null;
+        $currentIndex = 0;
 
         foreach ($processedRecords as $record) {
             if (empty($currentCluster)) {
-                $currentCluster[] = $record;
+                $currentCluster['records'] = [$record];
+                $currentCluster['start_date'] = $record->datestart;
             } else {
                 $dateDiff = $record->geom_date - $previousDate;
 
                 if ($dateDiff > $totalInterval) {
+                    $currentCluster['end_date'] = $processedRecords[$currentIndex - 1]->datestart;
                     $clusters[] = $currentCluster;
-                    $currentCluster = [];
+                    $currentCluster = ['records' => [$record], 'start_date' => $record->datestart];
+                } else {
+                    $currentCluster['records'][] = $record;
                 }
-
-                $currentCluster[] = $record;
             }
 
             $previousDate = $record->geom_date;
+            $currentIndex++; 
         }
 
         // Add the last cluster if it's not empty
         if (!empty($currentCluster)) {
+            $currentCluster['end_date'] = $processedRecords->last()->datestart;
             $clusters[] = $currentCluster;
         }
 

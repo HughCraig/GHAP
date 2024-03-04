@@ -45,9 +45,17 @@
             </div>
         </div>
 
-        <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="downloadCsvButton">
-            Download CSV
-        </button>
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Download
+            </button>
+            <div class="dropdown-menu" aria-labelledby="downloadDropdown">
+                <a class="dropdown-item grab-hover" id="temporal-download-csv">CSV</a>
+                <a class="dropdown-item grab-hover" id="temporal-download-json">GeoJSON</a>
+                <a class="dropdown-item grab-hover" id="temporal-download-kml">KML</a>
+            </div>
+        </div>
+
         <div class="result-table"></div>
     </div>
 

@@ -54,6 +54,7 @@ Route::get('layers/{id}/clusteranalysis/dbscan/json', 'DatasetController@viewPub
 Route::get('layers/{id}/clusteranalysis/kmeans/json', 'DatasetController@viewPublicDatasetClusterAnalysisKmeansJSON')->middleware('cors');
 Route::get('layers/{id}/temporalclustering', 'DatasetController@viewPublicDatasetTemporalClustering');
 Route::get('layers/{id}/temporalclustering/json', 'DatasetController@viewPublicDatasetTemporalClusteringJSON')->middleware('cors');
+Route::get('layers/{id}/temporalclustering/json/download', 'DatasetController@downloadPublicDatasetTemporalClusteringJSON');
 Route::get('layers/{id}/closenessanalysis', 'DatasetController@viewPublicDatasetClosenessAnalysis');
 Route::get('layers/{id}/closenessanalysis/json', 'DatasetController@viewPublicDatasetClosenessAnalysisJSON')->middleware('cors');
 
@@ -100,6 +101,7 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mydatasets/{id}/clusteranalysis/kmeans/json', 'DatasetController@viewPrivateDatasetClusterAnalysisKmeansJSON')->middleware('cors');
     Route::get('myprofile/mydatasets/{id}/temporalclustering', 'DatasetController@viewPrivateDatasetTemporalClustering');
     Route::get('myprofile/mydatasets/{id}/temporalclustering/json', 'DatasetController@viewPrivateDatasetTemporalClusteringJSON')->middleware('cors');
+    Route::get('myprofile/mydatasets/{id}/temporalclustering/json/download', 'DatasetController@downloadPrivateDatasetTemporalClusteringJSON');
     Route::get('myprofile/mydatasets/{id}/closenessanalysis', 'DatasetController@viewPrivateDatasetClosenessAnalysis');
     Route::get('myprofile/mydatasets/{id}/closenessanalysis/json', 'DatasetController@viewPrivateDatasetClosenessAnalysisJSON')->middleware('cors');
 });

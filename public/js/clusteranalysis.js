@@ -95,7 +95,6 @@ $(document).ready(function () {
         var id = $("#ds_id").val();
         var clusteringMethod = $("#clusteringMethod").val();
         var url = clusteringMethod === "dbscan" ? ajaxdbscan : ajaxkmeans;
-        var mapviewUrl = "";
 
         var data = {
             id: id,
