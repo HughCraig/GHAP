@@ -27,6 +27,8 @@
         </div>
     </div>
 
+    <p class="pt-4">To understand this analysis, check the <a href="https://tlcmap.org/help/guides/ghap-guide/">GHAP Guide</a></p>
+
     <table class="table table-bordered" style="margin-top: 20px;">
         <thead>
             <tr>
