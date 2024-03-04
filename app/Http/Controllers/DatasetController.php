@@ -83,6 +83,18 @@ class DatasetController extends Controller
     }
 
     /**
+     * Download a public dataset as a GeoJSON
+     * @return Response with GeoJSON datatype AND download header, or redirect to public datasets page if not found
+     */
+    public function downloadPublicDatasetBasicStatisticsJSON(Request $request, int $id)
+    {
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        $filename = 'Basic statistics of Layer ' . $ds->name;
+        return Response::make($ds->getBasicStatisticsJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
+    }
+
+    /**
      * Returns a JSON representation of basic statistics for a specified private dataset.
      * Check ownership and redirects if the specified dataset is not found or not public.
      * @return JSON response with basic statistics or redirect if dataset not found
@@ -93,6 +105,19 @@ class DatasetController extends Controller
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
         return Response::make($ds->getBasicStatisticsJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * Download a user owned dataset as geo JSON
+     * @return Response with JSON datatype AND download header, or redirect to public datasets page if not found
+     */
+    public function downloadPrivateDatasetBasicStatisticsJSON(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        $filename = 'Basic statistics of Layer ' . $ds->name;
+        return Response::make($ds->getBasicStatisticsJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
     /**

@@ -676,18 +676,34 @@ class Dataset extends Model
             FROM tlcmap.dataitem 
             WHERE dataset_id = :dataset_id
         "), ['dataset_id' => $this->id]);
+        $totalArea = $areaResult[0]->area ? $areaResult[0]->area * 10000 : null;
         $statistics[] = [
             'name' => 'Area',
-            'value' => $areaResult[0]->area ?? 'Not Available',
+            'value' => $totalArea ?? 'Not Available',
             'unit' => 'km<sup>2</sup>',
             'explanation' => 'The area of the convex hull of all places in the dataset'
         ];
 
+        // Convex hull polygon
+        $convexHullResult = DB::select(DB::raw("
+            SELECT 
+                ST_AsText(ST_ConvexHull(ST_Collect(geog::geometry))) AS convex_hull_line
+            FROM 
+                tlcmap.dataitem 
+            WHERE 
+                dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id]);
+        $statistics[] = [
+            'name' => 'Convex Hull',
+            'value' => $convexHullResult[0]->convex_hull_line,
+            'explanation' => 'The area of the convex hull'
+        ];
+
         // Density
-        if ($areaResult[0]->area && $this->dataitems()->count()) {
+        if ($totalArea  && $this->dataitems()->count()) {
             $statistics[] = [
                 'name' => 'Density',
-                'value' => $this->dataitems()->count() / max($areaResult[0]->area, 1),
+                'value' => $this->dataitems()->count() / max($totalArea, 1),
                 'unit' => 'places/km<sup>2</sup>',
                 'explanation' => 'The amount of places per square kilometer'
             ];
@@ -791,7 +807,7 @@ class Dataset extends Model
         }, $places);
         // Calculate average distance to centroid
         $averageDistanceToCentroid = array_sum($distancesToCentroid) / count($distancesToCentroid) / 1000;
-        $ratio = ($areaResult[0]->area && $areaResult[0]->area != 0) ? $averageDistanceToCentroid / $areaResult[0]->area : "N/A";
+        $ratio = $totalArea ? $averageDistanceToCentroid / $totalArea : "N/A";
 
         $statistics[] = [
             'name' => 'Distribution',

@@ -68,7 +68,7 @@ $(document).ready(function () {
         return clusterSummaryTable + resultTable;
     }
 
-    function downloadClusterDataAsCSV() {
+    $("#downloadCsvButton").click(function () {
         const headers = [
             "Cluster ID",
             "id",
@@ -82,10 +82,6 @@ $(document).ready(function () {
             "temporal_clustering.csv",
             headers
         );
-    }
-
-    $("#downloadCsvButton").click(function () {
-        downloadClusterDataAsCSV();
     });
 
     $("#backButton").click(function () {
