@@ -185,6 +185,18 @@ class DatasetController extends Controller
         return Response::make($ds->getClusterAnalysisDBScanJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
     }
 
+    /**
+     * Download a public dataset as DBSCAN cluster analysis geo JSON
+     * @return Response with JSON datatype AND download header, or redirect to public datasets page if not found
+     */
+    public function downloadPublicDatasetClusterAnalysisDBScanJSON(Request $request, int $id)
+    {
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        $filename = 'DBSCAN cluster analysis of Layer ' . $ds->name;
+        return Response::make($ds->getClusterAnalysisDBScanJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
+    }
+
     /** 
      * Returns a JSON representation of DBSCAN cluster analysis results for a specified private dataset.
      * Validates input parameters and redirects if the dataset is not found or not public.
@@ -204,6 +216,19 @@ class DatasetController extends Controller
     }
 
     /**
+     * Download a user owned dataset as DBSCAN cluster analysis geo JSON
+     * @return Response with JSON datatype AND download header, or redirect to public datasets page if not found
+     */
+    public function downloadPrivateDatasetClusterAnalysisDBScanJSON(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        $filename = 'DBSCAN cluster analysis of Layer ' . $ds->name;
+        return Response::make($ds->getClusterAnalysisDBScanJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
+    }
+
+    /**
      * Returns a JSON representation of Kmeans cluster analysis results for a specified public dataset.
      * Redirects if the specified dataset is not found or not public.
      * @return JSON response with Kmeans cluster analysis results or redirect if dataset not found
@@ -213,6 +238,18 @@ class DatasetController extends Controller
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
         return Response::make($ds->getClusterAnalysisKmeansJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * Download a public dataset as Kmeans cluster analysis geo JSON
+     * @return Response with JSON datatype AND download header, or redirect to public datasets page if not found
+     */
+    public function downloadPublicDatasetClusterAnalysisKmeansJSON(Request $request, int $id)
+    {
+        $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        $filename = 'Kmeans cluster analysis of Layer ' . $ds->name;
+        return Response::make($ds->getClusterAnalysisKmeansJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
     /**
@@ -226,6 +263,19 @@ class DatasetController extends Controller
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
         return Response::make($ds->getClusterAnalysisKmeansJSON(), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * Download a user owned dataset as Kmeans cluster analysis geo JSON
+     * @return Response with JSON datatype AND download header, or redirect to public datasets page if not found
+     */
+    public function downloadPrivateDatasetClusterAnalysisKmeansJSON(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $ds = $user->datasets()->find($id);
+        if (!$ds) return redirect()->route('layers'); // if not found redirect back
+        $filename = 'Kmeans cluster analysis of Layer ' . $ds->name;
+        return Response::make($ds->getClusterAnalysisKmeansJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
     /**

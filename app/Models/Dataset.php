@@ -1053,6 +1053,7 @@ class Dataset extends Model
      */
     public function getClusterAnalysisDBScan($distance, $minPoints)
     {
+        $distance = $distance / 100 ;
         // Perform the DBSCAN clustering query
         $clusters = DB::select(DB::raw("
             SELECT id, title , latitude, longitude , ST_ClusterDBSCAN(geom, eps := :distance, minpoints := :minPoints) OVER() AS cluster_id
@@ -1090,7 +1091,7 @@ class Dataset extends Model
     {
         $dataset = $this;
 
-        $distance = $_GET["distance"];
+        $distance = $_GET["distance"] / 100;
         $minPoints = $_GET["minPoints"];
         $clusters = DB::select(DB::raw("
             SELECT id, title , latitude, longitude , ST_ClusterDBSCAN(geom, eps := :distance, minpoints := :minPoints) OVER() AS cluster_id
@@ -1305,7 +1306,7 @@ class Dataset extends Model
             return $record->geom_date !== null;
         })->sortBy('geom_date');
         $processedRecords = $processedRecords->values();
-        
+
         $clusters = [];
         $currentCluster = [];
         $previousDate = null;
