@@ -79,9 +79,10 @@ $(document).ready(function () {
     });
 
     $("#temporal-download-kml").click(function () {
-        var href =
-            currentUrl + "/kml/download?year=" + yearsInterval + "&day=" + daysInterval;
-        window.location.href = href;
+        downloadClusterDataAsKML(
+            clusteringResponseData.clusters,
+            "temporal_clustering.kml"
+        );
     });
 
     $("#backButton").click(function () {

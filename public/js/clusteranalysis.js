@@ -63,6 +63,13 @@ $(document).ready(function () {
         }
     });
 
+    $("#cluster-download-kml").click(function () {
+        downloadClusterDataAsKML(
+            clusteringResponseData,
+            "clustering_results.kml"
+        );
+    });
+
     // Function to generate the result table based on response data
     function getClusterResultTable(response) {
         var clusterSummaryTable = "<h2>Cluster Summary</h2>";
