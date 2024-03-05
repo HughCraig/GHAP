@@ -1603,34 +1603,42 @@ class Dataset extends Model
             ->where('dataset_id', $sourceDatasetId)
             ->value('area');
 
-        // Calculate minimum distances from each point in A to the closest point in B, including IDs of both points
-        $distanceRecords = DB::table('tlcmap.dataitem as a')
-            ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
-                $join->on(DB::raw('1'), '=', DB::raw('1')) // Cross join
-                    ->where('a.dataset_id', '=', $sourceDatasetId)
-                    ->where('b.dataset_id', '=', $targetDatasetId);
-            })
-            ->select(DB::raw('a.title as source_title, a.longitude as source_longitude, a.latitude as source_latitude ,  b.title as target_title, b.longitude as target_longitude, b.latitude as target_latitude , ST_Distance(a.geog, b.geog) as distance'))
-            ->get();
+        // Calculate distances from each point in A to the closest point in B, including minimum and maximum distances
+        $minDistanceRecords = DB::table('tlcmap.dataitem as a')
+        ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
+            $join->on(DB::raw('1'), '=', DB::raw('1')) // Cross join
+                ->where('a.dataset_id', '=', $sourceDatasetId)
+                ->where('b.dataset_id', '=', $targetDatasetId);
+        })
+        ->select(DB::raw('a.id as source_id, MIN(ST_Distance(a.geog, b.geog)) as min_distance'))
+        ->groupBy('a.id')
+        ->get();
 
-        // Extract distances to calculate statistics
-        $distances = $distanceRecords->pluck('distance');
+        $minDistances = $minDistanceRecords->pluck('min_distance');
 
-        // Calculate statistics based on distances
-        $averageMinDistance = $distances->average() / 1000;
-        $minMinDistance = $distances->min() / 1000;
-        $maxMinDistance = $distances->max() / 1000;
-        $medianMinDistance = $distances->median() / 1000;
+        $averageMinDistance = $minDistances->average() / 1000;
+        $minMinDistance = $minDistances->min() / 1000;
+        $maxMinDistance = $minDistances->max() / 1000;
+        $medianMinDistance = $minDistances->median() / 1000;
+
+        $maxDistance = DB::table('tlcmap.dataitem as a')
+        ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
+            $join->on(DB::raw('1'), '=', DB::raw('1'))
+                ->where('a.dataset_id', '=', $sourceDatasetId)
+                ->where('b.dataset_id', '=', $targetDatasetId);
+        })
+        ->max(DB::raw('ST_Distance(a.geog, b.geog)')) / 1000;
 
         $res = [
+            'Max Distance' => $maxDistance,
             'Average Min Distance' => $averageMinDistance,
             'Min Min Distance' => $minMinDistance,
             'Max Min Distance' => $maxMinDistance,
             'Median Min Distance' => $medianMinDistance,
-            'Average Min Distance / Area' => $averageMinDistance / $convexHullArea,
-            'Min Min Distance / Area' => $minMinDistance / $convexHullArea,
-            'Max Min Distance / Area' => $maxMinDistance / $convexHullArea,
-            'Median Min Distance / Area' => $medianMinDistance / $convexHullArea,
+            'Average Min Distance / Area' => $averageMinDistance / ($convexHullArea * 10000),
+            'Min Min Distance / Area' => $minMinDistance / ($convexHullArea * 10000),
+            'Max Min Distance / Area' => $maxMinDistance / ($convexHullArea * 10000),
+            'Median Min Distance / Area' => $medianMinDistance / ($convexHullArea * 10000),
         ];
 
         return $res;
@@ -1649,14 +1657,6 @@ class Dataset extends Model
         $dataset = $this;
         $features = array();
 
-        // Set the feature collection config.
-        $featureCollectionConfig = new FeatureCollectionConfig();
-        $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
-        $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
-        $featureCollectionConfig->setInfoTitle( 'Closeness Analysis: ' . $dataset->name, $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"));
-        $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
-
-        // Calculate minimum distances from each point in A to the closest point in B, including IDs of both points
         $distanceRecords = DB::table('tlcmap.dataitem as a')
             ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
                 $join->on(DB::raw('1'), '=', DB::raw('1')) // Cross join
@@ -1666,36 +1666,74 @@ class Dataset extends Model
             ->select(DB::raw('a.title as source_title, a.longitude as source_longitude, a.latitude as source_latitude ,  b.title as target_title, b.longitude as target_longitude, b.latitude as target_latitude , ST_Distance(a.geog, b.geog) as distance'))
             ->orderBy('distance')
             ->get();
-
-        if ($distanceRecords->isEmpty()) {
-            return response()->json(['error' => 'No matching records found between datasets.'], 404);
-        }
-
         $distances = $distanceRecords->pluck('distance');
-        $minMinDistance = $distances->min() / 1000;
-        $maxMinDistance = $distances->max() / 1000;
-
-        // Find the records corresponding to min and max distances
-        $minDistanceRecord = $distanceRecords->first();
+        $maxDistance = $distances->max() / 1000;
         $maxDistanceRecord = $distanceRecords->last();
 
-        // Add the records to the features array
+        $minDistanceRecords = DB::table('tlcmap.dataitem as a')
+            ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
+                $join->on(DB::raw('1'), '=', DB::raw('1')) // Cross join
+                    ->where('a.dataset_id', '=', $sourceDatasetId)
+                    ->where('b.dataset_id', '=', $targetDatasetId);
+            })
+            ->select(DB::raw('a.id as source_id, MIN(ST_Distance(a.geog, b.geog)) as min_distance'))
+            ->groupBy('a.id')
+            ->get();
+        $minDistances = $minDistanceRecords->pluck('min_distance');
+        $minMinDistance = $minDistances->min();
+        $maxMinDistance = $minDistances->max();
+
+        $minMinDistanceRecord = $distanceRecords->filter(function ($record) use ($minMinDistance) {
+            return $record->distance == $minMinDistance;
+        })->first();
+
+        $maxMinDistanceRecord = $distanceRecords->filter(function ($record) use ($maxMinDistance) {
+            return $record->distance == $maxMinDistance;
+        })->first();
+
+    
+        // Set the feature collection config.
+        $featureCollectionConfig = new FeatureCollectionConfig();
+        $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
+        $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
+        $featureCollectionConfig->setInfoTitle( 'Closeness Analyse: ' . $dataset->name, $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"));
+        $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
+
+        //Add the records to the features array
         $features[] = array(
             'type' => 'Feature',
-            'geometry' => array('type' => 'Point', 'coordinates' => [$minDistanceRecord->source_longitude, $minDistanceRecord->source_latitude]),
-            'properties' => array('name' => $minDistanceRecord->source_title, 'latitude' => $minDistanceRecord->source_latitude, 'longitude' => $minDistanceRecord->source_longitude),
+            'geometry' => array('type' => 'Point', 'coordinates' => [$minMinDistanceRecord->source_longitude, $minMinDistanceRecord->source_latitude]),
+            'properties' => array('name' => $minMinDistanceRecord->source_title, 'latitude' => $minMinDistanceRecord->source_latitude, 'longitude' => $minMinDistanceRecord->source_longitude),
         );
 
         $features[] = array(
             'type' => 'Feature',
-            'geometry' => array('type' => 'Point', 'coordinates' => [$minDistanceRecord->target_longitude, $minDistanceRecord->target_latitude]),
-            'properties' => array('name' => $minDistanceRecord->target_title, 'latitude' => $minDistanceRecord->target_latitude, 'longitude' => $minDistanceRecord->target_longitude),
+            'geometry' => array('type' => 'Point', 'coordinates' => [$minMinDistanceRecord->target_longitude, $minMinDistanceRecord->target_latitude]),
+            'properties' => array('name' => $minMinDistanceRecord->target_title, 'latitude' => $minMinDistanceRecord->target_latitude, 'longitude' => $minMinDistanceRecord->target_longitude),
         );
 
         $features[] = array(
             'type' => 'Feature',
-            'geometry' => array('type' => 'LineString', 'coordinates' => [[$minDistanceRecord->source_longitude, $minDistanceRecord->source_latitude], [$minDistanceRecord->target_longitude, $minDistanceRecord->target_latitude]]),
-            'properties' => ['name' => 'Shortest minimum Line' , 'distance' => $minMinDistance],
+            'geometry' => array('type' => 'LineString', 'coordinates' => [[$minMinDistanceRecord->source_longitude, $minMinDistanceRecord->source_latitude], [$minMinDistanceRecord->target_longitude, $minMinDistanceRecord->target_latitude]]),
+            'properties' => ['name' => 'Shortest minimum Line' , 'distance' => $minMinDistance / 1000 . ' km'],
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'Point', 'coordinates' => [$maxMinDistanceRecord->source_longitude, $maxMinDistanceRecord->source_latitude]),
+            'properties' => array('name' => $maxMinDistanceRecord->source_title, 'latitude' => $maxMinDistanceRecord->source_latitude, 'longitude' => $maxMinDistanceRecord->source_longitude),
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'Point', 'coordinates' => [$maxMinDistanceRecord->target_longitude, $maxMinDistanceRecord->target_latitude]),
+            'properties' => array('name' => $maxMinDistanceRecord->target_title, 'latitude' => $maxMinDistanceRecord->target_latitude, 'longitude' => $maxMinDistanceRecord->target_longitude),
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'LineString', 'coordinates' => [[$maxMinDistanceRecord->source_longitude, $maxMinDistanceRecord->source_latitude], [$maxMinDistanceRecord->target_longitude, $maxMinDistanceRecord->target_latitude]]),
+            'properties' => ['name' => 'Longest minimum Line' , 'distance' => $maxMinDistance / 1000 . ' km'],
         );
 
         $features[] = array(
@@ -1713,7 +1751,7 @@ class Dataset extends Model
         $features[] = array(
             'type' => 'Feature',
             'geometry' => array('type' => 'LineString', 'coordinates' => [[$maxDistanceRecord->source_longitude, $maxDistanceRecord->source_latitude], [$maxDistanceRecord->target_longitude, $maxDistanceRecord->target_latitude]]),
-            'properties' => ['name' => 'Longest minimum Line' , 'distance' => $maxMinDistance],
+            'properties' => ['name' => 'Max distance line' , 'distance' => $maxDistance . ' km'],
         );
 
         $allfeatures = array(

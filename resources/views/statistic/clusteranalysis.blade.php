@@ -13,7 +13,7 @@
 
 @section('content')
 <div class="container mt-4">
-    <h2>Clustering Analysis</h2>
+    <h2>Clustering Analyse</h2>
     <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
     <input type="hidden" id="ds_id" value="{{ $ds->id }}" />
 
