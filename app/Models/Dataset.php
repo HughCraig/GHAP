@@ -1056,7 +1056,7 @@ class Dataset extends Model
         $distance = $distance / 100 ;
         // Perform the DBSCAN clustering query
         $clusters = DB::select(DB::raw("
-            SELECT id, title , latitude, longitude , ST_ClusterDBSCAN(geom, eps := :distance, minpoints := :minPoints) OVER() AS cluster_id
+            SELECT uid, title , latitude, longitude , ST_ClusterDBSCAN(geom, eps := :distance, minpoints := :minPoints) OVER() AS cluster_id
             FROM tlcmap.dataitem
             WHERE dataset_id = :dataset_id
         "), [
@@ -1071,7 +1071,7 @@ class Dataset extends Model
             $clusterId = $cluster->cluster_id;
             if ($clusterId !== null) { // Ignore noise if minPoints > 0
                 $clusterResults[$clusterId][] = [
-                    'id' => $cluster->id,
+                    'id' => $cluster->uid,
                     'title' => $cluster->title,
                     'latitude' => $cluster->latitude,
                     'longitude' => $cluster->longitude,
@@ -1170,11 +1170,11 @@ class Dataset extends Model
      */
     public function getClusterAnalysisKmeans($numberOfClusters, $withinRadius = null)
     {
-        $withinRadiusMeters = $withinRadius ? $withinRadius * 1000 : null;
+        $withinRadius = $withinRadius ?? null ;
 
         // Perform initial KMeans clustering
         $clusters = DB::select(DB::raw("
-            SELECT id, title, latitude, longitude, 
+            SELECT uid as id, title, latitude, longitude, 
                 ST_ClusterKMeans(geom::geometry, :numberOfClusters) OVER() AS cluster_id
             FROM tlcmap.dataitem
             WHERE dataset_id = :dataset_id
@@ -1184,16 +1184,53 @@ class Dataset extends Model
         ]);
 
         $clusterResults = [];
+        $clusterGeoms = [];
 
         // First, group places by cluster_id
         foreach ($clusters as $cluster) {
             $clusterId = $cluster->cluster_id;
             if ($clusterId !== null) {
                 $clusterResults[$clusterId][] = $cluster;
+                $clusterGeoms[$clusterId][] = "ST_GeomFromText('POINT(" . $cluster->longitude . " " . $cluster->latitude . ")')";
             }
         }
 
-        return $clusterResults;
+        if (is_null($withinRadius)) {
+            return $clusterResults;
+        }
+
+        $filteredClusters = [];
+
+        foreach ($clusterGeoms as $clusterId => $geoms) {
+            $geomCollection = implode(',', $geoms);
+            $centroidResult = DB::select(DB::raw("
+                SELECT ST_AsText(ST_Centroid(ST_Collect(array[$geomCollection]))) AS centroid
+            "));
+            $exceedsMaxRadius = false;
+
+            if($centroidResult[0]->centroid){
+                $centroidLat = $this->parseGeometryString($centroidResult[0]->centroid)[0][1];
+                $centroidLng = $this->parseGeometryString($centroidResult[0]->centroid)[0][0];
+
+                foreach ($clusterResults[$clusterId] as $place) {
+                    $distance = GeneralFunctions::getDistance($place->latitude , $place->longitude, $centroidLat, $centroidLng);
+                    if ($distance > $withinRadius) {
+                        $exceedsMaxRadius = true;
+                        break;
+                    }
+                }
+            }else{
+                //Error in centroid calculation
+                $exceedsMaxRadius = true;
+            }
+
+            if (!$exceedsMaxRadius) {
+                $filteredClusters[$clusterId] = $clusterResults[$clusterId];
+            }
+           
+        }
+    
+        return array_values($filteredClusters);
     }
 
     /**
@@ -1219,7 +1256,48 @@ class Dataset extends Model
             'dataset_id' => $this->id
         ]);
 
-        $groupedClusters = $this->groupByClusterId($clusters);
+        $clusterResults = [];
+        $clusterGeoms = [];
+
+        foreach ($clusters as $cluster) {
+            $clusterId = $cluster->cluster_id;
+            if ($clusterId !== null) {
+                $clusterResults[$clusterId][] = $cluster;
+                $clusterGeoms[$clusterId][] = "ST_GeomFromText('POINT(" . $cluster->longitude . " " . $cluster->latitude . ")')";
+            }
+        }
+
+        if (  $withinRadius != null && $withinRadius != 'null' ) {
+            foreach ($clusterGeoms as $clusterId => $geoms) {
+                $geomCollection = implode(',', $geoms);
+                $centroidResult = DB::select(DB::raw("
+                    SELECT ST_AsText(ST_Centroid(ST_Collect(array[$geomCollection]))) AS centroid
+                "));
+                $exceedsMaxRadius = false;
+    
+                if($centroidResult[0]->centroid){
+                    $centroidLat = $this->parseGeometryString($centroidResult[0]->centroid)[0][1];
+                    $centroidLng = $this->parseGeometryString($centroidResult[0]->centroid)[0][0];
+    
+                    foreach ($clusterResults[$clusterId] as $place) {
+                        $distance = GeneralFunctions::getDistance($place->latitude , $place->longitude, $centroidLat, $centroidLng);
+                        if ($distance > $withinRadius) {
+                            $exceedsMaxRadius = true;
+                            break;
+                        }
+                    }
+                }else{
+                    //Error in centroid calculation
+                    $exceedsMaxRadius = true;
+                }
+    
+                if (!$exceedsMaxRadius) {
+                    $filteredClusters[$clusterId] = $clusterResults[$clusterId];
+                }
+               
+            }
+            $clusterResults = array_values($filteredClusters);
+        }
 
         $data = [];
         // Set collection config.
@@ -1228,7 +1306,7 @@ class Dataset extends Model
         $data['display'] = $collectionConfig->toArray();
         $data['datasets'] = [];
 
-        foreach ($groupedClusters as $clusterId => $cluster) {
+        foreach ($clusterResults as $clusterId => $cluster) {
             $features = [];
             foreach ($cluster as $place) {
                 $feature = [
@@ -1295,7 +1373,7 @@ class Dataset extends Model
         $records = DB::table('tlcmap.dataitem')
             ->where('dataset_id', $datasetId)
             ->whereNotNull('datestart')
-            ->select(['id', 'title', 'datestart', 'latitude', 'longitude'])
+            ->select(['uid as id', 'title', 'datestart', 'latitude', 'longitude'])
             ->get();
 
         // Preprocess dates
