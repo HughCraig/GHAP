@@ -676,18 +676,34 @@ class Dataset extends Model
             FROM tlcmap.dataitem 
             WHERE dataset_id = :dataset_id
         "), ['dataset_id' => $this->id]);
+        $totalArea = $areaResult[0]->area ? $areaResult[0]->area * 10000 : null;
         $statistics[] = [
             'name' => 'Area',
-            'value' => $areaResult[0]->area ?? 'Not Available',
+            'value' => $totalArea ?? 'Not Available',
             'unit' => 'km<sup>2</sup>',
             'explanation' => 'The area of the convex hull of all places in the dataset'
         ];
 
+        // Convex hull polygon
+        $convexHullResult = DB::select(DB::raw("
+            SELECT 
+                ST_AsText(ST_ConvexHull(ST_Collect(geog::geometry))) AS convex_hull_line
+            FROM 
+                tlcmap.dataitem 
+            WHERE 
+                dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id]);
+        $statistics[] = [
+            'name' => 'Convex Hull',
+            'value' => $convexHullResult[0]->convex_hull_line,
+            'explanation' => 'The area of the convex hull'
+        ];
+
         // Density
-        if ($areaResult[0]->area && $this->dataitems()->count()) {
+        if ($totalArea  && $this->dataitems()->count()) {
             $statistics[] = [
                 'name' => 'Density',
-                'value' => $this->dataitems()->count() / max($areaResult[0]->area, 1),
+                'value' => $this->dataitems()->count() / max($totalArea, 1),
                 'unit' => 'places/km<sup>2</sup>',
                 'explanation' => 'The amount of places per square kilometer'
             ];
@@ -791,7 +807,7 @@ class Dataset extends Model
         }, $places);
         // Calculate average distance to centroid
         $averageDistanceToCentroid = array_sum($distancesToCentroid) / count($distancesToCentroid) / 1000;
-        $ratio = ($areaResult[0]->area && $areaResult[0]->area != 0) ? $averageDistanceToCentroid / $areaResult[0]->area : "N/A";
+        $ratio = $totalArea ? $averageDistanceToCentroid / $totalArea : "N/A";
 
         $statistics[] = [
             'name' => 'Distribution',
@@ -1037,9 +1053,10 @@ class Dataset extends Model
      */
     public function getClusterAnalysisDBScan($distance, $minPoints)
     {
+        $distance = $distance / 100 ;
         // Perform the DBSCAN clustering query
         $clusters = DB::select(DB::raw("
-            SELECT id, title , latitude, longitude , ST_ClusterDBSCAN(geom, eps := :distance, minpoints := :minPoints) OVER() AS cluster_id
+            SELECT uid, title , latitude, longitude , ST_ClusterDBSCAN(geom, eps := :distance, minpoints := :minPoints) OVER() AS cluster_id
             FROM tlcmap.dataitem
             WHERE dataset_id = :dataset_id
         "), [
@@ -1054,7 +1071,7 @@ class Dataset extends Model
             $clusterId = $cluster->cluster_id;
             if ($clusterId !== null) { // Ignore noise if minPoints > 0
                 $clusterResults[$clusterId][] = [
-                    'id' => $cluster->id,
+                    'id' => $cluster->uid,
                     'title' => $cluster->title,
                     'latitude' => $cluster->latitude,
                     'longitude' => $cluster->longitude,
@@ -1074,7 +1091,7 @@ class Dataset extends Model
     {
         $dataset = $this;
 
-        $distance = $_GET["distance"];
+        $distance = $_GET["distance"] / 100;
         $minPoints = $_GET["minPoints"];
         $clusters = DB::select(DB::raw("
             SELECT id, title , latitude, longitude , ST_ClusterDBSCAN(geom, eps := :distance, minpoints := :minPoints) OVER() AS cluster_id
@@ -1153,11 +1170,11 @@ class Dataset extends Model
      */
     public function getClusterAnalysisKmeans($numberOfClusters, $withinRadius = null)
     {
-        $withinRadiusMeters = $withinRadius ? $withinRadius * 1000 : null;
+        $withinRadius = $withinRadius ?? null ;
 
         // Perform initial KMeans clustering
         $clusters = DB::select(DB::raw("
-            SELECT id, title, latitude, longitude, 
+            SELECT uid as id, title, latitude, longitude, 
                 ST_ClusterKMeans(geom::geometry, :numberOfClusters) OVER() AS cluster_id
             FROM tlcmap.dataitem
             WHERE dataset_id = :dataset_id
@@ -1167,16 +1184,53 @@ class Dataset extends Model
         ]);
 
         $clusterResults = [];
+        $clusterGeoms = [];
 
         // First, group places by cluster_id
         foreach ($clusters as $cluster) {
             $clusterId = $cluster->cluster_id;
             if ($clusterId !== null) {
                 $clusterResults[$clusterId][] = $cluster;
+                $clusterGeoms[$clusterId][] = "ST_GeomFromText('POINT(" . $cluster->longitude . " " . $cluster->latitude . ")')";
             }
         }
 
-        return $clusterResults;
+        if (is_null($withinRadius)) {
+            return $clusterResults;
+        }
+
+        $filteredClusters = [];
+
+        foreach ($clusterGeoms as $clusterId => $geoms) {
+            $geomCollection = implode(',', $geoms);
+            $centroidResult = DB::select(DB::raw("
+                SELECT ST_AsText(ST_Centroid(ST_Collect(array[$geomCollection]))) AS centroid
+            "));
+            $exceedsMaxRadius = false;
+
+            if($centroidResult[0]->centroid){
+                $centroidLat = $this->parseGeometryString($centroidResult[0]->centroid)[0][1];
+                $centroidLng = $this->parseGeometryString($centroidResult[0]->centroid)[0][0];
+
+                foreach ($clusterResults[$clusterId] as $place) {
+                    $distance = GeneralFunctions::getDistance($place->latitude , $place->longitude, $centroidLat, $centroidLng);
+                    if ($distance > $withinRadius) {
+                        $exceedsMaxRadius = true;
+                        break;
+                    }
+                }
+            }else{
+                //Error in centroid calculation
+                $exceedsMaxRadius = true;
+            }
+
+            if (!$exceedsMaxRadius) {
+                $filteredClusters[$clusterId] = $clusterResults[$clusterId];
+            }
+           
+        }
+    
+        return array_values($filteredClusters);
     }
 
     /**
@@ -1202,7 +1256,48 @@ class Dataset extends Model
             'dataset_id' => $this->id
         ]);
 
-        $groupedClusters = $this->groupByClusterId($clusters);
+        $clusterResults = [];
+        $clusterGeoms = [];
+
+        foreach ($clusters as $cluster) {
+            $clusterId = $cluster->cluster_id;
+            if ($clusterId !== null) {
+                $clusterResults[$clusterId][] = $cluster;
+                $clusterGeoms[$clusterId][] = "ST_GeomFromText('POINT(" . $cluster->longitude . " " . $cluster->latitude . ")')";
+            }
+        }
+
+        if (  $withinRadius != null && $withinRadius != 'null' ) {
+            foreach ($clusterGeoms as $clusterId => $geoms) {
+                $geomCollection = implode(',', $geoms);
+                $centroidResult = DB::select(DB::raw("
+                    SELECT ST_AsText(ST_Centroid(ST_Collect(array[$geomCollection]))) AS centroid
+                "));
+                $exceedsMaxRadius = false;
+    
+                if($centroidResult[0]->centroid){
+                    $centroidLat = $this->parseGeometryString($centroidResult[0]->centroid)[0][1];
+                    $centroidLng = $this->parseGeometryString($centroidResult[0]->centroid)[0][0];
+    
+                    foreach ($clusterResults[$clusterId] as $place) {
+                        $distance = GeneralFunctions::getDistance($place->latitude , $place->longitude, $centroidLat, $centroidLng);
+                        if ($distance > $withinRadius) {
+                            $exceedsMaxRadius = true;
+                            break;
+                        }
+                    }
+                }else{
+                    //Error in centroid calculation
+                    $exceedsMaxRadius = true;
+                }
+    
+                if (!$exceedsMaxRadius) {
+                    $filteredClusters[$clusterId] = $clusterResults[$clusterId];
+                }
+               
+            }
+            $clusterResults = array_values($filteredClusters);
+        }
 
         $data = [];
         // Set collection config.
@@ -1211,7 +1306,7 @@ class Dataset extends Model
         $data['display'] = $collectionConfig->toArray();
         $data['datasets'] = [];
 
-        foreach ($groupedClusters as $clusterId => $cluster) {
+        foreach ($clusterResults as $clusterId => $cluster) {
             $features = [];
             foreach ($cluster as $place) {
                 $feature = [
@@ -1278,7 +1373,7 @@ class Dataset extends Model
         $records = DB::table('tlcmap.dataitem')
             ->where('dataset_id', $datasetId)
             ->whereNotNull('datestart')
-            ->select(['id', 'title', 'datestart', 'latitude', 'longitude'])
+            ->select(['uid as id', 'title', 'datestart', 'latitude', 'longitude'])
             ->get();
 
         // Preprocess dates
@@ -1288,30 +1383,36 @@ class Dataset extends Model
         })->filter(function ($record) {
             return $record->geom_date !== null;
         })->sortBy('geom_date');
+        $processedRecords = $processedRecords->values();
 
         $clusters = [];
         $currentCluster = [];
         $previousDate = null;
+        $currentIndex = 0;
 
         foreach ($processedRecords as $record) {
             if (empty($currentCluster)) {
-                $currentCluster[] = $record;
+                $currentCluster['records'] = [$record];
+                $currentCluster['start_date'] = $record->datestart;
             } else {
                 $dateDiff = $record->geom_date - $previousDate;
 
                 if ($dateDiff > $totalInterval) {
+                    $currentCluster['end_date'] = $processedRecords[$currentIndex - 1]->datestart;
                     $clusters[] = $currentCluster;
-                    $currentCluster = [];
+                    $currentCluster = ['records' => [$record], 'start_date' => $record->datestart];
+                } else {
+                    $currentCluster['records'][] = $record;
                 }
-
-                $currentCluster[] = $record;
             }
 
             $previousDate = $record->geom_date;
+            $currentIndex++; 
         }
 
         // Add the last cluster if it's not empty
         if (!empty($currentCluster)) {
+            $currentCluster['end_date'] = $processedRecords->last()->datestart;
             $clusters[] = $currentCluster;
         }
 
@@ -1502,34 +1603,42 @@ class Dataset extends Model
             ->where('dataset_id', $sourceDatasetId)
             ->value('area');
 
-        // Calculate minimum distances from each point in A to the closest point in B, including IDs of both points
-        $distanceRecords = DB::table('tlcmap.dataitem as a')
-            ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
-                $join->on(DB::raw('1'), '=', DB::raw('1')) // Cross join
-                    ->where('a.dataset_id', '=', $sourceDatasetId)
-                    ->where('b.dataset_id', '=', $targetDatasetId);
-            })
-            ->select(DB::raw('a.title as source_title, a.longitude as source_longitude, a.latitude as source_latitude ,  b.title as target_title, b.longitude as target_longitude, b.latitude as target_latitude , ST_Distance(a.geog, b.geog) as distance'))
-            ->get();
+        // Calculate distances from each point in A to the closest point in B, including minimum and maximum distances
+        $minDistanceRecords = DB::table('tlcmap.dataitem as a')
+        ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
+            $join->on(DB::raw('1'), '=', DB::raw('1')) // Cross join
+                ->where('a.dataset_id', '=', $sourceDatasetId)
+                ->where('b.dataset_id', '=', $targetDatasetId);
+        })
+        ->select(DB::raw('a.id as source_id, MIN(ST_Distance(a.geog, b.geog)) as min_distance'))
+        ->groupBy('a.id')
+        ->get();
 
-        // Extract distances to calculate statistics
-        $distances = $distanceRecords->pluck('distance');
+        $minDistances = $minDistanceRecords->pluck('min_distance');
 
-        // Calculate statistics based on distances
-        $averageMinDistance = $distances->average() / 1000;
-        $minMinDistance = $distances->min() / 1000;
-        $maxMinDistance = $distances->max() / 1000;
-        $medianMinDistance = $distances->median() / 1000;
+        $averageMinDistance = $minDistances->average() / 1000;
+        $minMinDistance = $minDistances->min() / 1000;
+        $maxMinDistance = $minDistances->max() / 1000;
+        $medianMinDistance = $minDistances->median() / 1000;
+
+        $maxDistance = DB::table('tlcmap.dataitem as a')
+        ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
+            $join->on(DB::raw('1'), '=', DB::raw('1'))
+                ->where('a.dataset_id', '=', $sourceDatasetId)
+                ->where('b.dataset_id', '=', $targetDatasetId);
+        })
+        ->max(DB::raw('ST_Distance(a.geog, b.geog)')) / 1000;
 
         $res = [
+            'Max Distance' => $maxDistance,
             'Average Min Distance' => $averageMinDistance,
             'Min Min Distance' => $minMinDistance,
             'Max Min Distance' => $maxMinDistance,
             'Median Min Distance' => $medianMinDistance,
-            'Average Min Distance / Area' => $averageMinDistance / $convexHullArea,
-            'Min Min Distance / Area' => $minMinDistance / $convexHullArea,
-            'Max Min Distance / Area' => $maxMinDistance / $convexHullArea,
-            'Median Min Distance / Area' => $medianMinDistance / $convexHullArea,
+            'Average Min Distance / Area' => $averageMinDistance / ($convexHullArea * 10000),
+            'Min Min Distance / Area' => $minMinDistance / ($convexHullArea * 10000),
+            'Max Min Distance / Area' => $maxMinDistance / ($convexHullArea * 10000),
+            'Median Min Distance / Area' => $medianMinDistance / ($convexHullArea * 10000),
         ];
 
         return $res;
@@ -1548,14 +1657,6 @@ class Dataset extends Model
         $dataset = $this;
         $features = array();
 
-        // Set the feature collection config.
-        $featureCollectionConfig = new FeatureCollectionConfig();
-        $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
-        $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
-        $featureCollectionConfig->setInfoTitle( 'Closeness Analysis: ' . $dataset->name, $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"));
-        $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
-
-        // Calculate minimum distances from each point in A to the closest point in B, including IDs of both points
         $distanceRecords = DB::table('tlcmap.dataitem as a')
             ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
                 $join->on(DB::raw('1'), '=', DB::raw('1')) // Cross join
@@ -1565,36 +1666,74 @@ class Dataset extends Model
             ->select(DB::raw('a.title as source_title, a.longitude as source_longitude, a.latitude as source_latitude ,  b.title as target_title, b.longitude as target_longitude, b.latitude as target_latitude , ST_Distance(a.geog, b.geog) as distance'))
             ->orderBy('distance')
             ->get();
-
-        if ($distanceRecords->isEmpty()) {
-            return response()->json(['error' => 'No matching records found between datasets.'], 404);
-        }
-
         $distances = $distanceRecords->pluck('distance');
-        $minMinDistance = $distances->min() / 1000;
-        $maxMinDistance = $distances->max() / 1000;
-
-        // Find the records corresponding to min and max distances
-        $minDistanceRecord = $distanceRecords->first();
+        $maxDistance = $distances->max() / 1000;
         $maxDistanceRecord = $distanceRecords->last();
 
-        // Add the records to the features array
+        $minDistanceRecords = DB::table('tlcmap.dataitem as a')
+            ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
+                $join->on(DB::raw('1'), '=', DB::raw('1')) // Cross join
+                    ->where('a.dataset_id', '=', $sourceDatasetId)
+                    ->where('b.dataset_id', '=', $targetDatasetId);
+            })
+            ->select(DB::raw('a.id as source_id, MIN(ST_Distance(a.geog, b.geog)) as min_distance'))
+            ->groupBy('a.id')
+            ->get();
+        $minDistances = $minDistanceRecords->pluck('min_distance');
+        $minMinDistance = $minDistances->min();
+        $maxMinDistance = $minDistances->max();
+
+        $minMinDistanceRecord = $distanceRecords->filter(function ($record) use ($minMinDistance) {
+            return $record->distance == $minMinDistance;
+        })->first();
+
+        $maxMinDistanceRecord = $distanceRecords->filter(function ($record) use ($maxMinDistance) {
+            return $record->distance == $maxMinDistance;
+        })->first();
+
+    
+        // Set the feature collection config.
+        $featureCollectionConfig = new FeatureCollectionConfig();
+        $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
+        $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
+        $featureCollectionConfig->setInfoTitle( 'Closeness Analyse: ' . $dataset->name, $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"));
+        $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
+
+        //Add the records to the features array
         $features[] = array(
             'type' => 'Feature',
-            'geometry' => array('type' => 'Point', 'coordinates' => [$minDistanceRecord->source_longitude, $minDistanceRecord->source_latitude]),
-            'properties' => array('name' => $minDistanceRecord->source_title, 'latitude' => $minDistanceRecord->source_latitude, 'longitude' => $minDistanceRecord->source_longitude),
+            'geometry' => array('type' => 'Point', 'coordinates' => [$minMinDistanceRecord->source_longitude, $minMinDistanceRecord->source_latitude]),
+            'properties' => array('name' => $minMinDistanceRecord->source_title, 'latitude' => $minMinDistanceRecord->source_latitude, 'longitude' => $minMinDistanceRecord->source_longitude),
         );
 
         $features[] = array(
             'type' => 'Feature',
-            'geometry' => array('type' => 'Point', 'coordinates' => [$minDistanceRecord->target_longitude, $minDistanceRecord->target_latitude]),
-            'properties' => array('name' => $minDistanceRecord->target_title, 'latitude' => $minDistanceRecord->target_latitude, 'longitude' => $minDistanceRecord->target_longitude),
+            'geometry' => array('type' => 'Point', 'coordinates' => [$minMinDistanceRecord->target_longitude, $minMinDistanceRecord->target_latitude]),
+            'properties' => array('name' => $minMinDistanceRecord->target_title, 'latitude' => $minMinDistanceRecord->target_latitude, 'longitude' => $minMinDistanceRecord->target_longitude),
         );
 
         $features[] = array(
             'type' => 'Feature',
-            'geometry' => array('type' => 'LineString', 'coordinates' => [[$minDistanceRecord->source_longitude, $minDistanceRecord->source_latitude], [$minDistanceRecord->target_longitude, $minDistanceRecord->target_latitude]]),
-            'properties' => ['name' => 'Shortest minimum Line' , 'distance' => $minMinDistance],
+            'geometry' => array('type' => 'LineString', 'coordinates' => [[$minMinDistanceRecord->source_longitude, $minMinDistanceRecord->source_latitude], [$minMinDistanceRecord->target_longitude, $minMinDistanceRecord->target_latitude]]),
+            'properties' => ['name' => 'Shortest minimum Line' , 'distance' => $minMinDistance / 1000 . ' km'],
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'Point', 'coordinates' => [$maxMinDistanceRecord->source_longitude, $maxMinDistanceRecord->source_latitude]),
+            'properties' => array('name' => $maxMinDistanceRecord->source_title, 'latitude' => $maxMinDistanceRecord->source_latitude, 'longitude' => $maxMinDistanceRecord->source_longitude),
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'Point', 'coordinates' => [$maxMinDistanceRecord->target_longitude, $maxMinDistanceRecord->target_latitude]),
+            'properties' => array('name' => $maxMinDistanceRecord->target_title, 'latitude' => $maxMinDistanceRecord->target_latitude, 'longitude' => $maxMinDistanceRecord->target_longitude),
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'LineString', 'coordinates' => [[$maxMinDistanceRecord->source_longitude, $maxMinDistanceRecord->source_latitude], [$maxMinDistanceRecord->target_longitude, $maxMinDistanceRecord->target_latitude]]),
+            'properties' => ['name' => 'Longest minimum Line' , 'distance' => $maxMinDistance / 1000 . ' km'],
         );
 
         $features[] = array(
@@ -1612,7 +1751,7 @@ class Dataset extends Model
         $features[] = array(
             'type' => 'Feature',
             'geometry' => array('type' => 'LineString', 'coordinates' => [[$maxDistanceRecord->source_longitude, $maxDistanceRecord->source_latitude], [$maxDistanceRecord->target_longitude, $maxDistanceRecord->target_latitude]]),
-            'properties' => ['name' => 'Longest minimum Line' , 'distance' => $maxMinDistance],
+            'properties' => ['name' => 'Max distance line' , 'distance' => $maxDistance . ' km'],
         );
 
         $allfeatures = array(

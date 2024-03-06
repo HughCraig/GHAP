@@ -13,9 +13,11 @@
 
 @section('content')
 <div class="container mt-4">
-    <h2>Clustering Analysis</h2>
+    <h2>Clustering Analyse</h2>
     <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
     <input type="hidden" id="ds_id" value="{{ $ds->id }}" />
+
+    <p class="pt-4">To understand this analysis, check the <a href="https://tlcmap.org/help/guides/ghap-guide/">GHAP Guide</a></p>
 
     <!-- Clustering Options Form -->
     <div class="user-input">
@@ -63,9 +65,17 @@
             </div>
         </div>
 
-        <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="downloadCsvButton">
-            Download CSV
-        </button>
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Download
+            </button>
+            <div class="dropdown-menu" aria-labelledby="downloadDropdown">
+                <a class="dropdown-item grab-hover" id="cluster-download-csv">CSV</a>
+                <a class="dropdown-item grab-hover" id="cluster-download-json">GeoJSON</a>
+                <a class="dropdown-item grab-hover" id="cluster-download-kml">KML</a>
+            </div>
+        </div>
+
         <div class="result-table"></div>
     </div>
 

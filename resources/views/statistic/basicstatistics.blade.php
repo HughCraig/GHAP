@@ -13,12 +13,21 @@
 <div class="container mt-4">
     <h2 class="pb-4">Basic Statistics</h2>
 
-    <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ config('app.views_root_url') }}journey.html?load=' + encodeURIComponent('{{ url('/layers/' . $ds->id . '/basicstatistics/json') }}'))">
+    <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load=' + encodeURIComponent('{{ url('/layers/' . $ds->id . '/basicstatistics/json') }}'))">
         🌏 View Map
     </button>
-    <button id="download-csv" class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false">
-        Download CSV
-    </button>
+
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Download
+        </button>
+        <div class="dropdown-menu" aria-labelledby="downloadDropdown">
+            <a class="dropdown-item grab-hover" id="download-csv">CSV</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/json/download">GeoJSON</a>
+        </div>
+    </div>
+
+    <p class="pt-4">To understand this analysis, check the <a href="https://tlcmap.org/help/guides/ghap-guide/">GHAP Guide</a></p>
 
     <table class="table table-bordered" style="margin-top: 20px;">
         <thead>

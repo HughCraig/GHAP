@@ -5,8 +5,14 @@ $(document).ready(function () {
         },
     });
 
-
     var clusteringResponseData = null;
+    var clusteringMethod = null;
+
+    var distance = null;
+    var minPoint = 0;
+
+    var numClusters = 1;
+    var withinRadius = null;
 
     // Function to toggle input fields based on the selected clustering method
     function toggleInputs(method) {
@@ -20,9 +26,48 @@ $(document).ready(function () {
         }
     }
 
-    $("#downloadCsvButton").click(function () {
+    $("#cluster-download-csv").click(function () {
         const headers = ["Cluster ID", "id", "title", "latitude", "longitude"];
-        downloadClusterDataAsCSV(clusteringResponseData, "clustering_results.csv", headers);
+        downloadClusterDataAsCSV(
+            clusteringResponseData,
+            "clustering_results.csv",
+            headers
+        );
+    });
+
+    $("#cluster-download-json").click(function () {
+        if (clusteringMethod === "dbscan") {
+            if (!distance || distance < 0) {
+                alert("Please enter a valid distance value.");
+                return;
+            }
+            var href =
+                currentUrl +
+                "/dbscan/json/download?distance=" +
+                distance +
+                "&minPoints=" +
+                minPoint;
+            window.location.href = href;
+        } else if (clusteringMethod === "kmeans") {
+            if (!numClusters || numClusters < 0) {
+                alert("Please enter a valid number of clusters.");
+                return;
+            }
+            var href =
+                currentUrl +
+                "/kmeans/json/download?numClusters=" +
+                numClusters +
+                "&withinRadius=" +
+                withinRadius;
+            window.location.href = href;
+        }
+    });
+
+    $("#cluster-download-kml").click(function () {
+        downloadClusterDataAsKML(
+            clusteringResponseData,
+            "clustering_results.kml"
+        );
     });
 
     // Function to generate the result table based on response data
@@ -93,9 +138,8 @@ $(document).ready(function () {
         e.preventDefault();
 
         var id = $("#ds_id").val();
-        var clusteringMethod = $("#clusteringMethod").val();
+        clusteringMethod = $("#clusteringMethod").val();
         var url = clusteringMethod === "dbscan" ? ajaxdbscan : ajaxkmeans;
-        var mapviewUrl = "";
 
         var data = {
             id: id,
@@ -108,8 +152,10 @@ $(document).ready(function () {
                 alert("Please enter a valid distance value.");
                 return;
             }
+            distance = data.distance;
 
             data.minPoints = $("#minPoints").val();
+            minPoint = data.minPoints;
             mapSourceUrl = encodeURIComponent(
                 currentUrl +
                     "/dbscan/json?distance=" +
@@ -124,8 +170,10 @@ $(document).ready(function () {
                 alert("Please enter a valid number of clusters.");
                 return;
             }
+            numClusters = data.numClusters;
 
             data.withinRadius = $("#withinRadius").val() || null;
+            withinRadius = data.withinRadius;
             mapSourceUrl = encodeURIComponent(
                 currentUrl +
                     "/kmeans/json?numClusters=" +

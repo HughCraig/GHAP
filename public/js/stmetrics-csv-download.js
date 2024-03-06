@@ -16,10 +16,10 @@ function downloadClusterDataAsCSV(data, filename, headers) {
 
     let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
 
-    Object.entries(data).forEach(([clusterId, places]) => {
+    Object.entries(data).forEach(([clusterId, clusterData]) => {
+        const places = clusterData.records ? clusterData.records : clusterData;    
         places.forEach((place) => {
             let row = headers.map(header => {
-                console.log(place);
                 if(header === "Cluster ID") {
                     return parseInt(clusterId) + 1;
                 } else if (typeof place[header] === 'string') {
@@ -35,6 +35,79 @@ function downloadClusterDataAsCSV(data, filename, headers) {
 
     // Create a link and trigger download
     const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
+ * Downloads cluster data as a KML file.
+ *
+ * This function takes a structured data object where each key represents a cluster ID
+ * and its value is an array of place objects belonging to that cluster. Each place object
+ * must have latitude and longitude properties.
+ *
+ * @param {Object} data - The cluster data to be downloaded. Expected to be an object where
+ * each key is a cluster ID and the value is an array of objects representing places.
+ * @param {string} filename - The name of the file to be downloaded, including the .kml extension.
+ */
+function downloadClusterDataAsKML(data, filename) {
+    if (!data || Object.keys(data).length === 0) {
+        return;
+    }
+
+    let kmlContent =
+        '<?xml version="1.0" encoding="UTF-8"?>\n' +
+        '<kml xmlns="http://www.opengis.net/kml/2.2">\n' +
+        "  <Document>\n";
+
+    Object.entries(data).forEach(([index, clusterData]) => {
+        const color = generateKMLColorFromStr(index);
+        const places = clusterData.records ? clusterData.records : clusterData;
+        places.forEach((place) => {
+
+            let clusterId = parseInt(index) + 1;
+            let description = `Cluster ID: ${clusterId}<br>`;
+            Object.entries(place).forEach(([key, value]) => {
+                if (
+                    key !== "latitude" &&
+                    key !== "longitude" &&
+                    value !== "Geom_date"
+                ) {
+                    description += `${
+                        key.charAt(0).toUpperCase() + key.slice(1)
+                    }: ${value}<br>`;
+                }
+            });
+
+            kmlContent +=
+                `    <Style id="cluster${clusterId}Style">\n` +
+                `      <IconStyle>\n` +
+                `        <color>${color}</color>\n` +
+                `        <scale>1.1</scale>\n` +
+                "      </IconStyle>\n" +
+                "    </Style>\n";
+
+            kmlContent +=
+                "    <Placemark>\n" +
+                `      <name>${place.title || "Unnamed Place"}</name>\n` +
+                `      <description><![CDATA[${description}]]></description>\n` +
+                "      <Point>\n" +
+                `        <coordinates>${place.longitude},${place.latitude}</coordinates>\n` +
+                "      </Point>\n" +
+                "    </Placemark>\n";
+        });
+    });
+
+    kmlContent += "  </Document>\n</kml>";
+
+    // Create a link and trigger download
+    const encodedUri = encodeURI(
+        `data:application/vnd.google-earth.kml+xml,${kmlContent}`
+    );
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", filename);
@@ -75,4 +148,30 @@ function downStatisticsDataAsCSV(data, filename) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+/**
+ * Generates a color for a given string input. The generated color is intended for use in KML files.
+ * KML color format is aabbggrr, where aa is the opacity, and bb, gg, rr are blue, green, and red color values in hexadecimal format.
+ *
+ * @param {string} str - The input string from which to generate a color.
+ * @returns {string} A KML-compatible color string.
+ */
+function generateKMLColorFromStr(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const character = str.charCodeAt(i);
+        hash = (hash << 5) - hash + character;
+        hash &= hash; // Convert to 32bit integer
+    }
+
+    const color = (hash & 0x00ffffff).toString(16).toUpperCase();
+    const paddedColor = "00000".substring(0, 6 - color.length) + color;
+
+    const kmlColor = `ff${paddedColor.substring(4, 6)}${paddedColor.substring(
+        2,
+        4
+    )}${paddedColor.substring(0, 2)}`;
+
+    return kmlColor;
 }

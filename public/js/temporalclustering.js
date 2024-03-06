@@ -6,57 +6,45 @@ $(document).ready(function () {
     });
 
     var clusteringResponseData = null;
+    var yearsInterval = 0;
+    var daysInterval = 0;
 
     // Function to generate the result table based on response data
     function getClusterResultTable(response) {
         var clusterSummaryTable = "<h2>Cluster Summary</h2>";
         var droppedRecordsCount = response["droppedRecordsCount"];
         clusterSummaryTable +=
-            "<h3>Number of records dropped: " + droppedRecordsCount + "</h3>";
+            "<h3>Places without dates removed: " +
+            droppedRecordsCount +
+            "</h3>";
 
-        response = response["clusters"];
+        var clusters = response["clusters"];
         clusterSummaryTable +=
-            '<table class="table"><thead><tr><th>Cluster Number</th><th>Total Places</th></tr></thead><tbody>';
+            '<table class="table"><thead><tr><th>Cluster Number</th><th>Total Places</th><th>Start Date</th><th>End Date</th></tr></thead><tbody>';
 
         var resultTable = "<h2>Cluster Detail</h2>"; // Added heading
         resultTable +=
             '<table class="table"><thead><tr><th>Cluster Number</th><th>Place ID</th><th>Place Name</th><th>Date</th><th>Latitude</th><th>Longitude</th></tr></thead><tbody>';
 
-        Object.entries(response).forEach(([clusterIndex, cluster], index) => {
+        clusters.forEach((cluster, clusterIndex) => {
             // Append to the cluster summary table
-            clusterSummaryTable +=
-                "<tr>" +
-                '<td style="font-weight:bolder">' +
-                (parseInt(clusterIndex) + 1) +
-                "</td>" +
-                "<td>" +
-                cluster.length +
-                "</td>" +
-                "</tr>";
+            clusterSummaryTable += `<tr>
+                    <td style="font-weight:bolder">${clusterIndex + 1}</td>
+                    <td>${cluster.records.length}</td>
+                    <td>${cluster.start_date}</td>
+                    <td>${cluster.end_date}</td>
+                </tr>`;
 
             // Populate the detailed result table
-            cluster.forEach((place) => {
-                resultTable +=
-                    "<tr>" +
-                    '<td style="font-weight:bolder">' +
-                    (parseInt(clusterIndex) + 1) +
-                    "</td>" +
-                    "<td>" +
-                    place.id +
-                    "</td>" +
-                    "<td>" +
-                    place.title +
-                    "</td>" +
-                    "<td>" +
-                    place.datestart +
-                    "</td>" +
-                    "<td>" +
-                    place.latitude +
-                    "</td>" +
-                    "<td>" +
-                    place.longitude +
-                    "</td>" +
-                    "</tr>";
+            cluster.records.forEach((place) => {
+                resultTable += `<tr>
+                        <td style="font-weight:bolder">${clusterIndex + 1}</td>
+                        <td>${place.id}</td>
+                        <td>${place.title}</td>
+                        <td>${place.datestart}</td>
+                        <td>${place.latitude}</td>
+                        <td>${place.longitude}</td>
+                    </tr>`;
             });
         });
 
@@ -68,7 +56,7 @@ $(document).ready(function () {
         return clusterSummaryTable + resultTable;
     }
 
-    function downloadClusterDataAsCSV() {
+    $("#temporal-download-csv").click(function () {
         const headers = [
             "Cluster ID",
             "id",
@@ -82,10 +70,19 @@ $(document).ready(function () {
             "temporal_clustering.csv",
             headers
         );
-    }
+    });
 
-    $("#downloadCsvButton").click(function () {
-        downloadClusterDataAsCSV();
+    $("#temporal-download-json").click(function () {
+        var href =
+            currentUrl + "/json/download?year=" + yearsInterval + "&day=" + daysInterval;
+        window.location.href = href;
+    });
+
+    $("#temporal-download-kml").click(function () {
+        downloadClusterDataAsKML(
+            clusteringResponseData.clusters,
+            "temporal_clustering.kml"
+        );
     });
 
     $("#backButton").click(function () {
@@ -98,8 +95,8 @@ $(document).ready(function () {
         e.preventDefault();
 
         var id = $("#ds_id").val();
-        var yearsInterval = parseFloat($("#yearsInterval").val()) || 0;
-        var daysInterval = parseFloat($("#daysInterval").val()) || 0;
+        yearsInterval = parseFloat($("#yearsInterval").val()) || 0;
+        daysInterval = parseFloat($("#daysInterval").val()) || 0;
         var totalInterval = yearsInterval + daysInterval / 366;
 
         var mapSourceUrl = encodeURIComponent(

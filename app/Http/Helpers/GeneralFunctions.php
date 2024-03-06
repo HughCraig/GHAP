@@ -222,4 +222,25 @@ class GeneralFunctions
         return true;
     }
 
+    /**
+     * Calulates the distance between two points by coordinates
+     * 
+     * @param float $lat1 Latitude of the first point
+     * @param float $lon1 Longitude of the first point
+     * @param float $lat2 Latitude of the second point
+     * @param float $lon2 Longitude of the second point
+     * @return float The distance between the two points in Kilometers
+     */
+    public static function getDistance($lat1, $lon1, $lat2, $lon2) {
+
+        $theta = $lon1 - $lon2;
+        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+        $dist = acos($dist);
+        $dist = rad2deg($dist);
+        $miles = $dist * 60 * 1.1515;
+
+        return ($miles * 1.609344);
+        
+    }
+
 }
