@@ -8,9 +8,11 @@ use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
 use TLCMap\Models\RecordType;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use TLCMap\Http\Helpers\GeneralFunctions;
+use TLCMap\ViewConfig\CollectionConfig;
 
 class Dataset extends Model
 {
@@ -953,5 +955,1179 @@ class Dataset extends Model
         }
 
         return $quantiles;
+    }
+
+    /**
+     * Calculates basic statistical data for a dataset.
+     *
+     * Compiles a series of basic statistical measures for the dataset
+     * Such as the total number of places, the area of the convex hull encompassing all places,
+     * the density of places, the centroid of all places, and the bounding box around all places.
+     *
+     * @return array
+     *   An array of statistical measures, each containing name, value, unit, and an explanation of the statistic.
+     */
+    public function getBasicStatistics()
+    {
+
+        $statistics = [];
+
+        // Total Places
+        $statistics[] = [
+            'name' => 'Total Places',
+            'value' => $this->dataitems()->count(),
+            'unit' => null,
+            'explanation' => 'The total number of places'
+        ];
+
+        // Area of the convex hull
+        $areaResult = DB::select(DB::raw("
+            SELECT ST_Area(ST_ConvexHull(ST_Collect(geog::geometry))) as area
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id]);
+        $totalArea = $areaResult[0]->area ? $areaResult[0]->area * 10000 : null;
+        $statistics[] = [
+            'name' => 'Area',
+            'value' => $totalArea ?? 'Not Available',
+            'unit' => 'km<sup>2</sup>',
+            'explanation' => 'The area of the convex hull of all places in the dataset'
+        ];
+
+        // Convex hull polygon
+        $convexHullResult = DB::select(DB::raw("
+            SELECT
+                ST_AsText(ST_ConvexHull(ST_Collect(geog::geometry))) AS convex_hull_line
+            FROM
+                tlcmap.dataitem
+            WHERE
+                dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id]);
+        $statistics[] = [
+            'name' => 'Convex Hull',
+            'value' => $convexHullResult[0]->convex_hull_line,
+            'explanation' => 'The area of the convex hull'
+        ];
+
+        // Density
+        if ($totalArea  && $this->dataitems()->count()) {
+            $statistics[] = [
+                'name' => 'Density',
+                'value' => $this->dataitems()->count() / max($totalArea, 1),
+                'unit' => 'places/km<sup>2</sup>',
+                'explanation' => 'The amount of places per square kilometer'
+            ];
+        }
+
+        // Centroid
+        $centroidResult = DB::select(DB::raw("
+            SELECT ST_AsText( ST_Centroid(ST_Collect(geog::geometry))) as centroid
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id]);
+        $statistics[] = [
+            'name' => 'Centroid',
+            'value' => $centroidResult[0]->centroid ?? 'Not Available',
+            'unit' => null,
+            'explanation' => 'The midpoint between all places'
+        ];
+
+        // Bounding box
+        $bboxResult = DB::select(DB::raw("
+            SELECT ST_AsText(ST_Extent(geog::geometry)) as bbox
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id]);
+        $statistics[] = [
+            'name' => 'Bounding Box',
+            'value' => $bboxResult[0]->bbox ?? 'Not Available',
+            'unit' => null,
+            'explanation' => 'Coordinates showing a box enclosing all places, using the coordinates that are furthest north, south, east and west.'
+        ];
+
+        // Calculate centroid coordinates
+        $centroidCoords = DB::select(DB::raw("
+            SELECT ST_Y(ST_Centroid(ST_Collect(geog::geometry))) as lat,
+                ST_X(ST_Centroid(ST_Collect(geog::geometry))) as lng
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id]);
+        $centroidLat = $centroidCoords[0]->lat ?? 0;
+        $centroidLng = $centroidCoords[0]->lng ?? 0;
+
+        // Most central place
+        $centralPlace = DB::select(DB::raw("
+        SELECT id, title, latitude, longitude, uid ,
+            ST_Distance(geog, ST_MakePoint(:centroidLng, :centroidLat)::geography) as distance
+        FROM tlcmap.dataitem
+        WHERE dataset_id = :dataset_id
+        ORDER BY distance ASC
+        LIMIT 1
+        "), ['dataset_id' => $this->id, 'centroidLng' => $centroidLng, 'centroidLat' => $centroidLat]);
+
+        if (!empty($centralPlace)) {
+            $placeUrl = config('app.views_root_url') . '3d.html?load=' . (url('places/' . $centralPlace[0]->uid . '/json'));
+        } else {
+            $placeUrl = null;
+        }
+
+        $statistics[] = [
+            'name' => 'Most Central Place',
+            'value' => $centralPlace[0]->title ?? 'Not Available',
+            'url' => $placeUrl,
+            'unit' => null,
+            'explanation' => 'The place that is closest to the centroid of all places'
+        ];
+
+        // Most distant place from center
+        $distantPlace = DB::select(DB::raw("
+        SELECT id, title, latitude, longitude, uid ,
+            ST_Distance(geog, ST_MakePoint(:centroidLng, :centroidLat)::geography) as distance
+        FROM tlcmap.dataitem
+        WHERE dataset_id = :dataset_id
+        ORDER BY distance DESC
+        LIMIT 1
+        "), ['dataset_id' => $this->id, 'centroidLng' => $centroidLng, 'centroidLat' => $centroidLat]);
+
+        if (!empty($distantPlace)) {
+            $placeUrl = config('app.views_root_url') . '3d.html?load=' . (url('places/' . $distantPlace[0]->uid . '/json'));
+        } else {
+            $placeUrl = null;
+        }
+
+        $statistics[] = [
+            'name' => 'Most Distant Place from center',
+            'value' => $distantPlace[0]->title ?? 'Not Available',
+            'url' => $placeUrl,
+            'unit' => null,
+            'explanation' => 'The place that is furthest from the centroid of all places'
+        ];
+
+        // Distribution
+        // Fetch all places
+        $places = DB::select(DB::raw("
+        SELECT id, ST_Distance(geog, ST_MakePoint(:centroidLng, :centroidLat)::geography) as distanceToCentroid
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id, 'centroidLng' => $centroidLng, 'centroidLat' => $centroidLat]);
+
+        // Convert the result to an array of distances to centroid
+        $distancesToCentroid = array_map(function ($place) {
+            return (float) $place->distancetocentroid;
+        }, $places);
+        // Calculate average distance to centroid
+        $averageDistanceToCentroid = array_sum($distancesToCentroid) / count($distancesToCentroid) / 1000;
+        $ratio = $totalArea ? $averageDistanceToCentroid / $totalArea : "N/A";
+
+        $statistics[] = [
+            'name' => 'Distribution',
+            'value' => [
+                'Average Distance from Centroid' => $averageDistanceToCentroid,
+                'Average Distance from Centroid / Area of Convex Hull' => $ratio,
+            ],
+            'unit' => 'kilometers',
+            'explanation' => 'N/A'
+        ];
+
+        return $statistics;
+    }
+
+    /**
+     * Generates a GeoJSON representation of basic statistics and spatial features for the dataset.
+     *
+     * @return string
+     *   A string representation of the GeoJSON object including features and metadata for the dataset.
+     */
+    public function getBasicStatisticsJSON()
+    {
+        $dataset = $this;
+        $features = array();
+
+        $metadata = array(
+            'layerid' => $dataset->id,
+            'name' => $dataset->name,
+            'description' => $dataset->description,
+            'warning' => $dataset->warning,
+            'ghap_url' => $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"),
+            'linkback' => $dataset->linkback
+        );
+
+        // Set the feature collection config.
+        $featureCollectionConfig = new FeatureCollectionConfig();
+        $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
+        $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
+        $featureCollectionConfig->setInfoTitle("Baisc Statistics: " .  $metadata['name'], $metadata['ghap_url']);
+        $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
+
+        // Area of the convex hull: Show polygon
+        $areaResult = DB::select(DB::raw("
+            SELECT
+                ST_AsText(ST_ConvexHull(ST_Collect(geog::geometry))) AS convex_hull_line
+            FROM
+                tlcmap.dataitem
+            WHERE
+                dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id]);
+        $polygons = $this->parseGeometryString($areaResult[0]->convex_hull_line);
+        $linecoords = array();
+        foreach ($polygons as $polygon) {
+            $features[] = array(
+                'type' => 'Feature',
+                'geometry' => array('type' => 'Point', 'coordinates' => $polygon),
+                'properties' => array('name' => 'Convex Hull', 'latitude' => $polygon[1], 'longitude' => $polygon[0]),
+            );
+            array_push($linecoords, [$polygon[0], $polygon[1]]);
+        }
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'LineString', 'coordinates' => $linecoords),
+            'properties' => ['name' => 'Convex Hull Polygon'],
+        );
+
+        // Centroid : Show single point
+        $centroidResult = DB::select(DB::raw("
+            SELECT ST_AsText( ST_Centroid(ST_Collect(geog::geometry))) as centroid
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id]);
+        $coordinates = $this->parseGeometryString($centroidResult[0]->centroid);
+        foreach ($coordinates as $coordinate) {
+            $features[] = array(
+                'type' => 'Feature',
+                'geometry' => array('type' => 'Point', 'coordinates' => $coordinate),
+                'properties' => array('name' => 'Centroid', 'latitude' => $coordinate[1], 'longitude' => $coordinate[0]),
+            );
+        }
+
+        // Bounding box: Show polygon
+        $bboxResult = DB::select(DB::raw("
+            SELECT ST_AsText(ST_Extent(geog::geometry)) as bbox
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id]);
+        $polygons = $this->parseGeometryString($bboxResult[0]->bbox);
+        $linecoords = array();
+        foreach ($polygons as $polygon) {
+            $features[] = array(
+                'type' => 'Feature',
+                'geometry' => array('type' => 'Point', 'coordinates' => $polygon),
+                'properties' => array('name' => 'Bounding Box', 'latitude' => $polygon[1], 'longitude' => $polygon[0]),
+            );
+            array_push($linecoords, [$polygon[0], $polygon[1]]);
+        }
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'LineString', 'coordinates' => $linecoords),
+            'properties' => ['name' => 'Bounding Box Polygon'],
+        );
+
+        // Most central place : Show single point
+        $centroidCoords = DB::select(DB::raw("
+            SELECT ST_Y(ST_Centroid(ST_Collect(geog::geometry))) as lat,
+                ST_X(ST_Centroid(ST_Collect(geog::geometry))) as lng
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), ['dataset_id' => $this->id]);
+
+        $centroidLat = $centroidCoords[0]->lat ?? 0;
+        $centroidLng = $centroidCoords[0]->lng ?? 0;
+        $centralPlace = DB::select(DB::raw("
+        SELECT id, title, latitude, longitude, uid ,
+            ST_Distance(geog, ST_MakePoint(:centroidLng, :centroidLat)::geography) as distance
+        FROM tlcmap.dataitem
+        WHERE dataset_id = :dataset_id
+        ORDER BY distance ASC
+        LIMIT 1
+        "), ['dataset_id' => $this->id, 'centroidLng' => $centroidLng, 'centroidLat' => $centroidLat]);
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'Point', 'coordinates' => [$centralPlace[0]->longitude, $centralPlace[0]->latitude]),
+            'properties' => array('name' => 'Most center place', 'latitude' => $centralPlace[0]->latitude, 'longitude' => $centralPlace[0]->longitude),
+        );
+
+        $allfeatures = array(
+            'type' => 'FeatureCollection',
+            'metadata' => $metadata,
+            'features' => $features,
+            'display' => $featureCollectionConfig->toArray(),
+        );
+
+        return json_encode($allfeatures, JSON_PRETTY_PRINT);
+    }
+
+    /**
+     * Calculates advanced statistical data for a dataset.
+     *
+     * Computes distances between all pairs of places within the dataset and derives
+     * several statistical measures from these distances, such as minimum, maximum, average, and median distances.
+     * It also identifies the most isolated place within the dataset based on the minimum distances.
+     *
+     * @return array
+     *   An array of advanced statistical measures
+     */
+    public function getAdvancedStatistics()
+    {
+        $statistics = [];
+
+        // Distances between places
+        $distances = DB::select(DB::raw("
+            SELECT a.id as place_a_id, b.id as place_b_id, ST_Distance(a.geog, b.geog) as distance
+            FROM tlcmap.dataitem a, tlcmap.dataitem b
+            WHERE a.dataset_id = :dataset_id AND b.dataset_id = :dataset_id AND a.id < b.id
+        "), ['dataset_id' => $this->id]);
+
+        $distanceValues = array_column($distances, 'distance');
+        $nearestNeighborDistances = [];
+
+        foreach ($distances as $distance) {
+            $placeA = $distance->place_a_id;
+            $placeB = $distance->place_b_id;
+            $dist = $distance->distance;
+
+            if (!isset($nearestNeighborDistances[$placeA]) || $dist < $nearestNeighborDistances[$placeA]) {
+                $nearestNeighborDistances[$placeA] = $dist;
+            }
+
+            if (!isset($nearestNeighborDistances[$placeB]) || $dist < $nearestNeighborDistances[$placeB]) {
+                $nearestNeighborDistances[$placeB] = $dist;
+            }
+        }
+
+        // Calculate statistics
+        $minDistance = min($distanceValues) / 1000;
+        $maxDistance = max($distanceValues) / 1000;
+        $averageDistance = array_sum($distanceValues) / count($distanceValues) / 1000;
+        $medianDistance = GeneralFunctions::getMedian($distanceValues) / 1000;
+        $stdDevDistance = GeneralFunctions::getStandardDeviation($distanceValues) / 1000;
+        $averageMinDistance = array_sum($nearestNeighborDistances) / count($nearestNeighborDistances) / 1000;
+        $medianMinDistance = GeneralFunctions::getMedian($nearestNeighborDistances) / 1000;
+        $stdDevMinDistance = GeneralFunctions::getStandardDeviation($nearestNeighborDistances) / 1000;
+
+        $statistics[] = [
+            'name' => 'Distance Between Places',
+            'value' => [
+                'Min distance between 2 places' => $minDistance,
+                'Max distance between 2 places' => $maxDistance,
+                'Average distance between places' => $averageDistance,
+                'Median distance between places' => $medianDistance,
+                'Standard Deviation of distance between places' => $stdDevDistance,
+                'Average Min distance between neighbouring places' => $averageMinDistance,
+                'Median Min distance between neighbouring places' => $medianMinDistance,
+                'Standard Deviation of Min distance between neighbouring places' => $stdDevMinDistance
+            ],
+            'unit' => 'kilometers',
+            'explanation' => 'Minimum, Maximum and typical distances between places in kilometers. This can also indicate how closely grouped or evenly scattered places are. The min distance is important to understand how ‘close’ places tend to be to each other. See also ‘Distribution’'
+        ];
+
+
+        //Most distance place from any other place
+        // Now find the place with the largest minimum distance to any other place
+        $maxMinDistance = max($nearestNeighborDistances);
+        $mostIsolatedPlaceId = array_search($maxMinDistance, $nearestNeighborDistances);
+
+        // Fetch details for the most isolated place
+        $mostIsolatedPlace = DB::select(DB::raw("
+            SELECT id, title, latitude, longitude , uid
+            FROM tlcmap.dataitem
+            WHERE id = :id
+        "), ['id' => $mostIsolatedPlaceId]);
+
+        if (!empty($mostIsolatedPlace)) {
+            $placeUrl = config('app.views_root_url') . '3d.html?load=' . (url('places/' . $mostIsolatedPlace[0]->uid . '/json'));
+        } else {
+            $placeUrl = null;
+        }
+
+        $statistics[] = [
+            'name' => 'Most Distant Place From Any Other Place',
+            'url' => $placeUrl,
+            'value' => [
+                'Title' => $mostIsolatedPlace[0]->title,
+                'Coordinates' => "{$mostIsolatedPlace[0]->latitude}, {$mostIsolatedPlace[0]->longitude}",
+            ],
+            'unit' => null,
+            'explanation' => 'The place most isolated from others. This is different to distance to the centre, and different to the max distance between any two places. It is the largest of all minimum distances.'
+        ];
+        return $statistics;
+    }
+
+    /**
+     * Performs DBSCAN clustering on dataset items based on geographical proximity.
+     *
+     * This method applies the DBSCAN (Density-Based Spatial Clustering of Applications with Noise) algorithm
+     * to the items within the dataset, grouping them into clusters based on their spatial location.
+     *
+     * @param float $distance The maximum distance between two points for one to be considered as in the neighborhood of the other.
+     * @param int $minPoints The minimum number of points required to form a dense region (cluster).
+     * @return array An array of clusters, each containing the items that belong to that cluster.
+     */
+    public function getClusterAnalysisDBScan($distance, $minPoints)
+    {
+        $distance = $distance / 100;
+        // Perform the DBSCAN clustering query
+        $clusters = DB::select(DB::raw("
+            SELECT uid, title , latitude, longitude , ST_ClusterDBSCAN(geom, eps := :distance, minpoints := :minPoints) OVER() AS cluster_id
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), [
+            'distance' => $distance,
+            'minPoints' => $minPoints,
+            'dataset_id' => $this->id
+        ]);
+
+        // Process the results
+        $clusterResults = [];
+        foreach ($clusters as $cluster) {
+            $clusterId = $cluster->cluster_id;
+            if ($clusterId !== null) { // Ignore noise if minPoints > 0
+                $clusterResults[$clusterId][] = [
+                    'id' => $cluster->uid,
+                    'title' => $cluster->title,
+                    'latitude' => $cluster->latitude,
+                    'longitude' => $cluster->longitude,
+                ];
+            }
+        }
+
+        return $clusterResults;
+    }
+
+    /**
+     * Generates a JSON representation of the DBSCAN clustering results for visualization.
+     *
+     * @return string A JSON string representing the clustered data, ready for web visualization.
+     */
+    public function getClusterAnalysisDBScanJSON()
+    {
+        $dataset = $this;
+
+        $distance = $_GET["distance"] / 100;
+        $minPoints = $_GET["minPoints"];
+        $clusters = DB::select(DB::raw("
+            SELECT id, title , latitude, longitude , ST_ClusterDBSCAN(geom, eps := :distance, minpoints := :minPoints) OVER() AS cluster_id
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), [
+            'distance' => $distance,
+            'minPoints' => $minPoints,
+            'dataset_id' => $this->id
+        ]);
+
+        $groupedClusters = $this->groupByClusterId($clusters);
+
+        $data = [];
+        // Set collection config.
+        $collectionConfig = new CollectionConfig();
+        $collectionConfig->setInfoTitle('DBSCAN Clustering of layer ' . $this->name);
+        $data['display'] = $collectionConfig->toArray();
+        $data['datasets'] = [];
+
+        foreach ($groupedClusters as $clusterId => $cluster) {
+            $features = [];
+            foreach ($cluster as $place) {
+                $feature = [
+                    'type' => 'Feature',
+                    'geometry' => [
+                        'type' => 'Point',
+                        'coordinates' => [$place->longitude, $place->latitude]
+                    ],
+                    'properties' => [
+                        'name' => $place->title,
+                        'latitude' => $place->latitude,
+                        'longitude' => $place->longitude,
+                        'cluster_id' => ($clusterId + 1)
+                    ]
+                ];
+                $features[] = $feature;
+            }
+
+            $metadata = array(
+                'layerid' => $dataset->id,
+                'name' => $dataset->name,
+                'description' => $dataset->description,
+                'warning' => $dataset->warning,
+                'ghap_url' => $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"),
+                'linkback' => $dataset->linkback
+            );
+
+            $featureCollectionConfig = new FeatureCollectionConfig();
+            $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
+            $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
+            $featureCollectionConfig->setInfoTitle($metadata['name'], $metadata['ghap_url']);
+            $displayProperty = $featureCollectionConfig->toArray();
+            $displayProperty['listPane']['showColor'] = true;
+
+            $data['datasets'][] = [
+                'name' => 'Cluster ' . ($clusterId + 1),
+                'type' => 'FeatureCollection',
+                'features' => $features,
+                'display' => $displayProperty,
+            ];
+        }
+
+        return json_encode($data, JSON_PRETTY_PRINT);
+    }
+
+    /**
+     * Performs KMeans clustering on the dataset's locations.
+     *
+     * This function clusters locations within a dataset into a specified number of clusters using the KMeans algorithm.
+     * Optionally, a maximum radius for clusters can be specified.
+     *
+     * @param int $numberOfClusters The number of clusters to generate.
+     * @param float|null $withinRadius Optional. The maximum radius (in kilometers) for a cluster. Defaults to null.
+     * @return array An associative array where keys are cluster IDs and values are arrays of location data belonging to that cluster.
+     */
+    public function getClusterAnalysisKmeans($numberOfClusters, $withinRadius = null)
+    {
+        $withinRadius = $withinRadius ?? null;
+
+        // Perform initial KMeans clustering
+        $clusters = DB::select(DB::raw("
+            SELECT uid as id, title, latitude, longitude,
+                ST_ClusterKMeans(geom::geometry, :numberOfClusters) OVER() AS cluster_id
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), [
+            'numberOfClusters' => $numberOfClusters,
+            'dataset_id' => $this->id
+        ]);
+
+        $clusterResults = [];
+        $clusterGeoms = [];
+
+        // First, group places by cluster_id
+        foreach ($clusters as $cluster) {
+            $clusterId = $cluster->cluster_id;
+            if ($clusterId !== null) {
+                $clusterResults[$clusterId][] = $cluster;
+                $clusterGeoms[$clusterId][] = "ST_GeomFromText('POINT(" . $cluster->longitude . " " . $cluster->latitude . ")')";
+            }
+        }
+
+        if (is_null($withinRadius)) {
+            return $clusterResults;
+        }
+
+        $filteredClusters = [];
+
+        foreach ($clusterGeoms as $clusterId => $geoms) {
+            $geomCollection = implode(',', $geoms);
+            $centroidResult = DB::select(DB::raw("
+                SELECT ST_AsText(ST_Centroid(ST_Collect(array[$geomCollection]))) AS centroid
+            "));
+            $exceedsMaxRadius = false;
+
+            if ($centroidResult[0]->centroid) {
+                $centroidLat = $this->parseGeometryString($centroidResult[0]->centroid)[0][1];
+                $centroidLng = $this->parseGeometryString($centroidResult[0]->centroid)[0][0];
+
+                foreach ($clusterResults[$clusterId] as $place) {
+                    $distance = GeneralFunctions::getDistance($place->latitude, $place->longitude, $centroidLat, $centroidLng);
+                    if ($distance > $withinRadius) {
+                        $exceedsMaxRadius = true;
+                        break;
+                    }
+                }
+            } else {
+                //Error in centroid calculation
+                $exceedsMaxRadius = true;
+            }
+
+            if (!$exceedsMaxRadius) {
+                $filteredClusters[$clusterId] = $clusterResults[$clusterId];
+            }
+        }
+
+        return array_values($filteredClusters);
+    }
+
+    /**
+     * Generates a GeoJSON representation of KMeans clustering results for visualization.
+     *
+     * @return string JSON string representing the clustered locations in GeoJSON format.
+     */
+    public function getClusterAnalysisKmeansJSON()
+    {
+        $dataset = $this;
+
+        $numClusters = $_GET["numClusters"];
+        $withinRadius = $_GET["withinRadius"];
+
+        // Perform initial KMeans clustering
+        $clusters = DB::select(DB::raw("
+            SELECT id, title, latitude, longitude,
+                ST_ClusterKMeans(geom::geometry, :numberOfClusters) OVER() AS cluster_id
+            FROM tlcmap.dataitem
+            WHERE dataset_id = :dataset_id
+        "), [
+            'numberOfClusters' => $numClusters,
+            'dataset_id' => $this->id
+        ]);
+
+        $clusterResults = [];
+        $clusterGeoms = [];
+
+        foreach ($clusters as $cluster) {
+            $clusterId = $cluster->cluster_id;
+            if ($clusterId !== null) {
+                $clusterResults[$clusterId][] = $cluster;
+                $clusterGeoms[$clusterId][] = "ST_GeomFromText('POINT(" . $cluster->longitude . " " . $cluster->latitude . ")')";
+            }
+        }
+
+        if ($withinRadius != null && $withinRadius != 'null') {
+            foreach ($clusterGeoms as $clusterId => $geoms) {
+                $geomCollection = implode(',', $geoms);
+                $centroidResult = DB::select(DB::raw("
+                    SELECT ST_AsText(ST_Centroid(ST_Collect(array[$geomCollection]))) AS centroid
+                "));
+                $exceedsMaxRadius = false;
+
+                if ($centroidResult[0]->centroid) {
+                    $centroidLat = $this->parseGeometryString($centroidResult[0]->centroid)[0][1];
+                    $centroidLng = $this->parseGeometryString($centroidResult[0]->centroid)[0][0];
+
+                    foreach ($clusterResults[$clusterId] as $place) {
+                        $distance = GeneralFunctions::getDistance($place->latitude, $place->longitude, $centroidLat, $centroidLng);
+                        if ($distance > $withinRadius) {
+                            $exceedsMaxRadius = true;
+                            break;
+                        }
+                    }
+                } else {
+                    //Error in centroid calculation
+                    $exceedsMaxRadius = true;
+                }
+
+                if (!$exceedsMaxRadius) {
+                    $filteredClusters[$clusterId] = $clusterResults[$clusterId];
+                }
+            }
+            $clusterResults = array_values($filteredClusters);
+        }
+
+        $data = [];
+        // Set collection config.
+        $collectionConfig = new CollectionConfig();
+        $collectionConfig->setInfoTitle('Kmeans Clustering of layer ' . $this->name);
+        $data['display'] = $collectionConfig->toArray();
+        $data['datasets'] = [];
+
+        foreach ($clusterResults as $clusterId => $cluster) {
+            $features = [];
+            foreach ($cluster as $place) {
+                $feature = [
+                    'type' => 'Feature',
+                    'geometry' => [
+                        'type' => 'Point',
+                        'coordinates' => [$place->longitude, $place->latitude]
+                    ],
+                    'properties' => [
+                        'name' => $place->title,
+                        'latitude' => $place->latitude,
+                        'longitude' => $place->longitude,
+                        'cluster_id' => ($clusterId + 1)
+                    ]
+                ];
+                $features[] = $feature;
+            }
+
+            $metadata = array(
+                'layerid' => $dataset->id,
+                'name' => $dataset->name,
+                'description' => $dataset->description,
+                'warning' => $dataset->warning,
+                'ghap_url' => $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"),
+                'linkback' => $dataset->linkback
+            );
+
+            $featureCollectionConfig = new FeatureCollectionConfig();
+            $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
+            $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
+            $featureCollectionConfig->setInfoTitle($metadata['name'], $metadata['ghap_url']);
+            $displayProperty = $featureCollectionConfig->toArray();
+            $displayProperty['listPane']['showColor'] = true;
+
+            $data['datasets'][] = [
+                'name' => 'Cluster ' . ($clusterId + 1),
+                'type' => 'FeatureCollection',
+                'features' => $features,
+                'display' => $displayProperty,
+            ];
+        }
+
+        return json_encode($data, JSON_PRETTY_PRINT);
+    }
+
+    /**
+     * Performs temporal clustering of data items based on the specified time interval.
+     *
+     * @param float $totalInterval The temporal interval (in years) used to define the clusters. Data items within this interval from each other are grouped into the same cluster.
+     * @return array An associative array containing the count of dropped records (without a valid date) and the clusters formed.
+     */
+    public function getTemporalClustering($totalInterval)
+    {
+        $datasetId = $this->id;
+
+        // Calculate the dropped records
+        $droppedRecordsCount = DB::table('tlcmap.dataitem')
+            ->where('dataset_id', $datasetId)
+            ->where(function ($query) {
+                $query->whereNull('datestart');
+            })
+            ->count();
+
+        $records = DB::table('tlcmap.dataitem')
+            ->where('dataset_id', $datasetId)
+            ->whereNotNull('datestart')
+            ->select(['uid as id', 'title', 'datestart', 'latitude', 'longitude'])
+            ->get();
+
+        // Preprocess dates
+        $processedRecords = $records->map(function ($record) {
+            $record->geom_date = $this->proprecssDataitemDate($record->datestart);
+            return $record;
+        })->filter(function ($record) {
+            return $record->geom_date !== null;
+        })->sortBy('geom_date');
+        $processedRecords = $processedRecords->values();
+
+        $clusters = [];
+        $currentCluster = [];
+        $previousDate = null;
+        $currentIndex = 0;
+
+        foreach ($processedRecords as $record) {
+            if (empty($currentCluster)) {
+                $currentCluster['records'] = [$record];
+                $currentCluster['start_date'] = $record->datestart;
+            } else {
+                $dateDiff = $record->geom_date - $previousDate;
+
+                if ($dateDiff > $totalInterval) {
+                    $currentCluster['end_date'] = $processedRecords[$currentIndex - 1]->datestart;
+                    $clusters[] = $currentCluster;
+                    $currentCluster = ['records' => [$record], 'start_date' => $record->datestart];
+                } else {
+                    $currentCluster['records'][] = $record;
+                }
+            }
+
+            $previousDate = $record->geom_date;
+            $currentIndex++;
+        }
+
+        // Add the last cluster if it's not empty
+        if (!empty($currentCluster)) {
+            $currentCluster['end_date'] = $processedRecords->last()->datestart;
+            $clusters[] = $currentCluster;
+        }
+
+        return [
+            'droppedRecordsCount' => $droppedRecordsCount,
+            'clusters' => $clusters
+        ];
+    }
+
+    /**
+     * Generates a JSON representation of temporal clustering for visualization.
+     *
+     * @return string A JSON string representing the clustered data items in GeoJSON format.
+     */
+    public function getTemporalClusteringJSON()
+    {
+        $dataset = $this;
+        $datasetId = $this->id;
+        $yearsInterval =  $_GET["year"] ? $_GET["year"] : 0;
+        $daysInterval = $_GET["day"] ? $_GET["day"] : 0;
+        $totalInterval = $yearsInterval  + $daysInterval / 366;
+
+        $records = DB::table('tlcmap.dataitem')
+            ->where('dataset_id', $datasetId)
+            ->whereNotNull('datestart')
+            ->select(['id', 'title', 'datestart', 'latitude', 'longitude'])
+            ->get();
+
+        // Preprocess dates
+        $processedRecords = $records->map(function ($record) {
+            $record->geom_date = $this->proprecssDataitemDate($record->datestart);
+            return $record;
+        })->filter(function ($record) {
+            return $record->geom_date !== null;
+        })->sortBy('geom_date');
+
+        $clusters = [];
+        $currentCluster = [];
+        $previousDate = null;
+
+        foreach ($processedRecords as $record) {
+            if (empty($currentCluster)) {
+                $currentCluster[] = $record;
+            } else {
+                $dateDiff = $record->geom_date - $previousDate;
+
+                if ($dateDiff > $totalInterval) {
+                    // If the difference exceeds the specified interval, start a new cluster
+                    $clusters[] = $currentCluster;
+                    $currentCluster = [];
+                }
+
+                $currentCluster[] = $record;
+            }
+
+            $previousDate = $record->geom_date;
+        }
+
+        // Add the last cluster if it's not empty
+        if (!empty($currentCluster)) {
+            $clusters[] = $currentCluster;
+        }
+
+        $data = [];
+        // Set collection config.
+        $collectionConfig = new CollectionConfig();
+        $collectionConfig->setInfoTitle('Temporal Clustering of layer ' . $this->name);
+        $data['display'] = $collectionConfig->toArray();
+        $data['datasets'] = [];
+
+        foreach ($clusters as $clusterId => $cluster) {
+            $features = [];
+            foreach ($cluster as $place) {
+                $feature = [
+                    'type' => 'Feature',
+                    'geometry' => [
+                        'type' => 'Point',
+                        'coordinates' => [$place->longitude, $place->latitude]
+                    ],
+                    'properties' => [
+                        'name' => $place->title,
+                        'latitude' => $place->latitude,
+                        'longitude' => $place->longitude,
+                        'date' => $place->datestart,
+                        'cluster_id' => ($clusterId + 1)
+                    ]
+                ];
+                $features[] = $feature;
+            }
+
+            $metadata = array(
+                'layerid' => $dataset->id,
+                'name' => $dataset->name,
+                'description' => $dataset->description,
+                'warning' => $dataset->warning,
+                'ghap_url' => $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"),
+                'linkback' => $dataset->linkback
+            );
+
+            $featureCollectionConfig = new FeatureCollectionConfig();
+            $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
+            $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
+            $featureCollectionConfig->setInfoTitle($metadata['name'], $metadata['ghap_url']);
+            $displayProperty = $featureCollectionConfig->toArray();
+            $displayProperty['listPane']['showColor'] = true;
+
+            $data['datasets'][] = [
+                'name' => 'Cluster ' . ($clusterId + 1),
+                'type' => 'FeatureCollection',
+                'features' => $features,
+                'display' => $displayProperty,
+            ];
+        }
+
+        return json_encode($data, JSON_PRETTY_PRINT);
+    }
+
+    /**
+     * Converts various date string formats to a float representation capturing the year and fractional part of the year.
+     *
+     * @param string $dateString The date string to be converted.
+     * @return float|null The float representation of the date as year plus a fractional component, or null if the date string is not in a supported format.
+     */
+    public function proprecssDataitemDate($dateString)
+    {
+        if (empty($dateString)) {
+            return null; // empty strings
+        }
+
+        // Year only or year with invalid month/day
+        if (preg_match('/^(\d{1,4})-00-00$/', $dateString, $matches)) {
+            return (float)$matches[1];
+        }
+
+        // Invalid day/month with valid year
+        if (preg_match('/00\/00\/(\d{1,4})$/', $dateString, $matches)) {
+            return (float)$matches[1];
+        }
+
+        // Year and month only
+        if (preg_match('/^(\d{4})-(0[1-9]|1[012])$/', $dateString, $matches)) {
+            $year = (int)$matches[1];
+            $month = (int)$matches[2];
+            $dayOfYear = round(($month - 1) * 30.44); // Approximation
+            return $year + ($dayOfYear / 366);
+        }
+
+        // Full date in ISO 8601 or similar format
+        if (preg_match('/^(\d{4})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$/', $dateString, $matches)) {
+            $year = (int)$matches[1];
+            $month = (int)$matches[2];
+            $day = (int)$matches[3];
+            $dayOfYear = round(($month - 1) * 30.44 + $day); // Approximation
+            return $year + ($dayOfYear / 366);
+        }
+
+        // DD/MM/YYYY format
+        if (preg_match('/^(0?[1-9]|[12][0-9]|3[01])\/(0?[1-9]|1[012])\/(\d{4})$/', $dateString, $matches)) {
+            $year = (int)$matches[3];
+            $month = (int)$matches[2];
+            $day = (int)$matches[1];
+            $dayOfYear = round(($month - 1) * 30.44 + $day); // Approximation
+            return $year + ($dayOfYear / 366);
+        }
+
+        return null;
+    }
+
+    /**
+     * Performs a closeness analysis between two datasets, calculating various distance metrics.
+     *
+     * This function calculates the closeness of points in the current dataset (A) to points in another dataset (B),
+     * identified by `$targetDatasetId`. It computes the area of the convex hull for dataset A, and for each point in A,
+     * it finds the minimum distance to any point in B. Statistical metrics such as average, minimum, maximum, and median
+     * minimum distances are calculated to summarize the closeness. The distances are also normalized by the area of the
+     * convex hull to provide additional insights.
+     *
+     * @param int $targetDatasetId The ID of the target dataset B to compare against.
+     * @return array An associative array containing distance metrics and their area-normalized counterparts.
+     */
+    public function getClosenessAnalysis($targetDatasetId)
+    {
+        $sourceDatasetId = $this->id;
+
+        // Calculate the area of the convex hull of A
+        $convexHullArea = DB::table('tlcmap.dataitem')
+            ->select(DB::raw('ST_Area(ST_ConvexHull(ST_Collect(geog::geometry))) as area'))
+            ->where('dataset_id', $sourceDatasetId)
+            ->value('area');
+
+        // Calculate distances from each point in A to the closest point in B, including minimum and maximum distances
+        $minDistanceRecords = DB::table('tlcmap.dataitem as a')
+            ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
+                $join->on(DB::raw('1'), '=', DB::raw('1')) // Cross join
+                    ->where('a.dataset_id', '=', $sourceDatasetId)
+                    ->where('b.dataset_id', '=', $targetDatasetId);
+            })
+            ->select(DB::raw('a.id as source_id, MIN(ST_Distance(a.geog, b.geog)) as min_distance'))
+            ->groupBy('a.id')
+            ->get();
+
+        $minDistances = $minDistanceRecords->pluck('min_distance');
+
+        $averageMinDistance = $minDistances->average() / 1000;
+        $minMinDistance = $minDistances->min() / 1000;
+        $maxMinDistance = $minDistances->max() / 1000;
+        $medianMinDistance = $minDistances->median() / 1000;
+
+        $maxDistance = DB::table('tlcmap.dataitem as a')
+            ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
+                $join->on(DB::raw('1'), '=', DB::raw('1'))
+                    ->where('a.dataset_id', '=', $sourceDatasetId)
+                    ->where('b.dataset_id', '=', $targetDatasetId);
+            })
+            ->max(DB::raw('ST_Distance(a.geog, b.geog)')) / 1000;
+
+        $res = [
+            'Max Distance' => $maxDistance,
+            'Average Min Distance' => $averageMinDistance,
+            'Min Min Distance' => $minMinDistance,
+            'Max Min Distance' => $maxMinDistance,
+            'Median Min Distance' => $medianMinDistance,
+            'Average Min Distance / Area' => $averageMinDistance / ($convexHullArea * 10000),
+            'Min Min Distance / Area' => $minMinDistance / ($convexHullArea * 10000),
+            'Max Min Distance / Area' => $maxMinDistance / ($convexHullArea * 10000),
+            'Median Min Distance / Area' => $medianMinDistance / ($convexHullArea * 10000),
+        ];
+
+        return $res;
+    }
+
+    /**
+     * Generates a JSON representation of the closeness analysis results for visualization.
+     *
+     * @return string A JSON string representing the closeness analysis results, ready for web visualization.
+     */
+    public function getClosenessAnalysisJSON()
+    {
+        $sourceDatasetId = $this->id;
+        $targetDatasetId = $_GET["targetLayer"];
+
+        $dataset = $this;
+        $features = array();
+
+        $distanceRecords = DB::table('tlcmap.dataitem as a')
+            ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
+                $join->on(DB::raw('1'), '=', DB::raw('1')) // Cross join
+                    ->where('a.dataset_id', '=', $sourceDatasetId)
+                    ->where('b.dataset_id', '=', $targetDatasetId);
+            })
+            ->select(DB::raw('a.title as source_title, a.longitude as source_longitude, a.latitude as source_latitude ,  b.title as target_title, b.longitude as target_longitude, b.latitude as target_latitude , ST_Distance(a.geog, b.geog) as distance'))
+            ->orderBy('distance')
+            ->get();
+        $distances = $distanceRecords->pluck('distance');
+        $maxDistance = $distances->max() / 1000;
+        $maxDistanceRecord = $distanceRecords->last();
+
+        $minDistanceRecords = DB::table('tlcmap.dataitem as a')
+            ->join('tlcmap.dataitem as b', function ($join) use ($sourceDatasetId, $targetDatasetId) {
+                $join->on(DB::raw('1'), '=', DB::raw('1')) // Cross join
+                    ->where('a.dataset_id', '=', $sourceDatasetId)
+                    ->where('b.dataset_id', '=', $targetDatasetId);
+            })
+            ->select(DB::raw('a.id as source_id, MIN(ST_Distance(a.geog, b.geog)) as min_distance'))
+            ->groupBy('a.id')
+            ->get();
+        $minDistances = $minDistanceRecords->pluck('min_distance');
+        $minMinDistance = $minDistances->min();
+        $maxMinDistance = $minDistances->max();
+
+        $minMinDistanceRecord = $distanceRecords->filter(function ($record) use ($minMinDistance) {
+            return $record->distance == $minMinDistance;
+        })->first();
+
+        $maxMinDistanceRecord = $distanceRecords->filter(function ($record) use ($maxMinDistance) {
+            return $record->distance == $maxMinDistance;
+        })->first();
+
+
+        // Set the feature collection config.
+        $featureCollectionConfig = new FeatureCollectionConfig();
+        $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
+        $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
+        $featureCollectionConfig->setInfoTitle('Closeness Analyse: ' . $dataset->name, $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"));
+        $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
+
+        //Add the records to the features array
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'Point', 'coordinates' => [$minMinDistanceRecord->source_longitude, $minMinDistanceRecord->source_latitude]),
+            'properties' => array('name' => $minMinDistanceRecord->source_title, 'latitude' => $minMinDistanceRecord->source_latitude, 'longitude' => $minMinDistanceRecord->source_longitude),
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'Point', 'coordinates' => [$minMinDistanceRecord->target_longitude, $minMinDistanceRecord->target_latitude]),
+            'properties' => array('name' => $minMinDistanceRecord->target_title, 'latitude' => $minMinDistanceRecord->target_latitude, 'longitude' => $minMinDistanceRecord->target_longitude),
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'LineString', 'coordinates' => [[$minMinDistanceRecord->source_longitude, $minMinDistanceRecord->source_latitude], [$minMinDistanceRecord->target_longitude, $minMinDistanceRecord->target_latitude]]),
+            'properties' => ['name' => 'Shortest minimum Line', 'distance' => $minMinDistance / 1000 . ' km'],
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'Point', 'coordinates' => [$maxMinDistanceRecord->source_longitude, $maxMinDistanceRecord->source_latitude]),
+            'properties' => array('name' => $maxMinDistanceRecord->source_title, 'latitude' => $maxMinDistanceRecord->source_latitude, 'longitude' => $maxMinDistanceRecord->source_longitude),
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'Point', 'coordinates' => [$maxMinDistanceRecord->target_longitude, $maxMinDistanceRecord->target_latitude]),
+            'properties' => array('name' => $maxMinDistanceRecord->target_title, 'latitude' => $maxMinDistanceRecord->target_latitude, 'longitude' => $maxMinDistanceRecord->target_longitude),
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'LineString', 'coordinates' => [[$maxMinDistanceRecord->source_longitude, $maxMinDistanceRecord->source_latitude], [$maxMinDistanceRecord->target_longitude, $maxMinDistanceRecord->target_latitude]]),
+            'properties' => ['name' => 'Longest minimum Line', 'distance' => $maxMinDistance / 1000 . ' km'],
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'Point', 'coordinates' => [$maxDistanceRecord->source_longitude, $maxDistanceRecord->source_latitude]),
+            'properties' => array('name' => $maxDistanceRecord->source_title, 'latitude' => $maxDistanceRecord->source_latitude, 'longitude' => $maxDistanceRecord->source_longitude),
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'Point', 'coordinates' => [$maxDistanceRecord->target_longitude, $maxDistanceRecord->target_latitude]),
+            'properties' => array('name' => $maxDistanceRecord->target_title, 'latitude' => $maxDistanceRecord->target_latitude, 'longitude' => $maxDistanceRecord->target_longitude),
+        );
+
+        $features[] = array(
+            'type' => 'Feature',
+            'geometry' => array('type' => 'LineString', 'coordinates' => [[$maxDistanceRecord->source_longitude, $maxDistanceRecord->source_latitude], [$maxDistanceRecord->target_longitude, $maxDistanceRecord->target_latitude]]),
+            'properties' => ['name' => 'Max distance line', 'distance' => $maxDistance . ' km'],
+        );
+
+        $allfeatures = array(
+            'type' => 'FeatureCollection',
+            'features' => $features,
+            'display' => $featureCollectionConfig->toArray(),
+        );
+
+        return json_encode($allfeatures, JSON_PRETTY_PRINT);
+    }
+
+
+    /**
+     * Parses a geometry string (POINT or POLYGON) and returns an array of coordinates.
+     *
+     * This function supports both POINT and POLYGON geometries, extracting and returning coordinates in a structured array.
+     *
+     * @param string $geometryString The geometry string to parse.
+     * @return array|null An array of coordinates, or null if the input format is unsupported.
+     */
+    protected function parseGeometryString($geometryString)
+    {
+
+        if (strpos($geometryString, "POLYGON") === 0) {
+            $geometryString = trim($geometryString, "POLYGON()");
+            $points = explode(",", $geometryString);
+        } elseif (strpos($geometryString, "POINT") === 0) {
+            $geometryString = trim($geometryString, "POINT()");
+            $points = [$geometryString];
+        } else {
+            return null;
+        }
+
+        $coordinates = [];
+        foreach ($points as $point) {
+            $parts = explode(" ", trim($point));
+            if (count($parts) === 2) {
+                $coordinates[] = [$parts[0], $parts[1]];
+            }
+        }
+
+        return $coordinates;
+    }
+
+    /**
+     * Groups a collection of dataitem by their cluster ID.
+     *
+     * This function iterates over a collection of items, each expected to have a `cluster_id` property. It organizes these
+     * items into clusters based on their `cluster_id`.
+     *
+     * @param \Illuminate\Support\Collection|array $items The items to group.
+     * @return array An associative array where each key is a cluster ID and each value is an array of items belonging to that cluster.
+     */
+    protected function groupByClusterId($items)
+    {
+        $clusters = [];
+
+        foreach ($items as $item) {
+            $clusterId = $item->cluster_id;
+            // Only include items with a non-null cluster ID
+            if ($clusterId !== null) {
+                if (!isset($clusters[$clusterId])) {
+                    $clusters[$clusterId] = [];
+                }
+                $clusters[$clusterId][] = $item;
+            }
+        }
+
+        return $clusters;
     }
 }

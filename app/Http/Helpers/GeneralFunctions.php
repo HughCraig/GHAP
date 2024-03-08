@@ -60,12 +60,15 @@ class GeneralFunctions
         } //yyyy-mm
         if (preg_match(
             '/^(-?[0-9]*[1-9]+0*)(-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])(T(0?[0-9]|1[0-9]|2[0-3])(:(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])(:(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])([.][0-9]+)?)?)?)?)?$/',
-            $dateString)) {
+            $dateString
+        )) {
             return $dateString;
         } //return the string
         if (preg_match(
             '/^(0?[1-9]|[12][0-9]|3[01])\/(0?[1-9]|1[012])\/(-?[0-9]*[1-9]+0*)( ((0?[0-9]|1[0-9]|2[0-3]):(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])))?$/',
-            $dateString, $out)) {
+            $dateString,
+            $out
+        )) {
 
             return self::slashDateArrayToDashDateString($out);
         } //return the converted string
@@ -81,7 +84,8 @@ class GeneralFunctions
         // }
         if (preg_match(
             '/^(?:0|[1-9]\d*)$/',
-            $naturalNum)) {
+            $naturalNum
+        )) {
             return $naturalNum;
         } //return the string
 
@@ -182,6 +186,41 @@ class GeneralFunctions
     }
 
     /**
+     * Returns the median of an array of numbers
+     *
+     * @param array $arr The array of numbers
+     * @return float The median of the array
+     */
+    public static function getMedian($arr)
+    {
+        sort($arr);
+        $count = count($arr);
+        $middleIndex = floor($count / 2);
+
+        if ($count % 2) {
+            return $arr[$middleIndex];
+        } else {
+            return ($arr[$middleIndex - 1] + $arr[$middleIndex]) / 2;
+        }
+    }
+
+    /**
+     * Returns the standard deviation of an array of numbers
+     *
+     * @param array $arr The array of numbers
+     * @return float The standard deviation of the array
+     */
+    public static function getStandardDeviation($arr)
+    {
+        $mean = array_sum($arr) / count($arr);
+        $variance = 0.0;
+        foreach ($arr as $i) {
+            $variance += pow($i - $mean, 2);
+        }
+        return (float)sqrt($variance / count($arr));
+    }
+
+    /**
      * Validates a user-uploaded image file.
      * Check for file size and type.
      *
@@ -197,11 +236,31 @@ class GeneralFunctions
         }
 
         // Validate file type
-        if (!$file->isValid() || !$file->isFile() || !$file->guessExtension() || !in_array($file->guessExtension(), ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg' , 'webp'])) {
+        if (!$file->isValid() || !$file->isFile() || !$file->guessExtension() || !in_array($file->guessExtension(), ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg', 'webp'])) {
             return false;
         }
 
         return true;
     }
 
+    /**
+     * Calulates the distance between two points by coordinates
+     *
+     * @param float $lat1 Latitude of the first point
+     * @param float $lon1 Longitude of the first point
+     * @param float $lat2 Latitude of the second point
+     * @param float $lon2 Longitude of the second point
+     * @return float The distance between the two points in Kilometers
+     */
+    public static function getDistance($lat1, $lon1, $lat2, $lon2)
+    {
+
+        $theta = $lon1 - $lon2;
+        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+        $dist = acos($dist);
+        $dist = rad2deg($dist);
+        $miles = $dist * 60 * 1.1515;
+
+        return ($miles * 1.609344);
+    }
 }
