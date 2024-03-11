@@ -46,6 +46,12 @@
                 <a class="dropdown-item grab-hover"
                     onclick="window.open('{{ config('app.views_root_url') }}/collection-werekata.html?load=' + encodeURIComponent('{{ url()->full() }}/json?sort=start'))">Werekata
                     Flight by Time</a>
+                @if ($collectionHasMobInfo)
+                    <a class="dropdown-item grab-hover"
+                        onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/json?mobility'))">Mobility
+                    </a>
+                @endif
+
             </div>
         </div>
     @endif
@@ -73,7 +79,8 @@
                     </tr>
                     <tr>
                         <th>Entries</th>
-                        <td id="collectionCount">{{ count($collection->datasets) }}</td>
+                        <td id="collectionCount">{{ count($collection->datasets) + count($collection->savedSearches) }}
+                        </td>
                     </tr>
                     <tr>
                         <th>Added to System</th>
@@ -205,7 +212,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($datasets as $ds)
+                @foreach ($datasets as $dsIdx => $ds)
                     <tr id="row_id_{{ $ds->id }}">
                         <td><a href="{{ url('publicdatasets') }}/{{ $ds->id }}">{{ $ds->name }}</a></td>
                         <td>{{ count($ds->dataitems) }}</td>
@@ -242,6 +249,11 @@
                                         <a class="dropdown-item grab-hover"
                                             onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{ url('layers') }}/{{ $ds->id }}/json?sort=start'))">Werekata
                                             Flight by Time</a>
+                                        @if ($datasetsHasMobInfo[$dsIdx])
+                                            <a class="dropdown-item grab-hover"
+                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('layers') }}/{{ $ds->id }}/json?mobility'))">Mobility
+                                            </a>
+                                        @endif
                                         @if (!empty(config('app.views_temporal_earth_url')))
                                             <a class="dropdown-item grab-hover"
                                                 onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{ url('layers') }}/{{ $ds->id }}/kml')">Temporal
@@ -254,7 +266,7 @@
                     </tr>
                 @endforeach
 
-                @foreach ($collection->savedSearches as $ss)
+                @foreach ($collection->savedSearches as $ssIdx => $ss)
                     <tr id="row_ss_id_{{ $ss->id }}">
                         <td><a href="{{ url('/search') }}{{ $ss->query }}">{{ $ss->name }}</a></td>
                         <td>{{ $ss->count }}</td>
@@ -291,6 +303,11 @@
                                         <a class="dropdown-item grab-hover"
                                             onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=json&sort=start'))">Werekata
                                             Flight by Time</a>
+                                        @if ($savedSearchesHasMobInfo[$ssIdx]['hasquantity'] && $savedSearchesHasMobInfo[$ssIdx]['hasrouteid'])
+                                            <a class="dropdown-item grab-hover"
+                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=json&mobility'))">Mobility
+                                            </a>
+                                        @endif
                                         @if (!empty(config('app.views_temporal_earth_url')))
                                             <a class="dropdown-item grab-hover"
                                                 onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=kml'))">Temporal

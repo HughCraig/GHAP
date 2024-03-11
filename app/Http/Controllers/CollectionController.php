@@ -4,6 +4,7 @@ namespace TLCMap\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use TLCMap\Http\Controllers\GazetteerController;
 use TLCMap\Http\Helpers\GeneralFunctions;
 use TLCMap\Http\Helpers\HtmlFilter;
 use TLCMap\Models\Collection;
@@ -28,7 +29,37 @@ class CollectionController extends Controller
     public function viewPublicCollections(Request $request)
     {
         $collections = Collection::where('public', 1)->get();
-        return view('ws.ghap.publiccollections', ['collections' => $collections]);
+        $collectionsHasMobInfo = [];
+
+        foreach ($collections as $collection) { // Only show public datasets.
+            $datasets = $collection->datasets()->where('public', 1)->get();
+
+            // Get mobility existence of datasets
+            $dsHasMobInfo = [];
+            foreach ($datasets as $ds) {
+                array_push($dsHasMobInfo, $ds->has_quantity || $ds->has_route);
+            }
+
+            // Get mobility existence of saved searches
+            $savedSearches = $collection->savedSearches;
+            $ssHasMobInfo = [];
+            foreach ($savedSearches as $ss) {
+                $queryParameters = [];
+                parse_str(parse_url($ss->query, PHP_URL_QUERY), $queryParameters);
+                $queryParameters['savedSearch'] = true;
+                $ssResults = (new GazetteerController())->search(new Request($queryParameters));
+                array_push($ssHasMobInfo, $ssResults['hasmobinfo']);
+            }
+            array_push(
+                $collectionsHasMobInfo,
+                in_array(true, $dsHasMobInfo, true) || in_array(true, $ssHasMobInfo, true)
+            );
+        }
+
+        return view('ws.ghap.publiccollections', [
+            'collections' => $collections,
+            'collectionsHasMobInfo' => $collectionsHasMobInfo
+        ]);
     }
 
     /**
@@ -49,9 +80,32 @@ class CollectionController extends Controller
         }
         // Only show public datasets.
         $datasets = $collection->datasets()->where('public', 1)->get();
+
+        // Get mobility existence of datasets
+        $dsHasMobInfo = [];
+        foreach ($datasets as $ds) {
+            array_push($dsHasMobInfo, $ds->has_quantity || $ds->has_route);
+        }
+
+        // Get mobility existence of saved searches
+        $savedSearches = $collection->savedSearches;
+        $ssHasMobInfo = [];
+        foreach ($savedSearches as $ss) {
+            $queryParameters = [];
+            parse_str(parse_url($ss->query, PHP_URL_QUERY), $queryParameters);
+            $queryParameters['savedSearch'] = true;
+            $ssResults = (new GazetteerController())->search(new Request($queryParameters));
+            array_push($ssHasMobInfo, $ssResults['hasmobinfo']);
+        }
+
+        $collectionHasMobInfo = (in_array(true, $dsHasMobInfo, true) || in_array(true, $ssHasMobInfo, true));
+
         return view('ws.ghap.publiccollection', [
             'collection' => $collection,
             'datasets' => $datasets,
+            'collectionHasMobInfo' => $collectionHasMobInfo,
+            'datasetsHasMobInfo' => $dsHasMobInfo,
+            'savedSearchesHasMobInfo' => $ssHasMobInfo,
         ]);
     }
 
@@ -94,6 +148,8 @@ class CollectionController extends Controller
             $queryString = '?line=' . $request->input('line');
         } elseif (!empty($request->input('sort'))) {
             $queryString = '?sort=' . $request->input('sort');
+        } elseif ($request->has("mobility")) {
+            $queryString = '?mobility';
         }
 
         $data['datasets'] = [];
@@ -123,7 +179,7 @@ class CollectionController extends Controller
             }
         }
 
-        if(count($data['datasets']) == 0){
+        if (count($data['datasets']) == 0) {
             $data['metadata']['warning'] .=  "<p>0 results found</p>";
             $data['display']['info']['content'] .= "<div class=\"warning-message\"><p>0 results found</p></div>";
         }
@@ -258,7 +314,7 @@ class CollectionController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             //Validate image file.
-            if(!GeneralFunctions::validateUserUploadImage($image)){
+            if (!GeneralFunctions::validateUserUploadImage($image)) {
                 return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
             }
             $filename = time() . '.' . $image->getClientOriginalExtension();
@@ -312,7 +368,35 @@ class CollectionController extends Controller
         if (!$collection) {
             return redirect('myprofile/mycollections/');
         }
-        return view('user.userviewcollection', ['collection' => $collection]);
+
+        // Get all datasets in the collection
+        $datasets = $collection->datasets()->get();
+
+        // Get mobility existence of datasets
+        $dsHasMobInfo = [];
+        foreach ($datasets as $ds) {
+            array_push($dsHasMobInfo, $ds->has_quantity || $ds->has_route);
+        }
+
+        // Get mobility existence of saved searches
+        $savedSearches = $collection->savedSearches;
+        $ssHasMobInfo = [];
+        foreach ($savedSearches as $ss) {
+            $queryParameters = [];
+            parse_str(parse_url($ss->query, PHP_URL_QUERY), $queryParameters);
+            $queryParameters['savedSearch'] = true;
+            $ssResults = (new GazetteerController())->search(new Request($queryParameters));
+            array_push($ssHasMobInfo, $ssResults['hasmobinfo']);
+        }
+
+        $collectionHasMobInfo = (in_array(true, $dsHasMobInfo, true) || in_array(true, $ssHasMobInfo, true));
+
+        return view('user.userviewcollection', [
+            'collection' => $collection,
+            'collectionHasMobInfo' => $collectionHasMobInfo,
+            'datasetsHasMobInfo' => $dsHasMobInfo,
+            'savedSearchesHasMobInfo' => $ssHasMobInfo,
+        ]);
     }
 
     /**
@@ -375,7 +459,7 @@ class CollectionController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             //Validate image file.
-            if(!GeneralFunctions::validateUserUploadImage($image)){
+            if (!GeneralFunctions::validateUserUploadImage($image)) {
                 return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
             }
             // Delete old image.
@@ -644,7 +728,8 @@ class CollectionController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function ajaxGetUserSavedSearch(Request $request){
+    public function ajaxGetUserSavedSearch(Request $request)
+    {
         $user = auth()->user();
 
         $collectionID = $request->collectionID;
@@ -657,8 +742,8 @@ class CollectionController extends Controller
 
         // Fetch saved searches not in the linked list.
         $searches = SavedSearch::where('user_id', $user->id)
-                               ->whereNotIn('id', $linkedSavedSearches)
-                               ->get();
+            ->whereNotIn('id', $linkedSavedSearches)
+            ->get();
 
         return response()->json($searches);
     }
@@ -689,7 +774,6 @@ class CollectionController extends Controller
             $collection->savedSearches()->attach($savedSearch->id);
 
             return response()->json('Saved search successfully added to collection.', 200);
-
         } catch (\Exception $e) {
             return response()->json('Error adding saved search to collection.', 500);
         }

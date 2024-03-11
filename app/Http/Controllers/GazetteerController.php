@@ -797,6 +797,9 @@ class GazetteerController extends Controller
                 return response()->download($crate, "ghap-ro-crate-search-results-{$timestamp}.zip")->deleteFileAfterSend();
             }
         }
+        if (array_key_exists('savedSearch', $parameters) && $parameters['savedSearch'] === true) {
+            return ['details' => $results, 'hasmobinfo' => $parameters['hasmobinfo'],];
+        }
 
         $recordtypes = RecordType::types();
         //else, format as html

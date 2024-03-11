@@ -454,7 +454,7 @@ class FileFormatter
             );
         }
 
-        if (isset($parameters) && isset($parameters['mobility'])) {
+        if (isset($parameters) && array_key_exists("mobility", $parameters)) {
 
             $routeGroups = [];
             $separatedGroup = [];
