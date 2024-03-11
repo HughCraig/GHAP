@@ -78,7 +78,7 @@
                     <label for="editQuantity">Quantity</label>
                     <span tabindex="0" data-html="true" data-animation="true"
                         class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                        title="Please ensure you enter an integer greater or equal to 0. \n Clearing the box will erase the quantity value for this place."></span>
+                        title="Please ensure you enter an integer greater or equal to 0. <br> Clearing the box will erase the quantity value for this place."></span>
                     <input type="text" class="mb-3 form-control" id="editQuantity" placeholder="10">
                     {{-- TODO: Not sure how can I validate the number properliy, use the string validation like coordinates for now. --}}
                     {{-- <input type="number" min="0" step="1" class="mb-3 form-control" id="editQuantity" placeholder="10"> --}}
@@ -94,7 +94,8 @@
                                 <span tabindex="0" data-html="true" data-animation="true"
                                     class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
                                     data-placement="right"
-                                    title="Use the existing Route ID if you want to add a place into an exsiting route in GHAP."></span>
+                                    title="If you want to edit the place to an exsiting route in GHAP, use the existing Route ID .
+                                    If you want to edit the place a new route in GHAP, use new Route ID"></span>
                                 <input type="text" class="mb-3 form-control" id="editRouteId"
                                     placeholder="Route ID Shown in GHAP">
                             </div>
@@ -103,7 +104,8 @@
                                 <span tabindex="1" data-html="true" data-animation="true"
                                     class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
                                     data-placement="right"
-                                    title="The Route Original ID will be searched in the exsiting original Route IDs to find the existing system-generated Route ID in this layer. If there is nothing found, a new GHAP Route ID will be generated for this original Route ID"></span>
+                                    title="The Route Original ID will be searched in the exsiting original Route IDs to find the existing system-generated Route ID in this layer.
+                                    If there is nothing found, a new GHAP Route ID will be generated for this original Route ID"></span>
                                 <input type="text" class="mb-3 form-control" id="editRouteOriId"
                                     placeholder="Route ID in Your Dataset">
                             </div>

@@ -800,7 +800,12 @@ class GazetteerController extends Controller
 
         $recordtypes = RecordType::types();
         //else, format as html
-        return view('ws.ghap.places.show', ['details' => $results, 'query' => $results, 'recordtypes' => $recordtypes]);
+        return view('ws.ghap.places.show', [
+            'details' => $results,
+            'query' => $results,
+            'recordtypes' => $recordtypes,
+            'hasmobinfo' => $parameters['hasmobinfo'],
+        ]);
     }
 
     /**

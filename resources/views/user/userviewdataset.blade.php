@@ -105,9 +105,7 @@
                 <a class="dropdown-item grab-hover"
                     onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?sort=start'))">Werekata
                     Flight by Time</a>
-                @if (collect($ds->dataitems)->contains(function ($dataitem) {
-                        return isset($dataitem['quantity']) || isset($dataitem['route_id']);
-                    }))
+                @if ($ds->has_quantity || $ds->has_route)
                     <a class="dropdown-item grab-hover"
                         onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility'))">Mobility</a>
                 @endif

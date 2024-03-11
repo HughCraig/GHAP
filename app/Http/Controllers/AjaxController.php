@@ -302,12 +302,51 @@ class AjaxController extends Controller
         $dataitem = $dataset->dataitems()->find($id);
         if (!$dataitem) return redirect('myprofile/mydatasets'); //if dataitem not found for this dataset, go back
 
+        $route_id_prev = $dataitem->route_id;
+
         $dataitem->delete();
+
+        $deleteWarning = "";
+
+        // Update the existence state of quantity for the dataset.
+        $has_quantity_prev = $dataset->has_quantity;
+        $checkQty = $dataset->dataitems()->whereNotNull('quantity')->first();
+        // Last place with quantity is removed, no quantity in the dataset
+        if ($checkQty === null) {
+            $dataset->has_quantity = false;
+            if ($has_quantity_prev === true) {
+                $deleteWarning = "Your deletion has removed the last place having quantity value in the layer. No quantity value exists in this layer now.<br>" . $deleteWarning;
+            }
+        } else {
+            $dataset->has_quantity = true;
+        }
+        // Update the existence state of route for the dataset.
+        $has_route_prev = $dataset->has_route;
+        $checkRouteIdExist = $dataset->dataitems()->whereNotNull('route_id')->first();
+        if ($checkRouteIdExist === null) {
+            // Check: Last place with route_id is removed, no place with route information in the dataset
+            $dataset->has_route = false;
+            if ($has_route_prev === true) {
+                $deleteWarning = "Your deletion has removed the last place having route information in the layer. No route information exists in this layer now.<br>" . $deleteWarning;
+            }
+        } else {
+            $dataset->has_route = true;
+            if ($route_id_prev !== null) {
+                $checkPrevRouteExist = $dataset->dataitems()->where('route_id', $route_id_prev)->get();
+                if ($checkPrevRouteExist->isEmpty()) {
+                    $deleteWarning = "Your deletion has removed the last place from <b>Route " . $route_id_prev . "</b>. No Route " . $route_id_prev . " in this layer now.<br>" . $deleteWarning;
+                }
+            }
+        }
 
         $dataset->updated_at = Carbon::now();
         $dataset->save();
 
-        return response()->json(['time' => $dataset->updated_at->toDateTimeString(), 'count' => count($dataset->dataitems)]);;
+        return response()->json([
+            'time' => $dataset->updated_at->toDateTimeString(),
+            'count' => count($dataset->dataitems),
+            'deleteWarning' => $deleteWarning,
+        ]);;
     }
 
     /**
@@ -341,7 +380,6 @@ class AjaxController extends Controller
 
     /**
      * Edit this dataitem
-     * TODO: Shall I validate route meta information?
      */
     public function ajaxeditdataitem(Request $request)
     {
@@ -349,6 +387,7 @@ class AjaxController extends Controller
         $user = auth()->user(); //currently logged in user
         $id = $request->id; //id of dataitem to be edited
         $ds_id = $request->ds_id; //id of dataset
+        $dataset = $user->datasets()->find($ds_id); // dataset
 
         $placename = $request->placename;
         $latitude = $request->latitude;
@@ -358,8 +397,8 @@ class AjaxController extends Controller
         $title = $request->title;
         $quantity = $request->quantity;
         $route_id = $request->routeId;
-        $route_original_id = $request->routeOriId;
-        $route_title = $request->routeTitle;
+        $route_original_id = trim($request->routeOriId);
+        $route_title = trim($request->routeTitle);
         $extendedData = $request->extendedData;
 
         // records must have title, may have placename, if no title, assume placename is title
@@ -404,6 +443,25 @@ class AjaxController extends Controller
             $dataitem->image_path = $filename;
         }
 
+        //Validate route information
+        /**
+         * 1. If route_id can is entered, only be modified when a number in existing route IDs or a number that is (maximum of exsting route IDs + 1).
+         * 2. If the other attributes (route_original_id & route_title) is not none, just update them.
+         **/
+        // Set message to user view dataset msgBanner
+        $editWarning = "";
+        $route_id_prev = $dataitem->route_id;
+        // Get the max route_id of dataset_order
+        $max_route_id = $dataset->dataitems()->max('route_id');
+        $new_route_id = $max_route_id !== null ? $max_route_id + 1 : 1;
+        if ($route_id > $new_route_id) {
+            $route_id = $new_route_id;
+            $editWarning = "
+                    Your modification involves changing the place to a new route. <br>
+                    We’ve adjusted your entered Route ID as <b>'$route_id'</b> to match our system’s standard format.<br>
+                    ";
+        }
+
         $dataitem->fill([
             'title' => $title,
             'recordtype_id' => $recordtype_id,
@@ -427,10 +485,47 @@ class AjaxController extends Controller
         $dataitem->setExtendedData(json_decode($extendedData, true));
         $dataitem->save();
 
+        // Update the existence state of quantity for the dataset.
+        $has_quantity_prev = $dataset->has_quantity;
+        $checkQty = $dataset->dataitems()->whereNotNull('quantity')->first();
+        // Last place with quantity is removed, no quantity in the dataset
+        if ($checkQty === null) {
+            $dataset->has_quantity = false;
+            if ($has_quantity_prev === true) {
+                $editWarning = "Your modification has removed the last quantity value in the layer. No quantity value exists in this layer now.<br>" . $editWarning;
+            }
+        } else {
+            $dataset->has_quantity = true;
+        }
+        // Update the existence state of route for the dataset.
+        $has_route_prev = $dataset->has_route;
+        $checkRouteIdExist = $dataset->dataitems()->whereNotNull('route_id')->first();
+        if ($checkRouteIdExist === null) {
+            // Check: Last place with route_id is removed, no place with route information in the dataset
+            $dataset->has_route = false;
+            if ($has_route_prev === true) {
+                $editWarning = "Your modification has removed the last route information in the layer. No route information exists in this layer now.<br>" . $editWarning;
+            }
+        } else {
+            $dataset->has_route = true;
+            if ($route_id_prev !== null) {
+                $checkPrevRouteExist = $dataset->dataitems()->where('route_id', $route_id_prev)->get();
+                if ($checkPrevRouteExist->isEmpty()) {
+                    $editWarning = "Your modification has removed the last place from <b>Route " . $route_id_prev . "</b>. No Route " . $route_id_prev . " in this layer now.<br>" . $editWarning;
+                }
+            }
+        }
+
         $dataset->updated_at = Carbon::now();
         $dataset->save();
 
-        return response()->json(['time' => $dataitem->updated_at->toDateTimeString(), 'datestart' => $datestart, 'dateend' => $dateend]);
+        return response()->json([
+            'time' => $dataitem->updated_at->toDateTimeString(),
+            'datestart' => $datestart,
+            'dateend' => $dateend,
+            'editWarning' => $editWarning,
+            'dataId' => $dataitem->id
+        ]);
     }
 
 
@@ -448,6 +543,11 @@ class AjaxController extends Controller
         if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN' && $dataset->pivot->dsrole != 'COLLABORATOR'))
             return redirect('myprofile/mydatasets'); //if dataset not found for this user or not ADMIN/COLLABORATOR, go back
 
+        // Initialize the state of mobility information for the dataitem.
+        $di_has_quantity = false;
+        $di_has_route = false;
+
+        // Get input values of dataitem.
         $route_id = $request->route_id;
         $title = $request->title;
         $latitude = $request->latitude;
@@ -456,8 +556,8 @@ class AjaxController extends Controller
         $description = $request->description;
         $quantity = $request->quantity;
         $route_id = $request->routeId;
-        $route_original_id = $request->routeOriId;
-        $route_title = $request->routeTitle;
+        $route_original_id = trim($request->routeOriId);
+        $route_title = trim($request->routeTitle);
         $datestart = $request->datestart;
         $dateend = $request->dateend;
         $state = $request->state;
@@ -499,6 +599,7 @@ class AjaxController extends Controller
         $eQTY = $quantity;
         if (isset($quantity)) {
             $quantity = GeneralFunctions::naturalNumberMatchesRegex($quantity);
+            $di_has_quantity = true;
         }
         if ($quantity === false) return response()->json(['error' => 'Your quantity values are in the incorrect format.', 'eQTY' => $eQTY], 422);
 
@@ -507,23 +608,33 @@ class AjaxController extends Controller
          * 1. The priority of the route information columns is as follows: route_id > route_original_id > route_title.
          * 2. If only one attribute exists, the system will find a matching route or create a new one.
          *    If multiple attributes exist, the system will find the matching route following the priority order.
-         * 3. If the attribute of matched route is none, update the attribute with new added attribute.
-         *    However, if the attribute of matched route is not none, the value of newly added attribute would be ignored.
+         * 3. If the other attributes of matched route is null, update the them with new added attributes.
+         *    However, if the other attribute of matched route is not null, the value of newly added attribute would be ignored
+         *    and the FIRST returned value of other attribute of matched route would be applied.
          * 4. If no matching route found, a new route_id would be assigned to the newly added place(point).
          * 5. The format of route_id is constrained to integer.
          **/
 
+        // Initialize the existence status of added route
         $route_exists = false;
         // Define the array of route attributes in priority order
         $route_attrs = ['route_id', 'route_original_id', 'route_title'];
+        $route_attrs_states = [false, false, false];
+        // Set route warning message to user view dataset msgBanner
+        $addRouteWarning = null;
 
         // Iterate over the route attributes
-        foreach ($route_attrs as $route_attr) {
+        foreach ($route_attrs as $route_attr_idx => $route_attr) {
+
             // Set other route attributes
             $other_route_attrs = array_diff($route_attrs, [$route_attr]);
 
             // Check if the attribute is not null and not an empty string
             if (!is_null($$route_attr) && $$route_attr !== '') {
+                $di_has_route = true;
+
+                //Store validation state of the route attribute
+                $route_attrs_states[$route_attr_idx] = true;
 
                 // Check if a route exists for the current attribute
                 $route_exists = $dataset->dataitems()->get()->contains($route_attr, $$route_attr);
@@ -548,6 +659,8 @@ class AjaxController extends Controller
                 if ($matched_route) {
                     foreach ($other_route_attrs as $other_route_attr) {
                         $$other_route_attr = $matched_route->$other_route_attr ?? $$other_route_attr;
+                        $other_route_attr_name = ucwords(str_replace("_", " ", $other_route_attr));
+                        $addRouteWarning = $addRouteWarning . "<b>'$other_route_attr_name'</b> is set as '{$$other_route_attr}'.<br>";
                     }
                 }
 
@@ -558,10 +671,18 @@ class AjaxController extends Controller
             }
         }
 
-        // If a route does not exist, assign a new route_id
-        if ($route_exists === false) {
+        // If route information is added but it does not match any existing route, assign a new route_id
+        if ($route_exists === false && in_array(true, $route_attrs_states, true)) {
             $max_route_id = $dataset->dataitems()->max('route_id');
             $route_id = $max_route_id !== null ? $max_route_id + 1 : 1;
+            if ($route_attrs_states[0]) {
+                $addRouteWarning = "
+                The entered <b>Route ID</b> does not correspond to any existing routes.<br>
+                A new <b>Route ID</b> '$route_id' has been generated and assigned to the entered place.
+                ";
+            }
+        } else if ($route_exists === true && $addRouteWarning !== null) {
+            $addRouteWarning = "To match the original information of existing route:<br>" . $addRouteWarning;
         }
 
         //match added route information
@@ -588,7 +709,7 @@ class AjaxController extends Controller
             'dataset_order' => $dataset_order
         ]);
         $isDirty = false;
-        Log::debug('Quantity value: ' . $dataitem);
+
         // Generate UID.
         if ($dataitem->id) {
             $dataitem->uid = UID::create($dataitem->id, 't');
@@ -603,9 +724,28 @@ class AjaxController extends Controller
             $dataitem->save();
         }
 
+        // Update the state of mobility information for the dataset.
+        $has_quantity_prev = $dataset->has_quantity;
+        if ($has_quantity_prev === null) {
+            $dataset->has_quantity = $di_has_quantity;
+        } else {
+            $dataset->has_quantity = $has_quantity_prev !== $di_has_quantity ? $di_has_quantity : $has_quantity_prev;
+        }
+        $has_route_prev = $dataset->has_route;
+        if ($has_route_prev === null) {
+            $dataset->has_route = $di_has_route;
+        } else {
+            $dataset->has_route = $has_route_prev !== $di_has_route ? $di_has_route : $has_route_prev;
+        }
+        //Set updated_at timestamp for dataset
         $dataset->updated_at = Carbon::now();
         $dataset->save();
-        return response()->json(['dataitem' => $dataitem, 'time' => $dataset->updated_at->toDateTimeString(), 'count' => count($dataset->dataitems)]);
+        return response()->json([
+            'dataitem' => $dataitem,
+            'time' => $dataset->updated_at->toDateTimeString(),
+            'count' => count($dataset->dataitems),
+            'addRouteWarning' => $addRouteWarning,
+        ]);
     }
 
     /*

@@ -132,6 +132,31 @@ $(document).ready(function () {
                     // Unset IDs.
                     $(this).data("itemId", "");
                     $(this).data("setId", "");
+                    const diDiv = document.querySelector(
+                        `[data-id="${dataitemID}"]`
+                    );
+                    let siblingDataId =
+                        diDiv.previousElementSibling.getAttribute("data-id");
+                    let insertPosition = "afterend";
+                    if (siblingDataId === null) {
+                        siblingDataId =
+                            diDiv.nextElementSibling.getAttribute("data-id");
+                        insertPosition = "beforebegin";
+                    }
+                    if (
+                        result.hasOwnProperty("deleteWarning") &&
+                        result.deleteWarning !== ""
+                    ) {
+                        sessionStorage.setItem(
+                            "userViewDIMsgBanner",
+                            result.deleteWarning
+                        );
+                        sessionStorage.setItem("siblingDataId", siblingDataId);
+                        sessionStorage.setItem(
+                            "insertPosition",
+                            insertPosition
+                        );
+                    }
                     location.reload();
                 },
                 error: function (xhr, textStatus, errorThrown) {
@@ -339,6 +364,9 @@ $(document).ready(function () {
         editModalMapPicker.refresh();
     });
 
+    // const userViewDSMsgBanner = new MessageBanner($("#userViewDatasetMsg"));
+    // userViewDSMsgBanner.hide();
+
     // Handle record edit when the save button is clicked.
     $("#editDataitemSaveButton").on("click", function () {
         // Validate the input.
@@ -424,6 +452,17 @@ $(document).ready(function () {
                 contentType: false,
                 processData: false,
                 success: function (result) {
+                    if (
+                        result.hasOwnProperty("editWarning") &&
+                        result.editWarning !== ""
+                    ) {
+                        sessionStorage.setItem(
+                            "userViewDIMsgBanner",
+                            result.editWarning
+                        );
+                        sessionStorage.setItem("siblingDataId", result.dataId);
+                        sessionStorage.setItem("insertPosition", "afterend");
+                    }
                     saveButton.prop("disabled", true);
                     $("#editDataitemModal").modal("hide");
                     location.reload();

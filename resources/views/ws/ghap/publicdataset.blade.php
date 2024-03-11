@@ -63,9 +63,7 @@
                 <a class="dropdown-item grab-hover"
                     onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{ url()->full() }}/json?sort=start'))">Werekata
                     Flight by Time</a>
-                @if (collect($ds->dataitems)->contains(function ($dataitem) {
-                        return isset($dataitem['quantity']) || isset($dataitem['route_id']);
-                    }))
+                @if ($ds->has_quantity || $ds->has_route)
                     <a class="dropdown-item grab-hover"
                         onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/json?mobility'))">Mobility</a>
                 @endif
@@ -74,23 +72,6 @@
                         onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{ url()->full() }}/kml')">Temporal
                         Earth</a>
                 @endif
-            </div>
-        </div>
-    @endif
-
-    @if ($ds->public)
-        <!-- Basic Statistics Feed -->
-        <div class="dropdown">
-            <button class="btn btn-primary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
-                Analyse
-            </button>
-            <div class="dropdown-menu" aria-labelledby="analyseDropdown">
-                <a class="dropdown-item grab-hover" href="{{ url()->full() }}/basicstatistics">Basic Statistics</a>
-                <a class="dropdown-item grab-hover" href="{{ url()->full() }}/advancedstatistics">Advanced Statistics</a>
-                <a class="dropdown-item grab-hover" href="{{ url()->full() }}/clusteranalysis">Clustering Analyse</a>
-                <a class="dropdown-item grab-hover" href="{{ url()->full() }}/temporalclustering">Temporal Clustering</a>
-                <a class="dropdown-item grab-hover" href="{{ url()->full() }}/closenessanalysis">Closeness Analyse</a>
             </div>
         </div>
     @endif

@@ -219,6 +219,15 @@ $("main").on("click", "#add_dataitem_button_submit", function () {
             contentType: false,
             processData: false,
             success: function (result) {
+                if (
+                    result.hasOwnProperty("addRouteWarning") &&
+                    result.addRouteWarning !== null
+                ) {
+                    sessionStorage.setItem(
+                        "userViewDSMsgBanner",
+                        result.addRouteWarning
+                    );
+                }
                 location.reload();
             },
             error: function (xhr) {
@@ -262,12 +271,49 @@ $("main").on("click", "#add_dataitem_button_submit", function () {
                 else alert(xhr.responseText); //error message with error info
             },
         });
-    } else {
-        // Display and scroll to the message banner.
-        msgBanner.show();
-        $("#addModal .scrollable").scrollTop(0);
     }
 });
+
+window.onload = function () {
+    if (sessionStorage.getItem("userViewDSMsgBanner") !== null) {
+        const prevDiv = document.querySelector(`.row.mt-3`);
+        prevDiv.insertAdjacentHTML(
+            "afterend",
+            "<div class='pt-4 pb-4 mb-3' id='userViewDatasetMsg'></div>"
+        );
+        const userViewDSMsgBanner = new MessageBanner($("#userViewDatasetMsg"));
+        userViewDSMsgBanner.hide();
+        userViewDSMsgBanner.clear();
+        userViewDSMsgBanner.warning(
+            sessionStorage.getItem("userViewDSMsgBanner")
+        );
+        userViewDSMsgBanner.show();
+        sessionStorage.removeItem("userViewDSMsgBanner");
+    }
+        if (sessionStorage.getItem("siblingDataId") !== null) {
+            // Create message banner for the editted dataitem
+            const dataIdValue = sessionStorage.getItem("siblingDataId");
+            const insertPosition = sessionStorage.getItem("insertPosition");
+            const diDiv = document.querySelector(`[data-id="${dataIdValue}"]`);
+            diDiv.insertAdjacentHTML(
+                insertPosition,
+                "<div class='pt-4 pb-4 mb-3' id='userViewDataitemMsg'></div>"
+            );
+
+            const userViewDIMsgBanner = new MessageBanner(
+                $("#userViewDataitemMsg")
+            );
+            userViewDIMsgBanner.clear();
+            userViewDIMsgBanner.warning(
+                sessionStorage.getItem("userViewDIMsgBanner")
+            );
+            userViewDIMsgBanner.show();
+            sessionStorage.removeItem("userViewDIMsgBanner");
+            sessionStorage.removeItem("siblingDataId");
+            sessionStorage.removeItem("insertPosition");
+        }
+    }
+};
 
 /* Show edit controls for this dataitem */
 $("main").on("click", '[name="edit_dataitem_button_show"]', function () {
@@ -333,6 +379,7 @@ $("main").on("click", '[name="edit_dataitem_button_cancel"]', function () {
 });
 
 /* Submit edits for this dataitem */
+// Ivy's note: It seems that it's not used in user view dataset edition.
 $("main").on("click", '[name="edit_dataitem_button"]', function () {
     var ds_id = $("#ds_id").val(); //the id of the dataset we are editing
     var id = this.id.split("_")[3]; //id will be edit_dataitem_button_##, we jst want the number

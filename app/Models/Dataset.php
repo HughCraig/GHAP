@@ -23,7 +23,8 @@ class Dataset extends Model
     protected $fillable = [
         'id', 'name', 'description', 'creator', 'public', 'allowanps', 'publisher', 'contact', 'citation', 'doi',
         'source_url', 'linkback', 'latitude_from', 'longitude_from', 'latitude_to', 'longitude_to', 'language', 'license', 'rights',
-        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning', 'image_path'
+        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning', 'image_path',
+        'has_quantity', 'has_route'
     ];
 
     /**
@@ -858,9 +859,10 @@ class Dataset extends Model
     {
         $query = self::where(['public' => 1, 'id' => $ds_id]); // get this dataset by id if it is also public
 
-        if (self::where(['id' => $ds_id])->whereHas('dataitems', function ($query) {
-            $query->whereNotNull('route_id');
-        })->exists()) {
+        // if (self::where(['id' => $ds_id])->whereHas('dataitems', function ($query) {
+        //     $query->whereNotNull('route_id');
+        // })->exists()) {
+        if ($query->firstOrFail()->has_route) {
             $dataset = $query
                 ->with(['dataitems' => function ($query) {
                     $query->select('*', DB::raw('ROW_NUMBER() OVER(PARTITION BY route_id ORDER BY datestart, dataset_order) as stop_idx'))

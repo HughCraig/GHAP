@@ -1,6 +1,7 @@
 <?php
 
 namespace TLCMap\Http\Controllers\User;
+
 ini_set('upload_max_filesize', '10M');
 ini_set('post_max_size', '10M');
 
@@ -86,7 +87,8 @@ class UserController extends Controller
     public $pointBasedNotForExtData = [];
     public $pairBasedNotForExtData = [];
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->commonDateCols = array_unique(array_merge($this->commonDateStartCols, $this->commonDateEndCols));
         // Construct pair-based attributes
         $this->generatePairBasedCols($this->commonDateStartCols, $this->pairBasedDateStartCols);
@@ -96,7 +98,8 @@ class UserController extends Controller
         $this->pairBasedNotForExtData = array_merge($this->generalCols, $this->pairBasedCommonCols, $this->pairBasedDateStartCols, $this->pairBasedDateEndCols);
     }
 
-    private function generatePairBasedCols($sourceCols, &$targetArray) {
+    private function generatePairBasedCols($sourceCols, &$targetArray)
+    {
         foreach ($this->pairBasedPrefixes as $prefix) {
             foreach ($sourceCols as $col) {
                 $targetArray[] = $prefix . '_' . $col;
@@ -176,7 +179,8 @@ class UserController extends Controller
                 function ($attribute, $value, $fail) {
                     if (User::find($value)) $fail('A user with this email already exists!');
                 },
-                'required', 'email', 'confirmed']
+                'required', 'email', 'confirmed'
+            ]
         ];
 
         $validator = Validator::make($request->all(), $rules); //create the validator
@@ -212,7 +216,7 @@ class UserController extends Controller
     public function userViewDataset(Request $request, int $id)
     {
         $user = auth()->user();
-        if(!$user){
+        if (!$user) {
             return redirect('layers/' . $id); // Return to public view of dataset for non-logged in users
         }
         $dataset = Dataset::getPrivateDatasetById($user, $id);
@@ -246,10 +250,10 @@ class UserController extends Controller
         $recordTypeMap = RecordType::getIdTypeMap();
         $recordtypes = RecordType::types();
         $subjectKeywordMap = [];
-        foreach($searches as $search){
+        foreach ($searches as $search) {
             $subjectKeywordMap[$search->id] = $search->subjectKeywords->toArray();
         }
-        return view('user.usersavedsearches', ['searches' => $searches , 'recordTypeMap' => $recordTypeMap , 'recordtypes' => $recordtypes, 'subjectKeywordMap' => $subjectKeywordMap]);
+        return view('user.usersavedsearches', ['searches' => $searches, 'recordTypeMap' => $recordTypeMap, 'recordtypes' => $recordtypes, 'subjectKeywordMap' => $subjectKeywordMap]);
     }
 
     /*
@@ -298,7 +302,7 @@ class UserController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             //Validate image file.
-            if(!GeneralFunctions::validateUserUploadImage($image)){
+            if (!GeneralFunctions::validateUserUploadImage($image)) {
                 return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
             }
             $filename = time() . '.' . $image->getClientOriginalExtension();
@@ -380,7 +384,7 @@ class UserController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             //Validate image file.
-            if(!GeneralFunctions::validateUserUploadImage($image)){
+            if (!GeneralFunctions::validateUserUploadImage($image)) {
                 return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
             }
             // Delete old image.
@@ -479,8 +483,7 @@ class UserController extends Controller
                 if ($pointBasedUpload == FALSE) {
                     $arr = $this->convertPairToPoints($arr);
                 }
-                $this->createDataitems($arr, $ds_id, $pointBasedUpload);
-
+                $this->createDataitems($arr, $ds_id, $dataset);
             } else if (strcasecmp($ext, 'kml') == 0) { //now handles extended data, journey
                 $arr = $this->kmlToArray($file, $appendStyle);
 
@@ -491,20 +494,19 @@ class UserController extends Controller
                     if ($overwriteJourney == "on") $dataset->update(['kml_journey' => $arr['raw_journey']]);
                     unset($arr['raw_journey']); //remove the raw_journey from the end of the array
                 }
-                if (array_key_exists('raw_style', $arr, $pointBasedUpload)) {
+                if (array_key_exists('raw_style', $arr, $dataset)) {
                     if ($appendStyle == "on") $dataset->update(['kml_style' => $dataset['kml_style'] . $arr['raw_style']]); //APPEND not overwrite
                     unset($arr['raw_style']); //remove the raw_style from the end of the array
                 }
 
                 //Call the function to create all the new data items from this array
-                $this->createDataitems($arr, $ds_id, $pointBasedUpload);
-
+                $this->createDataitems($arr, $ds_id, $dataset);
             } else if (strcasecmp($ext, 'json') == 0 || strcasecmp($ext, 'geojson') == 0) {
                 //TODO extendeddata
                 $arr = $this->geoJSONToArray($file);
                 if (!is_array($arr)) return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid date format in file on line ' . $arr);
 
-                $this->createDataitems($arr, $ds_id, $pointBasedUpload);
+                $this->createDataitems($arr, $ds_id, $dataset);
             } else {
                 return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid file format for bulk add!'); //not a valid format, reload page with error msg
             }
@@ -543,7 +545,8 @@ class UserController extends Controller
      * @param array $arr The original array representing OD Mobility Dataset.
      * @return array The transformed array representing point-based mobility dataset.
      */
-    function convertPairToPoints($arr) {
+    function convertPairToPoints($arr)
+    {
         $routes = [];
         $origin = [];
         $destination = [];
@@ -575,7 +578,6 @@ class UserController extends Controller
                 $routeStartValidKey = $this->getValidKey($routes, $this->commonDateStartCols);
                 $routeEndValidKey = $this->getValidKey($routes, $this->commonDateEndCols);
                 $routeValidKeys = array_unique([$routeEndValidKey, $routeStartValidKey]);
-
             }
             // Handling missing time values
             // complement startdate and enddate with any available of other item of the pair or "date"
@@ -659,7 +661,6 @@ class UserController extends Controller
                 $destination = [];
             }
             $row++;
-
         }
 
         unset($entry); // Unset reference to last element
@@ -673,7 +674,8 @@ class UserController extends Controller
      * @param array $possibleKeys An array of possible keys to look for.
      * @return mixed|null The value if a valid key is found, otherwise null.
      */
-    private function getValidKey($data, $possibleKeys) {
+    private function getValidKey($data, $possibleKeys)
+    {
         foreach ($possibleKeys as $key) {
             if (array_key_exists($key, $data)) {
                 // return $data[$key];
@@ -698,15 +700,15 @@ class UserController extends Controller
      *   The array where each entry represents a dataitem of the form (['ds_id' => thedatasetid, 'placename' => someplacename, 'latitude' => 123, => etc...])
      * @param string $ds_id
      *   The id for the dataset to add this data item into.
-     * @param boolean $pointBasedUpload
-     *   The boolean value indicating whether the original uploaded file is a point-based dataset.
+     * @param object $dataset
+     *   The dataset of the specific id ($ds_id).
      *
      */
-    function createDataitems($arr, $ds_id, $pointBasedUpload)
+    function createDataitems($arr, $ds_id, $dataset)
     {
         $fillable = (new Dataitem)->getFillable(); //array of all the columns in the dataitem table that are fillable
 
-        // detect names of fields that contain the dates and lat long
+        // Detect names of fields that contain the dates and lat long
         $datecols = $this->aliasColPair($this->dateheadings, $arr);
         $llcols = $this->aliasColPair($this->llheadings, $arr);
 
@@ -714,22 +716,24 @@ class UserController extends Controller
             "id", "title", "placename", "name", "description", "type", "linkback",
             "quantity", "created_at", "updated_at", "ghap_id",
             "route_id", "route_original_id", "route_title",
-            ]; // because of special handling, as with date and lat long cols
+        ]; // because of special handling, as with date and lat long cols
 
         $extDataExclusions = array_merge($fillable, $datecols, $llcols, $notForExtData);
 
         // Exclude these columns.
-        $excludeColumns = ['uid', 'datasource_id', ];
+        $excludeColumns = ['uid', 'datasource_id',];
 
-        // Get the starting number of dataset_order and route_id.
+        // Get the starting number of dataset_order
         $maxValues = DataItem::where('dataset_id', $ds_id)
-        ->selectRaw('MAX(dataset_order) AS max_dataset_order, MAX(route_id) AS max_route_id')
-        ->first();
+            ->selectRaw('MAX(dataset_order) AS max_dataset_order, MAX(route_id) AS max_route_id')
+            ->first();
         $datasetOrder = $maxValues->max_dataset_order !== null ? $maxValues->max_dataset_order + 1 : 0;
+
+        // Get the starting number of route_id
         $routeId = $maxValues->max_route_id !== null ? $maxValues->max_route_id + 1 : 1;
         $routeResults = DataItem::where('dataset_id', $ds_id)
-        ->select('route_original_id', 'route_title', 'route_id')
-        ->get();
+            ->select('route_original_id', 'route_title', 'route_id')
+            ->get();
         $route_metas = [];
         foreach ($routeResults as $ele) {
             $route_id = $ele['route_id'];
@@ -752,6 +756,10 @@ class UserController extends Controller
             $invertedRouteMetas[serialize($value)] = $key;
         }
         $route_metas = $invertedRouteMetas;
+
+        // Initialize the state of mobility information for the dataset.
+        $ds_has_quantity = false;
+        $ds_has_route = false;
 
         for ($i = 0; $i < count($arr); $i++) { //FOREACH data item
             $culled_array = array(); //we will cull out all keys that are not present as fillable fields
@@ -785,7 +793,7 @@ class UserController extends Controller
                     if ($key == "type" || $key == "record_type") {
                         //get the recordtype id from "type" name
                         $culled_array["recordtype_id"] = RecordType::getIdByType($value); //if recordtype does exist, set the recordtype_id to its id, otherwise set it to 1 (default "Other")
-                    } else if($key == "layer_id"){
+                    } else if ($key == "layer_id") {
                         $culled_array["dataset_id"] = $value;
                     } else if ($key == "linkback") {
                         $culled_array["external_url"] = $value;
@@ -834,6 +842,8 @@ class UserController extends Controller
             //Handle quantity
             if (!isset($culled_array["quantity"]) || empty(trim($culled_array["quantity"]))) {
                 $culled_array["quantity"] = null;
+            } else {
+                $ds_has_quantity = true;
             }
 
             // Handle extended data columns
@@ -879,6 +889,8 @@ class UserController extends Controller
             }
 
             if ($hasRouteInfo) {
+                $ds_has_route = true;
+                //Initialize the existence status of current route information
                 $routeExisting = false;
                 // Check whether current route that the data item belongs to exists
                 foreach ($route_metas as $existingRoute => $existingRouteId) {
@@ -896,13 +908,12 @@ class UserController extends Controller
                         break;
                     }
                 }
-                if (!$routeExisting){
+                if (!$routeExisting) {
                     $culled_array["route_id"] = $routeId;
                     $route_metas[serialize($route_meta)] = $culled_array["route_id"];
                     $routeId++;
                 }
             }
-
             // Store the dataitem
             if (!empty($culled_array)) { //ignore empties
                 $dataitemUID = $arr[$i]['ghap_id'] ?? null;
@@ -911,6 +922,20 @@ class UserController extends Controller
             }
         }
 
+        // Update the state of mobility information for the dataset.
+        $has_quantity_prev = $dataset->has_quantity;
+        if ($has_quantity_prev === null) {
+            $dataset->has_quantity = $ds_has_quantity;
+        } else {
+            $dataset->has_quantity = $has_quantity_prev !== $ds_has_quantity ? $ds_has_quantity : $has_quantity_prev;
+        }
+        $has_route_prev = $dataset->has_route;
+        if ($has_route_prev === null) {
+            $dataset->has_route = $ds_has_route;
+        } else {
+            $dataset->has_route = $has_route_prev !== $ds_has_route ? $ds_has_route : $has_route_prev;
+        }
+        $dataset->save();
     }
 
     /**
@@ -947,19 +972,19 @@ class UserController extends Controller
         return $dataitem->uid; // Return UID
     }
 
-// trawl for lat long col names
+    // trawl for lat long col names
 
 
-// detect commonly used column or attribute names that come in pairs, such as 'begin' and 'end' or 'lat' and 'lng'.
-// Pass in array of arrays of possible headings for date and latlong columns, and the key value array of headings from the spreadsheet.
-// Returns the 2 element array containing the matched keys/column headings, or empty array.
+    // detect commonly used column or attribute names that come in pairs, such as 'begin' and 'end' or 'lat' and 'lng'.
+    // Pass in array of arrays of possible headings for date and latlong columns, and the key value array of headings from the spreadsheet.
+    // Returns the 2 element array containing the matched keys/column headings, or empty array.
 
-// This looks like it should be something simple. It may be that it could be made simple, but here's why it's complicated at the moment.
-// We can't just check if any of the headings match our list of possible date or lat lng keywords, because check if this heading isset in this other array is case sensitive.
-// we don't want to put every possible case combination in our list of key words to check so we want case insenstive matching.
-// You would think you could just loop through the first record, not the whole lot. TBH maybe you can and I haven't checked it properly,
-// But one reason that maybe you can't is because null or empty values were left out of the key values pairs, so you have to loop the entire dataset, to see if there is a
-// named date column for just a few records, while most were null or empty.
+    // This looks like it should be something simple. It may be that it could be made simple, but here's why it's complicated at the moment.
+    // We can't just check if any of the headings match our list of possible date or lat lng keywords, because check if this heading isset in this other array is case sensitive.
+    // we don't want to put every possible case combination in our list of key words to check so we want case insenstive matching.
+    // You would think you could just loop through the first record, not the whole lot. TBH maybe you can and I haven't checked it properly,
+    // But one reason that maybe you can't is because null or empty values were left out of the key values pairs, so you have to loop the entire dataset, to see if there is a
+    // named date column for just a few records, while most were null or empty.
     function aliasColPair($cols, $arr)
     {
 
@@ -999,7 +1024,6 @@ class UserController extends Controller
             }
             */
         return array();
-
     }
 
     // abandoned function?
@@ -1007,14 +1031,13 @@ class UserController extends Controller
     {
         for ($i = 0; $i < count($arr); $i++) {
             foreach ($this->llheadings as $llc) {
-            // foreach ($llcols as $llc) {
+                // foreach ($llcols as $llc) {
                 if ((isset($arr[$i][$llc[0]])) && (isset($arr[$i][$llc[1]]))) {
                     return $llc;
                 }
             }
         }
         return array();
-
     }
 
 
@@ -1083,7 +1106,7 @@ class UserController extends Controller
                 // necessary if a large csv file
                 set_time_limit(0);
                 $row = 0;
-                if ($pointBasedUpload == TRUE){
+                if ($pointBasedUpload == TRUE) {
                     $notForExtData = $this->pointBasedNotForExtData;
                 } else {
                     $notForExtData = $this->pairBasedNotForExtData;
@@ -1093,7 +1116,7 @@ class UserController extends Controller
                     // number of fields in the csv
                     $col_count = count($data);
 
-                   if(!$this->validateRow($data)) continue; //if the row is invalid, skip it
+                    if (!$this->validateRow($data)) continue; //if the row is invalid, skip it
 
                     // sanitise headings
                     if ($row === 0) {
@@ -1165,11 +1188,11 @@ class UserController extends Controller
                             }
                         }
 
-                        if($latitudeIndex !== false){
+                        if ($latitudeIndex !== false) {
                             // Remove spaces, non-breaking spaces, and non-numeric characters.
                             $fields[$latitudeIndex] = preg_replace('/[^\d\.-]/', '', str_replace("\xc2\xa0", ' ', $fields[$latitudeIndex]));
                         }
-                        if($longitudeIndex !== false){
+                        if ($longitudeIndex !== false) {
                             // Remove spaces, non-breaking spaces, and non-numeric characters.
                             $fields[$longitudeIndex] = preg_replace('/[^\d\.-]/', '', str_replace("\xc2\xa0", ' ', $fields[$longitudeIndex]));
                         }
@@ -1186,8 +1209,6 @@ class UserController extends Controller
                 LOG::error("File import error NO HANDLE");
                 throw new Exception('File import error NO HANDLE');
             }
-
-
         } catch (Exception $e) {
             LOG::error('File Import Caught exception: ', $e->getMessage(), "\n");
         }
@@ -1200,10 +1221,11 @@ class UserController extends Controller
     * Valid each row of the imported csv file.
     * Ignore blank rows, rows are just empty space or rows are just comma
     */
-    function validateRow($array) {
+    function validateRow($array)
+    {
         foreach ($array as $value) {
             $trimmedValue = trim($value);
-            if ($trimmedValue !== '' && $trimmedValue !== ',' ) {
+            if ($trimmedValue !== '' && $trimmedValue !== ',') {
                 return true;
             }
         }
@@ -1230,8 +1252,8 @@ class UserController extends Controller
         // no way out but this.
         $notForExtData = [
             "id", "title", "placename", "name", "description", "type", "linkback", "latitude", "longitude",
-            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url" ,
-            "record_type" , "start_date", "end_date"
+            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url",
+            "record_type", "start_date", "end_date"
         ];
         if (in_array(strtolower($s), array_map('strtolower', $notForExtData))) {
             $s = strtolower($s);
@@ -1349,7 +1371,7 @@ class UserController extends Controller
         }
 
         return array("title"
-            => strval($place->name), "description" => $description, "longitude" => $coordinates[0], "latitude" => $coordinates[1], "datestart" => $datestart, "dateend" => $dateend, "kml_style_url" => $kml_style_url)
+        => strval($place->name), "description" => $description, "longitude" => $coordinates[0], "latitude" => $coordinates[1], "datestart" => $datestart, "dateend" => $dateend, "kml_style_url" => $kml_style_url)
             + $ed_out + array("extended_data" => $ed_raw); //adding on the extended data
     }
 
@@ -1408,12 +1430,11 @@ class UserController extends Controller
                 if ($key != "type" && $key != "geometry" && $key != "properties")
                     $ed_out[strval($key)] = strval($value); //ignoring 'type' 'geometry' and 'properties', add each key val pair to $ed_out
             }
-            $data[] = array("title" => $feature->properties->name, "longitude" => $feature->geometry->coordinates[0],
-                    "latitude" => $feature->geometry->coordinates[1]) + $ed_out; //adding on the extended data
+            $data[] = array(
+                "title" => $feature->properties->name, "longitude" => $feature->geometry->coordinates[0],
+                "latitude" => $feature->geometry->coordinates[1]
+            ) + $ed_out; //adding on the extended data
         }
         return $data;
     }
-
 }
-
-
