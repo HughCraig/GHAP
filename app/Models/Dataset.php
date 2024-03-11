@@ -663,6 +663,7 @@ class Dataset extends Model
             $lineWidth = 2;
 
             if ($ismultiroute === TRUE) {
+                $routeLayerText = "";
                 foreach ($dataitems as $i) {
                     $routeId = $i->route_id;
                     if (!isset($routeGroups[$routeId])) {
@@ -684,7 +685,7 @@ class Dataset extends Model
                     // Default display setting of line
                     $lineColor = [255, 255, 255, 255];
                     $lineWidth = 2;
-
+                    // If the route has multi-stops
                     if (count($items) > 1) {
                         // Sort items within each route group by stop_idx
                         usort($items, function ($a, $b) {
@@ -707,10 +708,12 @@ class Dataset extends Model
                             }
                         }
                     } else {
-                        $routeCoords = [
+                        $routeCoords = [ // If the route has only one stop.
+                            // A new stop with 1-offset coordinates is added
                             [$items[0]->longitude, $items[0]->latitude],
                             [$items[0]->longitude + 1, $items[0]->latitude + 1]
                         ];
+                        $routeLayerText = "Single Place From ";
                         if (empty($routeProps['route_id']) && !empty($items[0]->route_id)) {
                             $routeProps['route_id'] = $items[0]->route_id;
                         }
@@ -724,6 +727,15 @@ class Dataset extends Model
                         }
                         $lineColor = [255, 140, 0, 255];
                     }
+
+                    // Set footer links.
+                    // Add original route id and layer name of this route in the footer link
+                    $datasetId = $dataset->id;
+                    $routeId = $routeProps['route_id'];
+                    $routeLayerText = $routeLayerText . "Route (ID) " . $routeId . " of TLCMap Layer " . $datasetId;
+                    $routeLayerUrl = url("publicdatasets/" . $datasetId);
+                    $featureConfig->addLink($routeLayerText, $routeLayerUrl);
+
                     // Create a geojson feature for this route
                     $features[] = [
                         'type' => 'Feature',

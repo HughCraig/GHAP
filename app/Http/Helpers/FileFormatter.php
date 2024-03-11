@@ -494,6 +494,7 @@ class FileFormatter
                     $routeCoords = [];
                     // Initialize properties with default values
                     $defaultRouteDescr = "No detailed description";
+                    $routeLayerText = "";
                     $routeProps = [
                         'title' => null,
                         'route_id' => null,
@@ -524,11 +525,12 @@ class FileFormatter
                             }
                         }
                     } else { // If the route has only one stop.
-                        // A new stop with 0.1-offset coordinates is added
+                        // A new stop with 1-offset coordinates is added
                         $routeCoords = [
                             [$items[0]->longitude, $items[0]->latitude],
-                            [$items[0]->longitude + 0.1, $items[0]->latitude + 0.1]
+                            [$items[0]->longitude + 1, $items[0]->latitude + 1]
                         ];
+                        $routeLayerText = "Single Place From ";
                         if (empty($routeProps['route_id']) && !empty($items[0]->route_id)) {
                             $routeProps['route_id'] = $items[0]->route_id;
                         }
@@ -554,7 +556,7 @@ class FileFormatter
                     if ($routeMeta) {
                         $datasetId = $routeMeta[0];
                         $routeId = $routeMeta[1];
-                        $routeLayerText = "From Route (ID) " . $routeId . " of TLCMap Layer " . $datasetId;
+                        $routeLayerText = $routeLayerText . "Route (ID) " . $routeId . " of TLCMap Layer " . $datasetId;
                         $routeLayerUrl = url("publicdatasets/" . $datasetId);
                         $featureConfig->addLink($routeLayerText, $routeLayerUrl);
                     }

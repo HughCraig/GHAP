@@ -5,6 +5,7 @@ namespace TLCMap\ViewConfig;
 use TLCMap\Http\Helpers\HtmlFilter;
 use TLCMap\Models\Collection;
 use TLCMap\Models\Dataset;
+use TLCMap\Models\SavedSearch;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -164,6 +165,28 @@ class GhapConfig
         }
         $url = $dataset->public ? url("publicdatasets/{$dataset->id}") : url("mydatasets/{$dataset->id}");
         $content .= '<p><a target="_blank" href="' . $url . '">View layer details</a></p>';
+        return $content;
+    }
+
+    /**
+     * Create the detail content of the list pane for a dataset.
+     *
+     * @param SavedSearch $savedSearch
+     *   The saved search object.
+     * @return string
+     *   The HTML content.
+     */
+    public static function createSavedSearchListPaneContent(SavedSearch $savedSearch)
+    {
+        $content = '';
+        if (!empty($savedSearch->description)) {
+            $content .= "<div>" . HtmlFilter::simple($savedSearch->description) . "</div>";
+        }
+        if (!empty($savedSearch->warning)) {
+            $content .= '<div class="warning-message"><strong>Warning</strong><br>' . HtmlFilter::simple($savedSearch->warning) . '</div>';
+        }
+        $url = url("/places") . $savedSearch->query;
+        $content .= '<p><a target="_blank" href="' . $url . '">View saved search details</a></p>';
         return $content;
     }
 }

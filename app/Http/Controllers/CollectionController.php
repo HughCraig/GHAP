@@ -172,9 +172,15 @@ class CollectionController extends Controller
         $savedSearches = $collection->savedSearches;
         if ($savedSearches && count($savedSearches) > 0) {
             foreach ($savedSearches as $savedSearch) {
+                // Set saved search config.
+                $savedSearchConfig = new DatasetConfig();
+                $savedSearchConfig->enableListPaneColor();
+                $savedSearchConfig->setListPaneContent(GhapConfig::createSavedSearchListPaneContent($savedSearch));
+
                 $data['datasets'][] = [
                     'name' => $savedSearch->name,
                     'jsonURL' => url("/places" . $savedSearch->query . '&format=json' . '&' . substr($queryString, 1)),
+                    'display' => $savedSearchConfig->toArray(),
                 ];
             }
         }
