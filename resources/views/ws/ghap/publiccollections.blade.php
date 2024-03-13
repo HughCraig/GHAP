@@ -63,12 +63,9 @@
                                     <a class="dropdown-item grab-hover"
                                         onclick="window.open('{{ config('app.views_root_url') }}/collection-werekata.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $collection->id }}/json?sort=start'))">Werekata
                                         Flight by Time</a>
-                                    <a class="dropdown-item grab-hover"
-                                        onclick="window.open('{{ config('app.views_root_url') }}/collection-werekata.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $collection->id }}/json'))">Werekata
-                                        Flight by Route</a>
                                     @if ($collectionsHasMobInfo[$collectionIdx])
                                         <a class="dropdown-item grab-hover"
-                                            onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $collection->id }}/json'))">Mobility
+                                            onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $collection->id }}/json?mobility'))">Mobility
                                         </a>
                                     @endif
                                 </div>
