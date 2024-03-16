@@ -118,4 +118,15 @@ class FeatureConfig extends ViewConfig
     {
         $this->set('lineWidth', $width);
     }
+
+    /**
+     * Get the fields blocked from displaying in the property table.
+     *
+     * @return string[]
+     *   The names of blocked fields.
+     */
+    public function getBlockedFields()
+    {
+        return $this->get('blockedFields', 'popup');
+    }
 }

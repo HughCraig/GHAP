@@ -290,28 +290,27 @@ window.onload = function () {
         userViewDSMsgBanner.show();
         sessionStorage.removeItem("userViewDSMsgBanner");
     }
-        if (sessionStorage.getItem("siblingDataId") !== null) {
-            // Create message banner for the editted dataitem
-            const dataIdValue = sessionStorage.getItem("siblingDataId");
-            const insertPosition = sessionStorage.getItem("insertPosition");
-            const diDiv = document.querySelector(`[data-id="${dataIdValue}"]`);
-            diDiv.insertAdjacentHTML(
-                insertPosition,
-                "<div class='pt-4 pb-4 mb-3' id='userViewDataitemMsg'></div>"
-            );
+    if (sessionStorage.getItem("siblingDataId") !== null) {
+        // Create message banner for the editted dataitem
+        const dataIdValue = sessionStorage.getItem("siblingDataId");
+        const insertPosition = sessionStorage.getItem("insertPosition");
+        const diDiv = document.querySelector(`[data-id="${dataIdValue}"]`);
+        diDiv.insertAdjacentHTML(
+            insertPosition,
+            "<div class='pt-4 pb-4 mb-3' id='userViewDataitemMsg'></div>"
+        );
 
-            const userViewDIMsgBanner = new MessageBanner(
-                $("#userViewDataitemMsg")
-            );
-            userViewDIMsgBanner.clear();
-            userViewDIMsgBanner.warning(
-                sessionStorage.getItem("userViewDIMsgBanner")
-            );
-            userViewDIMsgBanner.show();
-            sessionStorage.removeItem("userViewDIMsgBanner");
-            sessionStorage.removeItem("siblingDataId");
-            sessionStorage.removeItem("insertPosition");
-        }
+        const userViewDIMsgBanner = new MessageBanner(
+            $("#userViewDataitemMsg")
+        );
+        userViewDIMsgBanner.clear();
+        userViewDIMsgBanner.warning(
+            sessionStorage.getItem("userViewDIMsgBanner")
+        );
+        userViewDIMsgBanner.show();
+        sessionStorage.removeItem("userViewDIMsgBanner");
+        sessionStorage.removeItem("siblingDataId");
+        sessionStorage.removeItem("insertPosition");
     }
 };
 

@@ -179,7 +179,7 @@ class CollectionController extends Controller
 
                 $data['datasets'][] = [
                     'name' => $savedSearch->name,
-                    'jsonURL' => url("/places" . $savedSearch->query . '&format=json' . '&' . substr($queryString, 1)),
+                    'jsonURL' => url("/places" . $savedSearch->query . '&format=json' . '&' . substr($queryString . "=multilayers", 1)),
                     'display' => $savedSearchConfig->toArray(),
                 ];
             }

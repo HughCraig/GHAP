@@ -653,17 +653,13 @@ class Dataset extends Model
          */
         if (isset($_GET["mobility"])) {
 
-            // Set line feature config.
-            $featureConfig = new FeatureConfig();
-            $featureConfig->setAllowedFields([]);
-
-            $routeGroups = [];
             // Default display setting of line
             $lineColor = [255, 255, 255, 255];
             $lineWidth = 2;
+            $lineAllowFields = ['route_id', 'route_title', 'route_description'];
 
             if ($ismultiroute === TRUE) {
-                $routeLayerText = "";
+                $routeGroups = [];
                 foreach ($dataitems as $i) {
                     $routeId = $i->route_id;
                     if (!isset($routeGroups[$routeId])) {
@@ -674,6 +670,7 @@ class Dataset extends Model
                 // Process each route group
                 foreach ($routeGroups as $routeId => $items) {
                     $routeCoords = [];
+                    $routeLayerText = "";
                     // Initialize properties with default values
                     $defaultRouteDescr = "No detailed description";
                     $routeProps = [
@@ -727,6 +724,9 @@ class Dataset extends Model
                         }
                         $lineColor = [255, 140, 0, 255];
                     }
+                    // Set mobility route feature config.
+                    $featureConfig = new FeatureConfig();
+                    $featureConfig->setAllowedFields($lineAllowFields);
 
                     // Set footer links.
                     // Add original route id and layer name of this route in the footer link
@@ -752,6 +752,9 @@ class Dataset extends Model
                 }
             } else {
                 $routeData = [];
+                // Set line feature config.
+                $featureConfig = new FeatureConfig();
+                $featureConfig->setAllowedFields($lineAllowFields);
 
                 foreach ($dataitems as $i) {
                     array_push($routeData, [$i->longitude, $i->latitude]);
@@ -769,11 +772,12 @@ class Dataset extends Model
             }
             // Remove fields from the blocked fields for mobility view
             $allowedFields = [
-                "stop_idx", "route_title", "route_description",
+                "route_id", "stop_idx", "route_title", "route_description",
             ];
+
             $featureCollectionConfig->setBlockedFields(
                 array_values(
-                    array_diff(GhapConfig::blockedFields(), $allowedFields)
+                    array_diff($featureCollectionConfig->getBlockedFields(), $allowedFields)
                 )
             );
         }
@@ -795,11 +799,10 @@ class Dataset extends Model
             ];
             $featureCollectionConfig->setBlockedFields(
                 array_values(
-                    array_diff(GhapConfig::blockedFields(), $allowedFields)
+                    array_diff($featureCollectionConfig->getBlockedFields(), $allowedFields)
                 )
             );
         }
-
         $allfeatures = array(
             'type' => 'FeatureCollection',
             'metadata' => $metadata,

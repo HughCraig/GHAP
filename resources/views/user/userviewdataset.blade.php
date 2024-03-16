@@ -5,6 +5,8 @@
 @endpush
 
 @push('scripts')
+    {{-- <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}"> --}}
     <script>
         //Put the relative URL of our ajax functions into global vars for use in external .js files
         var ajaxviewdataitem = "{{ url('ajaxviewdataitem') }}";

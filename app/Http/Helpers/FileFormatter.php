@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
+use SebastianBergmann\Environment\Console;
 use TLCMap\Models\Dataset;
 use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
@@ -455,12 +456,26 @@ class FileFormatter
         }
 
         if (isset($parameters) && array_key_exists("mobility", $parameters)) {
+            //Reconstruct saved search URL
+            $urlParts = parse_url(URL::full());
+            parse_str($urlParts['query'], $ssParameters);
+            unset($ssParameters['format']);
+            unset($ssParameters['mobility']);
+            $ssQuery = http_build_query($ssParameters);
+            $ssUrl = url('/places?') . $ssQuery;
 
             $routeGroups = [];
             $separatedGroup = [];
             // Default display setting of line
             $lineColor = [255, 255, 255, 255];
             $lineWidth = 2;
+            $lineAllowFields = ['route_id', 'route_title', 'route_description'];
+            // Initialize line feature config for discrete points group.
+            $featureConfig = new FeatureConfig();
+            $featureConfig->setAllowedFields($lineAllowFields);
+            if ($parameters['mobility'] === "multilayers") {
+                $featureConfig->addLink("Original TLCMap Gazetteer Query", $ssUrl);
+            }
 
             if ($hasRoute === TRUE) {
                 foreach ($results as $i) {
@@ -476,9 +491,6 @@ class FileFormatter
                         array_push($separatedGroup, [$i->longitude, $i->latitude]);
                     }
                 }
-                // Set line feature config.
-                $featureConfig = new FeatureConfig();
-                $featureConfig->setAllowedFields([]);
                 $features[] = array(
                     'type' => 'Feature',
                     'geometry' => array('type' => 'LineString', 'coordinates' => $separatedGroup),
@@ -546,9 +558,12 @@ class FileFormatter
                         $lineWidth = 4;
                     }
 
-                    // Set line feature config.
+                    // Initialize line feature config for individual route group
                     $featureConfig = new FeatureConfig();
-                    $featureConfig->setAllowedFields([]);
+                    $featureConfig->setAllowedFields($lineAllowFields);
+                    if ($parameters['mobility'] === "multilayers") {
+                        $featureConfig->addLink("Original Saved Search", $ssUrl);
+                    }
 
                     // Set footer links.
                     // Add original route id and layer name of this route in the footer link
@@ -575,13 +590,13 @@ class FileFormatter
                         'properties' => $routeProps
                     ];
                 }
-            } else {
+            } else { // If there is no existing route in searching results
                 $routeData = [];
 
                 foreach ($results as $i) {
                     array_push($routeData, [$i->longitude, $i->latitude]);
                 }
-
+                // Set line feature for discrete points group.
                 $features[] = array(
                     'type' => 'Feature',
                     'display' => array_merge($featureConfig->toArray(), [
@@ -590,17 +605,16 @@ class FileFormatter
                     ]),
                     'geometry' => array('type' => 'LineString', 'coordinates' => $routeData),
                     'properties' => ['name' => "Discrete Points"],
-                    'display' => $featureConfig->toArray(),
                 );
             }
 
-            // Remove fields from the blocked fields for mobility view
+            // Remove route metadata fields from the blocked fields for mobility feature collection
             $allowedFields = [
                 "stop_idx", "route_title", "route_description",
             ];
             $featureCollectionConfig->setBlockedFields(
                 array_values(
-                    array_diff(GhapConfig::blockedFields(), $allowedFields)
+                    array_diff($featureCollectionConfig->getBlockedFields(), $allowedFields)
                 )
             );
         }
@@ -616,13 +630,13 @@ class FileFormatter
                 $metadata['quantiles'] = $quantiles;
             }
 
-            // Remove fields from the blocked fields for mobility view
+            // Remove quantity fields from the blocked fields for mobility feature collection
             $allowedFields = [
                 'quantity', 'logQuantity',
             ];
             $featureCollectionConfig->setBlockedFields(
                 array_values(
-                    array_diff(GhapConfig::blockedFields(), $allowedFields)
+                    array_diff($featureCollectionConfig->getBlockedFields(), $allowedFields)
                 )
             );
         }
