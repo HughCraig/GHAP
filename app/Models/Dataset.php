@@ -756,7 +756,7 @@ class Dataset extends Model
         "), ['dataset_id' => $this->id, 'centroidLng' => $centroidLng, 'centroidLat' => $centroidLat]);
 
         if (!empty($centralPlace)) {
-            $placeUrl = config('app.views_root_url') . '3d.html?load=' . (url('places/' . $centralPlace[0]->uid . '/json'));
+            $placeUrl = config('app.views_root_url') . '/3d.html?load=' . (url('places/' . $centralPlace[0]->uid . '/json'));
         } else {
             $placeUrl = null;
         }
@@ -780,7 +780,7 @@ class Dataset extends Model
         "), ['dataset_id' => $this->id, 'centroidLng' => $centroidLng, 'centroidLat' => $centroidLat]);
 
         if (!empty($distantPlace)) {
-            $placeUrl = config('app.views_root_url') . '3d.html?load=' . (url('places/' . $distantPlace[0]->uid . '/json'));
+            $placeUrl = config('app.views_root_url') . '/3d.html?load=' . (url('places/' . $distantPlace[0]->uid . '/json'));
         } else {
             $placeUrl = null;
         }
@@ -1023,7 +1023,7 @@ class Dataset extends Model
         "), ['id' => $mostIsolatedPlaceId]);
 
         if (!empty($mostIsolatedPlace)) {
-            $placeUrl = config('app.views_root_url') . '3d.html?load=' . (url('places/' . $mostIsolatedPlace[0]->uid . '/json'));
+            $placeUrl = config('app.views_root_url') . '/3d.html?load=' . (url('places/' . $mostIsolatedPlace[0]->uid . '/json'));
         } else {
             $placeUrl = null;
         }
