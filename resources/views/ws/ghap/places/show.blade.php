@@ -76,7 +76,13 @@
                                     Flight by Route</a>
                                 @if ($hasmobinfo['hasquantity'] && $hasmobinfo['hasrouteid'])
                                     <a class="dropdown-item grab-hover"
-                                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent(downloadurl+'&format=json&mobility=show'))">Mobility</a>
+                                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent(downloadurl+'&format=json&mobility=route'))">Mobility
+                                        Route
+                                    </a>
+                                    <a class="dropdown-item grab-hover"
+                                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent(downloadurl+'&format=json&mobility=time'))">Mobility
+                                        Times
+                                    </a>
                                 @endif
                                 @if (!empty(config('app.views_temporal_earth_url')))
                                     <a class="dropdown-item grab-hover"

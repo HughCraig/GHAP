@@ -57,9 +57,16 @@
                 <a class="dropdown-item grab-hover"
                     onclick="window.open('{{ config('app.views_root_url') }}/collection-werekata.html?load=' + encodeURIComponent('{{ url('multilayers') }}/{{ $collection->id }}/json?sort=start'))">Werekata
                     Flight by Time</a>
-                <a class="dropdown-item grab-hover"
-                    onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url('multilayers') }}/{{ $collection->id }}/json?mobility'))">Mobility
-                </a>
+                @if ($collectionHasMobInfo)
+                    <a class="dropdown-item grab-hover"
+                        onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url('multilayers') }}/{{ $collection->id }}/json?mobility=route'))">Mobility
+                        Route
+                    </a>
+                    <a class="dropdown-item grab-hover"
+                        onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url('multilayers') }}/{{ $collection->id }}/json?mobility=time'))">Mobility
+                        Times
+                    </a>
+                @endif
             </div>
         </div>
     @endif
@@ -280,7 +287,12 @@
                                             Flight by Time</a>
                                         @if ($ds->has_quantity || $ds->has_route)
                                             <a class="dropdown-item grab-hover"
-                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('layers') }}/{{ $ds->id }}/json?mobility'))">Mobility
+                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('layers') }}/{{ $ds->id }}/json?mobility=route'))">Mobility
+                                                Route
+                                            </a>
+                                            <a class="dropdown-item grab-hover"
+                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('layers') }}/{{ $ds->id }}/json?mobility=time'))">Mobility
+                                                Times
                                             </a>
                                         @endif
                                         @if (!empty(config('app.views_temporal_earth_url')))
@@ -340,7 +352,12 @@
                                             Flight by Time</a>
                                         @if ($savedSearchesHasMobInfo[$ssIdx]['hasquantity'] && $savedSearchesHasMobInfo[$ssIdx]['hasrouteid'])
                                             <a class="dropdown-item grab-hover"
-                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=json&mobility'))">Mobility
+                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=json&mobility=route'))">Mobility
+                                                Route
+                                            </a>
+                                            <a class="dropdown-item grab-hover"
+                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=json&mobility=time'))">Mobility
+                                                Times
                                             </a>
                                         @endif
                                         @if (!empty(config('app.views_temporal_earth_url')))

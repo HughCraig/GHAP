@@ -68,7 +68,11 @@
                                         Flight by Time</a>
                                     @if ($ds->has_quantity || $ds->has_route)
                                         <a class="dropdown-item grab-hover"
-                                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility'))">Mobility</a>
+                                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=route'))">Mobility
+                                            Route</a>
+                                        <a class="dropdown-item grab-hover"
+                                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=time'))">Mobility
+                                            Times</a>
                                     @endif
                                     @if (!empty(config('app.views_temporal_earth_url')))
                                         <a class="dropdown-item grab-hover"

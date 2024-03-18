@@ -456,7 +456,6 @@ class DatasetController extends Controller
      */
     public function viewPublicJSON(Request $request, int $id)
     {
-
         //Get the first dataset with this id that is 'public', if it exists
         $dataset = Dataset::getPublicDatasetById($id);
         if (!$dataset) return Response::make(Dataset::getRestrictedDatasetGeoJSON(), '200', array('Content-Type' => 'application/json'));

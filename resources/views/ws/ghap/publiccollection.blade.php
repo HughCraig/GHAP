@@ -48,7 +48,12 @@
                     Flight by Time</a>
                 @if ($collectionHasMobInfo)
                     <a class="dropdown-item grab-hover"
-                        onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/json?mobility'))">Mobility
+                        onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/json?mobility=route'))">Mobility
+                        Route
+                    </a>
+                    <a class="dropdown-item grab-hover"
+                        onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/json?mobility=time'))">Mobility
+                        Times
                     </a>
                 @endif
 

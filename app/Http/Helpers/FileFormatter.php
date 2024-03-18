@@ -20,7 +20,9 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
 use SebastianBergmann\Environment\Console;
+use TLCMap\Models\Collection;
 use TLCMap\Models\Dataset;
+use TLCMap\Models\Dataitem;
 use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
@@ -464,8 +466,17 @@ class FileFormatter
             $ssQuery = http_build_query($ssParameters);
             $ssUrl = url('/places?') . $ssQuery;
 
+            //
+            if ($parameters['mobility'] === 'time') {
+                foreach ($results as &$i) {
+                    $i = Dataset::infillDataitemDates($i);
+                }
+            }
+
             $routeGroups = [];
             $separatedGroup = [];
+            $separatedGroupCoords = [];
+
             // Default display setting of line
             $lineColor = [255, 255, 255, 255];
             $lineWidth = 2;
@@ -473,11 +484,12 @@ class FileFormatter
             // Initialize line feature config for discrete points group.
             $featureConfig = new FeatureConfig();
             $featureConfig->setAllowedFields($lineAllowFields);
-            if ($parameters['mobility'] === "multilayers") {
+            if ($parameters['requestFrom'] ?? '' === "multilayers") {
                 $featureConfig->addLink("Original TLCMap Gazetteer Query", $ssUrl);
             }
 
             if ($hasRoute === TRUE) {
+                // Divide places with / without route information
                 foreach ($results as $i) {
                     $routeId = $i->route_id;
                     $datasetId = $i->dataset_id;
@@ -488,12 +500,21 @@ class FileFormatter
                         }
                         $routeGroups[$datasetRouteId][] = $i;
                     } else {
-                        array_push($separatedGroup, [$i->longitude, $i->latitude]);
+                        array_push($separatedGroup, $i);
                     }
+                }
+                if ($parameters['mobility'] === 'time') {
+                    // Sort items within each route group by date
+                    usort($separatedGroup, function ($a, $b) {
+                        return strtotime($a->datestart) - strtotime($b->datestart);
+                    });
+                }
+                foreach ($separatedGroup as $i) {
+                    array_push($separatedGroupCoords, [$i->longitude, $i->latitude]);
                 }
                 $features[] = array(
                     'type' => 'Feature',
-                    'geometry' => array('type' => 'LineString', 'coordinates' => $separatedGroup),
+                    'geometry' => array('type' => 'LineString', 'coordinates' => $separatedGroupCoords),
                     'properties' => ['name' => "Discrete Points"],
                     'display' => array_merge($featureConfig->toArray(), [
                         'color' => $lineColor,
@@ -516,10 +537,12 @@ class FileFormatter
 
                     // If the route has multi-stops
                     if (count($items) > 1) {
-                        // Sort items within each route group by stop_idx
-                        usort($items, function ($a, $b) {
-                            return $a->stop_idx - $b->stop_idx;
-                        });
+                        if ($parameters['mobility'] === 'time') {
+                            // Sort items within each route group by date
+                            usort($items, function ($a, $b) {
+                                return strtotime($a->datestart) - strtotime($b->datestart);
+                            });
+                        }
                         foreach ($items as $item) {
                             $routeCoords[] = [$item->longitude, $item->latitude];
                         }
@@ -561,7 +584,7 @@ class FileFormatter
                     // Initialize line feature config for individual route group
                     $featureConfig = new FeatureConfig();
                     $featureConfig->setAllowedFields($lineAllowFields);
-                    if ($parameters['mobility'] === "multilayers") {
+                    if ($parameters['requestFrom'] ?? '' === "multilayers") {
                         $featureConfig->addLink("Original Saved Search", $ssUrl);
                     }
 
@@ -592,7 +615,11 @@ class FileFormatter
                 }
             } else { // If there is no existing route in searching results
                 $routeData = [];
-
+                if ($parameters['mobility'] === 'time') {
+                    usort($results, function ($a, $b) {
+                        return strtotime($a->datestart) - strtotime($b->datestart);
+                    });
+                }
                 foreach ($results as $i) {
                     array_push($routeData, [$i->longitude, $i->latitude]);
                 }

@@ -148,8 +148,8 @@ class CollectionController extends Controller
             $queryString = '?line=' . $request->input('line');
         } elseif (!empty($request->input('sort'))) {
             $queryString = '?sort=' . $request->input('sort');
-        } elseif ($request->has("mobility")) {
-            $queryString = '?mobility';
+        } elseif (!empty($request->input('mobility'))) {
+            $queryString = '?mobility=' . $request->input('mobility');
         }
 
         $data['datasets'] = [];
@@ -179,7 +179,7 @@ class CollectionController extends Controller
 
                 $data['datasets'][] = [
                     'name' => $savedSearch->name,
-                    'jsonURL' => url("/places" . $savedSearch->query . '&format=json' . '&' . substr($queryString . "=multilayers", 1)),
+                    'jsonURL' => url("/places" . $savedSearch->query . '&format=json' . '&' . substr($queryString, 1) . "&requestFrom=multilayers"),
                     'display' => $savedSearchConfig->toArray(),
                 ];
             }

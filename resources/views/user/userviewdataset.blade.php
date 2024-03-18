@@ -109,7 +109,11 @@
                     Flight by Time</a>
                 @if ($ds->has_quantity || $ds->has_route)
                     <a class="dropdown-item grab-hover"
-                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility'))">Mobility</a>
+                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=route'))">Mobility
+                        Route</a>
+                    <a class="dropdown-item grab-hover"
+                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=time'))">Mobility
+                        Times</a>
                 @endif
                 @if (!empty(config('app.views_temporal_earth_url')))
                     <a class="dropdown-item grab-hover"
@@ -437,16 +441,18 @@
                             <div>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->description) !!}</div>
                         @endif
                     </div>
-                    @if (isset($data->route_id))
+                    @if (isset($data->route_id) || isset($data->stop_idx))
                         <div class="col col-xl-2">
                             <h4>Route Details</h4>
-                            <dt>Route ID</dt>
-                            <dd>{{ $data->route_id }}</dd>
-                            @if (isset($data->route_original_id))
+                            @if (isset($data->route_id) && $data->route_id !== '')
+                                <dt>Route ID</dt>
+                                <dd>{{ $data->route_id }}</dd>
+                            @endif
+                            @if (isset($data->route_original_id) && $data->route_original_id !== '')
                                 <dt>Route Original ID</dt>
                                 <dd>{{ $data->route_original_id }}</dd>
                             @endif
-                            @if (isset($data->route_title))
+                            @if (isset($data->route_title) && $data->route_title !== '')
                                 <dt>Route Title</dt>
                                 <dd>{{ $data->route_title }}</dd>
                             @endif
