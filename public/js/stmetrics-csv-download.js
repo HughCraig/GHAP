@@ -68,13 +68,15 @@ function downloadClusterDataAsKML(data, filename) {
         const color = generateKMLColorFromStr(index);
         const places = clusterData.records ? clusterData.records : clusterData;
         places.forEach((place) => {
-
             let clusterId = parseInt(index) + 1;
             let description = `Cluster ID: ${clusterId}<br>`;
+            let startDate = place.datestart || '';
+        
             Object.entries(place).forEach(([key, value]) => {
                 if (
                     key !== "latitude" &&
                     key !== "longitude" &&
+                    key !== "datestart" && 
                     value !== "Geom_date"
                 ) {
                     description += `${
@@ -82,7 +84,11 @@ function downloadClusterDataAsKML(data, filename) {
                     }: ${value}<br>`;
                 }
             });
-
+        
+            if (startDate) {
+                description += `Date: ${startDate}<br>`; // Add 'Date' to the description
+            }
+        
             kmlContent +=
                 `    <Style id="cluster${clusterId}Style">\n` +
                 `      <IconStyle>\n` +
@@ -90,10 +96,10 @@ function downloadClusterDataAsKML(data, filename) {
                 `        <scale>1.1</scale>\n` +
                 "      </IconStyle>\n" +
                 "    </Style>\n";
-
+        
             kmlContent +=
                 "    <Placemark>\n" +
-                `      <name>${place.title || "Unnamed Place"}</name>\n` +
+                `      <name><![CDATA[${place.title || "Unnamed Place"}]]></name>\n` +
                 `      <description><![CDATA[${description}]]></description>\n` +
                 "      <Point>\n" +
                 `        <coordinates>${place.longitude},${place.latitude}</coordinates>\n` +
