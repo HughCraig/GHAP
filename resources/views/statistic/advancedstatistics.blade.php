@@ -5,11 +5,12 @@
     var statistics = @json($statistic);
     var layer_name = "{{  $ds->name }}";
 </script>
+<script src="{{ asset('/js/stmetrics-csv-download.js') }}"></script>
 <script src="{{ asset('/js/basicstatistics.js') }}"></script>
 @endpush
 
 @section('content')
-<div class="container mt-4">
+<div class="container mt-4 advanced-statistics">
     <h2 class="pb-4">Advanced Statistics</h2>
 
     <button id="download-csv" class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false">

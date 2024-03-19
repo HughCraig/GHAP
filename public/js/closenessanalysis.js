@@ -63,12 +63,12 @@ $(document).ready(function () {
                     '<table class="table"><thead><tr><th>Statistic</th><th>Value</th><th>Unit</th></tr></thead><tbody>';
 
                 // Append rows to the table for each statistic
-                for (var key in response) {
+                for (var key in response['data']) {
                     table +=
                         "<tr><td>" +
                         key +
                         "</td><td>" +
-                        response[key] +
+                        response['data'][key] +
                         "</td><td>" +
                         (key.includes("Area") ? "km²" : "km") +
                         "</td></tr>";
@@ -92,6 +92,6 @@ $(document).ready(function () {
 
     //csv download
     $("#downloadCsvButton").click(function() {
-        downStatisticsDataAsCSV(responseData, "closeness_analysis.csv");
+        downStatisticsDataAsCSV(responseData['data'],  responseData['name']  + "_Closeness");
     });
 });

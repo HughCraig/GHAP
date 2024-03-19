@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Response;
 use DOMDocument;
 use TLCMap\ROCrate\ROCrateGenerator;
+use TLCMap\Http\Helpers\GeneralFunctions;
 
 
 class DatasetController extends Controller
@@ -90,7 +91,7 @@ class DatasetController extends Controller
     {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Basic statistics of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_BasicStats');
         return Response::make($ds->getBasicStatisticsJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -116,7 +117,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Basic statistics of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_BasicStats');
         return Response::make($ds->getBasicStatisticsJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -193,7 +194,7 @@ class DatasetController extends Controller
     {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'DBSCAN cluster analysis of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_SpatialClusters');
         return Response::make($ds->getClusterAnalysisDBScanJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -224,7 +225,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'DBSCAN cluster analysis of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_SpatialClusters');
         return Response::make($ds->getClusterAnalysisDBScanJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -248,7 +249,7 @@ class DatasetController extends Controller
     {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Kmeans cluster analysis of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_SpatialClusters');
         return Response::make($ds->getClusterAnalysisKmeansJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -274,7 +275,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Kmeans cluster analysis of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_SpatialClusters');
         return Response::make($ds->getClusterAnalysisKmeansJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -321,7 +322,7 @@ class DatasetController extends Controller
     {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Temporal clustering of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_TemporalClusters');
         return Response::make($ds->getTemporalClusteringJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -347,7 +348,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Temporal clustering of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_TemporalClusters');
         return Response::make($ds->getTemporalClusteringJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 

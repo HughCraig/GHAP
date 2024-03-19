@@ -64,9 +64,9 @@
         <div class="dropdown-menu" aria-labelledby="analyseDropdown">
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/basicstatistics">Basic Statistics</a>
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/advancedstatistics">Advanced Statistics</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/clusteranalysis">Clustering Analyse</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/clusteranalysis">Cluster Analysis</a>
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/temporalclustering">Temporal Clustering</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/closenessanalysis">Closeness Analyse</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/closenessanalysis">Closeness Analysis</a>
         </div>
     </div>
     @endif

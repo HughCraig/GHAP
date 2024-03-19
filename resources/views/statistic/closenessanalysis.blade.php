@@ -15,13 +15,13 @@
 
 @section('content')
 <div class="container mt-4">
-    <h2>Closeness Analyse</h2>
+    <h2>Closeness Analysis</h2>
     <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
     <input type="hidden" id="ds_id" value="{{ $ds->id }}" />
 
     <p class="pt-4 pb-4">To understand this analysis, check the <a href="https://tlcmap.org/help/guides/ghap-guide/">GHAP Guide</a></p>
 
-    <!-- Closeness Analyse Options Form -->
+    <!-- Closeness Analysis Options Form -->
     <div class="user-input">
 
         <div>Current Layer: {{ $ds -> name}}</div>

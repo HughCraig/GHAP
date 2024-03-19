@@ -67,7 +67,7 @@ $(document).ready(function () {
         ];
         downloadClusterDataAsCSV(
             clusteringResponseData.clusters,
-            "temporal_clustering.csv",
+            clusteringResponseData['name'] + '_TemporalClusters',
             headers
         );
     });
@@ -81,7 +81,7 @@ $(document).ready(function () {
     $("#temporal-download-kml").click(function () {
         downloadClusterDataAsKML(
             clusteringResponseData.clusters,
-            "temporal_clustering.kml"
+            clusteringResponseData['name'] + '_TemporalClusters',
         );
     });
 
