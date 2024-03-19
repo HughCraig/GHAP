@@ -166,6 +166,11 @@ class GeneralFunctions
         return ((float)$aout[1] > (float)$bout[1]) ? 1 : -1; //if a > b return 1, else return -1        
     }
 
+    //Replace all non-alphanumeric characters with underscores
+    public static function replaceWithUnderscores($str){
+        return preg_replace('/[^a-zA-Z0-9]/', '_', $str);
+    }
+    
     /**
      * Returns the median of an array of numbers
      * 

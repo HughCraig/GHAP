@@ -8,6 +8,8 @@ $(document).ready(function () {
     var clusteringResponseData = null;
     var clusteringMethod = null;
 
+    var layerName = null;
+
     var distance = null;
     var minPoint = 0;
 
@@ -30,7 +32,7 @@ $(document).ready(function () {
         const headers = ["Cluster ID", "id", "title", "latitude", "longitude"];
         downloadClusterDataAsCSV(
             clusteringResponseData,
-            "clustering_results.csv",
+            layerName + "_SpatialClusters",
             headers
         );
     });
@@ -66,7 +68,7 @@ $(document).ready(function () {
     $("#cluster-download-kml").click(function () {
         downloadClusterDataAsKML(
             clusteringResponseData,
-            "clustering_results.kml"
+            layerName + "_SpatialClusters"
         );
     });
 
@@ -194,9 +196,10 @@ $(document).ready(function () {
             url: url,
             data: data,
             success: function (response) {
-                clusteringResponseData = response;
+                clusteringResponseData = response.data;
+                layerName = response.name;
                 $(".user-input").hide();
-                var resultTable = getClusterResultTable(response);
+                var resultTable = getClusterResultTable(clusteringResponseData);
                 $(".result-table").html(resultTable);
                 $(".result-output").show();
                 document.getElementById("collection-3d-map").onclick =

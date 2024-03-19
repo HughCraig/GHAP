@@ -756,7 +756,7 @@ class Dataset extends Model
         "), ['dataset_id' => $this->id, 'centroidLng' => $centroidLng, 'centroidLat' => $centroidLat]);
 
         if (!empty($centralPlace)) {
-            $placeUrl = config('app.views_root_url') . '3d.html?load=' . (url('places/' . $centralPlace[0]->uid . '/json'));
+            $placeUrl = config('app.views_root_url') . '/3d.html?load=' . (url('places/' . $centralPlace[0]->uid . '/json'));
         } else {
             $placeUrl = null;
         }
@@ -780,7 +780,7 @@ class Dataset extends Model
         "), ['dataset_id' => $this->id, 'centroidLng' => $centroidLng, 'centroidLat' => $centroidLat]);
 
         if (!empty($distantPlace)) {
-            $placeUrl = config('app.views_root_url') . '3d.html?load=' . (url('places/' . $distantPlace[0]->uid . '/json'));
+            $placeUrl = config('app.views_root_url') . '/3d.html?load=' . (url('places/' . $distantPlace[0]->uid . '/json'));
         } else {
             $placeUrl = null;
         }
@@ -1023,7 +1023,7 @@ class Dataset extends Model
         "), ['id' => $mostIsolatedPlaceId]);
 
         if (!empty($mostIsolatedPlace)) {
-            $placeUrl = config('app.views_root_url') . '3d.html?load=' . (url('places/' . $mostIsolatedPlace[0]->uid . '/json'));
+            $placeUrl = config('app.views_root_url') . '/3d.html?load=' . (url('places/' . $mostIsolatedPlace[0]->uid . '/json'));
         } else {
             $placeUrl = null;
         }
@@ -1079,7 +1079,11 @@ class Dataset extends Model
             }
         }
 
-        return $clusterResults;
+
+        return [
+            "data" => $clusterResults,
+            "name" => $this->name
+        ];
     }
 
     /**
@@ -1196,7 +1200,10 @@ class Dataset extends Model
         }
 
         if (is_null($withinRadius)) {
-            return $clusterResults;
+            return [
+                "data" => $clusterResults,
+                "name" => $this->name
+            ];
         }
 
         $filteredClusters = [];
@@ -1229,8 +1236,12 @@ class Dataset extends Model
             }
            
         }
+
+        return [
+            "data" => array_values($filteredClusters),
+            "name" => $this->name
+        ];
     
-        return array_values($filteredClusters);
     }
 
     /**
@@ -1418,7 +1429,8 @@ class Dataset extends Model
 
         return [
             'droppedRecordsCount' => $droppedRecordsCount,
-            'clusters' => $clusters
+            'clusters' => $clusters,
+            'name' => $this->name
         ];
     }
 
@@ -1641,7 +1653,10 @@ class Dataset extends Model
             'Median Min Distance / Area' => $medianMinDistance / ($convexHullArea * 10000),
         ];
 
-        return $res;
+        return [
+            'data' => $res,
+            'name' => $this->name
+        ];
     }
 
     /**
@@ -1696,7 +1711,7 @@ class Dataset extends Model
         $featureCollectionConfig = new FeatureCollectionConfig();
         $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
         $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
-        $featureCollectionConfig->setInfoTitle( 'Closeness Analyse: ' . $dataset->name, $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"));
+        $featureCollectionConfig->setInfoTitle( 'Closeness Analysis: ' . $dataset->name, $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"));
         $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
 
         //Add the records to the features array

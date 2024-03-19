@@ -3,6 +3,8 @@ $(document).ready(function () {
         var csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "Statistic,Value,Unit\n";
 
+        var statistics_type = $('.basic-statistics').length ? "_BasicStats.csv" : "_AdvStats.csv";
+
         statistics.forEach(function (stat) {
             if (typeof stat.value === "object" && stat.value !== null) {
                 Object.entries(stat.value).forEach(([key, val]) => {
@@ -20,7 +22,7 @@ $(document).ready(function () {
         var encodedUri = encodeURI(csvContent);
         var link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "statistics " + layer_name + ".csv");
+        link.setAttribute("download", replaceWithUnderscores(layer_name)  + statistics_type );
         document.body.appendChild(link);
 
         link.click();
