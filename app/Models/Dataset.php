@@ -933,7 +933,7 @@ class Dataset extends Model
         $features[] = array(
             'type' => 'Feature',
             'geometry' => array('type' => 'Point', 'coordinates' => [$centralPlace[0]->longitude, $centralPlace[0]->latitude]),
-            'properties' => array('name' => 'Most center place', 'latitude' => $centralPlace[0]->latitude, 'longitude' => $centralPlace[0]->longitude),
+            'properties' => array('name' => 'Most central place', 'latitude' => $centralPlace[0]->latitude, 'longitude' => $centralPlace[0]->longitude),
         );
 
         $allfeatures = array(

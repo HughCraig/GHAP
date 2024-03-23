@@ -74,24 +74,17 @@ function downloadClusterDataAsKML(data, filename) {
         places.forEach((place) => {
             let clusterId = parseInt(index) + 1;
             let description = `Cluster ID: ${clusterId}<br>`;
-            let startDate = place.datestart || '';
         
             Object.entries(place).forEach(([key, value]) => {
                 if (
                     key !== "latitude" &&
-                    key !== "longitude" &&
-                    key !== "datestart" && 
-                    value !== "Geom_date"
+                    key !== "longitude" 
                 ) {
                     description += `${
                         key.charAt(0).toUpperCase() + key.slice(1)
                     }: ${value}<br>`;
                 }
             });
-        
-            if (startDate) {
-                description += `Date: ${startDate}<br>`; // Add 'Date' to the description
-            }
         
             kmlContent +=
                 `    <Style id="cluster${clusterId}Style">\n` +
@@ -115,9 +108,7 @@ function downloadClusterDataAsKML(data, filename) {
     kmlContent += "  </Document>\n</kml>";
 
     // Create a link and trigger download
-    const encodedUri = encodeURI(
-        `data:application/vnd.google-earth.kml+xml,${kmlContent}`
-    );
+    const encodedUri = 'data:application/vnd.google-earth.kml+xml;charset=utf-8,' + encodeURIComponent(kmlContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", replaceWithUnderscores(filename) + '.kml');
