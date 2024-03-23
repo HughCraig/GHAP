@@ -1079,17 +1079,14 @@ class Dataset extends Model
 
         $distance = $_GET["distance"] / 100;
         $minPoints = $_GET["minPoints"];
-        $clusters = DB::select(DB::raw("
-            SELECT id, title , latitude, longitude , ST_ClusterDBSCAN(geom, eps := :distance, minpoints := :minPoints) OVER() AS cluster_id
-            FROM tlcmap.dataitem
-            WHERE dataset_id = :dataset_id
-        "), [
-            'distance' => $distance,
-            'minPoints' => $minPoints,
-            'dataset_id' => $this->id
-        ]);
 
-        $groupedClusters = $this->groupByClusterId($clusters);
+        $dataitems = Dataitem::selectRaw(
+            "*, ST_ClusterDBSCAN(geom, eps := ?, minpoints := ?) OVER() AS cluster_id", 
+            [$distance, $minPoints]
+        )->where('dataset_id', $this->id)
+         ->get();
+
+        $groupedClusters = $this->processClusterData($dataitems);
 
         $data = [];
         // Set collection config.
@@ -1101,18 +1098,24 @@ class Dataset extends Model
         foreach ($groupedClusters as $clusterId => $cluster) {
             $features = [];
             foreach ($cluster as $place) {
+
+                $featureConfig = new FeatureConfig();
+                // Set footer links.
+                if($place['ghap_id']){
+                    $featureConfig->addLink("TLCMap Record: {$place['ghap_id']}", url('places/' . $place['ghap_id']));
+                }
+                if($place['layer_id']){
+                    $featureConfig->addLink('TLCMap Layer', url('layers/' . $place['layer_id']));
+                }
+
                 $feature = [
                     'type' => 'Feature',
                     'geometry' => [
                         'type' => 'Point',
-                        'coordinates' => [$place->longitude, $place->latitude]
+                        'coordinates' => [$place['longitude'], $place['latitude']]
                     ],
-                    'properties' => [
-                        'name' => $place->title,
-                        'latitude' => $place->latitude,
-                        'longitude' => $place->longitude,
-                        'cluster_id' => ($clusterId + 1)
-                    ]
+                    'properties' => $place,
+                    'display' => $featureConfig->toArray(),
                 ];
                 $features[] = $feature;
             }
@@ -1137,7 +1140,6 @@ class Dataset extends Model
                 'name' => 'Cluster ' . ($clusterId + 1),
                 'type' => 'FeatureCollection',
                 'features' => $features,
-                'display' => $displayProperty,
             ];
         }
 
@@ -1242,28 +1244,24 @@ class Dataset extends Model
         $withinRadius = $_GET["withinRadius"];
 
         // Perform initial KMeans clustering
-        $clusters = DB::select(DB::raw("
-            SELECT id, title, latitude, longitude, 
-                ST_ClusterKMeans(geom::geometry, :numberOfClusters) OVER() AS cluster_id
-            FROM tlcmap.dataitem
-            WHERE dataset_id = :dataset_id
-        "), [
-            'numberOfClusters' => $numClusters,
-            'dataset_id' => $this->id
-        ]);
+        $dataitems = Dataitem::selectRaw("
+             *, ST_ClusterKMeans(geom::geometry, ?) OVER() AS cluster_id",
+            [$numClusters])
+        ->where('dataset_id', $this->id)
+        ->get();
 
-        $clusterResults = [];
+        $clusterResults = $this->processClusterData($dataitems);
+
         $clusterGeoms = [];
-
-        foreach ($clusters as $cluster) {
-            $clusterId = $cluster->cluster_id;
+        foreach ($dataitems as $dataitem) {
+            $clusterId = $dataitem->cluster_id;
             if ($clusterId !== null) {
-                $clusterResults[$clusterId][] = $cluster;
-                $clusterGeoms[$clusterId][] = "ST_GeomFromText('POINT(" . $cluster->longitude . " " . $cluster->latitude . ")')";
+                $clusterGeoms[$clusterId][] = "ST_GeomFromText('POINT(" . $dataitem->longitude . " " . $dataitem->latitude . ")')";
             }
         }
 
         if (  $withinRadius != null && $withinRadius != 'null' ) {
+            $filteredClusters = [];
             foreach ($clusterGeoms as $clusterId => $geoms) {
                 $geomCollection = implode(',', $geoms);
                 $centroidResult = DB::select(DB::raw("
@@ -1276,7 +1274,7 @@ class Dataset extends Model
                     $centroidLng = $this->parseGeometryString($centroidResult[0]->centroid)[0][0];
     
                     foreach ($clusterResults[$clusterId] as $place) {
-                        $distance = GeneralFunctions::getDistance($place->latitude , $place->longitude, $centroidLat, $centroidLng);
+                        $distance = GeneralFunctions::getDistance($place['latitude'] , $place['longitude'], $centroidLat, $centroidLng);
                         if ($distance > $withinRadius) {
                             $exceedsMaxRadius = true;
                             break;
@@ -1292,7 +1290,16 @@ class Dataset extends Model
                 }
                
             }
-            $clusterResults = array_values($filteredClusters);
+
+            // Restart cluster number
+            $cluster_id = 1;
+            foreach ($filteredClusters as &$filteredCluster) {  
+                foreach ($filteredCluster as &$place) {  
+                    $place['Cluster_Id'] = $cluster_id;
+                }
+                $cluster_id++;
+            }
+            $clusterResults = $filteredClusters;
         }
 
         $data = [];
@@ -1302,21 +1309,30 @@ class Dataset extends Model
         $data['display'] = $collectionConfig->toArray();
         $data['datasets'] = [];
 
-        foreach ($clusterResults as $clusterId => $cluster) {
+        foreach ($clusterResults as $cluster) {
             $features = [];
+            $clusterId = null;
             foreach ($cluster as $place) {
+
+                $featureConfig = new FeatureConfig();
+                // Set footer links.
+                if($place['ghap_id']){
+                    $featureConfig->addLink("TLCMap Record: {$place['ghap_id']}", url('places/' . $place['ghap_id']));
+                }
+                if($place['layer_id']){
+                    $featureConfig->addLink('TLCMap Layer', url('layers/' . $place['layer_id']));
+                }
+
+                $clusterId = $place['Cluster_Id'];
+
                 $feature = [
                     'type' => 'Feature',
                     'geometry' => [
                         'type' => 'Point',
-                        'coordinates' => [$place->longitude, $place->latitude]
+                        'coordinates' => [$place['longitude'], $place['latitude']]
                     ],
-                    'properties' => [
-                        'name' => $place->title,
-                        'latitude' => $place->latitude,
-                        'longitude' => $place->longitude,
-                        'cluster_id' => ($clusterId + 1)
-                    ]
+                    'properties' => $place,
+                    'display' => $featureConfig->toArray(),
                 ];
                 $features[] = $feature;
             }
@@ -1338,7 +1354,7 @@ class Dataset extends Model
             $displayProperty['listPane']['showColor'] = true;
 
             $data['datasets'][] = [
-                'name' => 'Cluster ' . ($clusterId + 1),
+                'name' => 'Cluster ' . $clusterId,
                 'type' => 'FeatureCollection',
                 'features' => $features,
                 'display' => $displayProperty,
@@ -1413,46 +1429,34 @@ class Dataset extends Model
         $daysInterval = $_GET["day"] ? $_GET["day"] : 0;
         $totalInterval = $yearsInterval  + $daysInterval / 366;
 
-        $records = DB::table('tlcmap.dataitem')
-            ->where('dataset_id', $datasetId)
+        $dataitems = Dataitem::where('dataset_id', $datasetId)
             ->whereNotNull('datestart')
-            ->select(['id', 'title', 'datestart', 'latitude', 'longitude'])
             ->get();
 
         // Preprocess dates
-        $processedDataitems = $records->map(function ($record) {
-            $record->geom_date = $this->proprecssDataitemDate($record->datestart);
-            return $record;
-        })->filter(function ($record) {
-            return $record->geom_date !== null;
+        $processedDataitems = $dataitems->map(function ($dataitem) {
+            $dataitem->geom_date = $this->proprecssDataitemDate($dataitem->datestart);
+            return $dataitem;
+        })->filter(function ($dataitem) {
+            return $dataitem->geom_date !== null;
         })->sortBy('geom_date');
 
-        $clusters = [];
-        $currentCluster = [];
         $previousDate = null;
+        $clusterId = 0;
 
-        foreach ($processedDataitems as $record) {
-            if (empty($currentCluster)) {
-                $currentCluster[] = $record;
-            } else {
-                $dateDiff = $record->geom_date - $previousDate;
-
+        // Temporal clustering. Add cluster id to dataitem
+        foreach ($processedDataitems as &$dataitem) {
+            if ($previousDate !== null) {
+                $dateDiff = $dataitem->geom_date - $previousDate;
                 if ($dateDiff > $totalInterval) {
-                    // If the difference exceeds the specified interval, start a new cluster
-                    $clusters[] = $currentCluster;
-                    $currentCluster = [];
-                }
-
-                $currentCluster[] = $record;
+                    $clusterId++;                 
+                } 
             }
-
-            $previousDate = $record->geom_date;
+            $dataitem['cluster_id'] = $clusterId;
+            $previousDate = $dataitem->geom_date;
         }
 
-        // Add the last cluster if it's not empty
-        if (!empty($currentCluster)) {
-            $clusters[] = $currentCluster;
-        }
+        $clusters = $this->processClusterData($processedDataitems);
 
         $data = [];
         // Set collection config.
@@ -1464,19 +1468,24 @@ class Dataset extends Model
         foreach ($clusters as $clusterId => $cluster) {
             $features = [];
             foreach ($cluster as $place) {
+
+                $featureConfig = new FeatureConfig();
+                // Set footer links.
+                if($place['ghap_id']){
+                    $featureConfig->addLink("TLCMap Record: {$place['ghap_id']}", url('places/' . $place['ghap_id']));
+                }
+                if($place['layer_id']){
+                    $featureConfig->addLink('TLCMap Layer', url('layers/' . $place['layer_id']));
+                }
+
                 $feature = [
                     'type' => 'Feature',
                     'geometry' => [
                         'type' => 'Point',
-                        'coordinates' => [$place->longitude, $place->latitude]
+                        'coordinates' => [$place['longitude'], $place['latitude']]
                     ],
-                    'properties' => [
-                        'name' => $place->title,
-                        'latitude' => $place->latitude,
-                        'longitude' => $place->longitude,
-                        'date' => $place->datestart,
-                        'cluster_id' => ($clusterId + 1)
-                    ]
+                    'properties' => $place,
+                    'display' => $featureConfig->toArray(),
                 ];
                 $features[] = $feature;
             }
