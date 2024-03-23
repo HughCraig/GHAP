@@ -11,6 +11,7 @@ use TLCMap\Models\RecordType;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use SebastianBergmann\Environment\Console;
 use TLCMap\Http\Helpers\GeneralFunctions;
 use TLCMap\ViewConfig\CollectionConfig;
 
@@ -560,7 +561,7 @@ class Dataset extends Model
         $enclosure = '"';
         $escape_char = "\\";
         // Exclude some columns.
-        $excludeColumns = ['uid', 'datasource_id'];
+        $excludeColumns = ['uid', 'datasource_id', 'geom', 'geog' , 'image_path'];
 
         $dataitems = $dataset->dataitems;
         $colheads = array();
@@ -1053,35 +1054,16 @@ class Dataset extends Model
      */
     public function getClusterAnalysisDBScan($distance, $minPoints)
     {
-        $distance = $distance / 100 ;
-        // Perform the DBSCAN clustering query
-        $clusters = DB::select(DB::raw("
-            SELECT uid, title , latitude, longitude , ST_ClusterDBSCAN(geom, eps := :distance, minpoints := :minPoints) OVER() AS cluster_id
-            FROM tlcmap.dataitem
-            WHERE dataset_id = :dataset_id
-        "), [
-            'distance' => $distance,
-            'minPoints' => $minPoints,
-            'dataset_id' => $this->id
-        ]);
-
-        // Process the results
-        $clusterResults = [];
-        foreach ($clusters as $cluster) {
-            $clusterId = $cluster->cluster_id;
-            if ($clusterId !== null) { // Ignore noise if minPoints > 0
-                $clusterResults[$clusterId][] = [
-                    'id' => $cluster->uid,
-                    'title' => $cluster->title,
-                    'latitude' => $cluster->latitude,
-                    'longitude' => $cluster->longitude,
-                ];
-            }
-        }
-
+        $distance = $distance / 100 ;        
+        // Perform the DBSCAN clustering query using Eloquent
+        $dataitems = Dataitem::selectRaw(
+            "*, ST_ClusterDBSCAN(geom, eps := ?, minpoints := ?) OVER() AS cluster_id", 
+            [$distance, $minPoints]
+        )->where('dataset_id', $this->id)
+         ->get();
 
         return [
-            "data" => $clusterResults,
+            "data" => $this->processClusterData($dataitems),
             "name" => $this->name
         ];
     }
@@ -1177,25 +1159,19 @@ class Dataset extends Model
         $withinRadius = $withinRadius ?? null ;
 
         // Perform initial KMeans clustering
-        $clusters = DB::select(DB::raw("
-            SELECT uid as id, title, latitude, longitude, 
-                ST_ClusterKMeans(geom::geometry, :numberOfClusters) OVER() AS cluster_id
-            FROM tlcmap.dataitem
-            WHERE dataset_id = :dataset_id
-        "), [
-            'numberOfClusters' => $numberOfClusters,
-            'dataset_id' => $this->id
-        ]);
+        $dataitems = Dataitem::selectRaw("
+             *, ST_ClusterKMeans(geom::geometry, ?) OVER() AS cluster_id",
+            [$numberOfClusters])
+        ->where('dataset_id', $this->id)
+        ->get();
 
-        $clusterResults = [];
+        $clusterResults = $this->processClusterData($dataitems);
+
         $clusterGeoms = [];
-
-        // First, group places by cluster_id
-        foreach ($clusters as $cluster) {
-            $clusterId = $cluster->cluster_id;
+        foreach ($dataitems as $dataitem) {
+            $clusterId = $dataitem->cluster_id;
             if ($clusterId !== null) {
-                $clusterResults[$clusterId][] = $cluster;
-                $clusterGeoms[$clusterId][] = "ST_GeomFromText('POINT(" . $cluster->longitude . " " . $cluster->latitude . ")')";
+                $clusterGeoms[$clusterId][] = "ST_GeomFromText('POINT(" . $dataitem->longitude . " " . $dataitem->latitude . ")')";
             }
         }
 
@@ -1220,7 +1196,7 @@ class Dataset extends Model
                 $centroidLng = $this->parseGeometryString($centroidResult[0]->centroid)[0][0];
 
                 foreach ($clusterResults[$clusterId] as $place) {
-                    $distance = GeneralFunctions::getDistance($place->latitude , $place->longitude, $centroidLat, $centroidLng);
+                    $distance = GeneralFunctions::getDistance($place['latitude'] , $place['longitude'], $centroidLat, $centroidLng);
                     if ($distance > $withinRadius) {
                         $exceedsMaxRadius = true;
                         break;
@@ -1235,6 +1211,15 @@ class Dataset extends Model
                 $filteredClusters[$clusterId] = $clusterResults[$clusterId];
             }
            
+        }
+
+        // Restart cluster number
+        $cluster_id = 1;
+        foreach ($filteredClusters as &$filteredCluster) {  
+            foreach ($filteredCluster as &$place) {  
+                $place['Cluster_Id'] = $cluster_id;
+            }
+            $cluster_id++;
         }
 
         return [
@@ -1381,55 +1366,36 @@ class Dataset extends Model
             })
             ->count();
 
-        $records = DB::table('tlcmap.dataitem')
-            ->where('dataset_id', $datasetId)
+        $dataitems = Dataitem::where('dataset_id', $datasetId)
             ->whereNotNull('datestart')
-            ->select(['uid as id', 'title', 'datestart', 'latitude', 'longitude'])
             ->get();
 
         // Preprocess dates
-        $processedRecords = $records->map(function ($record) {
-            $record->geom_date = $this->proprecssDataitemDate($record->datestart);
-            return $record;
-        })->filter(function ($record) {
-            return $record->geom_date !== null;
+        $processedDataitems = $dataitems->map(function ($dataitem) {
+            $dataitem->geom_date = $this->proprecssDataitemDate($dataitem->datestart);
+            return $dataitem;
+        })->filter(function ($dataitem) {
+            return $dataitem->geom_date !== null;
         })->sortBy('geom_date');
-        $processedRecords = $processedRecords->values();
 
-        $clusters = [];
-        $currentCluster = [];
         $previousDate = null;
-        $currentIndex = 0;
+        $clusterId = 0;
 
-        foreach ($processedRecords as $record) {
-            if (empty($currentCluster)) {
-                $currentCluster['records'] = [$record];
-                $currentCluster['start_date'] = $record->datestart;
-            } else {
-                $dateDiff = $record->geom_date - $previousDate;
-
+        // Temporal clustering. Add cluster id to dataitem
+        foreach ($processedDataitems as &$dataitem) {
+            if ($previousDate !== null) {
+                $dateDiff = $dataitem->geom_date - $previousDate;
                 if ($dateDiff > $totalInterval) {
-                    $currentCluster['end_date'] = $processedRecords[$currentIndex - 1]->datestart;
-                    $clusters[] = $currentCluster;
-                    $currentCluster = ['records' => [$record], 'start_date' => $record->datestart];
-                } else {
-                    $currentCluster['records'][] = $record;
-                }
+                    $clusterId++;                 
+                } 
             }
-
-            $previousDate = $record->geom_date;
-            $currentIndex++; 
-        }
-
-        // Add the last cluster if it's not empty
-        if (!empty($currentCluster)) {
-            $currentCluster['end_date'] = $processedRecords->last()->datestart;
-            $clusters[] = $currentCluster;
+            $dataitem['cluster_id'] = $clusterId;
+            $previousDate = $dataitem->geom_date;
         }
 
         return [
             'droppedRecordsCount' => $droppedRecordsCount,
-            'clusters' => $clusters,
+            'clusters' => $this->processClusterData($processedDataitems),
             'name' => $this->name
         ];
     }
@@ -1454,7 +1420,7 @@ class Dataset extends Model
             ->get();
 
         // Preprocess dates
-        $processedRecords = $records->map(function ($record) {
+        $processedDataitems = $records->map(function ($record) {
             $record->geom_date = $this->proprecssDataitemDate($record->datestart);
             return $record;
         })->filter(function ($record) {
@@ -1465,7 +1431,7 @@ class Dataset extends Model
         $currentCluster = [];
         $previousDate = null;
 
-        foreach ($processedRecords as $record) {
+        foreach ($processedDataitems as $record) {
             if (empty($currentCluster)) {
                 $currentCluster[] = $record;
             } else {
@@ -1542,6 +1508,91 @@ class Dataset extends Model
         return json_encode($data, JSON_PRETTY_PRINT);
     }
 
+    /**
+     * Processes an array of dataitem Model for clustering, performing key renames, exclusions, and data adding.
+     * Used for csv and kml download
+     *  1. Exclude specific keys
+     *  2. Change name of some keys for better display
+     *  3. Remove column with all null values
+     *  4. Add extended data to the dataitem
+     *  5. Ensure Cluster_Id is the first key and ghap_id is the second key
+     *  6. Start cluster_id from 1 instead of 0
+     *  7. Special handling for recordtype, store type instead of id
+     * 
+     * @param array $dataitems The array of data items to process, dataitem inlcude field called cluster_id
+     * @return array An array of clusters with processed data items, each enhanced and ready for csv and kml export.
+     */
+    private function processClusterData($dataitems)
+    {
+        $excludeColumns = ['id', 'datasource_id', 'geom', 'geog', 'geom_date' ,  'image_path', 'dataset_order' , 'extended_data' , 'kml_style_url'];
+        $headerValueForDisplay = [
+            'uid' => 'ghap_id',
+            'external_url' => 'linkback',
+            'dataset_id' => 'layer_id',
+            'recordtype_id' => 'record_type',
+            'cluster_id' => 'Cluster_Id'
+        ];
+
+        // Initialize an array to track non-null occurrences of keys
+        $nonnullKeyTracker = [];
+        foreach ($dataitems as $dataitem) {
+            foreach ($dataitem->toArray() as $key => $value) {
+                if ($value !== null) {
+                    $nonnullKeyTracker[$key] = true;
+                }
+            }
+        }
+    
+        $clusterResults = [];
+    
+        foreach ($dataitems as $dataitem) {
+            $clusterId = $dataitem->cluster_id;
+    
+            if ($clusterId !== null) { 
+                $dataArray = $dataitem->toArray();
+                $extendedData = $dataitem->getExtendedData();
+    
+                // Rename keys as per headerValueForDisplay and remove excluded columns and columns with all null value
+                foreach ($dataArray as $key => $value) {
+                    if (in_array($key, $excludeColumns) || !array_key_exists($key, $nonnullKeyTracker)) {
+                        unset($dataArray[$key]);
+                    } 
+                    
+                    if (array_key_exists($key, $headerValueForDisplay)) {
+                        $dataArray[$headerValueForDisplay[$key]] = $value;
+                        unset($dataArray[$key]);
+                    }  
+                }
+
+                // Special handling for recordtype, store type instead of id
+                $dataArray['record_type'] = RecordType::getTypeById($dataArray['record_type']);
+                // Start cluster_id from 1 instead of 0
+                $dataArray['Cluster_Id'] += 1;
+        
+                // Add extended data
+                if (!empty($extendedData)) {
+                    foreach ($extendedData as $key => $value) {
+                        if (!array_key_exists($key, $dataArray)) {
+                            $dataArray[$key] = $value;
+                        }
+                    }
+                }
+    
+                // Ensure Cluster_Id is the first key and ghap_id is the second key
+                $res = [
+                    'Cluster_Id' => $dataArray['Cluster_Id'],
+                    'ghap_id' => $dataArray['ghap_id']
+                ];
+                unset($dataArray['Cluster_Id'], $dataArray['ghap_id']);
+                $res += $dataArray;
+    
+                $clusterResults[$clusterId][] = $res;
+            }
+        }
+    
+        return $clusterResults;
+    }
+    
     /**
      * Converts various date string formats to a float representation capturing the year and fractional part of the year.
      *

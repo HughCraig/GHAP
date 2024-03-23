@@ -29,11 +29,9 @@ $(document).ready(function () {
     }
 
     $("#cluster-download-csv").click(function () {
-        const headers = ["Cluster ID", "id", "title", "latitude", "longitude"];
         downloadClusterDataAsCSV(
             clusteringResponseData,
-            layerName + "_SpatialClusters",
-            headers
+            layerName + "_SpatialClusters"
         );
     });
 
@@ -105,7 +103,7 @@ $(document).ready(function () {
                     (parseInt(clusterIndex) + 1) +
                     "</td>" +
                     "<td>" +
-                    place.id +
+                    place.ghap_id +
                     "</td>" +
                     "<td>" +
                     place.title +
