@@ -7,24 +7,27 @@
  * @param {Object} data - The cluster data to be downloaded. Expected to be an object where
  * each key is a cluster ID and the value is an array of objects representing places.
  * @param {string} filename - The name of the file to be downloaded, including the .csv extension.
- * @param {Array} headers - An array of strings representing the column headers for the CSV file.
  */
-function downloadClusterDataAsCSV(data, filename, headers) {
+function downloadClusterDataAsCSV(data, filename) {
     if (!data || Object.keys(data).length === 0) {
         return;
     }
 
-    let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
+    let csvContent = "";
+
+    // Extract headers dynamically from the first element of the data
+    const firstClusterKey = Object.keys(data)[0];
+    const firstRecord = data[firstClusterKey].records ? data[firstClusterKey].records[0] : data[firstClusterKey][0];
+    const headers = Object.keys(firstRecord);
+    csvContent += headers.join(",") + "\n";
 
     Object.entries(data).forEach(([clusterId, clusterData]) => {
         const places = clusterData.records ? clusterData.records : clusterData;    
         places.forEach((place) => {
             let row = headers.map(header => {
-                if(header === "Cluster ID") {
-                    return parseInt(clusterId) + 1;
-                } else if (typeof place[header] === 'string') {
+                if (typeof place[header] === 'string') {
                     // Replace quotes with double quotes for CSV formatting
-                    return `"${place[header].replace(/"/g, '""')}"`;
+                    return `"${place[header].replaceAll(/"/g, '""')}"`;
                 } else {
                     return place[header];
                 }
@@ -33,8 +36,9 @@ function downloadClusterDataAsCSV(data, filename, headers) {
         });
     });
 
+    const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+
     // Create a link and trigger download
-    const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", replaceWithUnderscores(filename));
@@ -69,25 +73,18 @@ function downloadClusterDataAsKML(data, filename) {
         const places = clusterData.records ? clusterData.records : clusterData;
         places.forEach((place) => {
             let clusterId = parseInt(index) + 1;
-            let description = `Cluster ID: ${clusterId}<br>`;
-            let startDate = place.datestart || '';
+            let description = ``;
         
             Object.entries(place).forEach(([key, value]) => {
                 if (
                     key !== "latitude" &&
-                    key !== "longitude" &&
-                    key !== "datestart" && 
-                    value !== "Geom_date"
+                    key !== "longitude" 
                 ) {
                     description += `${
                         key.charAt(0).toUpperCase() + key.slice(1)
                     }: ${value}<br>`;
                 }
             });
-        
-            if (startDate) {
-                description += `Date: ${startDate}<br>`; // Add 'Date' to the description
-            }
         
             kmlContent +=
                 `    <Style id="cluster${clusterId}Style">\n` +
@@ -111,9 +108,7 @@ function downloadClusterDataAsKML(data, filename) {
     kmlContent += "  </Document>\n</kml>";
 
     // Create a link and trigger download
-    const encodedUri = encodeURI(
-        `data:application/vnd.google-earth.kml+xml,${kmlContent}`
-    );
+    const encodedUri = 'data:application/vnd.google-earth.kml+xml;charset=utf-8,' + encodeURIComponent(kmlContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", replaceWithUnderscores(filename) + '.kml');
