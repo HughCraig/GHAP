@@ -73,7 +73,7 @@ function downloadClusterDataAsKML(data, filename) {
         const places = clusterData.records ? clusterData.records : clusterData;
         places.forEach((place) => {
             let clusterId = parseInt(index) + 1;
-            let description = `Cluster ID: ${clusterId}<br>`;
+            let description = ``;
         
             Object.entries(place).forEach(([key, value]) => {
                 if (
