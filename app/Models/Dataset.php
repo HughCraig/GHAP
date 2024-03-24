@@ -11,7 +11,6 @@ use TLCMap\Models\RecordType;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use SebastianBergmann\Environment\Console;
 use TLCMap\Http\Helpers\GeneralFunctions;
 use TLCMap\ViewConfig\CollectionConfig;
 
@@ -1140,6 +1139,7 @@ class Dataset extends Model
                 'name' => 'Cluster ' . ($clusterId + 1),
                 'type' => 'FeatureCollection',
                 'features' => $features,
+                'display' => $displayProperty,
             ];
         }
 
@@ -1871,30 +1871,4 @@ class Dataset extends Model
         return $coordinates;
     }
 
-    /**
-     * Groups a collection of dataitem by their cluster ID.
-     *
-     * This function iterates over a collection of items, each expected to have a `cluster_id` property. It organizes these
-     * items into clusters based on their `cluster_id`.
-     *
-     * @param \Illuminate\Support\Collection|array $items The items to group.
-     * @return array An associative array where each key is a cluster ID and each value is an array of items belonging to that cluster.
-     */
-    protected function groupByClusterId($items)
-    {
-        $clusters = [];
-
-        foreach ($items as $item) {
-            $clusterId = $item->cluster_id;
-            // Only include items with a non-null cluster ID
-            if ($clusterId !== null) {
-                if (!isset($clusters[$clusterId])) {
-                    $clusters[$clusterId] = [];
-                }
-                $clusters[$clusterId][] = $item;
-            }
-        }
-
-        return $clusters;
-    }
 }
