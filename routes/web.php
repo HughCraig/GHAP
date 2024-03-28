@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +44,22 @@ Route::get('publicdatasets/{path?}', function ($path = null) {
 });
 Route::get('layers', 'DatasetController@viewPublicDatasets')->name('layers');
 Route::get('layers/{id}', 'DatasetController@viewPublicDataset')->name('layer');
+
+Route::get('layers/{id}/basicstatistics', 'DatasetController@viewPublicDatasetBasicStatistics');
+Route::get('layers/{id}/basicstatistics/json', 'DatasetController@viewPublicDatasetBasicStatisticsJSON')->middleware('cors');
+Route::get('layers/{id}/basicstatistics/json/download', 'DatasetController@downloadPublicDatasetBasicStatisticsJSON');
+Route::get('layers/{id}/advancedstatistics', 'DatasetController@viewPublicDatasetAdvancedStatistics');
+Route::get('layers/{id}/clusteranalysis', 'DatasetController@viewPublicDatasetClusterAnalysis');
+Route::get('layers/{id}/clusteranalysis/dbscan/json', 'DatasetController@viewPublicDatasetClusterAnalysisDBScanJSON')->middleware('cors');
+Route::get('layers/{id}/clusteranalysis/dbscan/json/download', 'DatasetController@downloadPublicDatasetClusterAnalysisDBScanJSON');
+Route::get('layers/{id}/clusteranalysis/kmeans/json', 'DatasetController@viewPublicDatasetClusterAnalysisKmeansJSON')->middleware('cors');
+Route::get('layers/{id}/clusteranalysis/kmeans/json/download', 'DatasetController@downloadPublicDatasetClusterAnalysisKmeansJSON');
+Route::get('layers/{id}/temporalclustering', 'DatasetController@viewPublicDatasetTemporalClustering');
+Route::get('layers/{id}/temporalclustering/json', 'DatasetController@viewPublicDatasetTemporalClusteringJSON')->middleware('cors');
+Route::get('layers/{id}/temporalclustering/json/download', 'DatasetController@downloadPublicDatasetTemporalClusteringJSON');
+Route::get('layers/{id}/closenessanalysis', 'DatasetController@viewPublicDatasetClosenessAnalysis');
+Route::get('layers/{id}/closenessanalysis/json', 'DatasetController@viewPublicDatasetClosenessAnalysisJSON')->middleware('cors');
+
 Route::get('layers/{id}/kml', 'DatasetController@viewPublicKML')->name('viewlayerkml')->middleware('cors');
 Route::get('layers/{id}/kml/download', 'DatasetController@downloadPublicKML')->name('downloadlayerkml');
 Route::get('layers/{id}/json', 'DatasetController@viewPublicJSON')->name('viewlayerjson')->middleware('cors');
@@ -75,6 +92,23 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::post('myprofile/mydatasets/newdataset/create', 'User\UserController@createNewDataset');
 });
 Route::get('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
+
+Route::middleware($baseAuthMiddlewares)->group(function () {
+    Route::get('myprofile/mydatasets/{id}/basicstatistics', 'DatasetController@viewPrivateDatasetBasicStatistics');
+    Route::get('myprofile/mydatasets/{id}/basicstatistics/json', 'DatasetController@viewPrivateDatasetBasicStatisticsJSON')->name('viewdatasetbasicstatisticsjson');
+    Route::get('myprofile/mydatasets/{id}/basicstatistics/json/download', 'DatasetController@downloadPrivateDatasetBasicStatisticsJSON');
+    Route::get('myprofile/mydatasets/{id}/advancedstatistics', 'DatasetController@viewPrivateDatasetAdvancedStatistics');
+    Route::get('myprofile/mydatasets/{id}/clusteranalysis', 'DatasetController@viewPrivateDatasetClusterAnalysis');
+    Route::get('myprofile/mydatasets/{id}/clusteranalysis/dbscan/json', 'DatasetController@viewPrivateDatasetClusterAnalysisDBScanJSON')->middleware('cors');
+    Route::get('myprofile/mydatasets/{id}/clusteranalysis/dbscan/json/download', 'DatasetController@downloadPrivateDatasetClusterAnalysisDBScanJSON');
+    Route::get('myprofile/mydatasets/{id}/clusteranalysis/kmeans/json', 'DatasetController@viewPrivateDatasetClusterAnalysisKmeansJSON')->middleware('cors');
+    Route::get('myprofile/mydatasets/{id}/clusteranalysis/kmeans/json/download', 'DatasetController@downloadPrivateDatasetClusterAnalysisKmeansJSON');
+    Route::get('myprofile/mydatasets/{id}/temporalclustering', 'DatasetController@viewPrivateDatasetTemporalClustering');
+    Route::get('myprofile/mydatasets/{id}/temporalclustering/json', 'DatasetController@viewPrivateDatasetTemporalClusteringJSON')->middleware('cors');
+    Route::get('myprofile/mydatasets/{id}/temporalclustering/json/download', 'DatasetController@downloadPrivateDatasetTemporalClusteringJSON');
+    Route::get('myprofile/mydatasets/{id}/closenessanalysis', 'DatasetController@viewPrivateDatasetClosenessAnalysis');
+    Route::get('myprofile/mydatasets/{id}/closenessanalysis/json', 'DatasetController@viewPrivateDatasetClosenessAnalysisJSON')->middleware('cors');
+});
 Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mydatasets/{id}/collaborators', 'User\UserController@userEditCollaborators');
     Route::post('bulkadddataitem', 'User\UserController@bulkAddDataItem'); //not ajax as it is too much data
@@ -126,6 +160,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
  * AJAX functions
  */
 Route::post('ajaxbbox', 'AjaxController@ajaxbbox'); //Does not need to be logged in
+Route::post('ajaxdbscan', 'AjaxController@ajaxdbscan');
+Route::post('ajaxkmeans', 'AjaxController@ajaxkmeans');
+Route::post('ajaxtemporalclustering', 'AjaxController@ajaxtemporalclustering');
+Route::post('ajaxclosenessanalysis', 'AjaxController@ajaxclosenessanalysis');
 
 Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in for these
     Route::post('ajaxsavesearch', 'AjaxController@ajaxsavesearch');

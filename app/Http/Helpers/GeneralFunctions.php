@@ -166,6 +166,44 @@ class GeneralFunctions
         return ((float)$aout[1] > (float)$bout[1]) ? 1 : -1; //if a > b return 1, else return -1        
     }
 
+    //Replace all non-alphanumeric characters with underscores
+    public static function replaceWithUnderscores($str){
+        return preg_replace('/[^a-zA-Z0-9]/', '_', $str);
+    }
+    
+    /**
+     * Returns the median of an array of numbers
+     * 
+     * @param array $arr The array of numbers
+     * @return float The median of the array
+     */
+    public static function getMedian($arr) {
+        sort($arr);
+        $count = count($arr);
+        $middleIndex = floor($count / 2);
+    
+        if ($count % 2) {
+            return $arr[$middleIndex];
+        } else {
+            return ($arr[$middleIndex - 1] + $arr[$middleIndex]) / 2;
+        }
+    }
+
+    /**
+     * Returns the standard deviation of an array of numbers
+     * 
+     * @param array $arr The array of numbers
+     * @return float The standard deviation of the array
+     */
+    public static function getStandardDeviation($arr) {
+        $mean = array_sum($arr) / count($arr);
+        $variance = 0.0;
+        foreach ($arr as $i) {
+            $variance += pow($i - $mean, 2);
+        }
+        return (float)sqrt($variance / count($arr));
+    }
+
     /**
      * Validates a user-uploaded image file.
      * Check for file size and type.
@@ -187,6 +225,27 @@ class GeneralFunctions
         }
 
         return true;
+    }
+
+    /**
+     * Calulates the distance between two points by coordinates
+     * 
+     * @param float $lat1 Latitude of the first point
+     * @param float $lon1 Longitude of the first point
+     * @param float $lat2 Latitude of the second point
+     * @param float $lon2 Longitude of the second point
+     * @return float The distance between the two points in Kilometers
+     */
+    public static function getDistance($lat1, $lon1, $lat2, $lon2) {
+
+        $theta = $lon1 - $lon2;
+        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+        $dist = acos($dist);
+        $dist = rad2deg($dist);
+        $miles = $dist * 60 * 1.1515;
+
+        return ($miles * 1.609344);
+        
     }
 
 }
