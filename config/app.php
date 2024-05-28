@@ -82,7 +82,7 @@ return [
     | consistent with the version tags in GitHub.
     |
     */
-    'version' => '6.2.0',
+    'version' => '7.0.0',
 
     /*
     |--------------------------------------------------------------------------

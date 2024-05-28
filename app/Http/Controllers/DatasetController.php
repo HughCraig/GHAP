@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Response;
 use DOMDocument;
 use TLCMap\ROCrate\ROCrateGenerator;
+use TLCMap\Http\Helpers\GeneralFunctions;
 
 
 class DatasetController extends Controller
@@ -53,7 +54,7 @@ class DatasetController extends Controller
         Log::info('viewPublicDatasetBasicStatistics');
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        return view('statistic.basicstatistics', ['ds' => $ds, 'statistic' => $ds->getBasicStatistics()]);
+        return view('statistic.basicstatistics', ['ds' => $ds , 'statistic' => $ds->getBasicStatistics() ]);
     }
 
     /**
@@ -66,7 +67,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        return view('statistic.basicstatistics', ['ds' => $ds, 'statistic' => $ds->getBasicStatistics()]);
+        return view('statistic.basicstatistics', ['ds' => $ds , 'statistic' => $ds->getBasicStatistics() ]);
     }
 
     /**
@@ -90,7 +91,7 @@ class DatasetController extends Controller
     {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Basic statistics of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_BasicStats');
         return Response::make($ds->getBasicStatisticsJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -116,7 +117,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Basic statistics of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_BasicStats');
         return Response::make($ds->getBasicStatisticsJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -129,7 +130,7 @@ class DatasetController extends Controller
     {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        return view('statistic.advancedstatistics', ['ds' => $ds, 'statistic' => $ds->getAdvancedStatistics()]);
+        return view('statistic.advancedstatistics', ['ds' => $ds , 'statistic' => $ds->getAdvancedStatistics() ]);
     }
 
     /**
@@ -142,7 +143,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        return view('statistic.advancedstatistics', ['ds' => $ds, 'statistic' => $ds->getAdvancedStatistics()]);
+        return view('statistic.advancedstatistics', ['ds' => $ds , 'statistic' => $ds->getAdvancedStatistics() ]);
     }
 
     /**
@@ -150,8 +151,7 @@ class DatasetController extends Controller
      * Redirects to the list of public datasets if the specified dataset is not found or not public.
      * @return view with cluster analysis results or redirect if dataset not found
      */
-    public function viewPublicDatasetClusterAnalysis(Request $request, int $id)
-    {
+    public function viewPublicDatasetClusterAnalysis(Request $request, int $id){
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
         return view('statistic.clusteranalysis', ['ds' => $ds]);
@@ -162,8 +162,7 @@ class DatasetController extends Controller
      * Check ownership and redirects if the specified dataset is not found or not public.
      * @return view with cluster analysis results or redirect if dataset not found
      */
-    public function viewPrivateDatasetClusterAnalysis(Request $request, int $id)
-    {
+    public function viewPrivateDatasetClusterAnalysis(Request $request, int $id){
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
@@ -180,7 +179,7 @@ class DatasetController extends Controller
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
 
-        if ($_GET["distance"] == null || $_GET["distance"] < 0 || !is_numeric($_GET["distance"])) {
+        if( $_GET["distance"] == null || $_GET["distance"] < 0 || !is_numeric($_GET["distance"]) ){
             return response()->json(['error' => 'Invalid distance'], 400);
         }
 
@@ -195,7 +194,7 @@ class DatasetController extends Controller
     {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'DBSCAN cluster analysis of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_SpatialClusters');
         return Response::make($ds->getClusterAnalysisDBScanJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -210,7 +209,7 @@ class DatasetController extends Controller
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
 
-        if ($_GET["distance"] == null || $_GET["distance"] < 0 || !is_numeric($_GET["distance"])) {
+        if( $_GET["distance"] == null || $_GET["distance"] < 0 || !is_numeric($_GET["distance"]) ){
             return response()->json(['error' => 'Invalid distance'], 400);
         }
 
@@ -226,7 +225,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'DBSCAN cluster analysis of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_SpatialClusters');
         return Response::make($ds->getClusterAnalysisDBScanJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -250,7 +249,7 @@ class DatasetController extends Controller
     {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Kmeans cluster analysis of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_SpatialClusters');
         return Response::make($ds->getClusterAnalysisKmeansJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -276,7 +275,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Kmeans cluster analysis of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_SpatialClusters');
         return Response::make($ds->getClusterAnalysisKmeansJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -285,8 +284,7 @@ class DatasetController extends Controller
      * Redirects to the list of public datasets if the specified dataset is not found or not public.
      * @return view with temporal clustering results or redirect if dataset not found
      */
-    public function viewPublicDatasetTemporalClustering(Request $request, int $id)
-    {
+    public function viewPublicDatasetTemporalClustering(Request $request, int $id){
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
         return view('statistic.temporalclustering', ['ds' => $ds]);
@@ -297,8 +295,7 @@ class DatasetController extends Controller
      * Check ownership and redirects if the specified dataset is not found or not public.
      * @return view with temporal clustering results or redirect if dataset not found
      */
-    public function viewPrivateDatasetTemporalClustering(Request $request, int $id)
-    {
+    public function viewPrivateDatasetTemporalClustering(Request $request, int $id){
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
@@ -325,7 +322,7 @@ class DatasetController extends Controller
     {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Temporal clustering of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_TemporalClusters');
         return Response::make($ds->getTemporalClusteringJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -351,7 +348,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        $filename = 'Temporal clustering of Layer ' . $ds->name;
+        $filename = GeneralFunctions::replaceWithUnderscores($ds->name . '_TemporalClusters');
         return Response::make($ds->getTemporalClusteringJSON(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
     }
 
@@ -359,8 +356,7 @@ class DatasetController extends Controller
      * Displays the closeness analysis interface for a public dataset identified by its ID.
      * @return view with closeness analysis interface or redirect if dataset not found
      */
-    public function viewPublicDatasetClosenessAnalysis(Request $request, int $id)
-    {
+    public function viewPublicDatasetClosenessAnalysis(Request $request, int $id){
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
 
@@ -373,8 +369,7 @@ class DatasetController extends Controller
      * Check ownership and redirects if the specified dataset is not found or not public.
      * @return view with closeness analysis interface or redirect if dataset not found
      */
-    public function viewPrivateDatasetClosenessAnalysis(Request $request, int $id)
-    {
+    public function viewPrivateDatasetClosenessAnalysis(Request $request, int $id){
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
@@ -393,7 +388,7 @@ class DatasetController extends Controller
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
 
-        if (!$_GET["targetLayer"]) {
+        if( !$_GET["targetLayer"] ){
             return response()->json(['error' => 'Invalid target layer'], 400);
         }
         $targerDs = Dataset::where(['public' => 1, 'id' => $_GET["targetLayer"]])->first();
@@ -413,7 +408,7 @@ class DatasetController extends Controller
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
 
-        if (!$_GET["targetLayer"]) {
+        if( !$_GET["targetLayer"] ){
             return response()->json(['error' => 'Invalid target layer'], 400);
         }
         $targerDs = Dataset::where(['public' => 1, 'id' => $_GET["targetLayer"]])->first();

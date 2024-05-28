@@ -30,16 +30,16 @@ $(document).ready(function () {
             // Append to the cluster summary table
             clusterSummaryTable += `<tr>
                     <td style="font-weight:bolder">${clusterIndex + 1}</td>
-                    <td>${cluster.records.length}</td>
-                    <td>${cluster.start_date}</td>
-                    <td>${cluster.end_date}</td>
+                    <td>${cluster.length}</td>
+                    <td>${cluster[0].datestart}</td>
+                    <td>${cluster[cluster.length-1].datestart}</td>
                 </tr>`;
 
             // Populate the detailed result table
-            cluster.records.forEach((place) => {
+            cluster.forEach((place) => {
                 resultTable += `<tr>
                         <td style="font-weight:bolder">${clusterIndex + 1}</td>
-                        <td>${place.id}</td>
+                        <td>${place.ghap_id}</td>
                         <td>${place.title}</td>
                         <td>${place.datestart}</td>
                         <td>${place.latitude}</td>
@@ -57,18 +57,9 @@ $(document).ready(function () {
     }
 
     $("#temporal-download-csv").click(function () {
-        const headers = [
-            "Cluster ID",
-            "id",
-            "title",
-            "datestart",
-            "latitude",
-            "longitude",
-        ];
         downloadClusterDataAsCSV(
             clusteringResponseData.clusters,
-            "temporal_clustering.csv",
-            headers
+            clusteringResponseData['name'] + '_TemporalClusters'
         );
     });
 
@@ -81,7 +72,7 @@ $(document).ready(function () {
     $("#temporal-download-kml").click(function () {
         downloadClusterDataAsKML(
             clusteringResponseData.clusters,
-            "temporal_clustering.kml"
+            clusteringResponseData['name'] + '_TemporalClusters',
         );
     });
 
