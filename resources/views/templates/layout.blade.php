@@ -135,45 +135,69 @@
 
         <div id="mainnav" class="main-nav">
             <div class="main-site-logo">
-                <a href="{{ url('/') }}">
-                    @include('templates/misc/ghap_logo')
+                <a href="/">
+                    @include('templates/misc/tlcmap_logo')
                 </a>
             </div>
 
             <div class="main-nav-content">
                 <div class="site-name">
-                    Gazetteer of Historical Australian Places
+                    Mapping Australian history and culture
                 </div>
-                <div class="main-menu">
-                    <div class="w3-dropdown-hover" style="display:none;"></div>
-                    <div class="main-menu-item">
-                        <a href="{{ url('/') }}">Search</a>
-                    </div>
-                    <div class="main-menu-item w3-dropdown-hover w3-mobile">
-                        <a href="#">Layers <i class="fa fa-caret-down"></i></a>
-                        <div class="navb w3-dropdown-content w3-bar-block w3-card-4">
-                            <a href="{{ url('publicdatasets') }}" class="w3-bar-item w3-button">Layers</a>
-                            <a href="{{ url('publiccollections') }}" class="w3-bar-item w3-button">Multilayers</a>
-                        </div>
-                    </div>
-                    <div class="main-menu-item w3-dropdown-hover w3-mobile">
-                        <a href="#">Help <i class="fa fa-caret-down"></i></a>
-                        <div class="navb w3-dropdown-content w3-bar-block w3-card-4">
-                            @if (!empty(config('app.help_video_url')))
-                                <a href="#" data-toggle="modal" data-target="#helpVideoModal" class="w3-bar-item w3-button">Quick start</a>
-                            @endif
-                            <a href="https://hughcraignewcastleeduau.wpcomstaging.com/help/guides/ghap-guide/" class="w3-bar-item w3-button">Guide</a>
-                            <a href="{{ url('about') }}" class="w3-bar-item w3-button">About</a>
-                        </div>
-                    </div>
+                <div class="site-name" style="font-size: 0.8em;">
+                    We acknowledge the Traditional Owners of country and pay our respects to Elders past, present and emerging. First Australians...
                 </div>
             </div>
-            <div class="secondary-site-logo">
-                <a href="https://tlcmap.org/">
-                    @include('templates/misc/tlcmap_logo')
-                </a>
+
+            <div class="menu-nav-button">
+                <span class="menu-nav-button-icon">
+                    <span class="icon icon-menu-dark">
+                    </span>
+                </span>
             </div>
         </div>
+
+        <nav class="menu-nav">
+            <div class="menu-nav-close">
+                <span class="icon icon-close-dark"></span>
+            </div>
+            <ul>
+                <li>
+                    <div style="display:flex; font-weight:bold"><a href="{{ url('/') }}" style="color:black">HOME</a></div>
+                </li>
+                <li>
+                    <div style="display:flex; font-weight:bold">LAYERS<span id="menu-item-61" class="icon icon-arrow-up-dark u-pull-right submenu-toggle"></span></div>
+                    <ul class="submenu" style="display: block;">
+                        <li><a href="{{ url('/') }}/layers">Layers</a></li>
+                        <li><a href="{{ url('/') }}/multilayers">Multilayers</a></li>
+                    </ul>
+                </li>
+
+                <li>
+                    <div style="display:flex; font-weight:bold"><a href="{{ config('app.tlcmap_doc_url') }}/tools/" style="color:black">TOOLS</a></div>
+                </li>
+                <li>
+                    <div style="display:flex; font-weight:bold"><a href="{{ config('app.tlcmap_doc_url') }}/help/" style="color:black">HELP</a><span id="menu-item-60" class="icon icon-arrow-up-dark u-pull-right submenu-toggle"></span></div>
+                    <ul class="submenu" style="display: block;">
+                        <li><a href="{{ config('app.tlcmap_doc_url') }}/help/">Get started</a></li>
+                        <li><a href="{{ config('app.tlcmap_doc_url') }}/help/guides/">Guides</a></li>
+                        <li><a href="{{ config('app.tlcmap_doc_url') }}/help/faqs/">FAQs</a></li>
+                        <li><a href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Developers</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <div style="display:flex; font-weight:bold"><a href="{{ config('app.tlcmap_doc_url') }}/about/" style="color:black">ABOUT</a><span id="menu-item-59" class="icon icon-arrow-up-dark u-pull-right submenu-toggle"></span></div>
+                    <ul class="submenu" style="display: block;">
+                        <li><a href="{{ config('app.tlcmap_doc_url') }}/first-australians/">First Australians</a></li>
+                        <li><a href="{{ config('app.tlcmap_doc_url') }}/about/updates/">Updates</a></li>
+                        <li><a href="{{ config('app.tlcmap_doc_url') }}/about/lead-researchers/">Lead researchers</a></li>
+                        <li><a href="{{ config('app.tlcmap_doc_url') }}/about/partners/">Partners</a></li>
+                        <li><a href="{{ config('app.tlcmap_doc_url') }}/examples/">Examples</a></li>
+                        <li><a href="{{ config('app.tlcmap_doc_url') }}/contact/">Contact</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
     </div>
 
     <!-- Start Navbar -->
@@ -273,6 +297,7 @@
 
 <!-- ArcGIS Maps SDK for JavaScript -->
 <!-- This must be included at the last position as it has conflicts with jQuery UI and widgets -->
+<script type="module" src="https://js.arcgis.com/calcite-components/2.5.1/calcite.esm.js"></script>
 <script src="https://js.arcgis.com/4.26/"></script>
 </body>
 </html>

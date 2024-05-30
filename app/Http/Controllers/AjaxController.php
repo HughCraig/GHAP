@@ -59,6 +59,68 @@ class AjaxController extends Controller
         return response()->json(array('minlong' => $minlong, 'minlat' => $minlat, 'maxlong' => $maxlong, 'maxlat' => $maxlat));
     }
 
+        /**
+     * Scan the bounding box for data items.
+     *
+     * This function retrieves data items within the specified bounding box.
+     * If the number of data items exceeds the specified limit, it selects a random subset.
+     * Extended data is added to each data item before returning the result.
+     *
+     * @param Request $request - The request object containing places and bounding box coordinates.
+     * @return \Illuminate\Http\JsonResponse - JSON response with data items.
+     */
+    public function bboxscan(Request $request)
+    {
+
+        $places = $request->places;
+        $minLat = $request->bbox['minLat'];
+        $minLng = $request->bbox['minLng'];
+        $maxLat = $request->bbox['maxLat'];
+        $maxLng = $request->bbox['maxLng'];
+
+        $dataitems = Dataitem::where('latitude', '>=', $minLat)
+            ->where('latitude', '<=', $maxLat)
+            ->where('longitude', '>=', $minLng)
+            ->where('longitude', '<=', $maxLng);
+
+        $count = $dataitems->count();
+
+        if ($count > $places) {
+            $dataitems = $dataitems->inRandomOrder()->take($places)->get();
+        } else {
+            $dataitems = $dataitems->get();
+        }
+        foreach ($dataitems as $dataitem) {
+            $dataitem->extended_data = $dataitem->extDataAsHTML();
+        }
+
+        // Return the data items as a JSON response
+        return response()->json([
+            'dataitems' => $dataitems
+        ]);
+    }
+
+    /**
+     * Search for data items based on provided parameters.
+     *
+     * This function uses the searchDataitems method of GazetteerController to find data items
+     *
+     * @param Request $request - The request object containing search parameters.
+     * @return \Illuminate\Http\JsonResponse - JSON response with data items.
+    */
+    public function search(Request $request)
+    {
+        $parameters = $request->all();
+        $dataitems = GazetteerController::searchDataitems($parameters);
+        foreach ($dataitems as $dataitem) {
+            $dataitem->extended_data = $dataitem->extDataAsHTML();
+        }
+
+        return response()->json([
+            'dataitems' => $dataitems,
+        ]);
+    }
+    
     /**
      * Get values from form and save to the users searches
      */

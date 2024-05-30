@@ -1,15 +1,12 @@
 @push('styles')
 <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
-<link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
 @endpush
 
 @push('scripts')
 <!-- CSRF Token -->
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
-<script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
-<script src="{{ asset('js/message-banner.js') }}"></script>
-<script src="{{ asset('js/validation.js') }}"></script>
+
 <script>
     var ajaxsavesearch = "{{url('ajaxsavesearch')}}";
 </script>
@@ -32,8 +29,8 @@
             <div class="modal-body">
                 <div class="message-banner"></div>
                 <div>
-                    <input type="hidden" id="save_search_query" value="{{ substr(url()->full(),strpos(url()->full(),'?')) }}" />
-                    <input type="hidden" id="save_search_count" value="{{ $details->total() }}" />
+
+                    <input type="hidden" id="save_search_count"/>
 
                     Search name<label class="text-danger">*</label>
                     <input type="text" class="smallerinputs w3-white form-control" id="save_search_name" />
@@ -46,7 +43,7 @@
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="The type of information in this search. If the type is mixed, use ‘other’."></span>
                     <select class="w3-white form-control mb-2" id="save_search_recordtype">
                         @foreach($recordtypes as $type)
-                        <option label="{{$type}}">{{$type}}</option>
+                        <option label="{{$type->type}}">{{$type->type}}</option>
                         @endforeach
                     </select>
 

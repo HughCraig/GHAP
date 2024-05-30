@@ -295,6 +295,11 @@ class UserController extends Controller
             $dataset->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
         }
 
+        // Check if 'redirect' parameter is present and false
+        if ($request->has('redirect') && $request->redirect == 'false') {
+            return response()->json(['dataset_id' => $dataset->id], 201);
+        }
+
         return redirect('myprofile/mydatasets/' . $dataset->id);
     }
 

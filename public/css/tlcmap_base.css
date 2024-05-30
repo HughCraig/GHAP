@@ -89,6 +89,7 @@ div#mainnav {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin: 0 5% 0 5%;
 }
 
 div#mainnav a.navselectedpage {
