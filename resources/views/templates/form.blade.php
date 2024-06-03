@@ -50,7 +50,7 @@
         var show_help_video_first_landing = "{{ config('app.show_help_video_first_landing') }}";
         var viewsRootUrl = "{{ config('app.views_root_url') }}";
         var viewsTemporalEarthUrl = "{{ config('app.views_temporal_earth_url') }}";
-        var baseUrl = "http://127.0.0.1:8000/";
+        var baseUrl = "{{ url('/') }}/"; 
 
         var home_page_places_shown = "{{ config('app.home_page_places_shown') }}";
         var isLoggedIn = {{ Auth::check() ? 'true' : 'false' }};
