@@ -101,11 +101,18 @@ function getSearchFormData(names, tlcMap) {
 
     //put the lat/long limits into the bbox parameter
     var bbox = getBbox();
-    if (bbox) document.getElementById("bbox").setAttribute("value", bbox);
+    if (bbox) {
+        document.getElementById("bbox").setAttribute("value", bbox);
+    } else {
+        $("#bbox").val(null);
+    }
 
     var polygon = getPolygon();
-    if (polygon)
+    if (polygon) {
         document.getElementById("polygon").setAttribute("value", polygon);
+    } else {
+        $("#polygon").val(null);
+    }
 
     const input = {
         recordtype: $("#recordtype").val() || null,
@@ -350,15 +357,6 @@ function bindViewLinks() {
     $("#viewWerekata").click(function (e) {
         e.preventDefault();
         window.open(updateViewMapLink("werekata", "json"));
-    });
-
-    $("#viewTemporalEarth").click(function (e) {
-        e.preventDefault();
-        window.open(
-            `${viewsTemporalEarthUrl}?file=${encodeURIComponent(
-                `${baseUrl}places?${urlParams}&format=kml`
-            )}`
-        );
     });
 }
 
@@ -619,9 +617,9 @@ $(document).ready(async function () {
 
     //Single place search.. redirect from /places/id
     if (getQueryParam("gotoid")) {
-        const input =  {
-            id : getQueryParam("gotoid")
-        }
+        const input = {
+            id: getQueryParam("gotoid"),
+        };
         $.ajax({
             type: "POST",
             url: ajaxsearchdataitems,
@@ -630,12 +628,12 @@ $(document).ready(async function () {
                 if (response.dataitems.length > 0) {
                     tlcMap.ignoreExtentChange = true;
                     tlcMap.isSearchOn = true;
-    
+
                     tlcMap.dataitems = response.dataitems;
-    
+
                     tlcMap.addPointsToMap(tlcMap.dataitems);
                     tlcMap.renderDataItems(tlcMap.dataitems);
-        
+
                     //Hide advanded search
                     $("#advancedaccordion").collapse("hide");
                 } else {
@@ -646,7 +644,6 @@ $(document).ready(async function () {
                 console.log(xhr.responseText);
             },
         });
-
     } else {
         var defaultLocation = null;
         if (getQueryParam("goto")) {

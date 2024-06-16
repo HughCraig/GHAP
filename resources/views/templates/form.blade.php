@@ -412,9 +412,6 @@
                         <a class="dropdown-item grab-hover" id="viewCluster" href="#">Cluster</a>
                         <a class="dropdown-item grab-hover" id="viewJourney" href="#">Journey Route</a>
                         <a class="dropdown-item grab-hover" id="viewWerekata" href="#">Werekata Flight by Route</a>
-                        @if (!empty(config('app.views_temporal_earth_url')))
-                        <a class="dropdown-item grab-hover" id="viewTemporalEarth" href="#">Temporal Earth</a>
-                        @endif
                     </div>
                 </div>
                 @endif
