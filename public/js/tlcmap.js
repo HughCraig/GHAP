@@ -21,6 +21,7 @@ class TLCMap {
 
         this.addModalMapPicker = addModalMapPicker;
 
+        this.currentMapType = "3d";
         this.clusterConfig = {
             type: "cluster",
             clusterRadius: "100px",
@@ -617,38 +618,15 @@ class TLCMap {
      * @param {Object} [bbox=null] - Optional bounding box to zoom to.
      */
     addPointsToMap(dataitems, bbox = null) {
-        require([
-            "esri/Graphic",
-            "esri/geometry/Extent",
-            "esri/layers/FeatureLayer",
-        ], (Graphic, Extent, FeatureLayer) => {
-            //Remove point layer
-            this.view.map.layers.forEach((layer) => {
-                if (layer instanceof FeatureLayer) {
-                    this.view.map.layers.remove(layer);
-                }
-            });
-
-            // Clear existing graphics
-            this.featureLayer = new FeatureLayer({
-                objectIdField: "ObjectID",
-                geometryType: "point",
-                spatialReference: { wkid: 4326 },
-                source: [],
-                renderer: {
-                    type: "simple",
-                    symbol: {
-                        type: "simple-marker",
-                        color: "orange",
-                        outline: {
-                            color: "white",
-                        },
-                    },
-                },
-                popupTemplate: {
-                    title: "{Name}",
-                },
-                featureReduction: this.clusterConfig,
+        require(["esri/Graphic", "esri/geometry/Extent"], (Graphic, Extent) => {
+            //Remove all existing point
+            this.featureLayer.queryFeatures().then((results) => {
+                // edits object tells apply edits that you want to delete the features
+                const deleteEdits = {
+                    deleteFeatures: results.features,
+                };
+                // apply edits to the layer
+                this.featureLayer.applyEdits(deleteEdits);
             });
 
             let coordinates = [];
@@ -681,8 +659,6 @@ class TLCMap {
                     addFeatures: [pointGraphic],
                 });
             });
-
-            this.view.map.layers.add(this.featureLayer);
 
             if (bbox != null) {
                 var extent = new Extent({
@@ -719,6 +695,61 @@ class TLCMap {
                     this.ignoreExtentChange = false;
                 });
             }
+        });
+    }
+
+    /**
+     * Switch the map type between 3D and cluster.
+     * @param {string} newMapType - The new map type.
+     * @return {void}
+     * */
+    switchMapType(newMapType) {
+        if (newMapType !== "3d" && newMapType !== "cluster") {
+            return;
+        }
+
+        if (newMapType === this.currentMapType) {
+            return;
+        }
+
+        this.currentMapType = newMapType;
+
+        require(["esri/layers/FeatureLayer"], (FeatureLayer) => {
+            this.featureLayer.queryFeatures().then((results) => {
+                this.view.map.layers.forEach((layer) => {
+                    if (layer instanceof FeatureLayer) {
+                        this.view.map.layers.remove(layer);
+                    }
+                });
+
+                // Create new feature layer with or without clustering
+                this.featureLayer = new FeatureLayer({
+                    objectIdField: "ObjectID",
+                    geometryType: "point",
+                    spatialReference: { wkid: 4326 },
+                    source: [],
+                    renderer: {
+                        type: "simple",
+                        symbol: {
+                            type: "simple-marker",
+                            color: "orange",
+                            outline: { color: "white" },
+                        },
+                    },
+                    popupTemplate: { title: "{Name}" },
+                    featureReduction:
+                        this.currentMapType === "cluster"
+                            ? this.clusterConfig
+                            : null,
+                });
+
+                const addEdits = {
+                    addFeatures: results.features,
+                };
+
+                this.featureLayer.applyEdits(addEdits);
+                this.view.map.layers.add(this.featureLayer);
+            });
         });
     }
 

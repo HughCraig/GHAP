@@ -612,6 +612,9 @@ $(function () {
     } else if ($(".typeFilter-map").is(":checked")) {
         $(".list-view").hide();
         $(".map-view").show();
+    } else if ($(".typeFilter-cluster").is(":checked")) {
+        $(".list-view").hide();
+        $(".map-view").show();
     }
 });
 
@@ -718,6 +721,11 @@ $(document).ready(async function () {
         } else if ($(".typeFilter-map").is(":checked")) {
             $(".list-view").hide();
             $(".map-view").show();
+            tlcMap.switchMapType("3d");
+        } else if ($(".typeFilter-cluster").is(":checked")) {
+            $(".list-view").hide();
+            $(".map-view").show();
+            tlcMap.switchMapType("cluster");
         }
     });
 

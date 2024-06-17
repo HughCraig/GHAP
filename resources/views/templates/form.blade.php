@@ -114,6 +114,10 @@
                             <input type="radio" name="typeFilter" class="typeFilter-map" checked>
                             <span class="label-body pl-1">Map</span>
                         </label>
+                        <label class="radio" id="radio-list" style="padding-left: 3rem;">
+                            <input type="radio" name="typeFilter" class="typeFilter-cluster">
+                            <span class="label-body pl-1">Cluster</span>
+                        </label>
                         <label class="radio" id="radio-list" style="padding-left: 3rem; padding-right: 2rem;">
                             <input type="radio" name="typeFilter" class="typeFilter-list">
                             <span class="label-body pl-1">List</span>
