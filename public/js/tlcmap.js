@@ -63,11 +63,6 @@ class TLCMap {
 
         this.fields = [
             {
-                name: "title",
-                alias: "Name",
-                type: "string",
-            },
-            {
                 name: "placename",
                 alias: "Placename",
                 type: "string",
@@ -230,6 +225,7 @@ class TLCMap {
                             "lasso-selection": false,
                             "rectangle-selection": false,
                         },
+                        settingsMenu: false
                     },
                 });
 
