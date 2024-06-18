@@ -60,6 +60,89 @@ class TLCMap {
                 },
             ],
         };
+
+        this.fields = [
+            {
+                name: "title",
+                alias: "Name",
+                type: "string",
+            },
+            {
+                name: "placename",
+                alias: "Placename",
+                type: "string",
+            },
+            {
+                name: "description",
+                alias: "Description",
+                type: "string",
+            },
+            {
+                name: "uid",
+                alias: "ID",
+                type: "string",
+            },
+            {
+                name: "state",
+                alias: "State",
+                type: "string",
+            },
+            {
+                name: "source",
+                alias: "Source",
+                type: "string",
+            },
+            {
+                name: "latitude",
+                alias: "Latitude",
+                type: "string",
+            },
+            {
+                name: "longitude",
+                alias: "Longitude",
+                type: "string",
+            },
+            {
+                name: "datestart",
+                alias: "Start Date",
+                type: "string",
+            },
+            {
+                name: "dateend",
+                alias: "End Date",
+                type: "string",
+            },
+            {
+                name: "external_url",
+                alias: "External URL",
+                type: "string",
+            },
+            {
+                name: "lga",
+                alias: "LGA",
+                type: "string",
+            },
+            {
+                name: "parish",
+                alias: "Parish",
+                type: "string",
+            },
+            {
+                name: "created_at",
+                alias: "Created At",
+                type: "string",
+            },
+            {
+                name: "updated_at",
+                alias: "Updated At",
+                type: "string",
+            }
+        ];
+
+        this.fieldInfos = this.fields.map((field) => ({
+            fieldName: field.name,
+            label: field.alias,
+        }));
     }
 
     // Initialize the map.
@@ -76,6 +159,7 @@ class TLCMap {
                 "esri/widgets/Expand",
                 "esri/widgets/BasemapGallery",
                 "esri/geometry/support/webMercatorUtils",
+                "esri/PopupTemplate",
             ], (
                 Map,
                 MapView,
@@ -84,11 +168,23 @@ class TLCMap {
                 GraphicsLayer,
                 Expand,
                 BasemapGallery,
-                webMercatorUtils
+                webMercatorUtils,
+                PopupTemplate
             ) => {
+                const popupTemplate = new PopupTemplate({
+                    title: "{title}",
+                    content: [
+                        {
+                            type: "fields",
+                            fieldInfos: this.fieldInfos,
+                        },
+                    ],
+                });
+
                 this.featureLayer = new FeatureLayer({
                     objectIdField: "ObjectID",
                     geometryType: "point",
+                    fields: this.fields,
                     spatialReference: { wkid: 4326 },
                     source: [],
                     renderer: {
@@ -99,7 +195,7 @@ class TLCMap {
                             outline: { color: "white" },
                         },
                     },
-                    popupTemplate: { title: "{Name}" },
+                    popupTemplate: popupTemplate,
                 });
 
                 this.graphicsLayer = new GraphicsLayer({
@@ -138,6 +234,23 @@ class TLCMap {
                 });
 
                 this.view.when(() => {
+                    this.view.popup.watch("selectedFeature", (graphic) => {
+                        if (graphic) {
+                          //Not cluster
+                          if(!graphic.attributes.cluster_count){
+                            // -- KEY PART TO HIDE A ROW IF NO VALUE
+                            const graphicTemplate =
+                                graphic.getEffectivePopupTemplate();
+
+                            for (const fi of graphicTemplate.content[0]
+                                .fieldInfos) {
+                                fi.visible = !!graphic.attributes[fi.fieldName];
+                            }
+                            // -- END
+                          }
+                        }
+                    });
+
                     resolve();
                 });
 
@@ -441,7 +554,7 @@ class TLCMap {
                                 }
                                 ${
                                     item.dataset
-                                        ? `<dt>Layer</dt><dd><a href="{baseUrl}/layers/${item.dataset_id}">${item.dataset.name}</a></dd>`
+                                        ? `<dt>Layer</dt><dd><a href="/layers/${item.dataset_id}">${item.dataset.name}</a></dd>`
                                         : item.datasource
                                         ? `<dt>Layer</dt><dd><a href="${item.datasource.link}">${item.datasource.description}</a></dd>`
                                         : ""
@@ -651,10 +764,10 @@ class TLCMap {
                 var pointGraphic = new Graphic({
                     geometry: point,
                     symbol: markerSymbol,
+                    attributes: Object.assign({}, dataitem),
                 });
 
                 coordinates.push([dataitem.longitude, dataitem.latitude]);
-
                 this.featureLayer.applyEdits({
                     addFeatures: [pointGraphic],
                 });
@@ -714,7 +827,10 @@ class TLCMap {
 
         this.currentMapType = newMapType;
 
-        require(["esri/layers/FeatureLayer"], (FeatureLayer) => {
+        require(["esri/layers/FeatureLayer", "esri/PopupTemplate"], (
+            FeatureLayer,
+            PopupTemplate
+        ) => {
             this.featureLayer.queryFeatures().then((results) => {
                 this.view.map.layers.forEach((layer) => {
                     if (layer instanceof FeatureLayer) {
@@ -722,10 +838,21 @@ class TLCMap {
                     }
                 });
 
+                const popupTemplate = new PopupTemplate({
+                    title: "{title}",
+                    content: [
+                        {
+                            type: "fields",
+                            fieldInfos: this.fieldInfos,
+                        },
+                    ],
+                });
+
                 // Create new feature layer with or without clustering
                 this.featureLayer = new FeatureLayer({
                     objectIdField: "ObjectID",
                     geometryType: "point",
+                    fields: this.fields,
                     spatialReference: { wkid: 4326 },
                     source: [],
                     renderer: {
@@ -736,11 +863,11 @@ class TLCMap {
                             outline: { color: "white" },
                         },
                     },
-                    popupTemplate: { title: "{Name}" },
                     featureReduction:
                         this.currentMapType === "cluster"
                             ? this.clusterConfig
                             : null,
+                    popupTemplate: popupTemplate,
                 });
 
                 const addEdits = {
