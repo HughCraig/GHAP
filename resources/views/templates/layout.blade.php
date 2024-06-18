@@ -143,7 +143,7 @@
                 <div class="site-name">
                     Mapping Australian history and culture
                 </div>
-                <div class="site-name" style="font-size: 0.8em;">
+                <div class="site-name" style="font-size: 0.8em; margin-bottom:0">
                     We acknowledge the Traditional Owners of country and pay our respects to Elders past, present and emerging. <a href="{{ config('app.tlcmap_doc_url') }}/first-australians/" target="_blank" style="text-decoration: underline !important;">First Australians...</a>
                 </div>
             </div>

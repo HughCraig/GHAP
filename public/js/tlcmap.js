@@ -63,6 +63,11 @@ class TLCMap {
 
         this.fields = [
             {
+                name: "title",
+                alias: "Title",
+                type: "string",
+            },
+            {
                 name: "placename",
                 alias: "Placename",
                 type: "string",
@@ -131,7 +136,7 @@ class TLCMap {
                 name: "updated_at",
                 alias: "Updated At",
                 type: "string",
-            }
+            },
         ];
 
         this.fieldInfos = this.fields.map((field) => ({
@@ -225,25 +230,26 @@ class TLCMap {
                             "lasso-selection": false,
                             "rectangle-selection": false,
                         },
-                        settingsMenu: false
+                        settingsMenu: false,
                     },
                 });
 
                 this.view.when(() => {
                     this.view.popup.watch("selectedFeature", (graphic) => {
                         if (graphic) {
-                          //Not cluster
-                          if(!graphic.attributes.cluster_count){
-                            // -- KEY PART TO HIDE A ROW IF NO VALUE
-                            const graphicTemplate =
-                                graphic.getEffectivePopupTemplate();
+                            //Not cluster
+                            if (!graphic.attributes.cluster_count) {
+                                // -- KEY PART TO HIDE A ROW IF NO VALUE
+                                const graphicTemplate =
+                                    graphic.getEffectivePopupTemplate();
 
-                            for (const fi of graphicTemplate.content[0]
-                                .fieldInfos) {
-                                fi.visible = !!graphic.attributes[fi.fieldName];
+                                for (const fi of graphicTemplate.content[0]
+                                    .fieldInfos) {
+                                    fi.visible =
+                                        !!graphic.attributes[fi.fieldName];
+                                }
+                                // -- END
                             }
-                            // -- END
-                          }
                         }
                     });
 
@@ -486,7 +492,7 @@ class TLCMap {
 
         var locate = document.createElement("div");
         locate.className =
-            "esri-icon-locate-circled esri-widget--button esri-widget esri-interactive";
+            "esri-icon-locate esri-widget--button esri-widget esri-interactive";
         locate.addEventListener("click", () => {
             this.gotoUserLocation();
         });
@@ -677,7 +683,7 @@ class TLCMap {
 
     getUserLocation() {
         return new Promise((resolve, reject) => {
-            const defaultLocation = [151.2093, -33.8688]; // Sydney
+            const defaultLocation = false; // Australia
 
             function handleSuccess(position) {
                 resolve([position.coords.longitude, position.coords.latitude]);
@@ -717,7 +723,12 @@ class TLCMap {
      */
     async gotoUserLocation() {
         var zoomLocation = await this.getUserLocation();
-        this.zoomTo(zoomLocation[0], zoomLocation[1]);
+
+        if (zoomLocation) {
+            this.zoomTo(zoomLocation[0], zoomLocation[1]);
+        } else {
+            this.zoomTo(131.034742, -25.345113, 5); //Australia
+        }
     }
 
     /**

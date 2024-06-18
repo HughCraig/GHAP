@@ -8,12 +8,23 @@
 
         div.header {
             border-bottom: 3px solid black;
+            height: 15vh;
+        }
+
+        #viewDiv {
+           height: 76vh; 
+           border-top: 3px solid black;
         }
 
         #mainsearchdiv {
             margin: 1% 0;
             display: flex;
-            padding: 0 5%;
+            padding: 0 3%;
+            height: 4vh;
+        }
+
+        .secondary-nav{
+            height: 3vh;
         }
 
         .tlcmapcontainer {
@@ -366,7 +377,7 @@
 
     <!-- Map Area Display -->
     <div class="map-view">
-        <div id="viewDiv" style="height: 820px; border-top: 3px solid black">
+        <div id="viewDiv">
         </div>
     </div>
 
