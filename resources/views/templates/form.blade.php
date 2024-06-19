@@ -1,57 +1,7 @@
 @push('styles')
     <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/map-picker.css') }}">
-    <style>
-        html{
-            overflow: hidden;
-        }
-
-        .site-warning{
-            display: none;
-        }
-
-        .footer{
-            display: none;
-        }
-
-        div.header {
-            border-bottom: 3px solid black;
-            height: 15vh;
-        }
-
-        #viewDiv {
-           height: 76vh; 
-           border-top: 3px solid black;
-        }
-
-        #mainsearchdiv {
-            margin: 1% 0;
-            display: flex;
-            padding: 0 3%;
-            height: 4vh;
-        }
-
-        .secondary-nav{
-            height: 3vh;
-        }
-
-        .tlcmapcontainer {
-            margin-left: 0;
-            margin-right: 0;
-            margin-bottom: 0;
-        }
-        .w3-container {
-            padding: 0;
-        }
-        .footer{
-            display: none;
-        }
-
-        .secondary-nav{
-            margin-bottom: 0;
-        }
-
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/home.css') }}">
 @endpush
 
 @push('scripts')
@@ -133,7 +83,7 @@
                             <input type="radio" name="typeFilter" class="typeFilter-map" checked>
                             <span class="label-body pl-1">Map</span>
                         </label>
-                        <label class="radio" id="radio-list" style="padding-left: 3rem;">
+                        <label class="radio" id="radio-map" style="padding-left: 3rem;">
                             <input type="radio" name="typeFilter" class="typeFilter-cluster">
                             <span class="label-body pl-1">Cluster</span>
                         </label>

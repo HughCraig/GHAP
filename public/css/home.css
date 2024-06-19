@@ -1,0 +1,78 @@
+.footer{
+    display: none;
+}
+
+div.header {
+    border-bottom: 3px solid black;
+    height: 15vh;
+}
+
+#viewDiv {
+   height: 76vh; 
+   border-top: 3px solid black;
+}
+
+#mainsearchdiv {
+    margin: 1% 0;
+    display: flex;
+    padding: 0 3%;
+    height: 4vh;
+}
+
+.tlcmapcontainer {
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+}
+.w3-container {
+    padding: 0;
+}
+.footer{
+    display: none;
+}
+
+.secondary-nav{
+    margin-bottom: 0;
+}
+
+@media (max-width: 600px) {
+
+    #mainsearchdiv {
+        height:100%;
+    }
+
+    #radio-map{
+        padding-left: 0 !important;
+    }
+
+    #radio-list{
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .col-sm-auto{
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    #mainsearchdiv .d-flex {
+        flex-direction: column;
+        align-items: center !important;
+    }
+
+    #searchbutton, #resetbutton {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .view-button label.radio {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    #num-places {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+

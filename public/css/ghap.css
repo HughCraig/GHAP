@@ -785,7 +785,11 @@ div#mainnav {
     }
 
     .site-name {
-        font-size: 1em; 
+        font-size: 0.8em !important; 
+    }
+
+    .menu-nav-button{
+        padding-top: 3%;
     }
 }
 
@@ -859,6 +863,12 @@ div#mainnav {
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    .menu-nav {
+        width: 100%;
+    }
 }
 
 .icon {

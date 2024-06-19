@@ -376,6 +376,28 @@ function bindViewLinks() {
     });
 }
 
+function setListViewDisplayInfo(tlcMap){
+    if(tlcMap.isSearchOn){
+        const displayPlaces = Math.min(
+            getNumPlaces(),
+            tlcMap.dataitems.length
+        );
+
+        $("#display_info").text(
+            `Displaying ${displayPlaces} from a total of ${tlcMap.dataitems.length}`
+        );
+        $("#save_search_count").val(tlcMap.dataitems.length);
+        $("#list-buttons").show();
+        $("#display_info").show();
+        $("#list-save-search").show();
+    }else{
+        $("#display_info").text(` `);
+        $("#display_info").hide();
+        $("#list-buttons").hide();
+        $("#list-save-search").hide();
+    }
+}
+
 /**
  * Continues the search form submission process, sending data via AJAX and updating the map with the results.
  *
@@ -408,6 +430,8 @@ function continueSearchForm(tlcMap, names = null, defaultLocation = null) {
                     tlcMap.zoomTo(defaultLocation[1], defaultLocation[0]);
                     updateParameter("goto", defaultLocation.join(","));
                 }
+
+                setListViewDisplayInfo(tlcMap);
 
                 //Hide advanded search
                 $("#advancedaccordion").collapse("hide");
@@ -687,6 +711,8 @@ $(document).ready(async function () {
         }
     }
 
+    setListViewDisplayInfo(tlcMap);
+
     bindDownloadLinks();
     bindFeedLinks();
     bindViewLinks();
@@ -694,28 +720,6 @@ $(document).ready(async function () {
     $('input[name="typeFilter"]').on("change", function () {
         if ($(".typeFilter-list").is(":checked")) {
             $(".map-view").hide();
-
-            if (tlcMap.isSearchOn) {
-                const displayPlaces = Math.min(
-                    getNumPlaces(),
-                    tlcMap.dataitems.length
-                );
-
-                $("#display_info").text(
-                    `Displaying ${displayPlaces} from a total of ${tlcMap.dataitems.length}`
-                );
-                $("#save_search_count").val(tlcMap.dataitems.length);
-                $("#list-buttons").show();
-                $("#display_info").show();
-                $("#list-save-search").show();
-
-                //Hide advanded search
-            } else {
-                $("#display_info").hide();
-                $("#list-buttons").hide();
-                $("#list-save-search").hide();
-            }
-
             $("#advancedaccordion").collapse("hide");
             $(".list-view").show();
         } else if ($(".typeFilter-map").is(":checked")) {
@@ -741,7 +745,7 @@ $(document).ready(async function () {
         tlcMap.graphicsLayer.removeAll();
 
         updateUrlParameters(null);
-        $("#display_info").text(` `);
+        setListViewDisplayInfo(tlcMap);
 
         $("#input").val("");
         $("#searchdescription").prop("checked", false);

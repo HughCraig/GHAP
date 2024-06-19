@@ -146,7 +146,7 @@ class TLCMap {
                 name: "dataset_id",
                 alias: "Layer ID",
                 type: "string",
-            }
+            },
         ];
     }
 
@@ -165,6 +165,7 @@ class TLCMap {
                 "esri/widgets/BasemapGallery",
                 "esri/geometry/support/webMercatorUtils",
                 "esri/PopupTemplate",
+                "esri/Graphic",
             ], (
                 Map,
                 MapView,
@@ -174,7 +175,8 @@ class TLCMap {
                 Expand,
                 BasemapGallery,
                 webMercatorUtils,
-                PopupTemplate
+                PopupTemplate,
+                Graphic
             ) => {
                 const popupTemplate = this.getPopupTemplate(
                     PopupTemplate,
@@ -225,7 +227,7 @@ class TLCMap {
                         ],
                     },
                     visibleElements: {
-                        createTools: { polyline: false },
+                        createTools: { polyline: false, point: false },
                         selectionTools: {
                             "lasso-selection": false,
                             "rectangle-selection": false,
@@ -257,6 +259,48 @@ class TLCMap {
 
                 this.setupSketchHandlers(sketch, webMercatorUtils);
                 this.setupViewUI(sketch, Expand, BasemapGallery);
+
+                //Right click on map to add place point
+                this.view.on("click", (event) => {
+                    if (event.button === 2) {
+                        event.stopPropagation(); // Prevent the default right-click context menu
+
+                        // Clear any existing graphics
+                        this.graphicsLayer.removeAll();
+                        $("#minlong").val("");
+                        $("#minlat").val("");
+                        $("#maxlong").val("");
+                        $("#maxlat").val("");
+                        $("#polygoninput").val("");
+
+                        $("#addlatitude").val("");
+                        $("#addlongitude").val("");
+                        this.placeMarkers = [];
+
+                        const point = {
+                            type: "point",
+                            longitude: event.mapPoint.longitude,
+                            latitude: event.mapPoint.latitude,
+                        };
+
+                        this.placeMarkers = [
+                            event.mapPoint.latitude.toFixed(6),
+                            event.mapPoint.longitude.toFixed(6),
+                        ];
+
+                        const pointGraphic = new Graphic({
+                            geometry: point,
+                            symbol: {
+                                type: "simple-marker",
+                                color: "white",
+                                outline: { color: "blue", width: 1 },
+                            },
+                        });
+
+                        // Add the point graphic to the graphics layer
+                        this.graphicsLayer.add(pointGraphic);
+                    }
+                });
             });
         });
     }
@@ -338,8 +382,8 @@ class TLCMap {
 
                 content += "</table>";
 
-                content += `<div style="margin-top: 1rem"><a style="color: #0000EE" href="${baseUrl}?gotoid=${attributes.uid}" target="_blank">TLCMap Record: tce9ac</a> ` ;
-                content +=  `| <a style="color: #0000EE" href="${baseUrl}layers/${attributes.dataset_id}" target="_blank">TLCMap Layer</a></div>`;
+                content += `<div style="margin-top: 1rem"><a style="color: #0000EE" href="${baseUrl}?gotoid=${attributes.uid}" target="_blank">TLCMap Record: tce9ac</a> `;
+                content += `| <a style="color: #0000EE" href="${baseUrl}layers/${attributes.dataset_id}" target="_blank">TLCMap Layer</a></div>`;
 
                 return content;
             },
@@ -425,12 +469,6 @@ class TLCMap {
 
                 $("#polygoninput").val(out.substring(0, out.length - 2));
             }
-        } else if (geometry.type === "point") {
-            const coords = webMercatorUtils.xyToLngLat(geometry.x, geometry.y);
-            const lat = coords[1].toFixed(6);
-            const lon = coords[0].toFixed(6);
-
-            this.placeMarkers = [lat, lon];
         }
     }
 
@@ -449,10 +487,6 @@ class TLCMap {
                 $("#maxlong").val("");
                 $("#maxlat").val("");
                 $("#polygoninput").val("");
-
-                $("#addlatitude").val("");
-                $("#addlongitude").val(""); //add place modal.
-                this.placeMarkers = [];
             } else if (event.state === "complete") {
                 this.logCoordinates(event.graphic, webMercatorUtils);
             }
@@ -472,6 +506,9 @@ class TLCMap {
             $("#maxlong").val("");
             $("#maxlat").val("");
             $("#polygoninput").val("");
+            $("#addlatitude").val("");
+            $("#addlongitude").val("");
+            this.placeMarkers = [];
         });
     }
 
@@ -534,10 +571,14 @@ class TLCMap {
             if (this.placeMarkers.length == 2) {
                 $("#addlatitude").val(this.placeMarkers[0]);
                 $("#addlongitude").val(this.placeMarkers[1]);
-                this.addModalMapPicker.createMarkerAt([
-                    this.placeMarkers[1],
-                    this.placeMarkers[0],
-                ]);
+                this.addModalMapPicker.createMarkerAt(
+                    [
+                        parseFloat(this.placeMarkers[1]),
+                        parseFloat(this.placeMarkers[0]),
+                    ],
+                    true,
+                    true
+                );
             } else {
                 $("#addlatitude").val("");
                 $("#addlongitude").val("");
@@ -584,7 +625,7 @@ class TLCMap {
                                 ${
                                     item.dataset
                                         ? `<dt>Layer</dt><dd><a href="/layers/${item.dataset_id}">${item.dataset.name}</a></dd>`
-                                        :  ""
+                                        : ""
                                 }
                                 ${
                                     item.external_url
@@ -651,7 +692,7 @@ class TLCMap {
                         </div>
                     </div>
                     `;
-            
+
             //Description
             html += `<div class="col col-xl-3">
                         <h4>Description</h4>
@@ -671,7 +712,7 @@ class TLCMap {
                         </div>
                     </div>
                     `;
-            
+
             //Sources
             html += `<div class="col col-xl-2">
                         <div>
@@ -697,7 +738,7 @@ class TLCMap {
                     </div>`;
 
             //Extended Data
-            if(item.extended_data){
+            if (item.extended_data) {
                 html += `<div class="col col-xl-2"> ${
                     item.extended_data
                         ? `<h4>Extended Data</h4>${item.extended_data}`
@@ -706,7 +747,7 @@ class TLCMap {
             }
 
             //Image
-            if(item.image_path){
+            if (item.image_path) {
                 html += `<div class="col col-xl-2">
                             <img src="${item.image_path}" alt="Place Image" style="max-width: 100%; height: auto;">
                         </div>`;
@@ -801,18 +842,8 @@ class TLCMap {
                     longitude: dataitem.longitude,
                 };
 
-                var markerSymbol = {
-                    type: "simple-marker",
-                    color: "orange",
-                    outline: {
-                        color: "white",
-                        width: 1,
-                    },
-                };
-
                 var pointGraphic = new Graphic({
                     geometry: point,
-                    symbol: markerSymbol,
                     attributes: Object.assign({}, dataitem),
                 });
 
