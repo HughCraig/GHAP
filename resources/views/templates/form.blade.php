@@ -2,6 +2,14 @@
     <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/map-picker.css') }}">
     <style>
+        html{
+            overflow: hidden;
+        }
+
+        .site-warning{
+            display: none;
+        }
+
         .footer{
             display: none;
         }

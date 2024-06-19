@@ -137,12 +137,17 @@ class TLCMap {
                 alias: "Updated At",
                 type: "string",
             },
+            {
+                name: "image_path",
+                alias: "Image",
+                type: "string",
+            },
+            {
+                name: "dataset_id",
+                alias: "Layer ID",
+                type: "string",
+            }
         ];
-
-        this.fieldInfos = this.fields.map((field) => ({
-            fieldName: field.name,
-            label: field.alias,
-        }));
     }
 
     // Initialize the map.
@@ -171,15 +176,10 @@ class TLCMap {
                 webMercatorUtils,
                 PopupTemplate
             ) => {
-                const popupTemplate = new PopupTemplate({
-                    title: "{title}",
-                    content: [
-                        {
-                            type: "fields",
-                            fieldInfos: this.fieldInfos,
-                        },
-                    ],
-                });
+                const popupTemplate = this.getPopupTemplate(
+                    PopupTemplate,
+                    this.fields
+                );
 
                 this.featureLayer = new FeatureLayer({
                     objectIdField: "ObjectID",
@@ -235,24 +235,6 @@ class TLCMap {
                 });
 
                 this.view.when(() => {
-                    this.view.popup.watch("selectedFeature", (graphic) => {
-                        if (graphic) {
-                            //Not cluster
-                            if (!graphic.attributes.cluster_count) {
-                                // -- KEY PART TO HIDE A ROW IF NO VALUE
-                                const graphicTemplate =
-                                    graphic.getEffectivePopupTemplate();
-
-                                for (const fi of graphicTemplate.content[0]
-                                    .fieldInfos) {
-                                    fi.visible =
-                                        !!graphic.attributes[fi.fieldName];
-                                }
-                                // -- END
-                            }
-                        }
-                    });
-
                     resolve();
                 });
 
@@ -322,6 +304,49 @@ class TLCMap {
                 }
             });
         });
+    }
+
+    getPopupTemplate(PopupTemplate, fields) {
+        const popupTemplate = new PopupTemplate({
+            title: "{title}",
+            content: function (feature) {
+                const attributes = feature.graphic.attributes;
+                let content = "<table class='esri-widget__table'>";
+                fields.forEach((field) => {
+                    const key = field.name;
+                    const alias = field.alias;
+                    const value = attributes[key];
+                    if (
+                        value != null &&
+                        value != "" &&
+                        key != "title" &&
+                        key != "image_path" &&
+                        key != "dataset_id" &&
+                        key != "uid"
+                    ) {
+                        content += `<tr>
+                            <th>${alias}</th>
+                            <td>${value}</td>
+                        </tr>`;
+                    }
+                });
+
+                // Handle image field if present
+                if (attributes.image_path) {
+                    content += `<tr><th>Image</th><td><img src="${attributes.image_path}" alt="Place Image" style="max-width: 100%; height: auto;"></td></tr>`;
+                }
+
+                content += "</table>";
+
+                content += `<div style="margin-top: 1rem"><a style="color: #0000EE" href="${baseUrl}?gotoid=${attributes.uid}" target="_blank">TLCMap Record: tce9ac</a> ` ;
+                content +=  `| <a style="color: #0000EE" href="${baseUrl}layers/${attributes.dataset_id}" target="_blank">TLCMap Layer</a></div>`;
+
+                return content;
+            },
+            outFields: ["*"],
+        });
+
+        return popupTemplate;
     }
 
     /**
@@ -536,8 +561,10 @@ class TLCMap {
         listView.empty();
 
         dataItems.forEach((item) => {
-            const html = `
-                <div class="row">
+            var html = `<div class="row">`;
+
+            //Main info
+            html += `
                     <div class="col col-xl-3">
                         <div class="sresultmain">
                             <h4>
@@ -557,9 +584,7 @@ class TLCMap {
                                 ${
                                     item.dataset
                                         ? `<dt>Layer</dt><dd><a href="/layers/${item.dataset_id}">${item.dataset.name}</a></dd>`
-                                        : item.datasource
-                                        ? `<dt>Layer</dt><dd><a href="${item.datasource.link}">${item.datasource.description}</a></dd>`
-                                        : ""
+                                        :  ""
                                 }
                                 ${
                                     item.external_url
@@ -575,8 +600,10 @@ class TLCMap {
                                 }
                             </dl>
                         </div>
-                    </div>
-                    <div class="col col-xl-2">
+                    </div>`;
+
+            //Details
+            html += `<div class="col col-xl-2">
                         <div>
                             <h4>Details</h4>
                             <dl>
@@ -623,7 +650,10 @@ class TLCMap {
                             </dl>
                         </div>
                     </div>
-                    <div class="col col-xl-3">
+                    `;
+            
+            //Description
+            html += `<div class="col col-xl-3">
                         <h4>Description</h4>
                         <div>
                             <dl>
@@ -640,7 +670,10 @@ class TLCMap {
                             </dl>
                         </div>
                     </div>
-                    <div class="col col-xl-2">
+                    `;
+            
+            //Sources
+            html += `<div class="col col-xl-2">
                         <div>
                             <h4>Sources</h4>
                             <dl>
@@ -661,16 +694,25 @@ class TLCMap {
                                 }
                             </dl>
                         </div>
-                    </div>
-                    <div class="col col-xl-2">
-                        ${
-                            item.extended_data
-                                ? `<h4>Extended Data</h4>${item.extended_data}`
-                                : ""
-                        }
-                    </div>
-                </div>
-            `;
+                    </div>`;
+
+            //Extended Data
+            if(item.extended_data){
+                html += `<div class="col col-xl-2"> ${
+                    item.extended_data
+                        ? `<h4>Extended Data</h4>${item.extended_data}`
+                        : ""
+                }</div> `;
+            }
+
+            //Image
+            if(item.image_path){
+                html += `<div class="col col-xl-2">
+                            <img src="${item.image_path}" alt="Place Image" style="max-width: 100%; height: auto;">
+                        </div>`;
+            }
+
+            html += `</div>`;
             listView.append(html);
         });
     }
@@ -845,15 +887,10 @@ class TLCMap {
                     }
                 });
 
-                const popupTemplate = new PopupTemplate({
-                    title: "{title}",
-                    content: [
-                        {
-                            type: "fields",
-                            fieldInfos: this.fieldInfos,
-                        },
-                    ],
-                });
+                const popupTemplate = this.getPopupTemplate(
+                    PopupTemplate,
+                    this.fields
+                );
 
                 // Create new feature layer with or without clustering
                 this.featureLayer = new FeatureLayer({

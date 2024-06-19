@@ -78,7 +78,11 @@ class AjaxController extends Controller
         $maxLat = $request->bbox['maxLat'];
         $maxLng = $request->bbox['maxLng'];
 
-        $dataitems = Dataitem::where('latitude', '>=', $minLat)
+        $dataitems = Dataitem::searchScope()
+            ->with(['dataset' => function ($q) {
+                $q->select('id', 'name', 'warning');
+            }])
+            ->where('latitude', '>=', $minLat)
             ->where('latitude', '<=', $maxLat)
             ->where('longitude', '>=', $minLng)
             ->where('longitude', '<=', $maxLng);
@@ -92,6 +96,9 @@ class AjaxController extends Controller
         }
         foreach ($dataitems as $dataitem) {
             $dataitem->extended_data = $dataitem->extDataAsHTML();
+            if($dataitem->image_path){
+                $dataitem->image_path = url('storage/images/' . $dataitem->image_path);
+            }
         }
 
         // Return the data items as a JSON response
@@ -114,6 +121,9 @@ class AjaxController extends Controller
         $dataitems = GazetteerController::searchDataitems($parameters);
         foreach ($dataitems as $dataitem) {
             $dataitem->extended_data = $dataitem->extDataAsHTML();
+            if($dataitem->image_path){
+                $dataitem->image_path = url('storage/images/' . $dataitem->image_path);
+            }
         }
 
         return response()->json([
