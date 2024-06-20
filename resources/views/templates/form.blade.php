@@ -327,6 +327,9 @@
         </div>
         <!-- END Advanced Search and Filter -->
 
+
+        <button id="scrollToTopButton" class="scroll-to-top" onclick="scrollToTopFunction()">↑</button>
+        
         <!--  not sure why these hidden fields are here, but suspect there is some funk where js sets this according to user selection from drop down. -->
         <input type="hidden" id="names" name="names">
         <input type="hidden" id="fuzzynames" name="fuzzynames">

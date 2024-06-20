@@ -616,6 +616,11 @@ function presetSearchForm() {
     $(".num-places").val(numPlaces);
 }
 
+
+function scrollToTopFunction() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 $(function () {
     $("#input").trigger("focus");
     $("#input").on("keyup", function (event) {
