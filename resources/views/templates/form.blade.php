@@ -33,6 +33,7 @@
     <script src="{{ asset('js/validation.js') }}"></script>
 
     <script type="text/javascript" src="{{ asset('/js/form.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/stmetrics-csv-download.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/home.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/map-picker.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/tlcmap.js') }}"></script>
@@ -329,7 +330,7 @@
 
 
         <button id="scrollToTopButton" class="scroll-to-top" onclick="scrollToTopFunction()">↑</button>
-        
+
         <!--  not sure why these hidden fields are here, but suspect there is some funk where js sets this according to user selection from drop down. -->
         <input type="hidden" id="names" name="names">
         <input type="hidden" id="fuzzynames" name="fuzzynames">
@@ -361,13 +362,13 @@
                     <div class="dropdown-menu" aria-labelledby="downloadDropdown">
                         <a class="dropdown-item grab-hover" id="downloadKml" href="#">KML</a>
                         <a class="dropdown-item grab-hover" id="downloadCsv" href="#">CSV</a>
-                        <a class="dropdown-item grab-hover" id="downloadGeoJson" href="#">GeoJSON</a>
-                        <a class="dropdown-item grab-hover" id="downloadRoCrate" href="#">RO-Crate</a>
+                        <a class="dropdown-item grab-hover shown_in_search" id="downloadGeoJson" href="#">GeoJSON</a>
+                        <a class="dropdown-item grab-hover shown_in_search" id="downloadRoCrate" href="#">RO-Crate</a>
                     </div>
                 </div>
 
                 <!-- Web Services Feed -->
-                <div class="dropdown">
+                <div class="dropdown shown_in_search">
                     <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         WS Feed
                     </button>
@@ -379,7 +380,7 @@
                 </div>
 
                 @if (!empty(config('app.views_root_url')))
-                <div class="dropdown">
+                <div class="dropdown shown_in_search">
                     <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         &#x1F30F View Maps...
                     </button>
@@ -402,7 +403,7 @@
             </div>
 
             <!-- save search -->
-            <div id="list-save-search">
+            <div id="list-save-search" class="shown_in_search">
                 @guest
                 <div class="mb-2 form-group row">
                     <div class="col-xs-4">
@@ -420,7 +421,7 @@
                 @endguest
             </div>
 
-            <div class="form-group row">
+            <div class="form-group row shown_in_search">
                 <div class="col-xs-4">
                     <div class="p-3 w3-pale-blue" id="display_info">
                     </div>

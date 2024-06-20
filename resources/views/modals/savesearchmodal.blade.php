@@ -39,13 +39,17 @@
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="A short paragraph summarising the search. Anything not covered by other fields can be added here."></span>
                     <textarea id="save_search_description" rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control wysiwyg-editor"></textarea>
 
-                    <br>Search Type
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="The type of information in this search. If the type is mixed, use ‘other’."></span>
-                    <select class="w3-white form-control mb-2" id="save_search_recordtype">
-                        @foreach($recordtypes as $type)
-                        <option label="{{$type->type}}">{{$type->type}}</option>
-                        @endforeach
-                    </select>
+                    @if(isset($recordtypes) && count($recordtypes) > 0)
+                        <br>Search Type
+                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="The type of information in this search. If the type is mixed, use ‘other’."></span>
+                        <select class="w3-white form-control mb-2" id="save_search_recordtype">
+                            @foreach($recordtypes as $type)
+                                @if(isset($type) && isset($type->type) )
+                                    <option label="{{$type->type}}">{{$type->type}}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    @endif
 
                     <br>Subject (keywords)
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Type and press enter to create keywords describing this search."></span>

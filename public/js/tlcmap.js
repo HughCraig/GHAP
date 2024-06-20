@@ -14,9 +14,11 @@ class TLCMap {
         this.featureLayer = null;
         this.graphicsLayer = null;
 
+        this.bboxDataitems = null; // Data items from drag/zoom. not search results
+        this.dataitems = null; // The results data items.
+
         this.ignoreExtentChange = true; // Stop refreshing pins when the map extent changes.
         this.isSearchOn = false; // True if the search is applied.
-        this.dataitems = null; // The results data items.
         this.placeMarkers = []; // User placed marker for add place.
 
         this.addModalMapPicker = addModalMapPicker;
@@ -991,6 +993,7 @@ class TLCMap {
 
     /**
      * Update the map with new data items based on the current bounding box.
+     * Dataitems results are NOT from search results
      *
      * @param {Object} data - Data to send in the AJAX request.
      */
@@ -1000,6 +1003,7 @@ class TLCMap {
             url: bboxscan,
             data: data,
             success: (response) => {
+                this.bboxDataitems = response.dataitems;
                 this.addPointsToMap(response.dataitems, data["bbox"]);
                 this.renderDataItems(response.dataitems);
             },

@@ -17,6 +17,157 @@ function dateMatchesRegex(dateString) {
 }
 
 /**
+ * Download dataitems as csv.
+ * Used for bbox scan of non-search results.
+ * Data comming from frontend
+ *
+ * @param {*} dataitems
+ * @param {*} filename
+ */
+function downloadCsv(dataitems, filename = "places.csv") {
+    if (!dataitems || dataitems.length === 0) {
+        alert("No places available for download.");
+        return;
+    }
+
+    let colheads = new Set();
+    let excludeColumns = [
+        "uid",
+        "datasource_id",
+        "geom",
+        "geog",
+        "image_path",
+        "kml_style_url",
+        "dataset_order",
+        "geom_date",
+        "dataset",
+    ];
+
+    dataitems.forEach((item) => {
+        Object.keys(item).forEach((key) => {
+            if (!excludeColumns.includes(key)) {
+                colheads.add(key);
+            }
+        });
+    });
+
+    colheads = Array.from(colheads);
+
+    let csvContent = colheads.join(",") + "\n";
+    dataitems.forEach((item) => {
+        let row = colheads
+            .map((col) => {
+                if (col === "recordtype_id") {
+                    return recordTypeMap[item[col]] || item[col];
+                } else if (item.hasOwnProperty(col)) {
+                    return item[col];
+                } else if (
+                    item.extended_data &&
+                    item.extended_data.hasOwnProperty(col)
+                ) {
+                    return item.extended_data[col];
+                } else {
+                    return "";
+                }
+            })
+            .join(",");
+        csvContent += row + "\n";
+    });
+
+    // Encode the CSV content
+    const encodedUri =
+        "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
+
+    // Create a link and trigger download
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
+ * Download dataitems as kml.
+ * Used for bbox scan of non-search results.
+ * Data comming from frontend
+ *
+ * @param {*} dataitems
+ * @param {*} filename
+ * @returns
+ */
+function downloaKML(dataitems, filename = "places.kml") {
+    if (!dataitems || dataitems.length === 0) {
+        alert("No places available for download.");
+        return;
+    }
+
+    let excludeColumns = [
+        "uid",
+        "datasource_id",
+        "geom",
+        "geog",
+        "image_path",
+        "kml_style_url",
+        "dataset_order",
+        "geom_date",
+        "dataset",
+    ];
+
+    let kmlContent =
+        '<?xml version="1.0" encoding="UTF-8"?>\n' +
+        '<kml xmlns="http://www.opengis.net/kml/2.2">\n' +
+        "  <Document>\n";
+
+    dataitems.forEach((item, index) => {
+        const color = generateKMLColorFromStr(index.toString());
+        let description = ``;
+
+        Object.entries(item).forEach(([key, value]) => {
+            if (!excludeColumns.includes(key) && key !== "latitude" && key !== "longitude") {
+                if (key === "recordtype_id") {
+                    value = recordTypeMap[value] || value;
+                    key = "recordtype";
+                }
+                description += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}<br>`;
+            }
+        });
+
+        kmlContent +=
+            `    <Style id="item${index}Style">\n` +
+            `      <IconStyle>\n` +
+            `        <color>${color}</color>\n` +
+            `        <scale>1.1</scale>\n` +
+            "      </IconStyle>\n" +
+            "    </Style>\n";
+
+        kmlContent +=
+            "    <Placemark>\n" +
+            `      <name><![CDATA[${
+                item.title || "Unnamed Place"
+            }]]></name>\n` +
+            `      <description><![CDATA[${description}]]></description>\n` +
+            "      <Point>\n" +
+            `        <coordinates>${item.longitude},${item.latitude}</coordinates>\n` +
+            "      </Point>\n" +
+            "    </Placemark>\n";
+    });
+
+    kmlContent += "  </Document>\n</kml>";
+
+    // Create a link and trigger download
+    const encodedUri =
+        "data:application/vnd.google-earth.kml+xml;charset=utf-8," +
+        encodeURIComponent(kmlContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
  * Changes the shape type for the map selection and updates the UI accordingly.
  *
  * @param string type The new shape type (polygon, bbox, or circle).
@@ -316,22 +467,32 @@ function updateViewMapLink(type, format) {
 /**
  * Binds the download links to the respective click events, updating the href attribute dynamically.
  */
-function bindDownloadLinks() {
-    $("#downloadKml").click(function () {
-        $(this).attr("href", updateDownloadLink("kml"));
-    });
+function bindDownloadLinks(tlcMap) {
+    if (tlcMap.isSearchOn) {
+        $("#downloadKml").click(function () {
+            $(this).attr("href", updateDownloadLink("kml"));
+        });
 
-    $("#downloadCsv").click(function () {
-        $(this).attr("href", updateDownloadLink("csv"));
-    });
+        $("#downloadCsv").click(function () {
+            $(this).attr("href", updateDownloadLink("csv"));
+        });
 
-    $("#downloadGeoJson").click(function () {
-        $(this).attr("href", updateDownloadLink("json"));
-    });
+        $("#downloadGeoJson").click(function () {
+            $(this).attr("href", updateDownloadLink("json"));
+        });
 
-    $("#downloadRoCrate").click(function () {
-        $(this).attr("href", updateDownloadLink("rocrate"));
-    });
+        $("#downloadRoCrate").click(function () {
+            $(this).attr("href", updateDownloadLink("rocrate"));
+        });
+    } else {
+        $("#downloadCsv").click(function () {
+            downloadCsv(tlcMap.bboxDataitems);
+        });
+
+        $("#downloadKml").click(function () {
+            downloaKML(tlcMap.bboxDataitems);
+        });
+    }
 }
 
 /**
@@ -376,25 +537,18 @@ function bindViewLinks() {
     });
 }
 
-function setListViewDisplayInfo(tlcMap){
-    if(tlcMap.isSearchOn){
-        const displayPlaces = Math.min(
-            getNumPlaces(),
-            tlcMap.dataitems.length
-        );
+function setListViewDisplayInfo(tlcMap) {
+    if (tlcMap.isSearchOn) {
+        const displayPlaces = Math.min(getNumPlaces(), tlcMap.dataitems.length);
 
         $("#display_info").text(
             `Displaying ${displayPlaces} from a total of ${tlcMap.dataitems.length}`
         );
         $("#save_search_count").val(tlcMap.dataitems.length);
-        $("#list-buttons").show();
-        $("#display_info").show();
-        $("#list-save-search").show();
-    }else{
+        $(".shown_in_search").show();
+    } else {
         $("#display_info").text(` `);
-        $("#display_info").hide();
-        $("#list-buttons").hide();
-        $("#list-save-search").hide();
+        $(".shown_in_search").hide();
     }
 }
 
@@ -616,9 +770,8 @@ function presetSearchForm() {
     $(".num-places").val(numPlaces);
 }
 
-
 function scrollToTopFunction() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 $(function () {
@@ -718,7 +871,7 @@ $(document).ready(async function () {
 
     setListViewDisplayInfo(tlcMap);
 
-    bindDownloadLinks();
+    bindDownloadLinks(tlcMap);
     bindFeedLinks();
     bindViewLinks();
 
@@ -737,6 +890,19 @@ $(document).ready(async function () {
             tlcMap.switchMapType("cluster");
         }
     });
+
+    if ($(".typeFilter-list").is(":checked")) {
+        $(".map-view").hide();
+        $(".list-view").show();
+    } else if ($(".typeFilter-map").is(":checked")) {
+        $(".list-view").hide();
+        $(".map-view").show();
+        tlcMap.switchMapType("3d");
+    } else if ($(".typeFilter-cluster").is(":checked")) {
+        $(".list-view").hide();
+        $(".map-view").show();
+        tlcMap.switchMapType("cluster");
+    }
 
     // Refresh map pins when number of places change
     $(".num-places").change(function () {
@@ -805,10 +971,6 @@ $(document).ready(async function () {
         $("#maxlong").val("");
         $("#maxlat").val("");
         $("#polygoninput").val("");
-
-        $("#display_info").hide();
-        $("#list-buttons").hide();
-        $("#list-save-search").hide();
 
         tlcMap.gotoUserLocation();
     });
