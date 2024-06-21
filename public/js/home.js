@@ -907,6 +907,7 @@ $(document).ready(async function () {
     // Refresh map pins when number of places change
     $(".num-places").change(function () {
         tlcMap.refreshMapPins();
+        setListViewDisplayInfo(tlcMap);
     });
 
     $("#resetbutton").click(function (e) {
