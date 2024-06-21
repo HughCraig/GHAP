@@ -855,20 +855,8 @@ class TLCMap {
                 });
             });
 
-            if (bbox != null) {
-                var extent = new Extent({
-                    xmin: bbox["minLng"],
-                    ymin: bbox["minLat"],
-                    xmax: bbox["maxLng"],
-                    ymax: bbox["maxLat"],
-                    spatialReference: { wkid: 4326 }, // WGS84 spatial reference
-                });
-
-                this.ignoreExtentChange = true;
-                this.view.goTo(extent).then(() => {
-                    this.ignoreExtentChange = false;
-                });
-            } else {
+            //Result from search behavior
+            if (bbox == null) {
                 // Calculate the extent from the coordinates array
                 let xCoords = coordinates.map((coord) => coord[0]);
                 let yCoords = coordinates.map((coord) => coord[1]);
