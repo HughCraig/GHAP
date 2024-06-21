@@ -562,6 +562,7 @@ class TLCMap {
         });
 
         var addPlace = document.createElement("div");
+        addPlace.style.backgroundColor = "orange";
         addPlace.className =
             "esri-icon-plus esri-widget--button esri-widget esri-interactive";
         addPlace.addEventListener("click", () => {
