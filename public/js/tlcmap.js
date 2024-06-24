@@ -149,6 +149,11 @@ class TLCMap {
                 alias: "Layer ID",
                 type: "string",
             },
+            {
+                name: "datasource_id",
+                alias: "Datasource",
+                type: "string",
+            },
         ];
     }
 
@@ -192,12 +197,43 @@ class TLCMap {
                     spatialReference: { wkid: 4326 },
                     source: [],
                     renderer: {
-                        type: "simple",
-                        symbol: {
-                            type: "simple-marker",
-                            color: "orange",
-                            outline: { color: "white" },
-                        },
+                        type: "unique-value",
+                        field: "datasource_id",
+                        defaultSymbol: { type: "simple-marker" },
+                        uniqueValueInfos: [
+                            {
+                                value: "GHAP",
+                                symbol: {
+                                    type: "simple-marker",
+                                    color: "#FFD580",
+                                    outline: { color: "white", width: 1 },
+                                },
+                            },
+                            {
+                                value: "ANPS",
+                                symbol: {
+                                    type: "simple-marker",
+                                    color: "orange",
+                                    outline: { color: "white", width: 1 },
+                                },
+                            },
+                            {
+                                value: "NCG",
+                                symbol: {
+                                    type: "simple-marker",
+                                    color: "#FE6A1B",
+                                    outline: { color: "white", width: 1 },
+                                },
+                            },
+                            {
+                                value: "Unknown",
+                                symbol: {
+                                    type: "simple-marker",
+                                    color: "purple",
+                                    outline: { color: "white", width: 1 },
+                                },
+                            },
+                        ],
                     },
                     popupTemplate: popupTemplate,
                 });
@@ -845,6 +881,16 @@ class TLCMap {
                     longitude: dataitem.longitude,
                 };
 
+                if (dataitem.datasource_id == "1") {
+                    dataitem.datasource_id = "GHAP";
+                } else if (dataitem.datasource_id == "2") {
+                    dataitem.datasource_id = "ANPS";
+                } else if (dataitem.datasource_id == "3") {
+                    dataitem.datasource_id = "NCG";
+                } else {
+                    dataitem.datasource_id = "Unknown";
+                }
+
                 var pointGraphic = new Graphic({
                     geometry: point,
                     attributes: Object.assign({}, dataitem),
@@ -922,17 +968,44 @@ class TLCMap {
                     spatialReference: { wkid: 4326 },
                     source: [],
                     renderer: {
-                        type: "simple",
-                        symbol: {
-                            type: "simple-marker",
-                            color: "orange",
-                            outline: { color: "white" },
-                        },
+                        type: "unique-value",
+                        field: "datasource_id",
+                        defaultSymbol: { type: "simple-marker" },
+                        uniqueValueInfos: [
+                            {
+                                value: "GHAP",
+                                symbol: {
+                                    type: "simple-marker",
+                                    color: "#FFD580",
+                                    outline: { color: "white", width: 1 },
+                                },
+                            },
+                            {
+                                value: "ANPS",
+                                symbol: {
+                                    type: "simple-marker",
+                                    color: "orange",
+                                    outline: { color: "white", width: 1 },
+                                },
+                            },
+                            {
+                                value: "NCG",
+                                symbol: {
+                                    type: "simple-marker",
+                                    color: "#FE6A1B",
+                                    outline: { color: "white", width: 1 },
+                                },
+                            },
+                            {
+                                value: "Unknown",
+                                symbol: {
+                                    type: "simple-marker",
+                                    color: "purple",
+                                    outline: { color: "white", width: 1 },
+                                },
+                            },
+                        ],
                     },
-                    featureReduction:
-                        this.currentMapType === "cluster"
-                            ? this.clusterConfig
-                            : null,
                     popupTemplate: popupTemplate,
                 });
 

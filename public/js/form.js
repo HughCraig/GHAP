@@ -48,6 +48,6 @@ $(function () {
     });
 
     // Ensure the submenu is expanded by default
-    $(".submenu").show();
-    $(".submenu-toggle").addClass("icon-arrow-up-dark");
+    $(".submenu").hide();
+    $(".submenu-toggle").addClass("icon-arrow-down-dark");
 });
