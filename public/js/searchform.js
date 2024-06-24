@@ -1,3 +1,13 @@
+function changeInput(caller) {
+    /*
+     *  Change the placeholder text depending on if name or anps_id is selected - dont disable the checkbox as we might still want to use it on bulk search
+     */
+    document.getElementById("input").placeholder =
+        caller.options[caller.selectedIndex].value == "anps_id"
+            ? "Enter anps ID"
+            : "Enter place name";
+}
+
 $(document).ready(function () {
 
     //Layers Autocomplete.
@@ -134,4 +144,17 @@ $(document).ready(function () {
             $('#helpVideoModal').modal('show');
         }
     }
+
+    var validValues = ["100", "200", "500", "2000", "ALL"];
+        
+    if (typeof home_page_places_shown === 'string') {
+        home_page_places_shown = home_page_places_shown.toUpperCase();
+    }
+
+    if (!validValues.includes(home_page_places_shown)) {
+        home_page_places_shown = "200"; // Default value
+    }
+
+    $('#num-places').val(home_page_places_shown.toString());
+
 });
