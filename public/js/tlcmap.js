@@ -1007,6 +1007,7 @@ class TLCMap {
                         ],
                     },
                     popupTemplate: popupTemplate,
+                    featureReduction: newMapType === "cluster" ? this.clusterConfig : null,
                 });
 
                 const addEdits = {
