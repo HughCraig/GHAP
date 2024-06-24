@@ -117,6 +117,7 @@
     <script type="text/javascript" src="{{ asset('/js/urltools.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/help-video.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/wysiwyg-editor.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/form.js') }}"></script>
 
 </head>
 

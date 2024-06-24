@@ -32,7 +32,6 @@
     <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/validation.js') }}"></script>
 
-    <script type="text/javascript" src="{{ asset('/js/form.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/stmetrics-csv-download.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/home.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/map-picker.js') }}"></script>
