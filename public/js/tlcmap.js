@@ -51,7 +51,7 @@ class TLCMap {
                     },
                     symbol: {
                         type: "text",
-                        color: "#004a5d",
+                        color: "white",
                         font: {
                             weight: "bold",
                             family: "Noto Sans",
@@ -61,6 +61,14 @@ class TLCMap {
                     labelPlacement: "center-center",
                 },
             ],
+            symbol: {
+                type: "simple-marker",
+                style: "circle",
+                color: "#301934",
+                outline: {
+                    color: "white",
+                },
+            }
         };
 
         this.fields = [
@@ -152,6 +160,16 @@ class TLCMap {
             {
                 name: "datasource_id",
                 alias: "Datasource",
+                type: "string",
+            },
+            {
+                name: "datasource_description",
+                alias: "Datasource Description",
+                type: "string",
+            },
+            {
+                name: "datasource_link",
+                alias: "Datasource Link",
                 type: "string",
             },
         ];
@@ -404,7 +422,9 @@ class TLCMap {
                         key != "title" &&
                         key != "image_path" &&
                         key != "dataset_id" &&
-                        key != "uid"
+                        key != "uid" &&
+                        key != "datasource_description" &&
+                        key != "datasource_link"
                     ) {
                         content += `<tr>
                             <th>${alias}</th>
@@ -420,8 +440,12 @@ class TLCMap {
 
                 content += "</table>";
 
-                content += `<div style="margin-top: 1rem"><a style="color: #0000EE" href="${baseUrl}?gotoid=${attributes.uid}" target="_blank">TLCMap Record: tce9ac</a> `;
-                content += `| <a style="color: #0000EE" href="${baseUrl}layers/${attributes.dataset_id}" target="_blank">TLCMap Layer</a></div>`;
+                content += `<div style="margin-top: 1rem"><a style="color: #0000EE" href="${baseUrl}?gotoid=${attributes.uid}&view=list" target="_blank">TLCMap Record: tce9ac</a> `;
+                if (attributes.dataset_id) {
+                    content += `| <a style="color: #0000EE" href="${baseUrl}layers/${attributes.dataset_id}" target="_blank">TLCMap Layer</a></div>`;
+                } else {
+                    content += `| <a style="color: #0000EE" href="${attributes.datasource_link}" target="_blank">${attributes.datasource_description}</a></div>`;
+                }
 
                 return content;
             },
@@ -664,6 +688,8 @@ class TLCMap {
                                 ${
                                     item.dataset
                                         ? `<dt>Layer</dt><dd><a href="/layers/${item.dataset_id}">${item.dataset.name}</a></dd>`
+                                        : item.datasource
+                                        ? `<dt>Layer</dt><dd><a href="${item.datasource.link}">${item.datasource.description}</a></dd>`
                                         : ""
                                 }
                                 ${
@@ -881,15 +907,19 @@ class TLCMap {
                     longitude: dataitem.longitude,
                 };
 
-                if (dataitem.datasource_id == "1") {
+                if (dataitem.datasource_id == "1" || dataitem.datasource_id == "GHAP") {
                     dataitem.datasource_id = "GHAP";
-                } else if (dataitem.datasource_id == "2") {
+                } else if (dataitem.datasource_id == "2" || dataitem.datasource_id == "ANPS") {
                     dataitem.datasource_id = "ANPS";
-                } else if (dataitem.datasource_id == "3") {
+                } else if (dataitem.datasource_id == "3" || dataitem.datasource_id == "NCG") {
                     dataitem.datasource_id = "NCG";
                 } else {
                     dataitem.datasource_id = "Unknown";
                 }
+
+                dataitem["datasource_description"] =
+                    dataitem.datasource.description;
+                dataitem["datasource_link"] = dataitem.datasource.link;
 
                 var pointGraphic = new Graphic({
                     geometry: point,
@@ -1007,7 +1037,8 @@ class TLCMap {
                         ],
                     },
                     popupTemplate: popupTemplate,
-                    featureReduction: newMapType === "cluster" ? this.clusterConfig : null,
+                    featureReduction:
+                        newMapType === "cluster" ? this.clusterConfig : null,
                 });
 
                 const addEdits = {

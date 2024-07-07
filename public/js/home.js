@@ -1,6 +1,5 @@
 var shapetype = "bbox";
 
-
 /**
  * Download dataitems as csv.
  * Used for bbox scan of non-search results.
@@ -72,6 +71,12 @@ function downloadCsv(dataitems, filename = "places.csv") {
     document.body.removeChild(link);
 }
 
+function removeOptionByText(selectElement, text) {
+    selectElement.find('option').filter(function() {
+        return $(this).text() === text;
+    }).remove();
+}
+
 /**
  * Download dataitems as kml.
  * Used for bbox scan of non-search results.
@@ -109,12 +114,18 @@ function downloaKML(dataitems, filename = "places.kml") {
         let description = ``;
 
         Object.entries(item).forEach(([key, value]) => {
-            if (!excludeColumns.includes(key) && key !== "latitude" && key !== "longitude") {
+            if (
+                !excludeColumns.includes(key) &&
+                key !== "latitude" &&
+                key !== "longitude"
+            ) {
                 if (key === "recordtype_id") {
                     value = recordTypeMap[value] || value;
                     key = "recordtype";
                 }
-                description += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}<br>`;
+                description += `${
+                    key.charAt(0).toUpperCase() + key.slice(1)
+                }: ${value}<br>`;
             }
         });
 
@@ -573,7 +584,10 @@ function continueSearchForm(tlcMap, names = null, defaultLocation = null) {
                 setListViewDisplayInfo(tlcMap);
 
                 //Hide advanded search
-                $("#advancedaccordion").collapse("hide");
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: "smooth",
+                });
             } else {
                 alert("No pLaces found");
             }
@@ -704,15 +718,14 @@ function presetSearchForm() {
         $("#download").prop("checked", urlParams.get("download") === "on");
     }
 
-    //Dropdowns
-    $("#recordtype").val(urlParams.get("recordtype") || "");
-    $("#state").val(urlParams.get("state") || "");
-    $("#format").val(urlParams.get("format") || "");
+    //TODO programatically show the used filter sections
+    //TODO programatically remove the options
 
-    //Auto complete fields
-    $("#lga").val(urlParams.get("lga") || "");
-    $("#parish").val(urlParams.get("parish") || "");
-    $("#feature_term").val(urlParams.get("feature_term") || "");
+    if (urlParams.get("recordtype")) {
+        $("#recordtype").val(urlParams.get("recordtype") || "");
+        $("#filter-place-type").show();
+        removeOptionByText($("#filterType"), 'Place Type');
+    }
 
     if (urlParams.get("searchlayers")) {
         const layerIds = urlParams.get("searchlayers").split(",");
@@ -724,16 +737,69 @@ function presetSearchForm() {
         // Ensure the value ends with a semicolon
         $("#searchlayers").val(layerNames ? `${layerNames};` : "");
         $("#selected-layers").val(layerIds.join(","));
+        $("#filter-layers").show();
+        removeOptionByText($("#filterType"), 'Layers');
     }
 
-    //Text
-    $("#from").val(urlParams.get("from") || "");
-    $("#to").val(urlParams.get("to") || "");
-    $("#extended_data").val(urlParams.get("extended_data") || "");
+    if (urlParams.get("extended_data")) {
+        $("#extended_data").val(urlParams.get("extended_data") || "");
+        $("#filter-extended-data").show();
+        removeOptionByText($("#filterType"), 'Extended Data?');
+    }
 
-    //Date
-    $("#datefrom").val(urlParams.get("datefrom") || "");
-    $("#dateto").val(urlParams.get("dateto") || "");
+    //Auto complete fields
+    if (urlParams.get("lga")) {
+        $("#lga").val(urlParams.get("lga") || "");
+        $("#filter-lga").show();
+        removeOptionByText($("#filterType"), 'LGA');
+    }
+
+    if (urlParams.get("state")) {
+        $("#state").val(urlParams.get("state") || "");
+        $("#filter-state-territory").show();
+        removeOptionByText($("#filterType"), 'State Territory');
+    }
+
+    if (urlParams.get("parish")) {
+        $("#parish").val(urlParams.get("parish") || "");
+        $("#filter-parish").show();
+        removeOptionByText($("#filterType"), 'Parish');
+    }
+    if (urlParams.get("feature_term")) {
+        $("#feature_term").val(urlParams.get("feature_term") || "");
+        $("#filter-feature").show();
+        removeOptionByText($("#filterType"), 'Feature');
+    }
+
+    if (urlParams.get("from")) {
+        $("#from").val(urlParams.get("from") || "");
+        $("#filter-from-id").show();
+        removeOptionByText($("#filterType"), 'From ID');
+    }
+
+    if (urlParams.get("to")) {
+        $("#to").val(urlParams.get("to") || "");
+        $("#filter-to-id").show();
+        removeOptionByText($("#filterType"), 'To ID');
+    }
+
+    if (urlParams.get("datefrom")) {
+        $("#datefrom").val(urlParams.get("datefrom") || "");
+        $("#filter-date-from").show();
+        removeOptionByText($("#filterType"), 'Date From');
+    }
+
+    if (urlParams.get("dateto")) {
+        $("#dateto").val(urlParams.get("dateto") || "");
+        $("#filter-date-to").show();
+        removeOptionByText($("#filterType"), 'Date To');
+    }
+
+    if (urlParams.get("format")) {
+        $("#format").val(urlParams.get("format") || "");
+        $("#filter-format").show(); 
+        removeOptionByText($("#filterType"), 'Format'); 
+    }
 
     //Drawing
     if (urlParams.get("bbox")) {
@@ -819,9 +885,6 @@ $(document).ready(async function () {
 
                     tlcMap.addPointsToMap(tlcMap.dataitems);
                     tlcMap.renderDataItems(tlcMap.dataitems);
-
-                    //Hide advanded search
-                    $("#advancedaccordion").collapse("hide");
                 } else {
                     alert("No pLaces found");
                 }
@@ -860,34 +923,62 @@ $(document).ready(async function () {
     bindFeedLinks();
     bindViewLinks();
 
+    document.getElementById("addFilter").addEventListener("click", function () {
+        var filterTypeSelect = document.getElementById("filterType");
+        var selectedFilter = filterTypeSelect.value
+            .toLowerCase()
+            .replace(/ /g, "-")
+            .replace(/\?/g, "");
+        var filterElement = document.getElementById("filter-" + selectedFilter);
+
+        if (filterElement) {
+            filterElement.style.display = "flex";
+            filterTypeSelect.options[filterTypeSelect.selectedIndex].remove();
+            filterTypeSelect.selectedIndex = 0;
+        }
+    });
+
+    var viewParam = getQueryParam("view");
+    if (viewParam == "map") {
+        $(".typeFilter-map").prop("checked", true);
+        $(".list-view").hide();
+        $(".map-view").show();
+        tlcMap.switchMapType("3d");
+    } else if (viewParam == "cluster") {
+        $(".typeFilter-cluster").prop("checked", true);
+        $(".list-view").hide();
+        $(".map-view").show();
+        tlcMap.switchMapType("cluster");
+    } else if (viewParam == "list") {
+        $(".typeFilter-list").prop("checked", true);
+        $(".map-view").hide();
+        $(".list-view").show();
+    } else {
+        $(".typeFilter-map").prop("checked", true);
+        $(".list-view").hide();
+        $(".map-view").show();
+        tlcMap.switchMapType("3d");
+        updateParameter("view", "map");
+    }
+
     $('input[name="typeFilter"]').on("change", function () {
         if ($(".typeFilter-list").is(":checked")) {
             $(".map-view").hide();
             $("#advancedaccordion").collapse("hide");
+            updateParameter("view", "list");
             $(".list-view").show();
         } else if ($(".typeFilter-map").is(":checked")) {
             $(".list-view").hide();
             $(".map-view").show();
+            updateParameter("view", "map");
             tlcMap.switchMapType("3d");
         } else if ($(".typeFilter-cluster").is(":checked")) {
             $(".list-view").hide();
             $(".map-view").show();
+            updateParameter("view", "cluster");
             tlcMap.switchMapType("cluster");
         }
     });
-
-    if ($(".typeFilter-list").is(":checked")) {
-        $(".map-view").hide();
-        $(".list-view").show();
-    } else if ($(".typeFilter-map").is(":checked")) {
-        $(".list-view").hide();
-        $(".map-view").show();
-        tlcMap.switchMapType("3d");
-    } else if ($(".typeFilter-cluster").is(":checked")) {
-        $(".list-view").hide();
-        $(".map-view").show();
-        tlcMap.switchMapType("cluster");
-    }
 
     // Refresh map pins when number of places change
     $(".num-places").change(function () {

@@ -82,6 +82,9 @@ class AjaxController extends Controller
             ->with(['dataset' => function ($q) {
                 $q->select('id', 'name', 'warning');
             }])
+            ->with(['datasource' => function ($q) {
+                $q->select('id', 'name', 'description', 'link');
+            }])
             ->where('latitude', '>=', $minLat)
             ->where('latitude', '<=', $maxLat)
             ->where('longitude', '>=', $minLng)
