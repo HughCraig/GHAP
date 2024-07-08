@@ -574,6 +574,38 @@ class TLCMap {
         });
     }
 
+    drawPolygon(rings) {
+        require([
+            "esri/geometry/Polygon",
+            "esri/Graphic",
+        ], (
+            Polygon,
+            Graphic,
+        ) => {
+
+            this.graphicsLayer.removeAll();
+
+            const polygon = new Polygon({
+                rings: [rings],
+                spatialReference: { wkid: 4326 }
+            });
+
+            const polygonGraphic = new Graphic({
+                geometry: polygon,
+                symbol: {
+                    type: "simple-fill",
+                    color: [150, 200, 255, 0.3], 
+                    outline: {
+                        color: [255, 255, 255],
+                        width: 1
+                    }
+                }
+            });
+
+            this.graphicsLayer.add(polygonGraphic);
+        });
+    }
+
     /**
      * Function to get the coordinates of the sketch drawing (only 1 shape is possible).
      *

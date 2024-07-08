@@ -72,9 +72,12 @@ function downloadCsv(dataitems, filename = "places.csv") {
 }
 
 function removeOptionByText(selectElement, text) {
-    selectElement.find('option').filter(function() {
-        return $(this).text() === text;
-    }).remove();
+    selectElement
+        .find("option")
+        .filter(function () {
+            return $(this).text() === text;
+        })
+        .remove();
 }
 
 /**
@@ -724,7 +727,7 @@ function presetSearchForm() {
     if (urlParams.get("recordtype")) {
         $("#recordtype").val(urlParams.get("recordtype") || "");
         $("#filter-place-type").show();
-        removeOptionByText($("#filterType"), 'Place Type');
+        removeOptionByText($("#filterType"), "Place Type");
     }
 
     if (urlParams.get("searchlayers")) {
@@ -738,67 +741,67 @@ function presetSearchForm() {
         $("#searchlayers").val(layerNames ? `${layerNames};` : "");
         $("#selected-layers").val(layerIds.join(","));
         $("#filter-layers").show();
-        removeOptionByText($("#filterType"), 'Layers');
+        removeOptionByText($("#filterType"), "Layers");
     }
 
     if (urlParams.get("extended_data")) {
         $("#extended_data").val(urlParams.get("extended_data") || "");
         $("#filter-extended-data").show();
-        removeOptionByText($("#filterType"), 'Extended Data?');
+        removeOptionByText($("#filterType"), "Extended Data?");
     }
 
     //Auto complete fields
     if (urlParams.get("lga")) {
         $("#lga").val(urlParams.get("lga") || "");
         $("#filter-lga").show();
-        removeOptionByText($("#filterType"), 'LGA');
+        removeOptionByText($("#filterType"), "LGA");
     }
 
     if (urlParams.get("state")) {
         $("#state").val(urlParams.get("state") || "");
         $("#filter-state-territory").show();
-        removeOptionByText($("#filterType"), 'State Territory');
+        removeOptionByText($("#filterType"), "State Territory");
     }
 
     if (urlParams.get("parish")) {
         $("#parish").val(urlParams.get("parish") || "");
         $("#filter-parish").show();
-        removeOptionByText($("#filterType"), 'Parish');
+        removeOptionByText($("#filterType"), "Parish");
     }
     if (urlParams.get("feature_term")) {
         $("#feature_term").val(urlParams.get("feature_term") || "");
         $("#filter-feature").show();
-        removeOptionByText($("#filterType"), 'Feature');
+        removeOptionByText($("#filterType"), "Feature");
     }
 
     if (urlParams.get("from")) {
         $("#from").val(urlParams.get("from") || "");
         $("#filter-from-id").show();
-        removeOptionByText($("#filterType"), 'From ID');
+        removeOptionByText($("#filterType"), "From ID");
     }
 
     if (urlParams.get("to")) {
         $("#to").val(urlParams.get("to") || "");
         $("#filter-to-id").show();
-        removeOptionByText($("#filterType"), 'To ID');
+        removeOptionByText($("#filterType"), "To ID");
     }
 
     if (urlParams.get("datefrom")) {
         $("#datefrom").val(urlParams.get("datefrom") || "");
         $("#filter-date-from").show();
-        removeOptionByText($("#filterType"), 'Date From');
+        removeOptionByText($("#filterType"), "Date From");
     }
 
     if (urlParams.get("dateto")) {
         $("#dateto").val(urlParams.get("dateto") || "");
         $("#filter-date-to").show();
-        removeOptionByText($("#filterType"), 'Date To');
+        removeOptionByText($("#filterType"), "Date To");
     }
 
     if (urlParams.get("format")) {
         $("#format").val(urlParams.get("format") || "");
-        $("#filter-format").show(); 
-        removeOptionByText($("#filterType"), 'Format'); 
+        $("#filter-format").show();
+        removeOptionByText($("#filterType"), "Format");
     }
 
     //Drawing
@@ -935,6 +938,49 @@ $(document).ready(async function () {
             filterElement.style.display = "flex";
             filterTypeSelect.options[filterTypeSelect.selectedIndex].remove();
             filterTypeSelect.selectedIndex = 0;
+        }
+    });
+
+    document.getElementById("mapdraw").addEventListener("click", function () {
+        if (shapetype == "bbox") {
+            var minlong = $("#minlong").val();
+            var minlat = $("#minlat").val();
+            var maxlong = $("#maxlong").val();
+            var maxlat = $("#maxlat").val();
+
+            if (
+                minlong != null &&
+                maxlong != null &&
+                minlat != null &&
+                maxlat != null &&
+                minlong != "" &&
+                maxlong != "" &&
+                minlat != "" &&
+                maxlat != ""
+            ) {
+                var rings = [
+                    [parseFloat(minlong), parseFloat(minlat)],
+                    [parseFloat(minlong), parseFloat(maxlat)],
+                    [parseFloat(maxlong), parseFloat(maxlat)],
+                    [parseFloat(maxlong), parseFloat(minlat)],
+                ];
+
+                tlcMap.drawPolygon(rings);
+            } else {
+                alert("Please enter all the coordinates");
+            }
+        } else if (shapetype == "polygon") {
+            var polystr = $("#polygoninput"); //"0 0, 0 100, 100 100, 100 0, 0 0"
+            if (!polystr.val()) return alert("polygon input box is empty");
+
+            var pointstrarr = polystr.val().split(","); //["0 0", "0 100", "100 100", "100 0", "0 0"]
+            var rings = [];
+
+            for (var i = 0; i < pointstrarr.length; i++) {
+                var point = pointstrarr[i].trim().split(" ");
+                rings.push([parseFloat(point[0]), parseFloat(point[1])]);
+            }
+            tlcMap.drawPolygon(rings);
         }
     });
 
