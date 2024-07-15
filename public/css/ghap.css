@@ -784,9 +784,6 @@ div#mainnav {
 
 
 @media (max-width: 768px) {
-    div.header {
-        padding-bottom: 70%;
-    }
 
     div#mainnav {
         flex-direction: column;
