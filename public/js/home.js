@@ -9,6 +9,10 @@ function hideLoadingWheel() {
     document.getElementById('loadingWheel').style.display = 'none';
 }
 
+function scrollToTopFunction() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 /**
  * Download dataitems as csv.
  * Used for bbox scan of non-search results.

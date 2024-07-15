@@ -85,7 +85,7 @@ div#mainnav {
     font-weight: 900;
     font-size: 18pt;
     margin: 0 20% 0 20%;
-    height: 160px;
+    height: auto;
     display: flex;
     justify-content: space-between;
     align-items: center;

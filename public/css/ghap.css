@@ -721,10 +721,11 @@ div#mainnav {
     font-family: 'Open Sans', Arial Black, Helvetica, sans-serif;
     font-weight: 900;
     font-size: 18pt;
-    height: 160px;
+    height: auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    max-height: 100%;
 }
 
 .main-site-logo svg {
@@ -746,6 +747,13 @@ div#mainnav {
     font-size: 1.2em;
 }
 
+.site-sub-name {
+    text-align: center;
+    color: #17331C;
+    margin-bottom: 0;
+    font-size: 0.8em;
+}
+
 .main-menu {
     display: flex;
     justify-content: space-between;
@@ -763,6 +771,17 @@ div#mainnav {
 .main-menu span.active {
     color: #F29469;
 }
+
+@media (max-width: 1100px) {
+    .site-name {
+        font-size: 1.1em !important;
+    }
+
+    .site-sub-name{
+        font-size: 0.8em !important;
+    }
+}
+
 
 @media (max-width: 768px) {
     div.header {

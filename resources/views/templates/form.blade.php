@@ -57,15 +57,15 @@
 
                 <div class="d-flex">
 
-                    <div class="col-sm-auto pt-2">
+                    <div class="col-sm-auto pt-2 d-flex justify-content-center">
                         <a id="advancedSearchButton" href="#advancedaccordion" data-toggle="collapse"><i class="fa fa-chevron-down"></i></a>
                     </div>
 
-                    <div class="col-sm-auto pl-0">
+                    <div class="col-sm-auto pl-0 pr-0">
                         <input type="text" class="form-control" name="fuzzyname" id="input" placeholder="Enter search">
                     </div>
 
-                    <div class="col-sm-auto pl-0 pr-0">
+                    <div class="col-sm-auto pl-0 pr-0 datasource-filter d-flex justify-content-center">
                         <select class="form-control" id="input-select-box" onchange="changeInput(this);">
                             <option value="containsname" selected="selected">Contains</option>
                             <option value="fuzzyname">Fuzzy</option>
@@ -92,15 +92,23 @@
                         <?php 
                             if($datasource->id == '1'){ //Ghap
                                 $background_color = 'background-color: #FFD580;';
-                            }else if($datasource->id == '2'){ //ANPS
+                            } else if($datasource->id == '2'){ //ANPS
                                 $background_color = 'background-color: orange;';
-                            }else if($datasource->id == '3'){ //NCG
+                            } else if($datasource->id == '3'){ //NCG
                                 $background_color = 'background-color: #FE6A1B;';
+                            }
+
+                            // Change GHAP to LAYER
+                            if($datasource->name == 'GHAP'){
+                                $datasource->name = 'LAYER';
+                                $remove_tooltip = true;
+                            } else {
+                                $remove_tooltip = false;
                             }
                         ?>
                         
-                        <label data-toggle="tooltip" title="{{ $datasource->description }}" class="d-flex mb-0 pr-1 mr-2" <?php if(isset($background_color)): echo 'style="'.$background_color.'"'; endif; ?>>
-                            <div class="pl-3 pr-1">
+                        <label data-toggle="tooltip" title="{{ $remove_tooltip ? '' : $datasource->description }}" class="d-flex mb-0 mr-2 datasource-filter btn" <?php if(isset($background_color)): echo 'style="'.$background_color.'"'; endif; ?>>
+                            <div class="pl-1 pr-1">
                                 {{ $datasource->name }}
                             </div>
                             <input type="checkbox" id="{{ $datasource->search_param_name }}" name="{{ $datasource->search_param_name }}" style="margin-top: 2px;" checked>

@@ -144,7 +144,7 @@
                 <div class="site-name">
                     Mapping Australian history and culture
                 </div>
-                <div class="site-name" style="font-size: 0.8em; margin-bottom:0">
+                <div class="site-sub-name">
                     We acknowledge the Traditional Owners of country and pay our respects to Elders past, present and emerging. <a href="{{ config('app.tlcmap_doc_url') }}/first-australians/" target="_blank" style="text-decoration: underline !important;">First Australians...</a>
                 </div>
             </div>
@@ -207,14 +207,14 @@
             </div>    
 
             @guest
-            <div class="w3-mobile w3-right">
+            <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
                 <a class="w3-bar-item w3-button w3-mobile" href="{{ url('login') }}">Log in</a>
             </div>
             <div class="w3-mobile w3-right">
                 <a class="w3-bar-item w3-button w3-mobile" href="{{ url('register') }}">Register</a>
             </div>
             @else
-            <div class="w3-mobile w3-right">
+            <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
                 <a class="w3-bar-item w3-button" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
             </div>
 
