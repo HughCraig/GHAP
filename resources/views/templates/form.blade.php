@@ -111,7 +111,7 @@
                             <div class="pl-1 pr-1">
                                 {{ $datasource->name }}
                             </div>
-                            <input type="checkbox" id="{{ $datasource->search_param_name }}" name="{{ $datasource->search_param_name }}" style="margin-top: 2px;" checked>
+                            <input type="checkbox" id="{{ $datasource->search_param_name }}" name="{{ $datasource->search_param_name }}" style="margin-top: 2px; cursor:pointer"  checked>
                         </label>
                     @endforeach
                 
