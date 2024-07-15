@@ -1,5 +1,14 @@
 var shapetype = "bbox";
 
+
+function showLoadingWheel() {
+    document.getElementById('loadingWheel').style.display = 'block';
+}
+
+function hideLoadingWheel() {
+    document.getElementById('loadingWheel').style.display = 'none';
+}
+
 /**
  * Download dataitems as csv.
  * Used for bbox scan of non-search results.
@@ -78,6 +87,20 @@ function removeOptionByText(selectElement, text) {
             return $(this).text() === text;
         })
         .remove();
+}
+
+function getDatasources() {
+    var datasources = [];
+    if ($("#searchausgaz").is(":checked")) {
+        datasources.push("2");
+    }
+    if ($("#searchncg").is(":checked")) {
+        datasources.push("3");
+    }
+    if ($("#searchpublicdatasets").is(":checked")) {
+        datasources.push("1");
+    }
+    return datasources;
 }
 
 /**
@@ -288,7 +311,7 @@ function getSearchFormData(names, tlcMap) {
         parish: $("#parish").val() || null,
         from: $("#from").val() || null,
         to: $("#to").val() || null,
-        format: $("#format").val() || null,
+        format: null,
         searchdescription: $("#searchdescription").is(":checked") ? "on" : null,
         download: $("#download").is(":checked") ? "on" : null,
         bbox: $("#bbox").val() || null,
@@ -316,9 +339,6 @@ function getSearchFormData(names, tlcMap) {
         // Trove style parameters
         name: $("#exactq").val() ? $("#exactq").val() : $("#name").val(),
         fuzzyname: $("#q").val() ? $("#q").val() : $("#fuzzyname").val(),
-        format: $("#encoding").val()
-            ? $("#encoding").val()
-            : $("#format").val(),
         paging: $("#n").val() || null,
         lga: $("#l-lga").val() ? $("#l-lga").val() : $("#lga").val(),
         state: $("#l-place").val() ? $("#l-place").val() : $("#state").val(),
@@ -536,17 +556,21 @@ function bindViewLinks() {
     });
 }
 
-function setListViewDisplayInfo(tlcMap) {
-    if (tlcMap.isSearchOn) {
-        const displayPlaces = Math.min(getNumPlaces(), tlcMap.dataitems.length);
+function setListViewDisplayInfo(pointsInMap, totalPoints, tlcMap) {
+    const displayPlaces = Math.min(getNumPlaces(), pointsInMap);
 
-        $("#display_info").text(
-            `Displaying ${displayPlaces} from a total of ${tlcMap.dataitems.length}`
-        );
+    if(totalPoints == null || totalPoints == undefined){
+        totalPoints = 0;
+    }
+
+    $("#display_info").text(
+        `Displaying ${displayPlaces} from a total of ${totalPoints}`
+    );
+
+    if (tlcMap.isSearchOn) {
         $("#save_search_count").val(tlcMap.dataitems.length);
         $(".shown_in_search").show();
     } else {
-        $("#display_info").text(` `);
         $(".shown_in_search").hide();
     }
 }
@@ -560,6 +584,7 @@ function setListViewDisplayInfo(tlcMap) {
 function continueSearchForm(tlcMap, names = null, defaultLocation = null) {
     const data = getSearchFormData(names, tlcMap);
     updateUrlParameters(data);
+    showLoadingWheel();
 
     $.ajax({
         type: "POST",
@@ -584,18 +609,24 @@ function continueSearchForm(tlcMap, names = null, defaultLocation = null) {
                     updateParameter("goto", defaultLocation.join(","));
                 }
 
-                setListViewDisplayInfo(tlcMap);
-
-                //Hide advanded search
-                window.scrollTo({
-                    top: document.body.scrollHeight,
-                    behavior: "smooth",
-                });
+                if (
+                    $(".typeFilter-map").is(":checked") ||
+                    $(".typeFilter-cluster").is(":checked")
+                ) {
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: "smooth",
+                    });
+                }
             } else {
-                alert("No pLaces found");
+                alert("No places found");
             }
+
+            hideLoadingWheel();
         },
         error: function (xhr, textStatus, errorThrown) {
+            alert('Your search has timed out on the server. Please refine your query.')
+            hideLoadingWheel();
             console.log(xhr.responseText);
         },
     });
@@ -726,8 +757,8 @@ function presetSearchForm() {
 
     if (urlParams.get("recordtype")) {
         $("#recordtype").val(urlParams.get("recordtype") || "");
-        $("#filter-place-type").show();
-        removeOptionByText($("#filterType"), "Place Type");
+        $("#filter-Place-Type").show();
+        removeOptionByText($("#filterType"), "Place-Type");
     }
 
     if (urlParams.get("searchlayers")) {
@@ -740,68 +771,62 @@ function presetSearchForm() {
         // Ensure the value ends with a semicolon
         $("#searchlayers").val(layerNames ? `${layerNames};` : "");
         $("#selected-layers").val(layerIds.join(","));
-        $("#filter-layers").show();
+        $("#filter-Layers").show();
         removeOptionByText($("#filterType"), "Layers");
     }
 
     if (urlParams.get("extended_data")) {
         $("#extended_data").val(urlParams.get("extended_data") || "");
-        $("#filter-extended-data").show();
-        removeOptionByText($("#filterType"), "Extended Data?");
+        $("#filter-Extended-Data").show();
+        removeOptionByText($("#filterType"), "Extended-Data");
     }
 
     //Auto complete fields
     if (urlParams.get("lga")) {
         $("#lga").val(urlParams.get("lga") || "");
-        $("#filter-lga").show();
+        $("#filter-LGA").show();
         removeOptionByText($("#filterType"), "LGA");
     }
 
     if (urlParams.get("state")) {
         $("#state").val(urlParams.get("state") || "");
-        $("#filter-state-territory").show();
-        removeOptionByText($("#filterType"), "State Territory");
+        $("#filter-State-Territory").show();
+        removeOptionByText($("#filterType"), "State-Territory");
     }
 
     if (urlParams.get("parish")) {
         $("#parish").val(urlParams.get("parish") || "");
-        $("#filter-parish").show();
+        $("#filter-Parish").show();
         removeOptionByText($("#filterType"), "Parish");
     }
     if (urlParams.get("feature_term")) {
         $("#feature_term").val(urlParams.get("feature_term") || "");
-        $("#filter-feature").show();
+        $("#filter-Feature").show();
         removeOptionByText($("#filterType"), "Feature");
     }
 
     if (urlParams.get("from")) {
         $("#from").val(urlParams.get("from") || "");
-        $("#filter-from-id").show();
-        removeOptionByText($("#filterType"), "From ID");
+        $("#filter-From-ID").show();
+        removeOptionByText($("#filterType"), "From-ID");
     }
 
     if (urlParams.get("to")) {
         $("#to").val(urlParams.get("to") || "");
-        $("#filter-to-id").show();
-        removeOptionByText($("#filterType"), "To ID");
+        $("#filter-To-ID").show();
+        removeOptionByText($("#filterType"), "To-ID");
     }
 
     if (urlParams.get("datefrom")) {
         $("#datefrom").val(urlParams.get("datefrom") || "");
-        $("#filter-date-from").show();
-        removeOptionByText($("#filterType"), "Date From");
+        $("#filter-Date-From").show();
+        removeOptionByText($("#filterType"), "Date-From");
     }
 
     if (urlParams.get("dateto")) {
         $("#dateto").val(urlParams.get("dateto") || "");
-        $("#filter-date-to").show();
-        removeOptionByText($("#filterType"), "Date To");
-    }
-
-    if (urlParams.get("format")) {
-        $("#format").val(urlParams.get("format") || "");
-        $("#filter-format").show();
-        removeOptionByText($("#filterType"), "Format");
+        $("#filter-Date-To").show();
+        removeOptionByText($("#filterType"), "Date-To");
     }
 
     //Drawing
@@ -822,10 +847,6 @@ function presetSearchForm() {
     // Set the number of places dropdown
     const numPlaces = urlParams.get("numPlaces") || "200";
     $(".num-places").val(numPlaces);
-}
-
-function scrollToTopFunction() {
-    window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 $(function () {
@@ -889,7 +910,7 @@ $(document).ready(async function () {
                     tlcMap.addPointsToMap(tlcMap.dataitems);
                     tlcMap.renderDataItems(tlcMap.dataitems);
                 } else {
-                    alert("No pLaces found");
+                    alert("No Places found");
                 }
             },
             error: function (xhr) {
@@ -920,25 +941,40 @@ $(document).ready(async function () {
         }
     }
 
-    setListViewDisplayInfo(tlcMap);
-
     bindDownloadLinks(tlcMap);
     bindFeedLinks();
     bindViewLinks();
 
     document.getElementById("addFilter").addEventListener("click", function () {
         var filterTypeSelect = document.getElementById("filterType");
-        var selectedFilter = filterTypeSelect.value
-            .toLowerCase()
-            .replace(/ /g, "-")
-            .replace(/\?/g, "");
-        var filterElement = document.getElementById("filter-" + selectedFilter);
+     
+        var filterElement = document.getElementById("filter-" + filterTypeSelect.value);
 
         if (filterElement) {
             filterElement.style.display = "flex";
             filterTypeSelect.options[filterTypeSelect.selectedIndex].remove();
             filterTypeSelect.selectedIndex = 0;
         }
+    });
+
+    document.querySelectorAll(".remove-filter-button").forEach(function (button) {
+        button.addEventListener("click", function () {
+            var filterRow = this.closest(".row.align-items-center.my-auto");
+            var filterType = filterRow.id.replace("filter-", "");
+            filterRow.style.display = "none";
+
+            // Clear values
+            filterRow.querySelectorAll("input, select").forEach(function (input) {
+                input.value = "";
+            });
+
+            // Add the option back to the select
+            var filterTypeSelect = document.getElementById("filterType");
+            var newOption = document.createElement("option");
+            newOption.value = filterType;
+            newOption.text = filterType.replace(/-/g, ' ');
+            filterTypeSelect.appendChild(newOption);
+        });
     });
 
     document.getElementById("mapdraw").addEventListener("click", function () {
@@ -1026,10 +1062,13 @@ $(document).ready(async function () {
         }
     });
 
+    $("#searchpublicdatasets, #searchausgaz, #searchncg").change(function () {
+        tlcMap.refreshMapPins();
+    });
+
     // Refresh map pins when number of places change
     $(".num-places").change(function () {
         tlcMap.refreshMapPins();
-        setListViewDisplayInfo(tlcMap);
     });
 
     $("#resetbutton").click(function (e) {
@@ -1039,7 +1078,6 @@ $(document).ready(async function () {
         tlcMap.graphicsLayer.removeAll();
 
         updateUrlParameters(null);
-        setListViewDisplayInfo(tlcMap);
 
         $("#input").val("");
         $("#searchdescription").prop("checked", false);
@@ -1056,7 +1094,6 @@ $(document).ready(async function () {
         $("#to").val("");
         $("#datefrom").val("");
         $("#dateto").val("");
-        $("#format").val("");
         $("#download").prop("checked", false);
 
         $("#bbox").val("");
@@ -1086,6 +1123,12 @@ $(document).ready(async function () {
 
         $("#input-select-box").val("containsname");
         document.getElementById("input").placeholder = "Enter place name";
+
+        $(".row.align-items-center.my-auto").each(function () {
+            if ($(this).css("display") === "flex") {
+                $(this).find(".remove-filter-button").click();
+            }
+        });
 
         // Reset bounding box and polygon coordinates
         changeShapeType("bbox");

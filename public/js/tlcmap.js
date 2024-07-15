@@ -14,11 +14,13 @@ class TLCMap {
         this.featureLayer = null;
         this.graphicsLayer = null;
 
+        this.totalBboxScanDataitems = null; // Total data items in the bounding box.
         this.bboxDataitems = null; // Data items from drag/zoom. not search results
-        this.dataitems = null; // The results data items.
+
+        this.isSearchOn = false; // True if the search is applied.
+        this.dataitems = null; // The search results data items.
 
         this.ignoreExtentChange = true; // Stop refreshing pins when the map extent changes.
-        this.isSearchOn = false; // True if the search is applied.
         this.placeMarkers = []; // User placed marker for add place.
 
         this.addModalMapPicker = addModalMapPicker;
@@ -387,9 +389,11 @@ class TLCMap {
                         maxLng: LatLongExtent.xmax,
                     };
 
+                    data.datasourceIDs = getDatasources();
+
                     if (this.isSearchOn && this.dataitems != null) {
-                        const filteredDateitems = this.sliceDataitemsByBbox(
-                            data.bbox
+                        const filteredDateitems = this.sliceDataitemsByBboxAndDatasources(
+                            data.bbox , data.datasourceIDs
                         );
                         const dataitemsInMap = selectRandomDataitems(
                             filteredDateitems,
@@ -399,7 +403,7 @@ class TLCMap {
                         this.addPointsToMap(dataitemsInMap, data.bbox);
                         this.renderDataItems(dataitemsInMap);
                     } else {
-                        this.updateMap(data);
+                        this.updateMapByBbox(data);
                     }
                 }
             });
@@ -907,7 +911,7 @@ class TLCMap {
         if (zoomLocation) {
             this.zoomTo(zoomLocation[0], zoomLocation[1]);
         } else {
-            this.zoomTo(131.034742, -25.345113, 5); //Australia
+            this.zoomTo(131.034742, -25.345113, 4); //Australia
         }
     }
 
@@ -987,6 +991,14 @@ class TLCMap {
                     this.ignoreExtentChange = false;
                 });
             }
+
+            if(this.isSearchOn){
+                var totalPoints = this.dataitems.length;   
+            }else{
+                var totalPoints = this.totalBboxScanDataitems;
+            }
+
+            setListViewDisplayInfo(dataitems.length , totalPoints , this);
         });
     }
 
@@ -1087,14 +1099,16 @@ class TLCMap {
      * Slice data items by the bounding box.
      *
      * @param {Object} bbox - Bounding box with minLat, minLng, maxLat, maxLng.
+     * @param {Array} datasourceIDs - Array of datasource IDs to filter by.
+     * 
      * @return {Array} - Array of data items within the bounding box.
      */
 
-    sliceDataitemsByBbox(bbox) {
-        if (!Array.isArray(this.dataitems) || bbox == null) {
+    sliceDataitemsByBboxAndDatasources(bbox , datasourceIDs) {
+        if (!Array.isArray(this.dataitems) || bbox == null || datasourceIDs == null || datasourceIDs.length == 0) {
             return [];
         }
-
+        
         var minLat = bbox.minLat;
         var minLng = bbox.minLng;
         var maxLat = bbox.maxLat;
@@ -1108,7 +1122,7 @@ class TLCMap {
                 item.latitude >= minLat &&
                 item.latitude <= maxLat &&
                 item.longitude >= minLng &&
-                item.longitude <= maxLng
+                item.longitude <= maxLng && datasourceIDs.includes(item.datasource.id.toString())
             ) {
                 res.push(item);
             }
@@ -1123,15 +1137,18 @@ class TLCMap {
      *
      * @param {Object} data - Data to send in the AJAX request.
      */
-    updateMap(data) {
+    updateMapByBbox(data) {
+        showLoadingWheel();
         $.ajax({
             type: "POST",
             url: bboxscan,
             data: data,
             success: (response) => {
                 this.bboxDataitems = response.dataitems;
+                this.totalBboxScanDataitems = response.count;
                 this.addPointsToMap(response.dataitems, data["bbox"]);
                 this.renderDataItems(response.dataitems);
+                hideLoadingWheel();
             },
             error: (xhr) => {
                 console.log(xhr.responseText);

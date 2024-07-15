@@ -78,6 +78,14 @@ class AjaxController extends Controller
         $maxLat = $request->bbox['maxLat'];
         $maxLng = $request->bbox['maxLng'];
 
+        $datasourceIDs = $request->datasourceIDs;
+
+        if( !isset($datasourceIDs)){
+            return response()->json([
+                'dataitems' => []
+            ]);
+        }
+
         $dataitems = Dataitem::searchScope()
             ->with(['dataset' => function ($q) {
                 $q->select('id', 'name', 'warning');
@@ -88,7 +96,8 @@ class AjaxController extends Controller
             ->where('latitude', '>=', $minLat)
             ->where('latitude', '<=', $maxLat)
             ->where('longitude', '>=', $minLng)
-            ->where('longitude', '<=', $maxLng);
+            ->where('longitude', '<=', $maxLng)
+            ->whereIn('datasource_id', $datasourceIDs);
 
         $count = $dataitems->count();
 
@@ -106,7 +115,8 @@ class AjaxController extends Controller
 
         // Return the data items as a JSON response
         return response()->json([
-            'dataitems' => $dataitems
+            'dataitems' => $dataitems,
+            'count' => $count
         ]);
     }
 

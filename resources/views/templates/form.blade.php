@@ -56,15 +56,25 @@
             <div class="d-flex justify-content-between" style="width: 100%; align-items:baseline">
 
                 <div class="d-flex">
-                    <div class="col-sm-auto">
+
+                    <div class="col-sm-auto pt-2">
+                        <a id="advancedSearchButton" href="#advancedaccordion" data-toggle="collapse"><i class="fa fa-chevron-down"></i></a>
+                    </div>
+
+                    <div class="col-sm-auto pl-0">
                         <input type="text" class="form-control" name="fuzzyname" id="input" placeholder="Enter search">
                     </div>
 
-                    <div class="col-sm-auto pt-2">
-                        <a id="advancedSearchButton" href="#advancedaccordion" data-toggle="collapse">Advanced Search <i class="fa fa-chevron-down"></i></a>
+                    <div class="col-sm-auto pl-0 pr-0">
+                        <select class="form-control" id="input-select-box" onchange="changeInput(this);">
+                            <option value="containsname" selected="selected">Contains</option>
+                            <option value="fuzzyname">Fuzzy</option>
+                            <option value="name">Exact Match</option>
+                            <option value="anps_id">anps_id</option>
+                        </select>
                     </div>
 
-                    <div class="col-sm-auto">
+                    <div class="col-sm-auto pl-0">
                         <button class="btn btn-primary" type="button" id="searchbutton">
                             Search <i class="fa fa-search"></i>
                         </button>
@@ -78,7 +88,26 @@
 
                 <div class="d-flex" style="align-items: center;">
 
-                    <div class="d-flex view-button" style="align-items: baseline;">
+                    @foreach ($datasources as $datasource)
+                        <?php 
+                            if($datasource->id == '1'){ //Ghap
+                                $background_color = 'background-color: #FFD580;';
+                            }else if($datasource->id == '2'){ //ANPS
+                                $background_color = 'background-color: orange;';
+                            }else if($datasource->id == '3'){ //NCG
+                                $background_color = 'background-color: #FE6A1B;';
+                            }
+                        ?>
+                        
+                        <label data-toggle="tooltip" title="{{ $datasource->description }}" class="d-flex mb-0 pr-1 mr-2" <?php if(isset($background_color)): echo 'style="'.$background_color.'"'; endif; ?>>
+                            <div class="pl-3 pr-1">
+                                {{ $datasource->name }}
+                            </div>
+                            <input type="checkbox" id="{{ $datasource->search_param_name }}" name="{{ $datasource->search_param_name }}" style="margin-top: 2px;" checked>
+                        </label>
+                    @endforeach
+                
+                    <div class="d-flex view-button pl-5" style="align-items: baseline;">
                         <label class="radio" id="radio-map">
                             <input type="radio" name="typeFilter" class="typeFilter-map">
                             <span class="label-body pl-1">Map</span>
@@ -98,7 +127,7 @@
                         <option value="200">200 places</option>
                         <option value="500">500 places</option>
                         <option value="2000">2000 places</option>
-                        <option value="ALL">All places</option>
+                        <option value="5000">5000 places</option>
                     </select>
                 </div>
             </div>
@@ -111,27 +140,8 @@
                 <div class="row" style="min-width: 75%;">
 
                     <div class="col-lg-6">
-                        <div class="row mt-4 justify-content-center">
-                            <div class="col-sm-auto">
-                                <select class="form-control" id="input-select-box" onchange="changeInput(this);">
-                                    <option value="containsname" selected="selected">Contains</option>
-                                    <option value="fuzzyname">Fuzzy</option>
-                                    <option value="name">Exact Match</option>
-                                    <option value="anps_id">anps_id</option>
-                                </select>
-                            </div>
-                            <div class="col-smauto pt-2">
-                                @foreach ($datasources as $datasource)
-                                <label data-toggle="tooltip" title="{{ $datasource->description }}">
-                                    {{ $datasource->name }}
-                                    <input type="checkbox" id="{{ $datasource->search_param_name }}" name="{{ $datasource->search_param_name }}" checked>
-                                </label>
-                                @endforeach
-                            </div>
-                        </div>
-
                         <div class="row">
-                            <div class="col-lg-6">
+                            <div class="col-lg-7">
                                 <!-- All filter section -->
                                 <p class="h4">
                                     Filters
@@ -142,18 +152,17 @@
                                 <div class="row align-items-center my-auto pb-4">
                                     <div class="col-sm-6">
                                         <select class="w3-white form-control" name="filterType" id="filterType">
-                                            <option label="Place Type" selected>Place Type</option>
+                                            <option label="Place Type" selected>Place-Type</option>
                                             <option label="Layers">Layers</option>
-                                            <option label="Extended Data?">Extended Data?</option>
+                                            <option label="Extended Data">Extended-Data</option>
                                             <option label="LGA">LGA</option>
-                                            <option label="State/Territory">State Territory</option>
+                                            <option label="State/Territory">State-Territory</option>
                                             <option label="Parish">Parish</option>
                                             <option label="Feature">Feature</option>
-                                            <option label="From ID">From ID</option>
-                                            <option label="To ID">To ID</option>
-                                            <option label="Date From">Date From</option>
-                                            <option label="Date To">Date To</option>
-                                            <option label="Format">Format</option>
+                                            <option label="From ID">From-ID</option>
+                                            <option label="To ID">To-ID</option>
+                                            <option label="Date From">Date-From</option>
+                                            <option label="Date To">Date-To</option>
                                         </select>
                                     </div>
                                     <div class="col-sm-6">
@@ -162,101 +171,122 @@
                                 </div>
 
                                 <div id="filtersContainer">
-                                    <div class="row align-items-center my-auto" id="filter-place-type" style="display: none;">
+                                    <div class="row align-items-center my-auto" id="filter-Place-Type" style="display: none;">
                                         <div class="col-sm-6">Place Type:</div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6 vertical-center">
                                             <select class="w3-white form-control" name="recordtype" id="recordtype">
                                                 <option label="" selected></option>
                                                 @foreach($recordtypes as $recordtype)
                                                 <option label="{{$recordtype->type}}">{{$recordtype->type}}</option>
                                                 @endforeach
                                             </select>
+                                            
+                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-layers" style="display: none;">
+                                    <div class="row align-items-center my-auto" id="filter-Layers" style="display: none;">
                                         <div class="col-sm-6">Layers:</div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" id="searchlayers" autocomplete="off">
                                             <input type="hidden" name="searchlayers" id="selected-layers">
+
+                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-extended-data" style="display: none;">
+                                    <div class="row align-items-center my-auto" id="filter-Extended-Data" style="display: none;">
                                         <div class="col-sm-6">
                                             <a href="https://tlcmap.org/help/guides/ghap-guide/" style="color: #000000; text-decoration: none;" target="_blank" data-toggle="tooltip" title="This enables nuanced search and map creation within layers and needs special syntax, see under 'Search' in the GHAP Guide.">Extended Data?</a>
                                         </div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" name="extended_data" id="extended_data" autocomplete="off">
+
+                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-lga" style="display: none;" data-toggle="tooltip" title="Local Government Area.">
+                                    <div class="row align-items-center my-auto" id="filter-LGA" style="display: none;" data-toggle="tooltip" title="Local Government Area.">
                                         <div class="col-sm-6">LGA:</div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" name="lga" id="lga" autocomplete="off">
+
+                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-state-territory" style="display: none;">
+                                    <div class="row align-items-center my-auto" id="filter-State-Territory" style="display: none;">
                                         <div class="col-sm-6">State/Territory:</div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6 vertical-center">
                                             <select class="w3-white form-control" name="state" id="state">
                                                 <option label="" selected></option>
                                                 @foreach($states as $state)
                                                 <option label="{{$state}}">{{$state}}</option>
                                                 @endforeach
                                             </select>
+
+                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-parish" style="display: none;">
+                                    <div class="row align-items-center my-auto" id="filter-Parish" style="display: none;">
                                         <div class="col-sm-6">Parish:</div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" name="parish" id="parish" autocomplete="off">
+
+                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-feature" style="display: none;" data-toggle="tooltip" title="Not all places are tagged with their feature for all states, so this will return only partial results for some areas.">
+                                    <div class="row align-items-center my-auto" id="filter-Feature" style="display: none;" data-toggle="tooltip" title="Not all places are tagged with their feature for all states, so this will return only partial results for some areas.">
                                         <div class="col-sm-6">Feature:</div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" name="feature_term" id="feature_term" autocomplete="off">
+
+                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-from-id" style="display: none;">
+                                    <div class="row align-items-center my-auto" id="filter-From-ID" style="display: none;">
                                         <div class="col-sm-6">From ID:</div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6 vertical-center">
                                             <input type="text" class="smallerinputs w3-white form-control" id="from" name="from">
+
+                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-to-id" style="display: none;">
+                                    <div class="row align-items-center my-auto" id="filter-To-ID" style="display: none;">
                                         <div class="col-sm-6">To ID:</div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" id="to" name="to">
+
+                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-date-from" style="display: none;" data-toggle="tooltip" title="Places without dates associated are not included.">
+                                    <div class="row align-items-center my-auto" id="filter-Date-From" style="display: none;" data-toggle="tooltip" title="Places without dates associated are not included.">
                                         <div class="col-sm-6">Date From:</div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6 vertical-center">
                                             <input type="text" class="smallerinputs w3-white form-control" id="datefrom" name="datefrom">
+
+                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
+                                            </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-date-to" style="display: none;">
+                                    <div class="row align-items-center my-auto" id="filter-Date-To" style="display: none;">
                                         <div class="col-sm-6">Date To:</div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" id="dateto" name="dateto">
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center my-auto" id="filter-format" style="display: none;">
-                                        <div class="col-sm-6">Format:</div>
-                                        <div class="col-sm-6">
-                                            <select name="format" class="w3-white form-control" id="format">
-                                                <option label=""></option>
-                                                <option label="Web Page">html</option>
-                                                <option label="KML">kml</option>
-                                                <option label="GeoJSON">json</option>
-                                                <option label="CSV Spreadsheet">csv</option>
-                                            </select>
+
+                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="col-lg-6" style="margin-top:6%">
+                            <div class="col-lg-5" style="margin-top:6%">
 
                                 <div class="row align-items-center my-auto mb-1">
                                     <div class="col-sm-7" data-toggle="tooltip">
@@ -465,7 +495,7 @@
                 @endguest
             </div>
 
-            <div class="form-group row shown_in_search">
+            <div class="form-group row">
                 <div class="col-xs-4">
                     <div class="p-3 w3-pale-blue" id="display_info">
                     </div>
@@ -478,6 +508,8 @@
 
     </div>
     <!-- END List Area Display -->
+
+    <div id="loadingWheel"></div>
 
     <!-- MODAL popup -->
     <!-- NB: this is the pop up content for a button above that opens it. This content needs to be place here outside of the main form, because it contains a form element

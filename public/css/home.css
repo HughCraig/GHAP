@@ -15,7 +15,7 @@ div.header {
 #mainsearchdiv {
     margin: 1% 0;
     display: flex;
-    padding: 0 3%;
+    padding: 0 1%;
     height: 4vh;
 }
 
@@ -102,3 +102,39 @@ div.header {
     }
 }
 
+
+#loadingWheel {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+    display: none;
+    z-index: 9999;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#filterType{
+    width: 110%;
+}
+
+.vertical-center{
+    display: flex;
+    align-items: center;
+}
+
+.remove-filter-button{
+    margin-left: 10px;
+    font-size:14px ; 
+    cursor: pointer;
+    margin-left: 5px;
+}
