@@ -317,7 +317,7 @@ function getSearchFormData(names, tlcMap) {
         to: $("#to").val() || null,
         format: null,
         searchdescription: $("#searchdescription").is(":checked") ? "on" : null,
-        download: $("#download").is(":checked") ? "on" : null,
+        download: null,
         bbox: $("#bbox").val() || null,
         polygon: $("#polygon").val() || null,
         chunks: $("#chunks").val() || null,
@@ -752,9 +752,6 @@ function presetSearchForm() {
             urlParams.get("searchdescription") === "on"
         );
     }
-    if (urlParams.has("download")) {
-        $("#download").prop("checked", urlParams.get("download") === "on");
-    }
 
     //TODO programatically show the used filter sections
     //TODO programatically remove the options
@@ -1098,7 +1095,6 @@ $(document).ready(async function () {
         $("#to").val("");
         $("#datefrom").val("");
         $("#dateto").val("");
-        $("#download").prop("checked", false);
 
         $("#bbox").val("");
         $("#polygon").val("");

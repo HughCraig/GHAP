@@ -100,7 +100,7 @@
 
                             // Change GHAP to LAYER
                             if($datasource->name == 'GHAP'){
-                                $datasource->name = 'LAYER';
+                                $datasource->name = 'Layers';
                                 $remove_tooltip = true;
                             } else {
                                 $remove_tooltip = false;
@@ -302,16 +302,6 @@
                                     </div>
                                     <div class="col-sm-5">
                                         <input type="checkbox" id="searchdescription" name="searchdescription">
-                                    </div>
-                                </div>
-
-                                <label for="download" class="download-label"></label>
-                                <div class="row align-items-center my-auto">
-                                    <div class="col-sm-7" data-toggle="tooltip" title="Download as a file instead of open in a browser window if you choose kml, csv or geojson.">
-                                        Download?
-                                    </div>
-                                    <div class="col-sm-5">
-                                        <input type="checkbox" id="download" name="download">
                                     </div>
                                 </div>
                             </div>
