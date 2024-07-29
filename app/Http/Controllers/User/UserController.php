@@ -2017,8 +2017,6 @@ class UserController extends Controller
              * when the csv only set route_ori_id.
              * When the csv only set route_ori_id, "route_ori_id" column must have value
              */
-            file_put_contents('my_custom_logger.log', "routeFields " . json_encode($routeFields) . PHP_EOL, FILE_APPEND);
-            file_put_contents('my_custom_logger.log', "routeindices " . json_encode($processedHeader['routeindices']) . PHP_EOL, FILE_APPEND);
             $specialColumns['route_ori_id'] = [
                 'index' => $processedHeader['routeindices']['route_ori_id'],
                 'mustBeEmpty' => false
@@ -2092,10 +2090,6 @@ class UserController extends Controller
             $isNewGhapId = substr($ghapId, 0, 1) !== 't';
 
             $isValidGhapId = in_array($ghapId, $allUids) || $isNewGhapId;
-            file_put_contents('my_custom_logger.log', "allUids " . json_encode($allUids) . PHP_EOL, FILE_APPEND);
-            file_put_contents('my_custom_logger.log', "new routeId " . json_encode(preg_match('/^[Nn]ew_route_[0-9]+$/', $routeId)) . PHP_EOL, FILE_APPEND);
-            file_put_contents('my_custom_logger.log', "ghapId " . json_encode($ghapId) . PHP_EOL, FILE_APPEND);
-            file_put_contents('my_custom_logger.log', "isValidGhapId " . json_encode($isValidGhapId) . PHP_EOL, FILE_APPEND);
             if ($isValidRouteId && $isValidGhapId) {
                 return ['status' => true];
             } else {
