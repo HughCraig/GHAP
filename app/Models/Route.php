@@ -76,70 +76,6 @@ class Route extends Model
     }
 
     /**
-     * Insert multiple records and retrieve the newly created model instances.
-     *
-     * This method performs a bulk insert of the given records and then retrieves
-     * the newly created model instances, maintaining the original order of the input data.
-     * It uses a single database query to insert and another to retrieve the records,
-     * making it more efficient than individual inserts.
-     *
-     * @param array $records An array of associative arrays, each representing a record to be inserted.
-     *                       Each record should have 'title', 'description', and 'dataset_id' keys.
-     * @return \Illuminate\Database\Eloquent\Collection A collection of the newly created model instances.
-     */
-    public static function insertAndRetrieve(array $records)
-    {
-        if (empty($records)) {
-            return collect();
-        }
-
-        $now = now();
-        $recordsWithTimestamps = array_map(function ($record) use ($now) {
-            $record['created_at'] = $now;
-            $record['updated_at'] = $now;
-            return $record;
-        }, $records);
-
-        self::insert($recordsWithTimestamps);
-
-        $placeholders = implode(',', array_fill(0, count($records), '(?,?,?)'));
-
-
-        $bindings = collect($records)->flatMap(function ($record) {
-            return [$record['title'], $record['description'], $record['dataset_id']];
-        })->all();
-
-        $query = "
-            WITH numbered AS (
-                SELECT *, ROW_NUMBER() OVER (
-                    PARTITION BY title, description, dataset_id
-                    ORDER BY id DESC
-                ) as row_num
-                FROM tlcmap.route
-                WHERE (title, description, dataset_id) IN ($placeholders)
-            ),
-            ordered_data(title, description, dataset_id, ord) AS (
-                VALUES " . implode(',', array_fill(0, count($records), '(?,?,?::bigint,?)')) . "
-            )
-            SELECT n.*
-            FROM numbered n
-            JOIN ordered_data od ON n.title = od.title
-                AND n.description = od.description
-                AND n.dataset_id = od.dataset_id
-            WHERE n.row_num = 1
-            ORDER BY od.ord
-        ";
-
-        $orderBindings = collect($records)->flatMap(function ($record, $index) {
-            return [$record['title'], $record['description'], $record['dataset_id'], $index];
-        })->all();
-
-        $bindings = array_merge($bindings, $orderBindings);
-
-        return self::hydrate(DB::select($query, $bindings));
-    }
-
-    /**
      * Calculate position values for one or more new or existing dataitems
      *
      * This method calculates the position values for dataitems to be inserted or moved within the route.
@@ -900,6 +836,9 @@ class Route extends Model
             if (!empty($cases[$field])) {
                 $updateClauses[] = "{$field} = CASE id " . implode(' ', $cases[$field]) . " ELSE {$field} END";
             }
+        }
+        if (empty($updateClauses)) {
+            return 0; // No update on route metadata
         }
 
         $sql = "UPDATE tlcmap.route SET " . implode(', ', $updateClauses) . " WHERE id IN (" . implode(',', $ids) . ")";

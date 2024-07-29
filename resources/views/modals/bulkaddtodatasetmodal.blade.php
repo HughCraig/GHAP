@@ -76,7 +76,7 @@
                                     <input type="radio" id="addNewPlaces" name="datasetPurpose" value="addNewPlaces">
                                     <label class="font-weight-normal" for="addNewPlaces">Add new places</label>
                                     <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
-                                        title="Add new places: Create new routes or insert into existing ones."></span>
+                                        title="Add new places: Add isolated existing places or new places into newly created routes or insert into them existing ones."></span>
                                 </div>
                                 <div>
                                     <input type="radio" id="reorderRoutes" name="datasetPurpose"

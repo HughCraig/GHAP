@@ -821,16 +821,20 @@ class UserController extends Controller
             $isMobility = false;
 
             // Handle quantity
-            if (!isset($culled_array["quantity"]) || empty(trim($culled_array["quantity"]))) {
-                $culled_array["quantity"] = null;
-            } else {
-                $isMobility = true;
+            if (isset($culled_array["quantity"])) {
+                if (!empty(trim($culled_array["quantity"]))) {
+                    $isMobility = true;
+                } else {
+                    $culled_array["quantity"] = null;
+                }
             }
 
-            if (!isset($culled_array["route_id"]) || empty(trim($culled_array["route_id"]))) {
-                $culled_array["route_id"] = null;
-            } else {
-                $isMobility = true;
+            if (isset($culled_array["route_id"])) {
+                if (!empty(trim($culled_array["route_id"]))) {
+                    $isMobility = true;
+                } else {
+                    $culled_array["route_id"] = null;
+                }
             }
 
             if ($isMobility) {
@@ -1738,21 +1742,20 @@ class UserController extends Controller
         $routeColsConfigs = [
             "addNewPlaces" => [
                 "requiredCols" => ['route_id', 'route_ori_id'],
-                // "forbiddenCols" => ['ghap_id', 'origin_ghap_id', 'destination_ghap_id'],
-                "forbiddenCols" => ['ghap_id', 'origin_ghap_id', 'destination_ghap_id'],
-                "requireEither" => true
+                "forbiddenCols" => [],
+                "requireExclusice" => true
             ],
             "reorderRoutes" => [
                 // "requiredCols" => ['route_id', 'ghap_id', 'origin_ghap_id', 'destination_ghap_id'],
                 "requiredCols" => ['route_id', 'ghap_id'],
                 "forbiddenCols" => ['route_ori_id'],
-                "requireEither" => false
+                "requireExclusice" => false
             ],
             "reorganizeRoutes" => [
                 // "requiredCols" => ['route_id', 'ghap_id', 'origin_ghap_id', 'destination_ghap_id'],
-                "requiredCols" => ['route_id', 'ghap_id', 'origin_ghap_id', 'destination_ghap_id'],
+                "requiredCols" => ['route_id', 'ghap_id'],
                 "forbiddenCols" => ['route_ori_id'],
-                "requireEither" => false
+                "requireExclusice" => false
             ]
         ];
 
@@ -1761,32 +1764,20 @@ class UserController extends Controller
         }
         $routeColsConfigs = $routeColsConfigs[$routePurpose];
         $optionalRouteCols = ['stop_idx', 'route_title', 'route_description'];
+        if ($routePurpose === "addNewPlaces") {
+            $optionalRouteCols[] = 'ghap_id';
+        }
         $routeCols = array_merge($routeColsConfigs['requiredCols'], $optionalRouteCols);
 
         if ($pointBasedUpload) {
-            $allPrefixes = array_merge($this->originPrefixes, $this->destintionPrefixes);
-            $hasPrefixes = function ($column) use ($allPrefixes) {
-                foreach ($allPrefixes as $prefix) {
-                    if (strpos($column, $prefix) === 0) {
-                        return true;
-                    }
-                }
-                return false;
-            };
-            $routeColsConfigs['requiredCols'] = array_filter($routeColsConfigs['requiredCols'], function ($col) use ($hasPrefixes) {
-                return !$hasPrefixes($col);
-            });
-            $routeColsConfigs['forbiddenCols'] = array_filter($routeColsConfigs['forbiddenCols'], function ($col) use ($hasPrefixes) {
-                return !$hasPrefixes($col);
-            });
             $routeCols = array_merge($routeColsConfigs['requiredCols'], $optionalRouteCols);
             $routeColsIndices = $this->findColumnIndices($processedHeader, $routeCols);
-            $this->validateCsvRouteHeaders($routeColsIndices, $routeColsConfigs, $pointBasedUpload, $routePurpose);
+            $this->validateCsvRouteHeaders($processedHeader, $routeColsConfigs, $pointBasedUpload, $routePurpose);
         } else {
             $originRouteColsIndices = $this->findPairColumnIndices($processedHeader['origin'], $routeCols);
             $destinationRouteColsIndices = $this->findPairColumnIndices($processedHeader['destination'], $routeCols);
-            $this->validateCsvRouteHeaders($originRouteColsIndices, $routeColsConfigs, $routePurpose, 'origin');
-            $this->validateCsvRouteHeaders($destinationRouteColsIndices, $routeColsConfigs, $routePurpose, 'destination');
+            $this->validateCsvRouteHeaders(array_keys($processedHeader['origin']), $routeColsConfigs, $routePurpose, 'origin');
+            $this->validateCsvRouteHeaders(array_keys($processedHeader['destination']), $routeColsConfigs, $routePurpose, 'destination');
             $routeColsIndices = [
                 'origin' => $originRouteColsIndices,
                 'destination' => $destinationRouteColsIndices
@@ -1836,15 +1827,15 @@ class UserController extends Controller
     /**
      * Validate CSV route headers against the configuration.
      *
-     * @param array $routeColsIndices The route column indices
+     * @param array $allCols All columns related to the point within the route in CSV
      * @param array $config The configuration for the route purpose
      * @param string $routePurpose The purpose of the route
      * @param string $pointType The point type (origin or destination) for pair-based uploads
      * @throws \RuntimeException If validation fails
      */
-    private function validateCsvRouteHeaders(array $routeColsIndices, array $config, string $routePurpose, string $pointType = ''): void
+    private function validateCsvRouteHeaders(array $allCols, array $config, string $routePurpose, string $pointType = ''): void
     {
-        $allCols = array_keys($routeColsIndices);
+        // $allCols = array_keys($routeColsIndices);
 
         // Check forbidden columns
         $forbiddenColsPresent = array_intersect($config['forbiddenCols'], $allCols);
@@ -1853,10 +1844,15 @@ class UserController extends Controller
         }
 
         // Check required columns
-        if ($config['requireEither']) {
-            $hasRequiredCol = !empty(array_intersect($config['requiredCols'], $allCols));
-            if (!$hasRequiredCol) {
-                $this->throwCsvRouteHeaderError("Missing required route columns", $config['requiredCols'], $routePurpose, $pointType, " or ");
+        if ($config['requireExclusice']) {
+            $intersection = array_intersect($config['requiredCols'], $allCols);
+            $intersectionCount = count($intersection);
+            if ($intersectionCount !== 1) {
+                if ($intersectionCount === 0) {
+                    $this->throwCsvRouteHeaderError("Missing required route column", $config['requiredCols'], $routePurpose, $pointType, " or ");
+                } else {
+                    $this->throwCsvRouteHeaderError("Only one of the required route columns should be present", $config['requiredCols'], $routePurpose, $pointType, " or ");
+                }
             }
         } else {
             $missingCols = array_diff($config['requiredCols'], $allCols);
@@ -1966,31 +1962,17 @@ class UserController extends Controller
             $routeIdIndex = isset($processedHeader['routeindices']['route_id'])
                 ? $processedHeader['routeindices']['route_id']
                 : null;
-            $routeOriIdIndex = isset($processedHeader['routeindices']['route_ori_id'])
-                ? $processedHeader['routeindices']['route_ori_id']
-                : null;
 
-            return function ($row) use ($routeIds, $routeIdIndex, $routeOriIdIndex) {
+            return function ($row) use ($routeIds, $routeIdIndex) {
                 $hasNonEmptyValue = false;
-                $foundValues = [];
-                $hasRouteOriId = $routeOriIdIndex !== null;
-
-                // either "route_id" or "route_ori_id" should have a valid value
-                $indicesToCheck = [$routeIdIndex => 'routeId'];
-                if ($hasRouteOriId) {
-                    $indicesToCheck[$routeOriIdIndex] = 'routeOriId';
-                }
+                $routeIdValue = null;
 
                 foreach ($row as $index => $value) {
                     $trimmedValue = trim($value);
                     if ($trimmedValue !== '' && $trimmedValue !== ',') {
                         $hasNonEmptyValue = true;
-                        $fieldName = isset($indicesToCheck[$index]) ? $indicesToCheck[$index] : false;
-
-                        if ($fieldName !== false) {
-                            $foundValues[$fieldName] = $trimmedValue;
-                        }
-                        if ($hasNonEmptyValue && count($foundValues) === count($indicesToCheck)) {
+                        if ($index === $routeIdIndex) {
+                            $routeIdValue = $trimmedValue;
                             break;
                         }
                     }
@@ -2000,27 +1982,24 @@ class UserController extends Controller
                     return ['status' => true, 'error' => 'Empty row'];
                 }
 
-                if (!isset($foundValues['routeId'])) {
-                    if ($hasRouteOriId) {
-                        if (!isset($foundValues['routeOriId'])) {
-                            return ['status' => false, 'error' => 'Missing route_ori_id or route_id'];
-                        }
-                    } else {
-                        return ['status' => false, 'error' => 'Missing route_id'];
-                    }
-                } else {
-                    if (!in_array($foundValues['routeId'], $routeIds)) {
-                        return ['status' => false, 'error' => 'Invalid route_id'];
-                    }
+                if ($routeIdValue === null) {
+                    return ['status' => false, 'error' => 'Missing route_id'];
+                }
+
+                if (!in_array($routeIdValue, $routeIds)) {
+                    return ['status' => false, 'error' => 'Invalid route_id'];
                 }
 
                 return ['status' => true];
             };
-        } else {
+        } elseif (
+            isset($processedHeader['routeindices']['route_ori_id']) && !isset($processedHeader['routeindices']['ghap_id'])
+        ) {
             /**
              * $processedHeader['routeindices']['route_ori_id'] must have index, otherwise it must have thrown error when processing CSV headers
              * when the csv only set route_ori_id.
-             * When the csv only set route_ori_id, "route_ori_id" column must have value
+             * When the csv set route_ori_id, "route_ori_id" column would be the only column for identifier of (new) route,
+             * so it must have value
              */
             $specialColumns['route_ori_id'] = [
                 'index' => $processedHeader['routeindices']['route_ori_id'],
@@ -2028,6 +2007,54 @@ class UserController extends Controller
             ];
             return function ($row) use ($specialColumns) {
                 return $this->validateRowWithSpecialColumns($row, $specialColumns);
+            };
+        } elseif (isset($processedHeader['routeindices']['ghap_id'])) {
+            //When the csv has route_ori_id + ghap_id, the place having the uid (ghap_id) must not have route_id in DB (It must be an isolated place)
+            $routeOriIdIndex = $processedHeader['routeindices']['route_ori_id'];
+            $ghapIdIndex = $processedHeader['routeindices']['ghap_id'];
+
+            $isolatedPlaceGhapIds = $dataset->getUIDsOfIsolatedPlaces()->flip()->all();
+
+            return function ($row) use ($routeOriIdIndex, $ghapIdIndex, $isolatedPlaceGhapIds) {
+                $hasNonEmptyValue = false;
+                $routeOriIdValue = null;
+                $ghapIdValue = null;
+
+                foreach ($row as $index => $value) {
+                    $trimmedValue = trim($value);
+                    if ($trimmedValue !== '' && $trimmedValue !== ',') {
+                        $hasNonEmptyValue = true;
+                        if ($index === $routeOriIdIndex) {
+                            $routeOriIdValue = $trimmedValue;
+                        } elseif ($index === $ghapIdIndex) {
+                            $ghapIdValue = $trimmedValue;
+                        }
+                        if ($routeOriIdValue !== null && $ghapIdValue !== null) {
+                            break;
+                        }
+                    }
+                }
+
+                if (!$hasNonEmptyValue) {
+                    return ['status' => true, 'error' => 'Empty row'];
+                }
+
+                if (empty($routeOriIdValue)) {
+                    return [
+                        'status' => false,
+                        'error' => "Column 'route_ori_id' must not be empty but is empty.",
+                        'stopProcess' => true
+                    ];
+                }
+                if (!isset($isolatedPlaceGhapIds[$ghapIdValue])) {
+                    return [
+                        'status' => false,
+                        'error' => "Place with ghap_id '{$ghapIdValue}' is not an isolated place or does not exist.",
+                        'stopProcess' => true
+                    ];
+                }
+
+                return ['status' => true];
             };
         }
     }
@@ -2708,12 +2735,23 @@ class UserController extends Controller
             $newRoutesData = $indexedRoutes->map(function ($route) use ($ds_id) {
                 return [
                     'title' => $route['title'],
-                    'description' => $route['description'],
+                    'description' => $route['description'] ?? null,
                     'dataset_id' => $ds_id,
                 ];
             })->toArray();
 
-            $createdRoutes = Route::insertAndRetrieve($newRoutesData);
+            /**
+             * NOTE: This is not an ideal practice for large datasets as it inserts routes one by one,
+             * which can be slow when dealing with a large number of records.
+             * If possible, consider upgrading to a newer version of Laravel that supports createMany(),
+             * which would allow for more efficient bulk insertion.
+             *
+             * @todo Replace this loop with createMany() when upgrading to a compatible Laravel version.
+             */
+            $createdRoutes = collect();
+            foreach ($newRoutesData as $routeData) {
+                $createdRoutes->push(Route::create($routeData));
+            }
 
             // Update $indexedRoutes, add new IDs and update dataitems
             $indexedRoutes = $indexedRoutes->map(function ($route, $index) use ($createdRoutes) {

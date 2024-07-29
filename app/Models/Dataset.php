@@ -2209,6 +2209,23 @@ class Dataset extends Model
     }
 
     /**
+     * Get ghap_ids of places that are not associated with any route
+     *
+     * This function retrieves all ghap_ids from the dataitems
+     * associated with the current dataset where the route_id is null.
+     *
+     * @return \Illuminate\Support\Collection A collection of ghap_ids
+     *
+     */
+    public function getUIDsOfIsolatedPlaces()
+    {
+        return $this->dataitems()
+            ->whereNull('route_id')
+            ->pluck('uid')
+            ->values();
+    }
+
+    /**
      * Get dataitems grouped by route_id as strings, including max stop_idx and all related uids
      *
      * This function retrieves all dataitems with non-null route_id from the current dataset,
@@ -2219,11 +2236,9 @@ class Dataset extends Model
      * Example return value:
      * [
      *     1 => [
-     *         'max_stop_idx' => 5,
      *         'uids' => ['abc123', 'def456', 'ghi789']
      *     ],
      *     2 => [
-     *         'max_stop_idx' => 3,
      *         'uids' => ['jkl012', 'mno345']
      *     ],
      *     // More routes...
@@ -2238,14 +2253,18 @@ class Dataset extends Model
 
         return DB::query()
             ->fromSub($baseQuery, 'derived_table')
-            ->select('derived_table.route_id', 'derived_table.uid', 'derived_table.stop_idx')
+            ->select(
+                'derived_table.route_id',
+                // 'derived_table.stop_idx',
+                'derived_table.uid'
+            )
             ->get()
             ->groupBy(function ($item) {
                 return (string) $item->route_id;
             })
             ->map(function ($group) {
                 return [
-                    'max_stop_idx' => $group->max('stop_idx'),
+                    // 'max_stop_idx' => $group->max('stop_idx'),
                     'uids' => $group->pluck('uid')->unique()->values()->all()
                 ];
             })
