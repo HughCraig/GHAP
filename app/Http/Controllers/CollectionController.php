@@ -2,6 +2,7 @@
 
 namespace TLCMap\Http\Controllers;
 
+use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use TLCMap\Http\Controllers\GazetteerController;
@@ -32,28 +33,14 @@ class CollectionController extends Controller
         $collectionsHasMobInfo = [];
 
         foreach ($collections as $collection) { // Only show public datasets.
-            $datasets = $collection->datasets()->where('public', 1)->get();
 
-            // Get mobility existence of datasets
-            $dsHasMobInfo = [];
-            foreach ($datasets as $ds) {
-                array_push($dsHasMobInfo, $ds->has_quantity || $ds->has_route);
-            }
+            [
+                'datasetsHasMobInfo' => $dsHasMobInfo,
+                'savedSearchesHasMobInfo' => $ssHasMobInfo,
+                'collectionHasMobInfo' => $collHasMobInfo
+            ] = self::getPublicCollectionMobilityInfo($request, $collection);
 
-            // Get mobility existence of saved searches
-            $savedSearches = $collection->savedSearches;
-            $ssHasMobInfo = [];
-            foreach ($savedSearches as $ss) {
-                $queryParameters = [];
-                parse_str(parse_url($ss->query, PHP_URL_QUERY), $queryParameters);
-                $queryParameters['savedSearch'] = true;
-                $ssResults = (new GazetteerController())->search(new Request($queryParameters));
-                array_push($ssHasMobInfo, $ssResults['hasmobinfo']);
-            }
-            array_push(
-                $collectionsHasMobInfo,
-                in_array(true, $dsHasMobInfo, true) || in_array(true, $ssHasMobInfo, true)
-            );
+            array_push($collectionsHasMobInfo, $collHasMobInfo);
         }
 
         return view('ws.ghap.publiccollections', [
@@ -81,29 +68,16 @@ class CollectionController extends Controller
         // Only show public datasets.
         $datasets = $collection->datasets()->where('public', 1)->get();
 
-        // Get mobility existence of datasets
-        $dsHasMobInfo = [];
-        foreach ($datasets as $ds) {
-            array_push($dsHasMobInfo, $ds->has_quantity || $ds->has_route);
-        }
-
-        // Get mobility existence of saved searches
-        $savedSearches = $collection->savedSearches;
-        $ssHasMobInfo = [];
-        foreach ($savedSearches as $ss) {
-            $queryParameters = [];
-            parse_str(parse_url($ss->query, PHP_URL_QUERY), $queryParameters);
-            $queryParameters['savedSearch'] = true;
-            $ssResults = (new GazetteerController())->search(new Request($queryParameters));
-            array_push($ssHasMobInfo, $ssResults['hasmobinfo']);
-        }
-
-        $collectionHasMobInfo = (in_array(true, $dsHasMobInfo, true) || in_array(true, $ssHasMobInfo, true));
+        [
+            'datasetsHasMobInfo' => $dsHasMobInfo,
+            'savedSearchesHasMobInfo' => $ssHasMobInfo,
+            'collectionHasMobInfo' => $collHasMobInfo
+        ] = self::getPublicCollectionMobilityInfo($request, $collection);
 
         return view('ws.ghap.publiccollection', [
             'collection' => $collection,
             'datasets' => $datasets,
-            'collectionHasMobInfo' => $collectionHasMobInfo,
+            'collectionHasMobInfo' => $collHasMobInfo,
             'datasetsHasMobInfo' => $dsHasMobInfo,
             'savedSearchesHasMobInfo' => $ssHasMobInfo,
         ]);
@@ -148,40 +122,114 @@ class CollectionController extends Controller
             $queryString = '?line=' . $request->input('line');
         } elseif (!empty($request->input('sort'))) {
             $queryString = '?sort=' . $request->input('sort');
-        } elseif (!empty($request->input('mobility'))) {
-            $queryString = '?mobility=' . $request->input('mobility');
         }
 
-        $data['datasets'] = [];
+        if (!empty($request->input('mobility'))) {
+            $displayMode = $request->input('mobility');
+            $queryString = '?mobility=' . $displayMode;
+            // check whether each layer/saved search is qualified for mobility/mobility time start/mobility time end JSON request
+            [
+                'datasetsHasMobInfo' => $dsHasMobInfo,
+                'savedSearchesHasMobInfo' => $ssHasMobInfo,
+                'collectionHasMobInfo' => $collHasMobInfo
+            ] = self::getPublicCollectionMobilityInfo($request, $collection);
 
-        $datasets = $collection->datasets()->where('public', true)->get();
-        if (!empty($datasets) && count($datasets) > 0) {
-            foreach ($datasets as $dataset) {
-                // Set dataset config.
-                $datasetConfig = new DatasetConfig();
-                $datasetConfig->enableListPaneColor();
-                $datasetConfig->setListPaneContent(GhapConfig::createDatasetListPaneContent($dataset));
+            $data['datasets'] = [];
+            $datasets = $collection->datasets()->where('public', true)->get();
+            if (!empty($datasets) && count($datasets) > 0) {
+                foreach ($datasets as $index => $dataset) {
+                    // Set dataset config.
+                    $datasetConfig = new DatasetConfig();
+                    $datasetConfig->enableListPaneColor();
+                    $datasetConfig->setListPaneContent(GhapConfig::createDatasetListPaneContent($dataset));
+                    $dsQueryString = "";
+                    if (isset($dsHasMobInfo[$index])) {
+                        switch ($displayMode) {
+                            case 'route':
+                                if ($dsHasMobInfo[$index]['default']) {
+                                    $dsQueryString = $queryString;
+                                }
+                                break;
+                            case 'timestart':
+                                if ($dsHasMobInfo[$index]['hasrouteiddatestart']) {
+                                    $dsQueryString = $queryString;
+                                }
+                                break;
+                            case 'timeend':
+                                if ($dsHasMobInfo[$index]['hasrouteiddateend']) {
+                                    $dsQueryString = $queryString;
+                                }
+                                break;
+                        }
+                    }
 
-                $data['datasets'][] = [
-                    'name' => $dataset->name,
-                    'jsonURL' => url("layers/{$dataset->id}/json{$queryString}"),
-                    'display' => $datasetConfig->toArray(),
-                ];
+                    $data['datasets'][] = [
+                        'name' => $dataset->name,
+                        'jsonURL' => url("layers/{$dataset->id}/json{$dsQueryString}"),
+                        'display' => $datasetConfig->toArray(),
+                    ];
+                }
             }
-        }
-        $savedSearches = $collection->savedSearches;
-        if ($savedSearches && count($savedSearches) > 0) {
-            foreach ($savedSearches as $savedSearch) {
-                // Set saved search config.
-                $savedSearchConfig = new DatasetConfig();
-                $savedSearchConfig->enableListPaneColor();
-                $savedSearchConfig->setListPaneContent(GhapConfig::createSavedSearchListPaneContent($savedSearch));
+            $savedSearches = $collection->savedSearches;
 
-                $data['datasets'][] = [
-                    'name' => $savedSearch->name,
-                    'jsonURL' => url("/places" . $savedSearch->query . '&format=json' . '&' . substr($queryString, 1) . "&requestFrom=multilayers"),
-                    'display' => $savedSearchConfig->toArray(),
-                ];
+            if ($savedSearches && count($savedSearches) > 0) {
+                foreach ($savedSearches as $index => $savedSearch) {
+                    // Set saved search config.
+                    $savedSearchConfig = new DatasetConfig();
+                    $savedSearchConfig->enableListPaneColor();
+                    $savedSearchConfig->setListPaneContent(GhapConfig::createSavedSearchListPaneContent($savedSearch));
+                    $ssQueryString = "";
+                    if (isset($ssHasMobInfo[$index])) {
+                        switch ($displayMode) {
+                            case 'route':
+                                if ($ssHasMobInfo[$index]['default']) {
+                                    $ssQueryString = substr($queryString, 1);
+                                }
+                                break;
+                            case 'timestart':
+                                if ($ssHasMobInfo[$index]['hasrouteiddatestart']) {
+                                    $ssQueryString = substr($queryString, 1);
+                                }
+                                break;
+                            case 'timeend':
+                                if ($ssHasMobInfo[$index]['hasrouteiddateend']) {
+                                    $ssQueryString = substr($queryString, 1);
+                                }
+                                break;
+                        }
+                    }
+                    $data['datasets'][] = [
+                        'name' => $savedSearch->name,
+                        'jsonURL' => url("/places" . $savedSearch->query . '&format=json&mapping=true' . '&' . $ssQueryString . "&requestFrom=multilayers"),
+                        'display' => $savedSearchConfig->toArray(),
+                    ];
+                }
+            }
+        } else {
+            $data['datasets'] = [];
+            $datasets = $collection->datasets()->where('public', true)->get();
+            if (!empty($datasets) && count($datasets) > 0) {
+                foreach ($datasets as $dataset) {
+                    // Set dataset config.
+                    $datasetConfig = new DatasetConfig();
+                    $datasetConfig->enableListPaneColor();
+                    $datasetConfig->setListPaneContent(GhapConfig::createDatasetListPaneContent($dataset));
+
+                    $data['datasets'][] = [
+                        'name' => $dataset->name,
+                        'jsonURL' => url("layers/{$dataset->id}/json{$queryString}"),
+                        'display' => $datasetConfig->toArray(),
+                    ];
+                }
+            }
+            $savedSearches = $collection->savedSearches;
+            if ($savedSearches && count($savedSearches) > 0) {
+                foreach ($savedSearches as $savedSearch) {
+                    $data['datasets'][] = [
+                        'name' => $savedSearch->name,
+                        'jsonURL' => url("/places" . $savedSearch->query . '&format=json' . '&' . substr($queryString, 1)),
+                    ];
+                }
             }
         }
 
@@ -191,6 +239,87 @@ class CollectionController extends Controller
         }
 
         return response()->json($data);
+    }
+
+    /**
+     * Get mobility information for the collection.
+     *
+     * This function retrieves and processes mobility information for a given collection,
+     * including its public datasets and saved searches. It uses session storage to cache
+     * the results for improved performance.
+     *
+     * @param Request $request The current HTTP request
+     * @param Collection $collection The collection to process
+     *
+     * @return array An associative array containing:
+     *               - 'datasetsHasMobInfo': Array of mobility info for public datasets
+     *               - 'savedSearchesHasMobInfo': Array of mobility info for saved searches
+     *               - 'collectionHasMobInfo': Array of aggregated mobility info for the collection
+     */
+    private static function getPublicCollectionMobilityInfo(Request $request, $collection)
+    {
+        $collectionID = $collection->id;
+        $sessionKey = "collection_{$collectionID}_mob_info";
+        if (
+            isset($sessionData['datasetsHasMobInfo']) &&
+            isset($sessionData['savedSearchesHasMobInfo']) &&
+            isset($sessionData['collectionHasMobInfo'])
+        ) {
+            $dsHasMobInfo = $sessionData['datasetsHasMobInfo'];
+            $ssHasMobInfo = $sessionData['savedSearchesHasMobInfo'];
+            $collHasMobInfo = $sessionData['collectionHasMobInfo'];
+        } else {
+            // Clear cache
+            $request->session()->forget($sessionKey);
+            // Get mobility existence of datasets
+            $datasets = $collection->datasets()->where('public', 1)->get();
+            $dsHasMobInfo = [];
+            foreach ($datasets as $ds) {
+                array_push($dsHasMobInfo, $ds->getMappingMobilityInfo());
+            }
+
+            // Get mobility existence of saved searches
+            $savedSearches = $collection->savedSearches;
+            $ssHasMobInfo = [];
+            foreach ($savedSearches as $ss) {
+                $queryParameters = [];
+                parse_str(parse_url($ss->query, PHP_URL_QUERY), $queryParameters);
+                $queryParameters['savedSearch'] = true;
+                $ssResults = (new GazetteerController())->search(new Request($queryParameters));
+                array_push($ssHasMobInfo, $ssResults['hasmobinfo']);
+            }
+
+            // Get mobility existence of collections
+            $collHasMobInfo = [
+                'default' => false,
+                'hasrouteiddatestart' => false,
+                'hasrouteiddateend' => false
+            ];
+            foreach ($collHasMobInfo as $key => &$value) {
+                foreach (array_merge($dsHasMobInfo, $ssHasMobInfo) as $mobInfo) {
+                    if (isset($mobInfo[$key]) && $mobInfo[$key] === true) {
+                        $value = true;
+                        break;
+                    }
+                }
+                if ($value === true) {
+                    continue;
+                }
+            }
+
+            $request->session()->put($sessionKey, [
+                'datasetsHasMobInfo' => $dsHasMobInfo,
+                'savedSearchesHasMobInfo' => $ssHasMobInfo,
+                'collectionHasMobInfo' => $collHasMobInfo
+            ]);
+        }
+
+
+        return [
+            'datasetsHasMobInfo' => $dsHasMobInfo,
+            'savedSearchesHasMobInfo' => $ssHasMobInfo,
+            'collectionHasMobInfo' => $collHasMobInfo
+        ];
     }
 
     /**
@@ -376,30 +505,20 @@ class CollectionController extends Controller
         }
 
         // Get all datasets in the collection
-        $datasets = $collection->datasets()->get();
-
-        // Get mobility existence of datasets
-        $dsHasMobInfo = [];
-        foreach ($datasets as $ds) {
-            array_push($dsHasMobInfo, $ds->has_quantity || $ds->has_route);
-        }
-
-        // Get mobility existence of saved searches
-        $savedSearches = $collection->savedSearches;
-        $ssHasMobInfo = [];
-        foreach ($savedSearches as $ss) {
-            $queryParameters = [];
-            parse_str(parse_url($ss->query, PHP_URL_QUERY), $queryParameters);
-            $queryParameters['savedSearch'] = true;
-            $ssResults = (new GazetteerController())->search(new Request($queryParameters));
-            array_push($ssHasMobInfo, $ssResults['hasmobinfo']);
-        }
-
-        $collectionHasMobInfo = (in_array(true, $dsHasMobInfo, true) || in_array(true, $ssHasMobInfo, true));
+        /**
+         * Ivy's note:
+         *    Only the public dataset can use the mappint functionality. as mobility information is collected for dataset mapping,
+         *    public datasets are called here.
+         **/
+        [
+            'datasetsHasMobInfo' => $dsHasMobInfo,
+            'savedSearchesHasMobInfo' => $ssHasMobInfo,
+            'collectionHasMobInfo' => $collHasMobInfo
+        ] = self::getPublicCollectionMobilityInfo($request, $collection);
 
         return view('user.userviewcollection', [
             'collection' => $collection,
-            'collectionHasMobInfo' => $collectionHasMobInfo,
+            'collectionHasMobInfo' => $collHasMobInfo,
             'datasetsHasMobInfo' => $dsHasMobInfo,
             'savedSearchesHasMobInfo' => $ssHasMobInfo,
         ]);
@@ -621,7 +740,7 @@ class CollectionController extends Controller
         $response = [
             'id' => $dataset->id,
             'name' => $dataset->name,
-            'size' => count($dataset->dataitems),
+            'size' => $dataset->getDataitemsCount(),
             'type' => $dataset->recordtype->type,
             'warning' => $dataset->warning,
             'contributor' => $dataset->ownerName() . ($dataset->owner() === Auth::user()->id ? ' (You) ' : ''),
@@ -720,7 +839,7 @@ class CollectionController extends Controller
             'public' => $dataset->public,
             'ownerName' => $dataset->ownerName(),
             'allowanps' => $dataset->allowanps,
-            'entries' => count($dataset->dataitems),
+            'entries' => $dataset->getDataitemsCount(),
             'created_at' => \Carbon\Carbon::parse($dataset->created_at)->format('Y-m-d H:i:s'),
             'updated_at' => \Carbon\Carbon::parse($dataset->updated_at)->format('Y-m-d H:i:s'),
             'url' => url("publicdatasets/{$dataset->id}"),

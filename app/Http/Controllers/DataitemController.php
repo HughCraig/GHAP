@@ -82,4 +82,48 @@ class DataitemController extends Controller
     {
         //
     }
+
+    /**
+     * Get the IDs of all other Routes associated with the same Dataset as the given Dataitem instance,
+     * excluding the Route associated with the given Dataitem instance.
+     *
+     * @param  integer  $dataitemId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAllOtherRoutesIds($dataitemId)
+    {
+        $dataitem = Dataitem::findOrFail($dataitemId);
+        $otherRouteIds = $dataitem->allOtherRoutes()->pluck('id')->toArray();
+
+        return response()->json($otherRouteIds);
+    }
+
+    /**
+     * Get the details of the Route associated with the given Dataitem instance.
+     *
+     * @param  integer  $dataitemId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getCurrentRouteDetails($dataitemId)
+    {
+        $dataitem = Dataitem::findOrFail($dataitemId);
+        $routeDetails = $dataitem->currentRouteDetails();
+
+        return response()->json($routeDetails);
+    }
+
+    /**
+     * Get the details of all other Routes associated with the same Dataset as the given Dataitem instance,
+     * excluding the Route associated with the given Dataitem instance.
+     *
+     * @param  integer  $dataitemId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAllOtherRoutesDetails($dataitemId)
+    {
+        $dataitem = Dataitem::findOrFail($dataitemId);
+        $otherRoutesDetails = $dataitem->allOtherRoutesDetails();
+
+        return response()->json($otherRoutesDetails);
+    }
 }

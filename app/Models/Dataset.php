@@ -9,6 +9,7 @@ use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
 use TLCMap\Models\RecordType;
 use TLCMap\Models\Dataitem;
+use TLCMap\Models\Route;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,6 @@ class Dataset extends Model
         'id', 'name', 'description', 'creator', 'public', 'allowanps', 'publisher', 'contact', 'citation', 'doi',
         'source_url', 'linkback', 'latitude_from', 'longitude_from', 'latitude_to', 'longitude_to', 'language', 'license', 'rights',
         'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning', 'image_path',
-        'has_quantity', 'has_route'
     ];
 
     /**
@@ -78,10 +78,75 @@ class Dataset extends Model
     /**
      * Defines a dataitem relationship
      * 1 dataset has many dataitems
+     *
+     * This method retrieves all data items related to the current model.
      */
     public function dataitems()
     {
         return $this->hasMany(Dataitem::class);
+    }
+
+    /**
+     * Defines a dataitem relationship
+     * 1 dataset has many dataitems
+     *
+     * This method retrieves all data items related to the current model.
+     * If the model has data items with routes, it applies additional
+     * route details to the query.
+     */
+    public function dataitemsWithRoute()
+    {
+        return $this->hasMany(Dataitem::class)
+            ->when($this->hasDataitemWithRoute(), function ($query) {
+                $this->addRouteDetailsToQuery($query);
+            });
+    }
+
+    /**
+     * Add route details to the given query.
+     *
+     * This method enhances the query by joining route-related tables
+     * and adding route information to the result set. It includes:
+     * - Joining the route_order and route tables
+     * - Selecting additional fields for route details
+     * - Calculating a stop index for each data item within its route
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query The query builder instance to modify
+     * @return \Illuminate\Database\Eloquent\Builder The modified query builder instance
+     */
+    private function addRouteDetailsToQuery($query)
+    {
+        return $query->leftJoin('tlcmap.route_order', function ($join) {
+            $join
+                ->on('tlcmap.route_order.dataitem_id', '=', 'tlcmap.dataitem.id')
+                ->on('tlcmap.route_order.route_id', '=', 'tlcmap.dataitem.route_id');
+        })
+            ->leftJoin('tlcmap.route', 'tlcmap.route.id', '=', 'tlcmap.dataitem.route_id')
+            ->select([
+                'tlcmap.dataitem.*',
+                'tlcmap.route_order.position',
+                'tlcmap.route.title as route_title',
+                'tlcmap.route.description as route_description',
+                'tlcmap.route.size as route_size'
+            ])
+            ->selectRaw('ROW_NUMBER() OVER (
+            PARTITION BY tlcmap.dataitem.route_id
+            ORDER BY tlcmap.route_order.position
+        ) as stop_idx');
+    }
+
+
+
+    /**
+     * Check if the dataset has any dataitem associated with a route
+     *
+     * @return bool
+     */
+    public function hasDataitemWithRoute()
+    {
+        return $this->dataitems()
+            ->whereNotNull('route_id')
+            ->exists();
     }
 
     /**
@@ -91,6 +156,15 @@ class Dataset extends Model
     public function collablinks()
     {
         return $this->hasMany(CollabLink::class);
+    }
+
+    /**
+     * Defines a route relationship
+     * 1 dataset has many routes
+     */
+    public function routes()
+    {
+        return $this->hasMany(Route::class, 'dataset_id');
     }
 
     /**
@@ -129,6 +203,13 @@ class Dataset extends Model
         }
     }
 
+    public function getDataitemsCount()
+    {
+        return (int) DB::table('tlcmap.dataitem')
+            ->where('dataset_id', $this->id)
+            ->count();
+    }
+
     // event handler to delete this dataset's dataitems when this is deleted (untested)
     public static function boot()
     {
@@ -136,6 +217,10 @@ class Dataset extends Model
         self::deleting(function ($dataset) { // before delete() method call this
             $dataset->dataitems()->each(function ($dataitem) {
                 $dataitem->delete();
+            });
+            // Delete related routes
+            $dataset->routes()->each(function ($route) {
+                $route->delete();
             });
         });
     }
@@ -159,7 +244,7 @@ class Dataset extends Model
         $docNode = $parNode->appendChild($dom->createElement('Document'));
 
         //get all dataitems for this dataset as eloquent collection
-        $dataitems = $dataset->dataitems;
+        $dataitems = $dataset->dataitemsWithRoute;
 
         //TODO: Add all of the dataset data that we need here (name, style, etc)
         //name
@@ -260,18 +345,18 @@ class Dataset extends Model
                 $place->appendChild($dom->createElement('quantity', $i->quantity));
             }
 
-            //Get RouteInfo if they exist
+            //Get route information if they exist
             if (!empty($i->route_id)) {
                 $RouteInfo = $place->appendChild($dom->createElement('RouteInfo'));
                 $RouteInfo->appendChild($dom->createElement('routeId', $i->route_id));
-                if (!empty($i->route_original_id)) {
-                    $RouteInfo->appendChild($dom->createElement('routeOriginalId', $i->route_original_id));
+                if (!empty($i->stop_idx)) {
+                    $RouteInfo->appendChild($dom->createElement('stopNum', $i->stop_idx));
                 }
                 if (!empty($i->route_title)) {
                     $RouteInfo->appendChild($dom->createElement('routeTitle', $i->route_title));
                 }
-                if (!empty($i->stop_idx)) {
-                    $RouteInfo->appendChild($dom->createElement('routeStopNum', $i->stop_idx));
+                if (!empty($i->route_description)) {
+                    $RouteInfo->appendChild($dom->createElement('routeDescription', $i->route_description));
                 }
             }
             /**
@@ -319,9 +404,6 @@ class Dataset extends Model
     public function json()
     {
         $dataset = $this;
-        // Get mobility information existence of the dataset
-        $has_quantity = $dataset->has_quantity;
-        $has_route = $dataset->has_route;
 
         $features = array();
 
@@ -342,7 +424,7 @@ class Dataset extends Model
         $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
 
         // Infill any blank start/end dates.
-        $dataitems = self::infillDataitemDates($dataset->dataitems);
+        $dataitems = self::infillDataitemDates($dataset->dataitemsWithRoute);
 
         if (isset($_GET["sort"])) {
             $dataitems = $dataitems->where('datestart', '!==', '')->where('dateend', '!==', '');
@@ -354,13 +436,20 @@ class Dataset extends Model
             }
         }
 
+        $isMobilityMapping = isset($_GET["mobility"]);
+        $displayMode = null;
+        if ($isMobilityMapping) {
+            $displayMode = $_GET["mobility"];
+
+            if ($displayMode !== 'route') {
+                $dataitems = $dataset->getDateOrderedDataitems($displayMode);
+            }
+        }
+
         if (isset($_GET["metadata"])) {
             $allfeatures = array('metadata' => $metadata);
             return json_encode($allfeatures, JSON_PRETTY_PRINT);
         }
-
-        // Calculate the 4-quantitles of log of quantity (by default)
-        $quantityValues = array();
 
         foreach ($dataitems as $i) {
 
@@ -376,8 +465,6 @@ class Dataset extends Model
             $featureConfig = new FeatureConfig();
 
             $proppairs = array();
-            // Initialize the quantity existence status of data item
-            $diHasQty = FALSE;
 
             if (!empty($i->image_path)) {
                 $imageUrl = Storage::disk('public')->url('images/' . $i->image_path);
@@ -394,24 +481,6 @@ class Dataset extends Model
             }
             if (!empty($i->description)) {
                 $proppairs["description"] = $i->description;
-            }
-            if (!empty($i->quantity)) {
-                $diHasQty = TRUE;
-                $proppairs["quantity"] = $i->quantity;
-                $quantityValues[] = $i->quantity; // Add quantity to the quantityValues array
-                $proppairs["logQuantity"] = round(log($i->quantity), 2);
-            }
-            if (!empty($i->route_id)) {
-                $proppairs["route_id"] = $i->route_id;
-            }
-            if (!empty($i->route_title)) {
-                $proppairs["route_title"] = $i->route_title;
-            }
-            if (!empty($i->route_description)) {
-                $proppairs["route_description"] = $i->route_description;
-            }
-            if (!empty($i->stop_idx)) {
-                $proppairs["stop_idx"] = $i->stop_idx;
             }
             if (!empty($i->id)) {
                 $proppairs["id"] = $i->uid;
@@ -472,6 +541,7 @@ class Dataset extends Model
                 }
             }
 
+
             if (isset($i->latitude)) {
                 $proppairs["latitude"] = $i->latitude;
             }
@@ -497,21 +567,47 @@ class Dataset extends Model
             $featureConfig->addLink("TLCMap Record: {$i->uid}", $proppairs["TLCMapLinkBack"]);
             $featureConfig->addLink('TLCMap Layer', $proppairs["TLCMapDataset"]);
 
+            // Set quantity
+            if (!empty($i->quantity)) {
+                $proppairs["quantity"] = $i->quantity;
+                $proppairs["logQuantity"] = round(log($i->quantity), 2);
+            } else if ($isMobilityMapping) {
+                $proppairs = array_merge($proppairs, [
+                    "quantity" => null,
+                ]);
+            }
+
+            // Set route information
+            if ($i->route_id) {
+                $commonProps = [
+                    "route_id" => $i->route_id ?? null,
+                    "stop_idx" => $i->stop_idx ?? null,
+                    "route_title" => $i->route_title ?? null,
+                ];
+
+                $displayModeProps = [];
+                if ($displayMode && $displayMode !== 'route') {
+                    $displayModeProps = ["time_stop_idx" => $i->time_stop_idx ?? null];
+                }
+
+                $proppairs = array_merge($proppairs, $commonProps, $displayModeProps);
+
+                if (!empty($i->route_description)) {
+                    $proppairs['route_description'] = $i->route_description;
+                }
+            } else if ($isMobilityMapping) {
+                $proppairs = array_merge($proppairs, [
+                    "route_id" => null,
+                ]);
+            }
+
             if (isset($proppairs["longitude"]) && isset($proppairs["latitude"])) {
-                $newFeature = array(
+                $features[] = array(
                     'type' => 'Feature',
                     'geometry' => array('type' => 'Point', 'coordinates' => array((float)$proppairs["longitude"], (float)$proppairs["latitude"])),
                     'properties' => $proppairs,
                     'display' => $featureConfig->toArray(),
                 );
-                // For Mobility only?
-                // To avoid the ignorance of quantity attribute displayed in TLCMap view,
-                // data items with a quantity attribute are consistently prioritized at the forefront of point features to TLCMap
-                if (isset($_GET["mobility"]) && $diHasQty) {
-                    array_unshift($features, $newFeature);
-                } else {
-                    $features[] = $newFeature;
-                }
             }
         }
 
@@ -545,88 +641,37 @@ class Dataset extends Model
          * Only an enhanced version of journey geojson now.
          *
          */
-        if (isset($_GET["mobility"])) {
+        if ($isMobilityMapping) {
 
             // Default display setting of line
-            $lineColor = [255, 255, 255, 255];
-            $lineWidth = 2;
-            $lineAllowFields = ['route_id', 'route_title', 'route_description'];
+            $lineAllowFields = ['route_id', 'route_title', 'route_description', 'route_size'];
             // Initialize properties with default values
-            $defaultRouteDescr = "No detailed description";
-
-            if ($has_route === TRUE) {
-                $routeGroups = [];
-                foreach ($dataitems as $i) {
-                    $routeId = $i->route_id;
-                    if (!isset($routeGroups[$routeId])) {
-                        $routeGroups[$routeId] = [];
+            $routes = $dataset->routes;
+            if ($routes) {
+                foreach ($routes as $route) {
+                    $routeProps = [
+                        'title' => $route->title,
+                        'route_id' => $route->id,
+                        'route_title' => $route->title,
+                        'route_size' => $route->size,
+                    ];
+                    if (!empty($route->description)) {
+                        $routeProps['route_description'] = $route->description;
                     }
-                    $routeGroups[$routeId][] = $i;
-                }
-                // Process each route group
-                foreach ($routeGroups as $routeId => $items) {
                     $routeCoords = [];
                     $routeLayerText = "";
-                    if ($routeId === "") {
-                        $routeProps = [
-                            'title' => "Discrete Points",
-                            'route_id' => null,
-                            'route_title' => null,
-                            'route_description' => $defaultRouteDescr
-                        ];
+                    if ($route->size > 1) {
+                        // order by stop_idx/time_stop_idx
+                        $routeCoords = $route->getOrderedCoordinates($displayMode);
                     } else {
-                        $routeProps = [
-                            'title' => null,
-                            'route_id' => null,
-                            'route_title' => null,
-                            'route_description' => $defaultRouteDescr
-                        ];
-                    }
-
-                    // Default display setting of line
-                    $lineColor = [255, 255, 255, 255];
-                    $lineWidth = 2;
-                    // If the route has multi-stops
-                    if (count($items) > 1) {
-                        // Sort items within each route group by stop_idx
-                        usort($items, function ($a, $b) {
-                            return $a->stop_idx - $b->stop_idx;
-                        });
-                        foreach ($items as $item) {
-                            $routeCoords[] = [$item->longitude, $item->latitude];
-                        }
-                        foreach ($items as $item) {
-                            if (empty($routeProps['route_id']) && !empty($item->route_id)) {
-                                $routeProps['route_id'] = $item->route_id;
-                            }
-                            if (empty($routeProps['route_title']) && !empty($item->route_title)) {
-                                $routeProps['route_title'] = $item->route_title;
-                                $routeProps['title'] = $item->route_title;
-                            }
-                            // Update route_description only if it's the default value
-                            if ($routeProps['route_description'] === $defaultRouteDescr && !empty($item->route_description)) {
-                                $routeProps['route_description'] = $item->route_description;
-                            }
-                        }
-                    } else {
-                        $routeCoords = [ // If the route has only one stop.
+                        $onlyDataItem = $route->dataitems()->first();
+                        $routeCoords = [
+                            // If the route has one stop only.
                             // A new stop with 1-offset coordinates is added
-                            [$items[0]->longitude, $items[0]->latitude],
-                            [$items[0]->longitude + 1, $items[0]->latitude + 1]
+                            [$onlyDataItem->longitude, $onlyDataItem->latitude],
+                            [$onlyDataItem->longitude + 1, $onlyDataItem->latitude + 1]
                         ];
                         $routeLayerText = "Single Place From ";
-                        if (empty($routeProps['route_id']) && !empty($items[0]->route_id)) {
-                            $routeProps['route_id'] = ($items[0]->route_id === null) ? 0 : $items[0]->route_id;
-                        }
-                        if (empty($routeProps['route_title']) && !empty($items[0]->route_title)) {
-                            $routeProps['route_title'] = $items[0]->route_title;
-                            $routeProps['title'] = $items[0]->route_title;
-                        }
-                        // Update route_description only if it's the default value
-                        if ($routeProps['route_description'] === $defaultRouteDescr && !empty($items[0]->route_description)) {
-                            $routeProps['route_description'] = $items[0]->route_description;
-                        }
-                        $lineColor = [255, 140, 0, 255];
                     }
 
                     // Set mobility route feature config.
@@ -641,77 +686,62 @@ class Dataset extends Model
                     $routeLayerUrl = url("publicdatasets/" . $datasetId);
                     $featureConfig->addLink($routeLayerText, $routeLayerUrl);
 
-                    // Create a geojson feature for this route
+                    // Create a geojson feature for this routeecto
                     $features[] = [
                         'type' => 'Feature',
-                        'display' => array_merge($featureConfig->toArray(), [
-                            'color' => $lineColor,
-                            "lineWidth" => $lineWidth
-                        ]),
                         'geometry' => [
                             'type' => 'LineString',
                             'coordinates' => $routeCoords
                         ],
-                        'properties' => $routeProps
+                        'properties' => $routeProps,
+                        'display' => $featureConfig->toArray(),
                     ];
                 }
-            } else {
-                $routeData = [];
-                // Set line feature config.
-                $featureConfig = new FeatureConfig();
-                $featureConfig->setAllowedFields($lineAllowFields);
 
-                foreach ($dataitems as $i) {
-                    array_push($routeData, [$i->longitude, $i->latitude]);
-                }
-                $features[] = array(
-                    'type' => 'Feature',
-                    'geometry' => array('type' => 'LineString', 'coordinates' => $routeData),
-                    'properties' => [
-                        'title' => "Discrete Points",
-                        'route_id' => null,
-                        'route_title' => null,
-                        'route_description' => $defaultRouteDescr
-                    ],
-                    'display' => array_merge($featureConfig->toArray(), [
-                        'color' => $lineColor,
-                        "lineWidth" => $lineWidth
-                    ]),
+                // Remove route-related fields from the blocked fields for mobility view
+                $allowedFields = [
+                    "route_id",
+                    "time_stop_idx",
+                    "stop_idx",
+                    "route_title",
+                    "route_description",
+                    "route_size",
+                ];
+
+                $featureCollectionConfig->setBlockedFields(
+                    array_values(
+                        array_diff($featureCollectionConfig->getBlockedFields(), $allowedFields)
+                    )
                 );
             }
-            // Remove fields from the blocked fields for mobility view
-            $allowedFields = [
-                "route_id", "stop_idx", "route_title", "route_description",
-            ];
 
-            $featureCollectionConfig->setBlockedFields(
-                array_values(
-                    array_diff($featureCollectionConfig->getBlockedFields(), $allowedFields)
-                )
-            );
-        }
+            $dataitemsWithQty = $dataset->getDataitemsWithQuantity();
+            if ($dataitemsWithQty->exists()) {
+                $metadata['has_quantity'] = true;
+                $quantityValues = $dataitemsWithQty->pluck('quantity')->toArray();
 
-        if ($has_quantity) {
-            $metadata['has_quantity'] = true;
-            if (count($quantityValues) >= 2) {
-                $logQuantiles = $this->getQuantiles($quantityValues, 'log');
-                $metadata['log_quantiles'] = $logQuantiles;
-                $quantiles = $this->getQuantiles($quantityValues, function ($x) {
-                    return $x;
-                });
-                $metadata['quantiles'] = $quantiles;
+                if (count($quantityValues) >= 2) {
+                    $logQuantiles = $this->getQuantiles($quantityValues, 'log');
+                    $metadata['log_quantiles'] = $logQuantiles;
+                    $quantiles = $this->getQuantiles($quantityValues, function ($x) {
+                        return $x;
+                    });
+                    $metadata['quantiles'] = $quantiles;
+                }
+
+                // Remove quantity-related fields from the blocked fields for mobility view
+                $allowedFields = [
+                    'quantity',
+                    'logQuantity',
+                ];
+                $featureCollectionConfig->setBlockedFields(
+                    array_values(
+                        array_diff($featureCollectionConfig->getBlockedFields(), $allowedFields)
+                    )
+                );
             }
-
-            // Remove fields from the blocked fields for mobility view
-            $allowedFields = [
-                'quantity', 'logQuantity', "stop_idx"
-            ];
-            $featureCollectionConfig->setBlockedFields(
-                array_values(
-                    array_diff($featureCollectionConfig->getBlockedFields(), $allowedFields)
-                )
-            );
         }
+
         $allfeatures = array(
             'type' => 'FeatureCollection',
             'metadata' => $metadata,
@@ -789,9 +819,10 @@ class Dataset extends Model
         $enclosure = '"';
         $escape_char = "\\";
         // Exclude some columns.
-        $excludeColumns = ['uid', 'datasource_id'];
+        $excludeColumns = ['uid', 'datasource_id', 'geom', 'geog', 'image_path', 'position', 'route_size', 'route_route_id'];
 
-        $dataitems = $dataset->dataitems;
+        $dataitems = $dataset->dataitemsWithRoute;
+
         $colheads = array();
         $extkeys = array();
         // !!!!!!!!!! actually also go through the headers and only put them in if at least one is not null.....
@@ -813,8 +844,8 @@ class Dataset extends Model
                 }
             }
         }
-        foreach ($dataitems as $i) {
 
+        foreach ($dataitems as $i) {
             // add extended data headers
             $arr = $i->getExtendedData();
             if (!empty($arr)) {
@@ -831,8 +862,8 @@ class Dataset extends Model
 
         // Apply any modification to the column headers for display.
         $headerValueForDisplay = [
-            'id' => 'ghap_id', 'external_url' => 'linkback',
-            'dataset_id' => 'layer_id', 'recordtype_id' => 'record_type', "dataset_order" => "layer_order"
+            'id' => 'ghap_id', 'external_url' => 'linkback', 'recordtype_id' => 'record_type',
+            'dataset_id' => 'layer_id', "dataset_order" => "layer_order",
         ];
         $displayHeaders = [];
         foreach ($colheads as $colhead) {
@@ -879,145 +910,6 @@ class Dataset extends Model
         return stream_get_contents($f);
     }
 
-    /**
-     * Get public dataset by id with data items.
-     *
-     * If the dataset has route information, the returned dataset will be assigned a stop_idx for each
-     * data item and ordered by route_id, datastart, dataset_order respectively. If not, the matching dataset
-     * will be ordered by dataset_order only.
-     *
-     * @param int $ds_id The ID of the dataset
-     * @return mixed The public dataset with associated data items
-     */
-    public static function getPublicDatasetById(int $ds_id)
-    {
-        $query = self::where(['public' => 1, 'id' => $ds_id]); // get this dataset by id if it is also public
-        $dataitem = new Dataitem();
-        $otherColumnsStr = implode(', ', array_diff($dataitem->getFillable(), ['datestart', 'dateend', 'stop_idx']));
-        if ($query->firstOrFail()->has_route || $query->firstOrFail()->has_quantity) {
-            if (isset($_GET["mobility"]) && $_GET["mobility"] !== "route") {
-                $dataset = $query
-                    ->with(['dataitems' => function ($query) use ($otherColumnsStr) {
-                        $query->select(DB::raw("
-                                $otherColumnsStr,
-                                CASE
-                                    WHEN datestart IS NOT NULL AND dateend IS NULL THEN datestart
-                                    ELSE dateend
-                                END AS datestart,
-                                CASE
-                                    WHEN datestart IS NULL AND dateend IS NOT NULL THEN dateend
-                                    ELSE datestart
-                                END AS dateend,
-                                ROW_NUMBER() OVER(PARTITION BY route_id ORDER BY datestart, dataset_order) as stop_idx
-                            "))
-                            ->orderBy('route_id')
-                            ->orderBy('datestart')
-                            ->orderBy('dataset_order');
-                    }])
-                    ->first();
-            } else {
-                $dataset = $query
-                    ->with(['dataitems' => function ($query) {
-                        $query->select('*', DB::raw('ROW_NUMBER() OVER(PARTITION BY route_id ORDER BY dataset_order) as stop_idx'))
-                            ->orderBy('route_id')
-                            ->orderBy('dataset_order');
-                    }])
-                    ->first();
-            }
-        } else {
-            $dataset = $query
-                ->with(['dataitems' => function ($query) {
-                    $query->orderBy('dataset_order');
-                }])
-                ->first();
-        }
-        //add mobility view request check
-        //>>add mobility view sort by date or dataset_order
-        //>>>> sort by datestart or dateend?
-        // then json() mobility routeGroup sorting can be removed
-        // button need to conditionally shown >> date existence check date_end_sort, date_start_sort
-
-        // // If the public mobility datasets don't need to be sorted by route_id and date_start,
-        // // use this version. (As order of public datasets is not allowed to be changed, no worries for the sorting order)
-        // $dataset = $query
-        // ->with(['dataitems' => function ($dataitemsQuery) use ($ds_id) {
-        //     $dataitemsQuery->orderBy('dataset_order');
-        //     if (self::where(['id' => $ds_id])->whereHas('dataitems', function ($query) {
-        //         $query->whereNotNull('route_id');
-        //     })->exists()) {
-        //         $dataitemsQuery->select('*', DB::raw('ROW_NUMBER() OVER(PARTITION BY route_id ORDER BY datestart, dataset_order) as stop_idx'));
-        //     }
-        // }])
-        // ->first();
-        return $dataset;
-    }
-
-    /**
-     * Get private dataset by ID with data items
-     *
-     * @param User $user The user (model) object
-     * @param int $ds_id The ID of the dataset
-     * @return mixed The private dataset with associated data items
-     *
-     * // Reordering of private datasets by route_id and date_start will corrput the private dataset order changing function
-     * // Discard
-     * $dataset = $user->datasets()->with(['dataitems' => function ($query) {
-     * // Check if any dataitem has a route_id
-     * if (DB::table('tlcmap.dataitem')->whereNotNull('route_id')->exists()) {
-     * $query->select('*', DB::raw('ROW_NUMBER() OVER(PARTITION BY route_id ORDER BY datestart, dataset_order) as stop_idx'))
-     * ->orderBy('route_id')->orderBy('date_start')->orderBy('dataset_order');
-     * } else {
-     * $query->orderBy('dataset_order');
-     * }
-     * }])->find($ds_id);
-     */
-    public static function getPrivateDatasetById($user, $ds_id)
-    {
-
-        $dataset = $user->datasets()->find($ds_id);
-        // Ivy's note:
-        // By default, the dataitems within the routes are order by original input order(dataset_order),
-        // so the private dataset view is shown in dataset order.
-        $dataset->load(['dataitems' => function ($query) use ($dataset) {
-            $query->select('*')
-                ->when($dataset->has_route || $dataset->has_quantity, function ($subQuery) {
-                    $subQuery->select('*', DB::raw('ROW_NUMBER() OVER(PARTITION BY route_id ORDER BY dataset_order) as stop_idx'));
-                })
-                ->orderBy('dataset_order');
-        }]);
-        return $dataset;
-    }
-
-    /**
-     * Calculate logarithmic quantiles and generate corresponding ranges for the given quantity values.
-     *
-     * This method calculates the logarithmic quantiles and returns an array containing quantile ranges
-     * and the original quantity values along with their logarithms and quantile indices.
-     *
-     * @param array $quantityValues
-     *   An array containing the quantity values.
-     * @param int $numQuantiles
-     *   The number of quantiles to be generated (default is 4).
-     * @return array
-     *   ...
-     */
-    public static function getQuantiles($quantityValues, $mapFunc, $numQuantiles = 4)
-    {
-        sort($quantityValues);
-        $resultQty = array_map($mapFunc, $quantityValues);
-        $count = count($resultQty);
-        $quantiles = [];
-
-        for ($i = 1; $i < $numQuantiles; $i++) {
-            $position = $i * ($count - 1) / $numQuantiles;
-            $lower = floor($position);
-            $fraction = $position - $lower;
-            $quantile = $resultQty[$lower] + $fraction * ($resultQty[$lower + 1] - $resultQty[$lower]);
-            $quantiles[] = round($quantile, 2);
-        }
-
-        return $quantiles;
-    }
 
     /**
      * Calculates basic statistical data for a dataset.
@@ -1425,13 +1317,13 @@ class Dataset extends Model
      */
     public function getClusterAnalysisDBScan($distance, $minPoints)
     {
-        $distance = $distance / 100 ;
+        $distance = $distance / 100;
         // Perform the DBSCAN clustering query using Eloquent
         $dataitems = Dataitem::selectRaw(
             "*, ST_ClusterDBSCAN(geom, eps := ?, minpoints := ?) OVER() AS cluster_id",
             [$distance, $minPoints]
         )->where('dataset_id', $this->id)
-         ->get();
+            ->get();
 
         return [
             "data" => $this->processClusterData($dataitems),
@@ -1455,7 +1347,7 @@ class Dataset extends Model
             "*, ST_ClusterDBSCAN(geom, eps := ?, minpoints := ?) OVER() AS cluster_id",
             [$distance, $minPoints]
         )->where('dataset_id', $this->id)
-         ->get();
+            ->get();
 
         $groupedClusters = $this->processClusterData($dataitems);
 
@@ -1472,10 +1364,10 @@ class Dataset extends Model
 
                 $featureConfig = new FeatureConfig();
                 // Set footer links.
-                if($place['ghap_id']){
+                if ($place['ghap_id']) {
                     $featureConfig->addLink("TLCMap Record: {$place['ghap_id']}", url('places/' . $place['ghap_id']));
                 }
-                if($place['layer_id']){
+                if ($place['layer_id']) {
                     $featureConfig->addLink('TLCMap Layer', url('layers/' . $place['layer_id']));
                 }
 
@@ -1533,11 +1425,13 @@ class Dataset extends Model
         $withinRadius = $withinRadius ?? null;
 
         // Perform initial KMeans clustering
-        $dataitems = Dataitem::selectRaw("
+        $dataitems = Dataitem::selectRaw(
+            "
              *, ST_ClusterKMeans(geom::geometry, ?) OVER() AS cluster_id",
-            [$numberOfClusters])
-        ->where('dataset_id', $this->id)
-        ->get();
+            [$numberOfClusters]
+        )
+            ->where('dataset_id', $this->id)
+            ->get();
 
         $clusterResults = $this->processClusterData($dataitems);
 
@@ -1570,7 +1464,7 @@ class Dataset extends Model
                 $centroidLng = $this->parseGeometryString($centroidResult[0]->centroid)[0][0];
 
                 foreach ($clusterResults[$clusterId] as $place) {
-                    $distance = GeneralFunctions::getDistance($place['latitude'] , $place['longitude'], $centroidLat, $centroidLng);
+                    $distance = GeneralFunctions::getDistance($place['latitude'], $place['longitude'], $centroidLat, $centroidLng);
                     if ($distance > $withinRadius) {
                         $exceedsMaxRadius = true;
                         break;
@@ -1599,7 +1493,6 @@ class Dataset extends Model
             "data" => array_values($filteredClusters),
             "name" => $this->name
         ];
-
     }
 
     /**
@@ -1615,11 +1508,13 @@ class Dataset extends Model
         $withinRadius = $_GET["withinRadius"];
 
         // Perform initial KMeans clustering
-        $dataitems = Dataitem::selectRaw("
+        $dataitems = Dataitem::selectRaw(
+            "
              *, ST_ClusterKMeans(geom::geometry, ?) OVER() AS cluster_id",
-            [$numClusters])
-        ->where('dataset_id', $this->id)
-        ->get();
+            [$numClusters]
+        )
+            ->where('dataset_id', $this->id)
+            ->get();
 
         $clusterResults = $this->processClusterData($dataitems);
 
@@ -1631,7 +1526,7 @@ class Dataset extends Model
             }
         }
 
-        if (  $withinRadius != null && $withinRadius != 'null' ) {
+        if ($withinRadius != null && $withinRadius != 'null') {
             $filteredClusters = [];
             foreach ($clusterGeoms as $clusterId => $geoms) {
                 $geomCollection = implode(',', $geoms);
@@ -1645,7 +1540,7 @@ class Dataset extends Model
                     $centroidLng = $this->parseGeometryString($centroidResult[0]->centroid)[0][0];
 
                     foreach ($clusterResults[$clusterId] as $place) {
-                        $distance = GeneralFunctions::getDistance($place['latitude'] , $place['longitude'], $centroidLat, $centroidLng);
+                        $distance = GeneralFunctions::getDistance($place['latitude'], $place['longitude'], $centroidLat, $centroidLng);
                         if ($distance > $withinRadius) {
                             $exceedsMaxRadius = true;
                             break;
@@ -1659,7 +1554,6 @@ class Dataset extends Model
                 if (!$exceedsMaxRadius) {
                     $filteredClusters[$clusterId] = $clusterResults[$clusterId];
                 }
-
             }
 
             // Restart cluster number
@@ -1687,10 +1581,10 @@ class Dataset extends Model
 
                 $featureConfig = new FeatureConfig();
                 // Set footer links.
-                if($place['ghap_id']){
+                if ($place['ghap_id']) {
                     $featureConfig->addLink("TLCMap Record: {$place['ghap_id']}", url('places/' . $place['ghap_id']));
                 }
-                if($place['layer_id']){
+                if ($place['layer_id']) {
                     $featureConfig->addLink('TLCMap Layer', url('layers/' . $place['layer_id']));
                 }
 
@@ -1842,10 +1736,10 @@ class Dataset extends Model
 
                 $featureConfig = new FeatureConfig();
                 // Set footer links.
-                if($place['ghap_id']){
+                if ($place['ghap_id']) {
                     $featureConfig->addLink("TLCMap Record: {$place['ghap_id']}", url('places/' . $place['ghap_id']));
                 }
-                if($place['layer_id']){
+                if ($place['layer_id']) {
                     $featureConfig->addLink('TLCMap Layer', url('layers/' . $place['layer_id']));
                 }
 
@@ -1904,7 +1798,7 @@ class Dataset extends Model
      */
     private function processClusterData($dataitems)
     {
-        $excludeColumns = ['id', 'datasource_id', 'geom', 'geog', 'geom_date' ,  'image_path', 'dataset_order' , 'extended_data' , 'kml_style_url'];
+        $excludeColumns = ['id', 'datasource_id', 'geom', 'geog', 'geom_date',  'image_path', 'dataset_order', 'extended_data', 'kml_style_url'];
         $headerValueForDisplay = [
             'uid' => 'ghap_id',
             'external_url' => 'linkback',
@@ -2142,7 +2036,7 @@ class Dataset extends Model
         $featureCollectionConfig = new FeatureCollectionConfig();
         $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
         $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
-        $featureCollectionConfig->setInfoTitle( 'Closeness Analysis: ' . $dataset->name, $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"));
+        $featureCollectionConfig->setInfoTitle('Closeness Analysis: ' . $dataset->name, $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"));
         $featureCollectionConfig->setInfoContent(GhapConfig::createDatasetInfoBlockContent($dataset));
 
         //Add the records to the features array
@@ -2242,4 +2136,242 @@ class Dataset extends Model
         return $coordinates;
     }
 
+    /**
+     * Get the ordered Dataitem data by time
+     * Sort the Dataitems based on the specified display mode (start time (datestart) or end time (dateend))
+     * If the value of the order column is null, the null values will be placed at the end.
+     *
+     * @param string $displayMode The display mode, can be 'timestart' or 'timeend'
+     * @return \Illuminate\Support\Collection The Dataitem data grouped by route_id and ordered
+     */
+    public function getDateOrderedDataitems($displayMode = 'timestart')
+    {
+        $orderColumn = $displayMode === 'timeend' ? 'dateend' : 'datestart';
+
+        return $this->dataitems()
+            ->select('*', DB::raw("ROW_NUMBER() OVER (PARTITION BY route_id ORDER BY {$orderColumn} ASC NULLS LAST) as time_stop_idx"))
+            ->get();
+    }
+
+    /**
+     * Calculate logarithmic quantiles and generate corresponding ranges for the given quantity values.
+     *
+     * This method calculates the logarithmic quantiles and returns an array containing quantile ranges
+     * and the original quantity values along with their logarithms and quantile indices.
+     *
+     * @param array $quantityValues
+     *   An array containing the quantity values.
+     * @param int $numQuantiles
+     *   The number of quantiles to be generated (default is 4).
+     * @return array
+     *   ...
+     */
+    public static function getQuantiles($quantityValues, $mapFunc, $numQuantiles = 4)
+    {
+        sort($quantityValues);
+        $resultQty = array_map($mapFunc, $quantityValues);
+        $count = count($resultQty);
+        $quantiles = [];
+
+        for ($i = 1; $i < $numQuantiles; $i++) {
+            $position = $i * ($count - 1) / $numQuantiles;
+            $lower = floor($position);
+            $fraction = $position - $lower;
+            $quantile = $resultQty[$lower] + $fraction * ($resultQty[$lower + 1] - $resultQty[$lower]);
+            $quantiles[] = round($quantile, 2);
+        }
+
+        return $quantiles;
+    }
+
+    /**
+     * Get unique route IDs as strings for dataitems with non-null route_id
+     *
+     * This function retrieves all unique route IDs from the dataitems
+     * associated with the current dataset where the route_id is not null.
+     *
+     * @return array An array of unique route IDs
+     *
+     * Example return value:
+     * [1, 2, 3, 4, 5]
+     */
+    public function getAllRouteIdsAsStrings()
+    {
+        return $this->dataitems()
+            ->whereNotNull('route_id')
+            ->distinct()
+            ->pluck('route_id')
+            ->map(function ($id) {
+                return (string) $id;
+            })
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * Get dataitems grouped by route_id as strings, including max stop_idx and all related uids
+     *
+     * This function retrieves all dataitems with non-null route_id from the current dataset,
+     * groups them by route_id, and calculates the maximum stop_idx and collects all related uids for each route.
+     *
+     * @return array An array of dataitems grouped by route_id
+     *
+     * Example return value:
+     * [
+     *     1 => [
+     *         'max_stop_idx' => 5,
+     *         'uids' => ['abc123', 'def456', 'ghi789']
+     *     ],
+     *     2 => [
+     *         'max_stop_idx' => 3,
+     *         'uids' => ['jkl012', 'mno345']
+     *     ],
+     *     // More routes...
+     * ]
+     *
+     * Note: This method uses Eloquent ORM for better readability and maintainability.
+     * It may be less performant for very large datasets compared to raw SQL queries.
+     */
+    public function getDataitemsWithRouteIDAndUIDAsStrings()
+    {
+        $baseQuery = $this->dataitemsWithRoute()->whereNotNull('tlcmap.dataitem.route_id')->getQuery();
+
+        return DB::query()
+            ->fromSub($baseQuery, 'derived_table')
+            ->select('derived_table.route_id', 'derived_table.uid', 'derived_table.stop_idx')
+            ->get()
+            ->groupBy(function ($item) {
+                return (string) $item->route_id;
+            })
+            ->map(function ($group) {
+                return [
+                    'max_stop_idx' => $group->max('stop_idx'),
+                    'uids' => $group->pluck('uid')->unique()->values()->all()
+                ];
+            })
+            ->toArray();
+    }
+
+    /**
+     * Get dataitems with a not null quantity value.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function getDataitemsWithQuantity()
+    {
+        return $this->dataitems()
+            ->whereNotNull('quantity');
+    }
+
+
+    /**
+     * Get dataitems with a not null quantity value
+     * that is not associated with a route.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function getNonRouteDataitemWithQuantity()
+    {
+        return $this->dataitems()
+            ->whereDoesntHave('route')
+            ->whereNotNull('quantity');
+    }
+
+    /**
+     * Check if the dataset has any dataitem with a not null quantity value
+     * that is not associated with a route.
+     *
+     * @return bool
+     */
+    public function hasNonRouteDataitemWithQuantity()
+    {
+        return $this->dataitems()
+            ->whereDoesntHave('route')
+            ->whereNotNull('quantity')
+            ->exists();
+    }
+
+    /**
+     * Check if the dataset has any dataitem with a not null quantity value
+     *
+     * @return bool
+     */
+    public function hasDataitemWithQuantity()
+    {
+        return $this->dataitems()
+            ->whereNotNull('quantity')
+            ->exists();
+    }
+
+    /**
+     * Check if the dataset has any dataitem having any date column
+     * is associated with a route.
+     *
+     * @return bool
+     */
+    public function hasRouteDataitemsWithDates()
+    {
+        $routeDataitems = $this->dataitems()->whereHas('route');
+        return [
+            'hasStart' => (clone $routeDataitems)->whereNotNull('datestart')->exists(),
+            'hasEnd' => (clone $routeDataitems)->whereNotNull('dateend')->exists(),
+        ];
+    }
+
+    public function getMappingMobilityInfo()
+    {
+        $mobilityInfo = [
+            'default' => false,
+            'hasrouteiddatestart' => false,
+            'hasrouteiddateend' => false
+        ];
+        $mobilityInfo['default'] = $this->recordtype->type === 'Mobility';
+
+        $routeDataitemsStatus = $this->hasRouteDataitemsWithDates();
+        $mobilityInfo['hasrouteiddatestart'] = $routeDataitemsStatus['hasStart'];
+        $mobilityInfo['hasrouteiddateend'] = $routeDataitemsStatus['hasEnd'];
+
+        return $mobilityInfo;
+    }
+
+    /**
+     * Update the dataset's record type based on the existence of routes
+     * and dataitems with quantity values.
+     *
+     * @return void
+     */
+    public function updateMobilityRecordType()
+    {
+        $currentRecordType = $this->recordType->type;
+        $updateWarning = "";
+
+        $hasRoutes = $this->routes()->exists();
+        $hasNonRouteDataitemWithQuantity = $this->hasNonRouteDataitemWithQuantity();
+
+        if ($currentRecordType === 'Mobility') {
+            $otherRecordType = RecordType::where('type', 'Other')->firstOrFail();
+            if (!$hasRoutes && !$hasNonRouteDataitemWithQuantity) {
+                $recordType = $otherRecordType;
+                $updateWarning = "The record type of current layer has been set as <strong>Other<\strong>.<br>" . $updateWarning;
+            } else {
+                // If the dataset has routes or dataitems with quantity values,
+                // the record type remains as "Mobility".
+                return $updateWarning;
+            }
+        } else {
+            $mobilityRecordType = RecordType::where('type', 'Mobility')->firstOrFail();
+            if ($hasRoutes || $hasNonRouteDataitemWithQuantity) {
+                $recordType = $mobilityRecordType;
+                $updateWarning = "The record type of current layer has been set as <strong>Mobility<\strong>.<br>" . $updateWarning;
+            } else {
+                // If there are no routes and no dataitems with quantity values,
+                // the record type remains unchanged.
+                return $updateWarning;
+            }
+        }
+
+        $this->recordType()->associate($recordType);
+        $this->save();
+        return $updateWarning;
+    }
 }

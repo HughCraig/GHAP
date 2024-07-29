@@ -57,15 +57,21 @@
                 <a class="dropdown-item grab-hover"
                     onclick="window.open('{{ config('app.views_root_url') }}/collection-werekata.html?load=' + encodeURIComponent('{{ url('multilayers') }}/{{ $collection->id }}/json?sort=start'))">Werekata
                     Flight by Time</a>
-                @if ($collectionHasMobInfo)
+                @if ($collectionHasMobInfo['default'])
                     <a class="dropdown-item grab-hover"
                         onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url('multilayers') }}/{{ $collection->id }}/json?mobility=route'))">Mobility
-                        Route
                     </a>
-                    <a class="dropdown-item grab-hover"
-                        onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url('multilayers') }}/{{ $collection->id }}/json?mobility=time'))">Mobility
-                        Times
-                    </a>
+                    @if ($collectionHasMobInfo['hasrouteiddatestart'])
+                        <a class="dropdown-item grab-hover"
+                            onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url('multilayers') }}/{{ $collection->id }}/json?mobility=timestart'))">Mobility
+                            by Time Start
+                        </a>
+                    @endif
+                    @if ($collectionHasMobInfo['hasrouteiddateend'])
+                        <a class="dropdown-item grab-hover"
+                            onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url('multilayers') }}/{{ $collection->id }}/json?mobility=timeend'))">Mobility
+                            by Time End</a>
+                    @endif
                 @endif
             </div>
         </div>
@@ -285,15 +291,19 @@
                                         <a class="dropdown-item grab-hover"
                                             onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{ url('layers') }}/{{ $ds->id }}/json?sort=start'))">Werekata
                                             Flight by Time</a>
-                                        @if ($ds->has_quantity || $ds->has_route)
+                                        @if ($datasetsHasMobInfo[$loop->index]['default'])
                                             <a class="dropdown-item grab-hover"
-                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('layers') }}/{{ $ds->id }}/json?mobility=route'))">Mobility
-                                                Route
-                                            </a>
-                                            <a class="dropdown-item grab-hover"
-                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('layers') }}/{{ $ds->id }}/json?mobility=time'))">Mobility
-                                                Times
-                                            </a>
+                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('layers') }}/{{ $ds->id }}/json?mobility=route'))">Mobility</a>
+                                            @if ($datasetsHasMobInfo[$loop->index]['hasrouteiddatestart'])
+                                                <a class="dropdown-item grab-hover"
+                                                    onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('layers') }}/{{ $ds->id }}/json?mobility=timestart'))">Mobility
+                                                    by Time Start</a>
+                                            @endif
+                                            @if ($datasetsHasMobInfo[$loop->index]['hasrouteiddateend'])
+                                                <a class="dropdown-item grab-hover"
+                                                    onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('layers') }}/{{ $ds->id }}/json?mobility=timeend'))">Mobility
+                                                    by Time End</a>
+                                            @endif
                                         @endif
                                         @if (!empty(config('app.views_temporal_earth_url')))
                                             <a class="dropdown-item grab-hover"
@@ -311,7 +321,7 @@
                     </tr>
                 @endforeach
 
-                @foreach ($collection->savedSearches as $ssIdx => $ss)
+                @foreach ($collection->savedSearches as $ss)
                     <tr id="row_ss_id_{{ $ss->id }}">
                         <td><a href="{{ url('/search') }}{{ $ss->query }}">{{ $ss->name }}</a></td>
                         <td>{{ $ss->count }}</td>
@@ -350,15 +360,19 @@
                                         <a class="dropdown-item grab-hover"
                                             onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=json&sort=start'))">Werekata
                                             Flight by Time</a>
-                                        @if ($savedSearchesHasMobInfo[$ssIdx]['hasquantity'] && $savedSearchesHasMobInfo[$ssIdx]['hasrouteid'])
+                                        @if ($savedSearchesHasMobInfo[$loop->index]['default'])
                                             <a class="dropdown-item grab-hover"
-                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=json&mobility=route'))">Mobility
-                                                Route
-                                            </a>
-                                            <a class="dropdown-item grab-hover"
-                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=json&mobility=time'))">Mobility
-                                                Times
-                                            </a>
+                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=json&mapping=true&mobility=route'));">Mobility</a>
+                                            @if ($savedSearchesHasMobInfo[$loop->index]['hasrouteiddatestart'])
+                                                <a class="dropdown-item grab-hover"
+                                                    onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=json&mapping=true&mobility=timestart'));">Mobility
+                                                    by Time Start</a>
+                                            @endif
+                                            @if ($savedSearchesHasMobInfo[$loop->index]['hasrouteiddateend'])
+                                                <a class="dropdown-item grab-hover"
+                                                    onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('places') }}{{ $ss->query }}&format=json&mapping=true&mobility=timeend'));">Mobility
+                                                    by Time End</a>
+                                            @endif
                                         @endif
                                         @if (!empty(config('app.views_temporal_earth_url')))
                                             <a class="dropdown-item grab-hover"

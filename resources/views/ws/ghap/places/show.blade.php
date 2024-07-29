@@ -64,25 +64,29 @@
                             </button>
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                 <a class="dropdown-item grab-hover"
-                                    onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load='+encodeURIComponent(downloadurl+'&format=json'));">3D
+                                    onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load='+encodeURIComponent(downloadurl+'&format=json&mapping=true'));">3D
                                     Viewer</a>
                                 <a class="dropdown-item grab-hover"
-                                    onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load='+encodeURIComponent(downloadurl+'&format=json'));">Cluster</a>
+                                    onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load='+encodeURIComponent(downloadurl+'&format=json&mapping=true'));">Cluster</a>
                                 <a class="dropdown-item grab-hover"
                                     onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load='+encodeURIComponent(downloadurl+'&format=json&line=route'));">Journey
                                     Route</a>
                                 <a class="dropdown-item grab-hover"
                                     onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?&load='+encodeURIComponent(downloadurl+'&format=json'));">Werekata
                                     Flight by Route</a>
-                                @if ($hasmobinfo['hasquantity'] && $hasmobinfo['hasrouteid'])
+                                @if ($hasmobinfo['default'])
                                     <a class="dropdown-item grab-hover"
-                                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent(downloadurl+'&format=json&mobility=route'))">Mobility
-                                        Route
-                                    </a>
-                                    <a class="dropdown-item grab-hover"
-                                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent(downloadurl+'&format=json&mobility=time'))">Mobility
-                                        Times
-                                    </a>
+                                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent(downloadurl+'&format=json&mapping=true&mobility=route'));">Mobility</a>
+                                    @if ($hasmobinfo['hasrouteiddatestart'])
+                                        <a class="dropdown-item grab-hover"
+                                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent(downloadurl+'&format=json&mapping=true&mobility=timestart'));">Mobility
+                                            by Time Start</a>
+                                    @endif
+                                    @if ($hasmobinfo['hasrouteiddateend'])
+                                        <a class="dropdown-item grab-hover"
+                                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent(downloadurl+'&format=json&mapping=true&mobility=timeend'));">Mobility
+                                            by Time End</a>
+                                    @endif
                                 @endif
                                 @if (!empty(config('app.views_temporal_earth_url')))
                                     <a class="dropdown-item grab-hover"

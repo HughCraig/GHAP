@@ -5,8 +5,8 @@
 @endpush
 
 @push('scripts')
-    {{-- <!-- CSRF Token -->
-    <meta name="csrf-token" content="{{ csrf_token() }}"> --}}
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script>
         //Put the relative URL of our ajax functions into global vars for use in external .js files
         var ajaxviewdataitem = "{{ url('ajaxviewdataitem') }}";
@@ -17,13 +17,14 @@
 
         var lgas = {!! $lgas !!};
         var feature_terms = {!! $feature_terms !!};
-        const max_upload_image_size = {{ config('app.max_upload_image_size') }};
+        // const max_upload_image_size = {{ config('app.max_upload_image_size') }};
         var dataset_id = {!! $ds->id !!};
     </script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="{{ asset('js/map-picker.js') }}"></script>
     <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/validation.js') }}"></script>
+    <script src="{{ asset('js/setmobilityfields.js') }}"></script>
     <script src="{{ asset('js/userviewdataset.js') }}"></script>
     <script src="{{ asset('js/extended-data-editor.js') }}"></script>
     <script src="{{ asset('/js/dataitem.js') }}"></script>
@@ -107,13 +108,19 @@
                 <a class="dropdown-item grab-hover"
                     onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?sort=start'))">Werekata
                     Flight by Time</a>
-                @if ($ds->has_quantity || $ds->has_route)
+                @if ($hasmobinfo['default'])
                     <a class="dropdown-item grab-hover"
-                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=route'))">Mobility
-                        Route</a>
-                    <a class="dropdown-item grab-hover"
-                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=time'))">Mobility
-                        Times</a>
+                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=route'))">Mobility</a>
+                    @if ($hasmobinfo['hasrouteiddatestart'])
+                        <a class="dropdown-item grab-hover"
+                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=timestart'))">Mobility
+                            by Time Start</a>
+                    @endif
+                    @if ($hasmobinfo['hasrouteiddateend'])
+                        <a class="dropdown-item grab-hover"
+                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=timeend'))">Mobility
+                            by Time End</a>
+                    @endif
                 @endif
                 @if (!empty(config('app.views_temporal_earth_url')))
                     <a class="dropdown-item grab-hover"
@@ -131,11 +138,11 @@
             Analyse
         </button>
         <div class="dropdown-menu" aria-labelledby="analyseDropdown">
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/basicstatistics">Basic Statistics</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/advancedstatistics">Advanced Statistics</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/clusteranalysis">Cluster Analysis</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/temporalclustering">Temporal Clustering</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/closenessanalysis">Closeness Analysis</a>
+            <a class="dropdown-item grab-hover" href="{{ url()->full() }}/basicstatistics">Basic Statistics</a>
+            <a class="dropdown-item grab-hover" href="{{ url()->full() }}/advancedstatistics">Advanced Statistics</a>
+            <a class="dropdown-item grab-hover" href="{{ url()->full() }}/clusteranalysis">Cluster Analysis</a>
+            <a class="dropdown-item grab-hover" href="{{ url()->full() }}/temporalclustering">Temporal Clustering</a>
+            <a class="dropdown-item grab-hover" href="{{ url()->full() }}/closenessanalysis">Closeness Analysis</a>
         </div>
     </div>
 
@@ -173,8 +180,14 @@
                     </tr>
                     <tr>
                         <th>Entries</th>
-                        <td id="dscount">{{ count($ds->dataitems) }}</td>
+                        <td id="dscount">{{ $ds->dataitems_count }}</td>
                     </tr>
+                    @if ($ds->recordtype->type === 'Mobility')
+                        <tr>
+                            <th>Route Entries</th>
+                            <td id="tjccount">{{ $ds->routes_count }}</td>
+                        </tr>
+                    @endif
                     <tr>
                         <th>Visibility</th>
                         <td id="dspublic">
@@ -213,8 +226,8 @@
                     <tr>
                         <th class="w-25">Subject</th>
                         <td>
-                            @for ($i = 0; $i < count($ds->subjectKeywords); $i++)
-                                @if ($i == count($ds->subjectKeywords) - 1)
+                            @for ($i = 0; $i < $ds->subject_keywords_count; $i++)
+                                @if ($i == $ds->subject_keywords_count - 1)
                                     {{ $ds->subjectKeywords[$i]->keyword }}
                                 @else
                                     {{ $ds->subjectKeywords[$i]->keyword }},
@@ -313,13 +326,13 @@
 
     @if ($ds->pivot->dsrole == 'OWNER' || $ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'COLLABORATOR')
         <!-- Modal Add to dataset button -->
-        @include('modals.addtodatasetmodal')
+        @include('modals.addtodatasetmodal', ['dataset' => $ds])
 
         <!-- MODAL Bulk Add Dataset button -->
         @include('modals.bulkaddtodatasetmodal')
 
         <!-- Modal edit dataitem modal -->
-        @include('modals.editdataitemmodal')
+        @include('modals.editdataitemmodal', ['dataset' => $ds])
 
         <!-- Modal delete dataitem modal -->
         @include('modals.deleteconfirmmodal')
@@ -328,7 +341,7 @@
     <!-- Dataitem Table -->
     <div class="container-fluid">
         <div class="place-list">
-            @foreach ($ds->dataitems as $data)
+            @foreach ($ds->dataitemsWithRoute as $data)
                 <div class="row" data-id="{{ $data->id }}">
                     <div class="col dragIcon" style="max-width: 4%;display:none">
                         <img src="{{ asset('img/draggable.svg') }}">
@@ -340,6 +353,9 @@
                                     onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
                                 <a
                                     href="{{ config('app.url') }}/places/{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
+                            @endif
+                            @if (isset($data->title))
+                                {{ $data->title }}@else{{ $data->placename }}
                             @endif
                             @if ($ds->public)
                                 </a>
@@ -404,10 +420,6 @@
                             <dt>Longitude</dt>
                             <dd>{{ $data->longitude }}</dd>
                         @endif
-                        @if (isset($data->quantity))
-                            <dt>Quantity</dt>
-                            <dd>{{ $data->quantity }}</dd>
-                        @endif
                         @if (isset($data->datestart))
                             <dt>Start Date</dt>
                             <dd>{{ $data->datestart }}</dd>
@@ -441,24 +453,28 @@
                             <div>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->description) !!}</div>
                         @endif
                     </div>
-                    @if (isset($data->route_id) || isset($data->stop_idx))
+                    @if ($data->recordtype->type === 'Mobility')
                         <div class="col col-xl-2">
-                            <h4>Route Details</h4>
-                            @if (isset($data->route_id) && $data->route_id !== '')
+                            <h4>Mobility Details</h4>
+                            @if (isset($data->quantity))
+                                <dt>Quantity</dt>
+                                <dd>{{ $data->quantity }}</dd>
+                            @endif
+                            @if (isset($data->route_id))
                                 <dt>Route ID</dt>
                                 <dd>{{ $data->route_id }}</dd>
-                            @endif
-                            @if (isset($data->route_original_id) && $data->route_original_id !== '')
-                                <dt>Route Original ID</dt>
-                                <dd>{{ $data->route_original_id }}</dd>
-                            @endif
-                            @if (isset($data->route_title) && $data->route_title !== '')
-                                <dt>Route Title</dt>
-                                <dd>{{ $data->route_title }}</dd>
-                            @endif
-                            @if (isset($data->stop_idx))
-                                <dt>Route Stop Number</dt>
-                                <dd>{{ $data->stop_idx }}</dd>
+                                @if (isset($data->stop_idx))
+                                    <dt>Route Stop Number</dt>
+                                    <dd>{{ $data->stop_idx }}</dd>
+                                @endif
+                                @if (isset($data->route_title))
+                                    <dt>Route Title</dt>
+                                    <dd>{{ $data->route_title }}</dd>
+                                @endif
+                                @if (isset($data->route_description))
+                                    <dt>Route Description</dt>
+                                    <dd>{{ $data->route_description }}</dd>
+                                @endif
                             @endif
                         </div>
                     @endif

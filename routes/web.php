@@ -208,6 +208,14 @@ Route::middleware($baseAuthMiddlewares)->group(function () { //must be logged in
      */
     Route::get('ajax/saved-searches', 'CollectionController@ajaxGetUserSavedSearch')->name('ajax.saved-searches');
     Route::post('ajax/add-saved-search', 'CollectionController@ajaxAddSavedSearch')->name('ajax.add-saved-search');
+
+    /**
+     * Services used for route information retrieval
+     */
+    Route::get('/routes/{routeId}/all-stop-indices', 'RouteController@getAllStopIndices');
+    Route::get('/dataitems/{dataitemId}/other-routes-ids', 'DataitemController@getAllOtherRoutesIds');
+    Route::get('/dataitems/{dataitemId}/current-route-details', 'DataitemController@getCurrentRouteDetails');
+    Route::get('/dataitems/{dataitemId}/other-routes-details', 'DataitemController@getAllOtherRoutesDetails');
 });
 
 /**

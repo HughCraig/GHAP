@@ -108,10 +108,6 @@ const getAddDataitemRequestData = function () {
     formData.append("latitude", $("#addlatitude").val());
     formData.append("longitude", $("#addlongitude").val());
     formData.append("description", tinymce.get("adddescription").getContent());
-    formData.append("quantity", $("#addquantity").val());
-    formData.append("routeId", $("#addRouteId").val());
-    formData.append("routeOriId", $("#addRouteOriId").val());
-    formData.append("routeTitle", $("#addRouteTitle").val());
     formData.append("datestart", $("#adddatestart").val());
     formData.append("dateend", $("#adddateend").val());
     formData.append("state", $("#addstate").children("option:selected").val());
@@ -129,6 +125,24 @@ const getAddDataitemRequestData = function () {
     // image file upload
     if ($("#addImage").length && $("#addImage")[0].files[0]) {
         formData.append("image", $("#addImage")[0].files[0]);
+    }
+    // get mobility information
+    if ($("#addrecordtype").val() === "Mobility") {
+        formData.append("quantity", $("#addquantity").val());
+
+        const routeOption = $('input[name="routeOption"]:checked').val();
+        formData.append("routeOption", routeOption);
+
+        if (routeOption === "new") {
+            formData.append("routeTitle", $("#addRouteTitle").val());
+            formData.append(
+                "routeDescription",
+                $("#addRouteDescription").val()
+            );
+        } else if (routeOption === "existing") {
+            formData.append("routeId", $("#addRouteId").val());
+            formData.append("stopIdx", $("#addStopIdx").val());
+        }
     }
 
     return formData;
@@ -164,24 +178,6 @@ $("main").on("click", "#add_dataitem_button_submit", function () {
         msgBanner.error("Longitude must be valid from -180 to 180");
     }
     if (
-        $("#addquantity").val() !== "" &&
-        !Validation.naturalNumber($("#addquantity").val())
-    ) {
-        isValid = false;
-        msgBanner.error("Quantity must be an integer greater or equal to 0");
-    }
-    var routeIdValue = $("#addRouteId").val();
-    if (
-        routeIdValue !== "" &&
-        routeIdValue !== "0" &&
-        !Validation.naturalNumber($("#addRouteId").val())
-    ) {
-        isValid = false;
-        msgBanner.error(
-            "GHAP Route ID must be an integer greater or equal to 1"
-        );
-    }
-    if (
         $("#adddatestart").val() !== "" &&
         !Validation.date($("#adddatestart").val())
     ) {
@@ -211,6 +207,45 @@ $("main").on("click", "#add_dataitem_button_submit", function () {
                 " MB"
         );
     }
+    // Validate mobility value input
+    const recordType = $("#addrecordtype").val();
+    const routeOption = $('input[name="routeOption"]:checked').val();
+    const routeTitle = $("#addRouteTitle").val();
+    const routeId = $("#addRouteId").val();
+    const stopIdx = $("#addStopIdx").val();
+    const quantity = $("#addquantity").val();
+    if (recordType === "Mobility") {
+        if (routeOption === "none") {
+            if (quantity === "") {
+                isValid = false;
+                msgBanner.error(
+                    "Mobilty place must either belong to a <b>Route</b> or have a <b>Quantity</b> value."
+                );
+            }
+        } else if (routeOption === "new") {
+            if (routeTitle === "") {
+                isValid = false;
+                msgBanner.error("Route Title must be filled");
+            }
+        } else if (routeOption === "existing") {
+            if (routeId === "") {
+                isValid = false;
+                msgBanner.error("Existing Route must be selected");
+            }
+            if (stopIdx === "") {
+                isValid = false;
+                msgBanner.error("Stop Number must be filled");
+            } else if (
+                stopIdx.toLowerCase() !== "append" &&
+                !Validation.naturalNumber($("#addStopIdx").val())
+            ) {
+                isValid = false;
+                msgBanner.error(
+                    "Stop Number must be 'append'/'Append' OR an integer ≥ 0"
+                );
+            }
+        }
+    }
     if (isValid) {
         $.ajax({
             type: "POST",
@@ -219,15 +254,6 @@ $("main").on("click", "#add_dataitem_button_submit", function () {
             contentType: false,
             processData: false,
             success: function (result) {
-                if (
-                    result.hasOwnProperty("addRouteWarning") &&
-                    result.addRouteWarning !== null
-                ) {
-                    sessionStorage.setItem(
-                        "userViewDSMsgBanner",
-                        result.addRouteWarning
-                    );
-                }
                 location.reload();
             },
             error: function (xhr) {
@@ -256,65 +282,19 @@ $("main").on("click", "#add_dataitem_button_submit", function () {
                     document
                         .getElementById("addquantity")
                         .classList.remove("is-invalid");
-                if (
-                    result.hasOwnProperty("routeId") &&
-                    result.eRouteId === false
-                )
-                    document
-                        .getElementById("addRouteId")
-                        .classList.add("is-invalid");
-                else
-                    document
-                        .getElementById("addRouteId")
-                        .classList.remove("is-invalid");
                 if (result.hasOwnProperty("error")) alert(result.error);
                 else alert(xhr.responseText); //error message with error info
             },
         });
+    } else {
+        // Display and scroll to the message banner.
+        msgBanner.show();
+        $("#addModal .scrollable").scrollTop(0);
     }
 });
 
-window.onload = function () {
-    if (sessionStorage.getItem("userViewDSMsgBanner") !== null) {
-        const prevDiv = document.querySelector(`.row.mt-3`);
-        prevDiv.insertAdjacentHTML(
-            "afterend",
-            "<div class='pt-4 pb-4 mb-3' id='userViewDatasetMsg'></div>"
-        );
-        const userViewDSMsgBanner = new MessageBanner($("#userViewDatasetMsg"));
-        userViewDSMsgBanner.hide();
-        userViewDSMsgBanner.clear();
-        userViewDSMsgBanner.warning(
-            sessionStorage.getItem("userViewDSMsgBanner")
-        );
-        userViewDSMsgBanner.show();
-        sessionStorage.removeItem("userViewDSMsgBanner");
-    }
-    if (sessionStorage.getItem("siblingDataId") !== null) {
-        // Create message banner for the editted dataitem
-        const dataIdValue = sessionStorage.getItem("siblingDataId");
-        const insertPosition = sessionStorage.getItem("insertPosition");
-        const diDiv = document.querySelector(`[data-id="${dataIdValue}"]`);
-        diDiv.insertAdjacentHTML(
-            insertPosition,
-            "<div class='pt-4 pb-4 mb-3' id='userViewDataitemMsg'></div>"
-        );
-
-        const userViewDIMsgBanner = new MessageBanner(
-            $("#userViewDataitemMsg")
-        );
-        userViewDIMsgBanner.clear();
-        userViewDIMsgBanner.warning(
-            sessionStorage.getItem("userViewDIMsgBanner")
-        );
-        userViewDIMsgBanner.show();
-        sessionStorage.removeItem("userViewDIMsgBanner");
-        sessionStorage.removeItem("siblingDataId");
-        sessionStorage.removeItem("insertPosition");
-    }
-};
-
 /* Show edit controls for this dataitem */
+// Ivy's note: It seems that it's not used in user view dataset edition.
 $("main").on("click", '[name="edit_dataitem_button_show"]', function () {
     var id = this.id.split("_")[4]; //id will be edit_dataitem_button_show_##, we jst want the number
 
@@ -341,6 +321,7 @@ $("main").on("click", '[name="edit_dataitem_button_show"]', function () {
 });
 
 /* Cancel edits for this dataitem */
+// Ivy's note: It seems that it's not used in user view dataset edition.
 $("main").on("click", '[name="edit_dataitem_button_cancel"]', function () {
     var id = this.id.split("_")[4]; //id will be edit_dataitem_button_cancel_##, we jst want the number
 
@@ -403,18 +384,6 @@ $("main").on("click", '[name="edit_dataitem_button"]', function () {
     var description = $("#row_id_" + id + " td")
         .find("#description")
         .val();
-    // var quantity = $("#row_id_" + id + " td")
-    //     .find("#quantity")
-    //     .val();
-    // var routeId = $("#row_id_" + id + " td")
-    //     .find("#routeId")
-    //     .val();
-    // var routeOriId = $("#row_id_" + id + " td")
-    //     .find("#quantity")
-    //     .val();
-    // var routeTitle = $("#row_id_" + id + " td")
-    //     .find("#quantity")
-    //     .val();
     var datestart = $("#row_id_" + id + " td")
         .find("#datestart")
         .val();
@@ -474,7 +443,6 @@ $("main").on("click", '[name="edit_dataitem_button"]', function () {
             description: description,
             latitude: latitude,
             longitude: longitude,
-            quantity: quantity,
             datestart: datestart,
             dateend: dateend,
             state: state,

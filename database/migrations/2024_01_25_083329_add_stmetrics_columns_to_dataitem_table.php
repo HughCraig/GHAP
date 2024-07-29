@@ -15,7 +15,6 @@ class AddSTMetricsColumnsToDataitemTable extends Migration
      */
     public function up()
     {
-
         // Add geom and geog columns
         DB::statement('ALTER TABLE tlcmap.dataitem ADD COLUMN geom geometry(Point, 4326)');
         DB::statement('ALTER TABLE tlcmap.dataitem ADD COLUMN geog geography(Point, 4326)');

@@ -32,7 +32,7 @@
             @foreach ($datasets as $ds)
                 <tr id="row_id_{{ $ds->id }}">
                     <td><a href="{{ url()->full() }}/{{ $ds->id }}">{{ $ds->name }}</a></td>
-                    <td>{{ count($ds->dataitems) }}</td>
+                    <td>{{ $ds->getDataitemsCount() }}</td>
                     <td>{{ $ds->recordtype->type }}</td>
                     <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td>
                     <td>{{ $ds->created_at }}</td>
@@ -66,13 +66,23 @@
                                     <a class="dropdown-item grab-hover"
                                         onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $ds->id }}/json?sort=start'))">Werekata
                                         Flight by Time</a>
-                                    @if ($ds->has_quantity || $ds->has_route)
+                                    @php
+                                        $hasmobinfo = $ds->getMappingMobilityInfo();
+                                    @endphp
+                                    @if ($hasmobinfo['default'])
                                         <a class="dropdown-item grab-hover"
-                                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=route'))">Mobility
-                                            Route</a>
-                                        <a class="dropdown-item grab-hover"
-                                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=time'))">Mobility
-                                            Times</a>
+                                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=route'))">Mobility</a>
+
+                                        @if ($hasmobinfo['hasrouteiddatestart'])
+                                            <a class="dropdown-item grab-hover"
+                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=timestart'))">Mobility
+                                                by Time Start</a>
+                                        @endif
+                                        @if ($hasmobinfo['hasrouteiddateend'])
+                                            <a class="dropdown-item grab-hover"
+                                                onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=timeend'))">Mobility
+                                                by Time End</a>
+                                        @endif
                                     @endif
                                     @if (!empty(config('app.views_temporal_earth_url')))
                                         <a class="dropdown-item grab-hover"

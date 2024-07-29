@@ -31,8 +31,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
-
+use phpDocumentor\Reflection\PseudoTypes\True_;
 use TLCMap\Http\Helpers\GeneralFunctions;
+use TLCMap\Models\Route;
 
 class UserController extends Controller
 {
@@ -57,50 +58,79 @@ class UserController extends Controller
     public $llheadings = [
         ["latitude", "longitude"],
         ["lat", "long"],
+        ["lat", "lon"],
         ["lat", "lng"]
     ];
 
-    public $generalCols = [
-        'id', 'title', 'type', 'linkback', 'external_url',
-        'route_id', 'route_title',
+    public $genPairCols = [
+        "routeecetory_id", "route_ori_id", "route_title", "route_description",
     ];
 
-    public $commonCols = [
-        'placename', 'name', 'description', 'quantity',
-        'latitude', 'longitude', "lat", "long", "lat", "lng",
+    public $genPointCols = [
+        'ghap_id', 'id', 'title', 'placename', 'name', 'description', 'type', "record_type", 'linkback', 'external_url',
+        'quantity', "stop_idx"
     ];
-
-    public $commonDateStartCols = ["datestart", "startdate", "begin", "date"];
-    public $commonDateEndCols = ["dateend", "enddate", "end", "date"];
-
+    // Date column names have preferrable order, only when no preferred date column provided will find "date" as start_date/end_date
+    // Check $findCsvColumnIndex for detecting logic
+    public $commonDateStartCols = ["datestart", "startdate", "start_date", "begin", "date"];
+    public $commonDateEndCols = ["dateend", "enddate", "end_date", "end", "date"];
     public $commonDateCols = [];
 
-    public $pairBasedPrefixes = [
-        'departure', "origin", "arrival", "destination"
+    public $commonLatCols = ['latitude', "lat"];
+    public $commonLonCols = ['longitude', "long", "lng"];
+    public $commonCoordCols = [];
+
+    public $originPrefixes = [
+        'departure', "origin"
+    ];
+    public $destintionPrefixes = [
+        "arrival", "destination"
     ];
 
-    public $pairBasedDateStartCols = [];
-    public $pairBasedDateEndCols = [];
-    // The common attributes and date attributes of pair of points
-    public $pairBasedCommonCols = [];
+    // The date, coordinate attributes and common attributes of pair of points
+    public $originPointInPairCols = [];
+    public $destinationPointInPairCols = [];
 
     public $pointBasedNotForExtData = [];
     public $pairBasedNotForExtData = [];
 
+    public $mobilityRecordTypeId;
+    public $otherRecordTypeId;
+
     public function __construct()
     {
+        $this->mobilityRecordTypeId = RecordType::getIdByType("Mobility");
+        $this->otherRecordTypeId = RecordType::getIdByType("Other");
+
         $this->commonDateCols = array_unique(array_merge($this->commonDateStartCols, $this->commonDateEndCols));
+        $this->commonCoordCols = array_merge($this->commonLatCols, $this->commonLonCols);
         // Construct pair-based attributes
-        $this->generatePairBasedCols($this->commonDateStartCols, $this->pairBasedDateStartCols);
-        $this->generatePairBasedCols($this->commonDateEndCols, $this->pairBasedDateEndCols);
-        $this->generatePairBasedCols($this->commonCols,  $this->pairBasedCommonCols);
-        $this->pointBasedNotForExtData = array_merge($this->generalCols, $this->commonCols, $this->commonDateCols);
-        $this->pairBasedNotForExtData = array_merge($this->generalCols, $this->pairBasedCommonCols, $this->pairBasedDateStartCols, $this->pairBasedDateEndCols);
+        $pointInPairCols = array_merge(
+            $this->genPointCols,
+            $this->commonDateCols,
+            $this->commonCoordCols
+        );
+
+        $this->addODPrefix($pointInPairCols,  $this->originPrefixes, $this->originPointInPairCols);
+        $this->addODPrefix($pointInPairCols,  $this->destintionPrefixes, $this->destinationPointInPairCols);
+        $this->pointBasedNotForExtData = array_merge(
+            $this->genPairCols,
+            $this->genPointCols,
+            $this->commonCoordCols,
+            $this->commonDateCols
+        );
+        $this->pairBasedNotForExtData = array_merge(
+            $this->genPairCols,
+            $this->originPointInPairCols,
+            $this->destinationPointInPairCols
+        );
     }
 
-    private function generatePairBasedCols($sourceCols, &$targetArray)
+
+
+    private function addODPrefix($sourceCols, $prefixes, &$targetArray)
     {
-        foreach ($this->pairBasedPrefixes as $prefix) {
+        foreach ($prefixes as $prefix) {
             foreach ($sourceCols as $col) {
                 $targetArray[] = $prefix . '_' . $col;
             }
@@ -219,7 +249,10 @@ class UserController extends Controller
         if (!$user) {
             return redirect('layers/' . $id); // Return to public view of dataset for non-logged in users
         }
-        $dataset = Dataset::getPrivateDatasetById($user, $id);
+
+        $dataset = $user->datasets()->with(['dataitemsWithRoute' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->withCount(['dataitems', 'subjectKeywords', 'routes'])->find($id);
 
         if (!$dataset) return redirect('myprofile/mydatasets');
 
@@ -240,7 +273,14 @@ class UserController extends Controller
             $dataset->recordtype_id = 1;
         }
 
-        return view('user.userviewdataset', ['lgas' => $lgas, 'feature_terms' => $feature_terms, 'parishes' => $parishes, 'states' => $states, 'recordtypes' => $recordtypes, 'ds' => $dataset, 'user' => auth()->user()]);
+        // get mobility status for mapping
+        $hasmobinfo = $dataset->getMappingMobilityInfo();
+
+        return view('user.userviewdataset', [
+            'lgas' => $lgas, 'feature_terms' => $feature_terms, 'parishes' => $parishes, 'states' => $states,
+            'recordtypes' => $recordtypes, 'ds' => $dataset, 'user' => auth()->user(),
+            'hasmobinfo' => $hasmobinfo
+        ]);
     }
 
     public function userSavedSearches(Request $request)
@@ -439,11 +479,10 @@ class UserController extends Controller
       data item add/edit/delete in AJAX CONTROLLER
     */
 
-    /*
-        Add to the dataset from file - can be .csv, .kml, or .json
-        Will return to dataset with error message if incorrect file extension or if incorrectly formatted data
-        TODO: Need to think about the bulk update of mobility!
-    */
+    /**
+     * Add to the dataset from file - can be .csv, .kml, or .json
+     * Will return to dataset with error message if incorrect file extension or if incorrectly formatted data
+     */
     public function bulkAddDataitem(Request $request)
     {
         ini_set('upload_max_filesize', '10M');
@@ -463,8 +502,23 @@ class UserController extends Controller
         //overwrite style?
         $appendStyle = $request->appendStyle;
         $overwriteJourney = $request->overwriteJourney;
-        //single point-based dataset or origin-destination dataset?
-        $pointBasedUpload = ($request->uploadODPairs == "on") ? false : true;
+
+        // mobility dataset with routes
+        $hasRoute = $request->input('uploadMobDatasetWithRoute') === 'on';
+        $pointBasedUpload = !($request->input('isODPairs') === 'on');
+        $routePurpose = $request->input('datasetPurpose', null);
+
+        if (($hasRoute === false && $pointBasedUpload === true) || ($hasRoute === false && $routePurpose === null)) {
+        }
+        // validate route options
+        $routeRules = [
+            'uploadMobDatasetWithRoute' => 'sometimes|nullable',
+            'datasetPurpose' => 'required_if:uploadMobDatasetWithRoute,on'
+        ];
+        $routeValidator = Validator::make($request->all(), $routeRules);
+        if ($routeValidator->fails()) {
+            return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'When uploading a mobility dataset with routes, you must select a purpose for the dataset.');
+        }
 
         //get file extension
         $ext = $file->getClientOriginalExtension();
@@ -474,16 +528,112 @@ class UserController extends Controller
 
         //Attempt a file read and parse
         try {
-            if (strcasecmp($ext, 'csv') == 0) {
-                //parse cs
+            /**
+             * Ivy's NOTE TO DEVELOPERS:
+             * Current implementation uses a single transaction for the entire import process.
+             * This approach ensures data consistency but may lead to the following issues:
+             * 1. Long-running transactions could potentially block other database operations.
+             * 2. For large datasets, this might cause performance issues or timeouts.
+             * 3. If an error occurs late in the process, all previous work will be rolled back.
+             *
+             * Potential improvements to consider:
+             * - Implement batch processing to commit smaller chunks of data.
+             * - Use queues for processing large datasets asynchronously.
+             * - Implement more granular error handling to avoid rolling back the entire import on minor issues.
+             * - Monitor transaction duration and implement timeout mechanisms if necessary. (It's implemented in csvToArray)
+             */
+            DB::beginTransaction();
 
-                $arr = $this->csvToArray($file, $pointBasedUpload);
-                if (!is_array($arr)) return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid date format in file on line ' . $arr); //if $arr is a number instead of an array, date format error where $arr is the offending line number
-                // If $arr is a pairBased array, convert it into a pointBased array
-                if ($pointBasedUpload == FALSE) {
-                    $arr = $this->convertPairToPoints($arr);
+            if (strcasecmp($ext, 'csv') == 0) {
+                // parse csv
+
+                // Get the original file name
+                $oriFileName = $file->getClientOriginalName();
+
+                // Convert CSV to array
+                $convertedData = $this->csvToArray($file, $dataset, $hasRoute, $pointBasedUpload, $routePurpose);
+
+                if (is_string($convertedData)) {
+                    // Log the error with file name and timestamp
+                    Log::error("IMPORT ERROR: {$oriFileName} - " . date(DATE_ATOM, mktime(0, 0, 0, 7, 1, 2000)) . $convertedData);
+
+                    // Redirect with error message
+                    return redirect('myprofile/mydatasets/' . $ds_id)
+                        ->with('error', $convertedData);
                 }
-                $this->createDataitems($arr, $ds_id, $dataset);
+
+                // Extract points and routes from converted data
+                $points = $convertedData['points'];
+                $routes = $convertedData['routes'] ?? [];
+
+                if ($hasRoute) {
+                    if ($routes) {
+                        $routes = $this->prepareRoutes($routes, $routePurpose);
+                        $routes = $this->createRoutes($routes, $ds_id);
+                        $points = $this->preparePoints($points, $routes);
+                    } else {
+                        // Log error and redirect if routes are expected but not found
+                        Log::error("IMPORT ERROR: {$oriFileName} - " . date(DATE_ATOM, mktime(0, 0, 0, 7, 1, 2000)) . "No route data found. Please check your file and try again.");
+
+                        return redirect('myprofile/mydatasets/' . $ds_id)
+                            ->with('error', "No route data found. Please check your file and try again.");
+                    }
+                }
+                $modifiedDataitems = $this->createDataitems($points, $ds_id);
+
+                /**
+                 * Handle point removals
+                 *
+                 * This section performs the following operations:
+                 * 1. Identifies dataitem points to be removed from the route
+                 * 2. Executes batch deletion of corresponding route_order entries
+                 *
+                 * Points may be removed from the route due to:
+                 * - Emptying of route_id for rows with existing ghap_id
+                 * - Conversion of "Mobility" record type to other types
+                 *
+                 * @var bool $dropPointFromRoute Indicates if any points were removed from the route
+                 */
+                $affectedRouteIds = [];
+                $dataitemIdsToRemove = collect($modifiedDataitems)
+                    ->filter(function ($item) {
+                        return $item['dropFromRoute'] === true;
+                    })
+                    ->pluck('id')
+                    ->filter()
+                    ->all();
+                if (!empty($dataitemIdsToRemove)) {
+                    $affectedRouteIds = Route::deleteRouteOrdersByDataitemIds($dataitemIdsToRemove);
+                }
+
+                if ($hasRoute) {
+                    // Update dataitem_id to route.dataitems
+                    $routes = $routes->map(function ($route) use ($modifiedDataitems) {
+                        $route['dataitems'] = collect($route['dataitems'])->map(function ($dataitem) use ($modifiedDataitems) {
+                            $arrIdx = $dataitem['arrIdx'];
+                            if (isset($modifiedDataitems[$arrIdx])) {
+                                $dataitem['dataitem_id'] = $modifiedDataitems[$arrIdx]['id'];
+                            }
+                            return $dataitem;
+                        });
+
+                        return $route;
+                    });
+                    // Prepare route orders
+                    $routeOrders = $this->prepareRouteOrders($routes, $routePurpose);
+
+                    // Upsert route_order
+                    Route::upsertPositionAndRouteIdBatch($routeOrders);
+
+                    $affectedRouteIds = array_unique(array_merge(
+                        $affectedRouteIds,
+                        $routes->pluck('id')->toArray()
+                    ));
+                }
+
+                if (!empty($affectedRouteIds)) {
+                    Route::checkAndUpdateStatuses($affectedRouteIds);
+                }
             } else if (strcasecmp($ext, 'kml') == 0) { //now handles extended data, journey
                 $arr = $this->kmlToArray($file, $appendStyle);
 
@@ -494,23 +644,27 @@ class UserController extends Controller
                     if ($overwriteJourney == "on") $dataset->update(['kml_journey' => $arr['raw_journey']]);
                     unset($arr['raw_journey']); //remove the raw_journey from the end of the array
                 }
-                if (array_key_exists('raw_style', $arr, $dataset)) {
+                if (array_key_exists('raw_style', $arr)) {
                     if ($appendStyle == "on") $dataset->update(['kml_style' => $dataset['kml_style'] . $arr['raw_style']]); //APPEND not overwrite
                     unset($arr['raw_style']); //remove the raw_style from the end of the array
                 }
 
                 //Call the function to create all the new data items from this array
-                $this->createDataitems($arr, $ds_id, $dataset);
+                $this->createDataitems($arr, $ds_id);
             } else if (strcasecmp($ext, 'json') == 0 || strcasecmp($ext, 'geojson') == 0) {
                 //TODO extendeddata
                 $arr = $this->geoJSONToArray($file);
                 if (!is_array($arr)) return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid date format in file on line ' . $arr);
 
-                $this->createDataitems($arr, $ds_id, $dataset);
+                $this->createDataitems($arr, $ds_id);
             } else {
                 return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid file format for bulk add!'); //not a valid format, reload page with error msg
             }
+
+            DB::commit();
         } catch (\Exception $e) {
+            DB::rollBack();
+
             Log::error("IMPORT ERROR.");
             $extrainfo = "";
             if (isset($file)) {
@@ -524,6 +678,7 @@ class UserController extends Controller
             $line = $e->getLine();
 
             LOG::error("Import error $file:$line - " . date(DATE_ATOM, mktime(0, 0, 0, 7, 1, 2000)) . " " . $e->getMessage() . " extra info " . $extrainfo);
+            Log::error("Exception stack trace: " . $e->getTraceAsString());
             return redirect('myprofile/mydatasets/' . $ds_id)
                 ->with('error', 'Error processing file. Please check it is in the right format and is less than 10Mb. If CSV, it must have
                 a title or placename column. Check that lat, long and any dates are correct. ' .
@@ -531,158 +686,15 @@ class UserController extends Controller
                 ->with('exception', $e->getMessage()); //file parsing threw an exception, reload page with error msg
         }  //catch any exception
 
+        // update dataset type if there is any mobility-related modification
+        $dataset->updateMobilityRecordType();
+
         //update the dataset updated time
         $dataset->updated_at = Carbon::now();
         $dataset->save();
 
         return redirect('myprofile/mydatasets/' . $ds_id)->with('success', 'Successfully imported from file!'); //reload the page
 
-    }
-
-    /**
-     * Converts the Pair Points in the given array to a new representation of point-based mobility dataset.
-     *
-     * @param array $arr The original array representing OD Mobility Dataset.
-     * @return array The transformed array representing point-based mobility dataset.
-     */
-    function convertPairToPoints($arr)
-    {
-        $routes = [];
-        $origin = [];
-        $destination = [];
-        $row = 0;
-        $newArr = [];
-
-        foreach ($arr as &$entry) {
-            foreach ($entry as $key => $value) {
-                $keyParts = explode('_', $key, 2);
-                if (count($keyParts) > 1 && in_array($keyParts[0], $this->pairBasedPrefixes)) {
-                    $prefix = $keyParts[0];
-                    $newKey = $keyParts[1];
-
-                    if ($prefix === 'origin' || $prefix === 'departure') {
-                        $origin[$newKey] = $value;
-                    } elseif ($prefix === 'destination' || $prefix === 'arrival') {
-                        $destination[$newKey] = $value;
-                    }
-                } else {
-                    $routes[$key] = $value;
-                }
-            }
-
-            if ($row === 0) {
-                $originStartValidKey = $this->getValidKey($origin, $this->commonDateStartCols);
-                $originEndValidKey = $this->getValidKey($origin, $this->commonDateEndCols);
-                $destStartValidKey = $this->getValidKey($origin, $this->commonDateStartCols);
-                $destEndValidKey = $this->getValidKey($origin, $this->commonDateEndCols);
-                $routeStartValidKey = $this->getValidKey($routes, $this->commonDateStartCols);
-                $routeEndValidKey = $this->getValidKey($routes, $this->commonDateEndCols);
-                $routeValidKeys = array_unique([$routeEndValidKey, $routeStartValidKey]);
-            }
-            // Handling missing time values
-            // complement startdate and enddate with any available of other item of the pair or "date"
-            // $origin['startdate'] = $origin[$originStartValidKey] ?? '';
-            // unset($origin[$originStartValidKey]);
-            // // if ($originStartValidKey !== 'startdate') {
-            // //     unset($origin[$originStartValidKey]);
-            // // }
-            // $origin['enddate'] = $origin[$originEndValidKey] ?? '';
-            // unset($origin[$originEndValidKey]);
-            // // if ($originEndValidKey !== 'enddate') {
-            // //     unset($origin[$originEndValidKey]);
-            // // }
-            // $destination['startdate'] = $destination[$destStartValidKey] ?? '';
-            // unset($destination[$destStartValidKey]);
-            // // if ($destination !== 'startdate') {
-            // //     unset($destination[$destStartValidKey]);
-            // // }
-            // $destination['enddate'] = $destination[$destEndValidKey] ?? '';
-            // unset($destination[$destEndValidKey]);
-            // if ($destEndValidKey !== 'enddate') {
-            //     unset($destination[$destEndValidKey]);
-            // }
-
-            // if ($origin['startdate'] === '' && $origin['enddate'] !== '') {
-            //     $origin['startdate'] = $origin['enddate'];
-            // }
-            // if ($origin['enddate'] === '' && $origin['startdate'] !== '') {
-            //     $origin['enddate'] = $origin['startdate'];
-            // }
-            // if ($destination['startdate'] === '' && $destination['enddate'] !== '') {
-            //     $destination['startdate'] = $destination['enddate'];
-            // }
-            // if ($destination['enddate'] === '' && $destination['startdate'] !== '') {
-            //     $destination['enddate'] = $destination['startdate'];
-            // }
-
-            // if ($origin['startdate'] !== '' && $origin['enddate'] !== '' && $destination['startdate'] !== '' && $destination['enddate'] !== '') {
-            //     // pass
-            // } else {
-            //     // complement startdate + enddate in origin/destination with startdate and enddate of route respectively
-            //     $routes['startdate'] = $routes[$routeStartValidKey] ?? '';
-            //     if ($routes !== 'startdate') {
-            //         unset($routes[$routeStartValidKey]);
-            //     }
-            //     $routes['enddate'] = $routes[$routeEndValidKey] ?? '';
-            //     if ($routes !== 'enddate') {
-            //         unset($routes[$routeEndValidKey]);
-            //     }
-            //     if ($origin['startdate'] !== '') {
-            //         $origin['startdate'] = $routes['startdate'];
-            //     }
-            //     if ($origin['enddate'] !== '') {
-            //         $origin['enddate'] = $routes['startdate'];
-            //     }
-            //     if ($destination['startdate'] !== '') {
-            //         $destination['startdate'] = $routes['startdate'];
-            //     }
-            //     if ($destination['enddate'] !== '') {
-            //         $destination['enddate'] = $routes['startdate'];
-            //     }
-            // }
-
-            if (!empty($origin) && !empty($destination)) {
-                // $keysToRemove = array('enddate', 'startdate');
-                // foreach ($keysToRemove as $key) {
-                //     if (array_key_exists($key, $routes)) {
-                //         unset($routes[$key]);
-                //     }
-                // }
-
-                $merged1 = array_merge($routes, $origin);
-                $newArr[] = $merged1;
-
-                $merged2 = array_merge($routes, $destination);
-                $newArr[] = $merged2;
-
-                // Reset arrays for the next iteration
-                $routes = [];
-                $origin = [];
-                $destination = [];
-            }
-            $row++;
-        }
-
-        unset($entry); // Unset reference to last element
-        return $newArr;
-    }
-
-    /**
-     * Helper function to get a valid key from an array based on an array of possible keys.
-     *
-     * @param array $data The array to search for the keys.
-     * @param array $possibleKeys An array of possible keys to look for.
-     * @return mixed|null The value if a valid key is found, otherwise null.
-     */
-    private function getValidKey($data, $possibleKeys)
-    {
-        foreach ($possibleKeys as $key) {
-            if (array_key_exists($key, $data)) {
-                // return $data[$key];
-                return $key;
-            }
-        }
-        return "";
     }
 
     function userEditCollaborators(Request $request, int $id)
@@ -700,11 +712,9 @@ class UserController extends Controller
      *   The array where each entry represents a dataitem of the form (['ds_id' => thedatasetid, 'placename' => someplacename, 'latitude' => 123, => etc...])
      * @param string $ds_id
      *   The id for the dataset to add this data item into.
-     * @param object $dataset
-     *   The dataset of the specific id ($ds_id).
      *
      */
-    function createDataitems($arr, $ds_id, $dataset)
+    function createDataitems($arr, $ds_id)
     {
         $fillable = (new Dataitem)->getFillable(); //array of all the columns in the dataitem table that are fillable
 
@@ -713,55 +723,19 @@ class UserController extends Controller
         $llcols = $this->aliasColPair($this->llheadings, $arr);
 
         $notForExtData = [
-            "id", "title", "placename", "name", "description", "type", "linkback",
-            "quantity", "created_at", "updated_at", "ghap_id",
-            "route_id", "route_original_id", "route_title",
+            "id", "title", "placename", "name", "description", "type", "linkback", "created_at", "updated_at", "ghap_id",
+            "quantity", "route_id"
         ]; // because of special handling, as with date and lat long cols
 
         $extDataExclusions = array_merge($fillable, $datecols, $llcols, $notForExtData);
 
         // Exclude these columns.
-        $excludeColumns = ['uid', 'datasource_id',];
+        $excludeColumns = ['uid', 'datasource_id', "stop_idx", "route_ori_id", "route_title", "route_description"];
 
-        // Get the starting number of dataset_order
-        $maxValues = DataItem::where('dataset_id', $ds_id)
-            ->selectRaw('MAX(dataset_order) AS max_dataset_order, MAX(route_id) AS max_route_id')
-            ->first();
-        $datasetOrder = $maxValues->max_dataset_order !== null ? $maxValues->max_dataset_order + 1 : 0;
+        // Collect id and $dropFromRoute of dataitems (mainly for route_order create/update/drop)
+        $modifiedDataitems = [];
 
-        // Get the starting number of route_id
-        $routeId = $maxValues->max_route_id !== null ? $maxValues->max_route_id + 1 : 1;
-        $routeResults = DataItem::where('dataset_id', $ds_id)
-            ->select('route_original_id', 'route_title', 'route_id')
-            ->get();
-        $route_metas = [];
-        foreach ($routeResults as $ele) {
-            $route_id = $ele['route_id'];
-            $route_title = $ele['route_title'];
-            $route_original_id = $ele['route_original_id'];
-
-            if (!isset($route_metas[$route_id])) {
-                $route_metas[$route_id] = [$route_title, $route_original_id];
-            } else {
-                if (!in_array($route_title, $route_metas[$route_id])) {
-                    $route_metas[$route_id][] = $route_title;
-                }
-                if (!in_array($route_original_id, $route_metas[$route_id])) {
-                    $route_metas[$route_id][] = $route_original_id;
-                }
-            }
-        }
-        $invertedRouteMetas = [];
-        foreach ($route_metas as $key => $value) {
-            $invertedRouteMetas[serialize($value)] = $key;
-        }
-        $route_metas = $invertedRouteMetas;
-
-        // Initialize the state of mobility information for the dataset.
-        $ds_has_quantity = false;
-        $ds_has_route = false;
-
-        for ($i = 0; $i < count($arr); $i++) { //FOREACH data item
+        for ($i = 0; $i < count($arr); $i++) { //FOREACH data itemele
             $culled_array = array(); //we will cull out all keys that are not present as fillable fields
             $extendeddata = array(); //and add anything else to extended data.
 
@@ -839,11 +813,24 @@ class UserController extends Controller
                 $culled_array["longitude"] = $arr[$i][$llcols[1]];
             }
 
-            //Handle quantity
+            $isMobility = false;
+
+            // Handle quantity
             if (!isset($culled_array["quantity"]) || empty(trim($culled_array["quantity"]))) {
                 $culled_array["quantity"] = null;
             } else {
-                $ds_has_quantity = true;
+                $isMobility = true;
+            }
+
+            if (!isset($culled_array["route_id"]) || empty(trim($culled_array["route_id"]))) {
+                $culled_array["route_id"] = null;
+            } else {
+                $isMobility = true;
+            }
+
+            if ($isMobility) {
+                // If point has mobility-related field ,set recordtyp as "Mobility"
+                $culled_array["recordtype_id"] = $this->mobilityRecordTypeId;
             }
 
             // Handle extended data columns
@@ -862,80 +849,24 @@ class UserController extends Controller
                 }
             }
 
-            // Initialize the value of dataset_order
-            $culled_array["dataset_order"] = $datasetOrder;
-            $datasetOrder++;
-
-            // Handle route related columns including (either route_id or route_title must be fullfilled)
-            // 1. Convert route_id as route_original_id if route_id exists.
-            // 2. Fill route_title with original route_id if route_title unexists.
-            // 3. Assign integer route_id.
-            $hasRouteInfo = false;
-            $route_meta = [];
-            // Dummy, but haven't found a better way yet
-            if (isset($culled_array["route_id"]) && isset($culled_array["route_title"])) {
-                $hasRouteInfo = true;
-                $culled_array["route_original_id"] = $culled_array["route_id"];
-                $route_meta[] = $culled_array["route_id"];
-                $route_meta[] = $culled_array["route_title"];
-            } else if (isset($culled_array["route_id"]) && !isset($culled_array["route_title"])) {
-                $hasRouteInfo = true;
-                $culled_array["route_original_id"] = $culled_array["route_id"];
-                $route_meta[] = $culled_array["route_id"];
-                $culled_array["route_title"] = $culled_array["route_id"];
-            } else if (!isset($culled_array["route_id"]) && isset($culled_array["route_title"])) {
-                $hasRouteInfo = true;
-                $route_meta[] = $culled_array["route_title"];
-            }
-
-            if ($hasRouteInfo) {
-                $ds_has_route = true;
-                //Initialize the existence status of current route information
-                $routeExisting = false;
-                // Check whether current route that the data item belongs to exists
-                foreach ($route_metas as $existingRoute => $existingRouteId) {
-                    $existingRouteMeta = unserialize($existingRoute);
-                    $intersection = array_intersect($existingRouteMeta, $route_meta);
-                    // Update route meta information of existing route_id
-                    if (!empty($intersection)) {
-                        $culled_array["route_id"] = $existingRouteId; // Use existing route_id
-                        $routeExisting = true;
-                        if (count($intersection) < min(count($existingRouteMeta), count($route_meta))) {
-                            $newMeta = serialize(array_unique(array_merge($existingRouteMeta, $route_meta)));
-                            $route_metas[$newMeta] = $existingRouteId;
-                            unset($route_metas[$existingRoute]);
-                        }
-                        break;
-                    }
-                }
-                if (!$routeExisting) {
-                    $culled_array["route_id"] = $routeId;
-                    $route_metas[serialize($route_meta)] = $culled_array["route_id"];
-                    $routeId++;
-                }
-            }
-            // Store the dataitem
             if (!empty($culled_array)) { //ignore empties
                 $dataitemUID = $arr[$i]['ghap_id'] ?? null;
                 $dataitemProperties = array_merge(array('dataset_id' => $ds_id), $culled_array);
-                $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
+                $processResult = $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
+
+                $modifiedDataitems[] = [
+                    'id' => $processResult['id'],
+                    'dropFromRoute' => $processResult['dropFromRoute']
+                ];
+            } else {
+                $modifiedDataitems[] = [
+                    'id' => null,
+                    'dropFromRoute' => false
+                ];
             }
         }
 
-        // Update the state of mobility information for the dataset.
-        $has_quantity_prev = $dataset->has_quantity;
-        if ($has_quantity_prev === null) {
-            $dataset->has_quantity = $ds_has_quantity;
-        } else {
-            $dataset->has_quantity = $has_quantity_prev !== $ds_has_quantity ? $ds_has_quantity : $has_quantity_prev;
-        }
-        $has_route_prev = $dataset->has_route;
-        if ($has_route_prev === null) {
-            $dataset->has_route = $ds_has_route;
-        } else {
-            $dataset->has_route = $has_route_prev !== $ds_has_route ? $ds_has_route : $has_route_prev;
-        }
-        $dataset->save();
+        return $modifiedDataitems;
     }
 
     /**
@@ -947,19 +878,38 @@ class UserController extends Controller
      *
      * @param array $data
      *   The dataitem properties.
-     * @param string $uid
+     * @param string|null $uid
      *   The dataitem UID.
-     * @return string $uid
-     *   The dataitem UID (existing / newly generated)
+     * @return array An associative array containing:
+     *               - 'id': The ID of the dataitem
+     *               - 'uid': The UID of dataitem (existing / newly generated)
+     *               - 'dropFromRoute': Boolean indicating if the dataitem is removed from a route
      */
     private function createOrUpdateDataitem($data, $uid = null)
     {
         // Find the existing dataitem if the UID presents.
         $dataitem = Dataitem::where('uid', $uid)->first();
+        $dropFromRoute = false;
+
         // Check the existing dataitem is in the correct dataset. If not, ignore the update.
         if (!empty($dataitem) && (string) $dataitem->dataset_id === (string) $data['dataset_id']) {
-            // Update the existing dataitem if there's a match.
-            $dataitem->fill($data)->save();
+
+            $prevRouteId = $dataitem->route_id;
+            $dataitem->fill($data);
+
+            // if dataitem is not mobility record type
+            if ($dataitem->recordtype_id !== $this->mobilityRecordTypeId) {
+                $dataitem->quantity = null;
+                $dataitem->route_id = null;
+            }
+            if (!$dataitem->quantity && !$dataitem->route_id && $dataitem->recordtype_id === $this->mobilityRecordTypeId) {
+                $dataitem->recordtype_id = $this->otherRecordTypeId;
+            }
+
+            // if original dataitem is associated with a route, check whether it will be dropped in the update
+            $dropFromRoute = $prevRouteId && !$dataitem->route_id;
+
+            $dataitem->save();
         } else {
             // Create the new dataitem. THIS WILL IGNORE EXACT DUPLICATES WITHIN THIS DATASET.
             $dataitem = Dataitem::firstOrCreate($data);
@@ -969,7 +919,33 @@ class UserController extends Controller
                 $dataitem->save();
             }
         }
-        return $dataitem->uid; // Return UID
+
+        return [
+            'id' => $dataitem->id,
+            'uid' => $dataitem->uid,
+            'dropFromRoute' => $dropFromRoute
+        ];
+    }
+
+    /**
+     * Handle special logic for mobility record types.
+     *
+     * This method sets quantity and route_id to null if the record type is not mobility.
+     * It also determines if the dataitem is going to be dropped from a route based on route_id changes.
+     *
+     * @param Dataitem $dataitem The dataitem to process
+     * @param int|null $prevRouteId The previous route ID of the dataitem
+     * @return bool True if the dataitem should be dropped from a route, false otherwise
+     */
+    private function handleMobilityRecordType(Dataitem $dataitem, ?int $prevRouteId): bool
+    {
+        // if dataitem is not mobility record type
+        if ($dataitem->recordtype_id !== $this->mobilityRecordTypeId) {
+            $dataitem->quantity = null;
+            $dataitem->route_id = null;
+        }
+
+        return $prevRouteId && !$dataitem->route_id;
     }
 
     // trawl for lat long col names
@@ -1058,163 +1034,203 @@ class UserController extends Controller
     }
 
 
-    /*
-        Convert CSV file to array including:
-            1. Get the content from CSV.
-            2. Sanitize the headers.
-            3. Handle date formatting.
-
-        Source: https://stackoverflow.com/questions/35220048/import-csv-file-to-laravel-controller-and-insert-data-to-two-tables
-        Note: Each line in the CSV must contain a value for all entries in the header.
-        And handling the presence of columns by different names such as lat, lng, linkback, title, etc., is done elsewhere.
-
-        Input:
-        - $file: CSV file object to be converted.
-        - $delimiter: (Optional) Delimiter used in the CSV file, default is ','.
-
-        Output:
-        - Returns an array containing the CSV data.
-
-        !!!!!!
-        `$lines = str_getcsv($file->get(),"\n");`
-        This is failing to handle line breaks in cells. Need to handle that.
-        $lines = fgetcsv($file->get(), "\n");//Split entire file into array of lines on \n    OLD: explode(PHP_EOL,$file->get());
-        Try fgetcsv instead.
-
-        Refactoring this entirely, as the old way didn't handle multiline cells. Output should be the same.
-        The purpose of this section is to get the CSV, sanitize the headers, and handle date formatting.
-        Note that handling the presence of columns by different names such as lat, lng, linkback, title, etc., is done elsewhere.
-        (Feels like it could/should be done in the same process. But just need to get it working so not digressing...
-        and it might make sense after all since this is just for CSV but later we can handle any input after ingest)
-        And reformat like this:
-        data[this] is now an array mapping header to field eg data[this] = ['placename' => 'newcastle', ... => ..., etc]
-    */
-    function csvToArray($file,  $pointBasedUpload = TRUE, $delimiter = ',')
+    /**
+     * Convert CSV file to array, processing headers, data, and routes if applicable.
+     *
+     * This function performs the following operations:
+     * 1. Opens and reads the CSV file.
+     * 2. Processes and validates the CSV header.
+     * 3. Handles date formatting and coordinates cleansing.
+     * 4. Extracts and processes dataset with route information (if present).
+     * 5. Supports both point-based and pair-based uploads (for CSV with route).
+     * 6. Handles various route purposes (addNewPlaces, reorderRoutes, reorganizeRoutes).
+     * Function hierarchy:
+     * 1. csvToArray
+     *    1.1 processCsvHeader
+     *        1.1.1 findFirstMatchingCsvPointColumnIndex
+     *        1.1.2 findFirstMatchingCsvPairColumnIndex
+     *        1.1.3 processCsvRouteHeaders
+     *            1.1.3.1 findColumnIndices
+     *            1.1.3.2 findPairColumnIndices
+     *            1.1.3.3 validateCsvRouteHeaders
+     *                1.1.3.3.1 throwCsvRouteHeaderError
+     *    1.2 validateRow (for non-route data)
+     *    1.3 processCsvDateFields
+     *    1.4 processCsvCoordFields
+     *    1.5 processCsvPointWithRoute (for point-based route data)
+     *        1.5.1 getValidateRowWithRouteFunction
+     *            1.5.1.1 getAddNewPlacesValidator
+     *            1.5.1.2 getReorderValidator
+     *            1.5.1.3 getReorganizeValidator
+     *        1.5.2 processPointData
+     *            1.5.2.1 processCsvDateFields
+     *            1.5.2.2 processCsvCoordFields
+     *            1.5.2.3 extractRouteDataFromCsvPoint
+     *    1.6 processCsvPairWithRoute (for pair-based route data)
+     *        (Similar structure to processCsvPointWithRoute)
+     * Source: https://stackoverflow.com/questions/35220048/import-csv-file-to-laravel-controller-and-insert-data-to-two-tables
+     * Note: Each line in the CSV must contain a value for all entries in the header.
+     * Ivy's note:
+     *      The function handles columns with various names, sanitizing date and coordinate values.
+     *
+     * !!!!!!
+     * `$lines = str_getcsv($file->get(),"\n");`
+     * This is failing to handle line breaks in cells. Need to handle that.
+     * $lines = fgetcsv($file->get(), "\n");//Split entire file into array of lines on \n    OLD: explode(PHP_EOL,$file->get());
+     * Try fgetcsv instead.
+     *
+     * Refactoring this entirely, as the old way didn't handle multiline cells. Output should be the same.
+     * The purpose of this section is to get the CSV, sanitize the headers, and handle date formatting.
+     * Note that handling the presence of columns by different names such as lat, lng, linkback, title, etc., is done elsewhere.
+     * (Feels like it could/should be done in the same process. But just need to get it working so not digressing...
+     * and it might make sense after all since this is just for CSV but later we can handle any input after ingest)
+     * And reformat like this:
+     * data[this] is now an array mapping header to field eg data[this] = ['placename' => 'newcastle', ... => ..., etc]
+     *
+     * @param mixed $file CSV file object to be converted.
+     * @param Dataset $dataset The dataset object containing relevant information for validation.
+     * @param bool $hasRoute Indicates whether the dataset includes route information.
+     * @param bool $pointBasedUpload Indicates whether the upload is point-based (true) or pair-based (false).
+     * @param string|null $routePurpose The purpose of route processing (null if no route).
+     * @param string $delimiter Delimiter used in the CSV file, default is ','.
+     *
+     * @return array|int Returns an associative array containing:
+     *                   - 'points': An array of processed CSV data.
+     *                   - 'routes': An array of extracted route information on each point (if available).
+     *                   Or returns a string containing error information if processing fails.
+     *
+     * @throws \Exception If there's an error opening the file.
+     *
+     * @note This function now handles multiline cells correctly using fgetcsv().
+     * @note The function sanitizes headers, processes dates and coordinates, and validates data based on route purpose.
+     * @note For non-route data, it performs basic row validation and processing.
+     * @note For route data, it uses specialized processing functions based on upload type (point or pair).
+     *
+     * @details CSV Format and Output for Different Route Purposes:
+     *
+     * 1. addNewPlaces:
+     *    CSV Format:
+     *    - Required columns: regular point fields, route_id (OR route_ori_id)
+     *    - Optional columns: stop_idx and other place-related information
+     *    Output:
+     *    - points: Array of place data including route_id
+     *    - routes: Array of route data with id (route_id) OR ori_id (route_ori_id), and arrIdx matching to original point in $points
+     *
+     * 2. reorderRoutes:
+     *    CSV Format:
+     *    - Required columns: regular point fields, route_id, ghap_id
+     *    - Optional columns: stop_idx and other place-related information
+     *    Output:
+     *    - points: Array of place data including route_id and ghap_id
+     *    - routes: Array of route data with id (route_id), ghap_id, and arrIdx matching to original point in $points
+     *
+     * 3. reorganizeRoutes:
+     *    CSV Format:
+     *    - Required columns: regular point fields, route_id, ghap_id
+     *    - New routes/places should use format: new_route_X, new_place_X
+     *    - Optional columns: stop_idx and other place-related information
+     *    Output:
+     *    - points: Array of place data including route_id and ghap_id (new or existing)
+     *    - routes: Array of route data with id, ghap_id, and arrIdx
+     *
+     * Note: For pair-based uploads, each row in the CSV represents both origin and destination,
+     * and the column names should be prefixed accordingly (check $this->originPrefixes & $this->destintionPrefixes).
+     *
+     */
+    function csvToArray($file,  $dataset, $hasRoute = FALSE, $pointBasedUpload = TRUE, $routePurpose = null, $delimiter = ',')
     {
 
-        $header = null;
+        $header = [];
         $data = array();
-        // $datestartindex = false;
-        // $dateendindex = false;
-
-        $latitudeIndex = false;
-        $longitudeIndex = false;
 
         try {
+            $handle = fopen($file->getRealPath(), 'r');
+            if ($handle === FALSE) {
+                LOG::error("File import error NO HANDLE");
+                throw new \Exception('File import error NO HANDLE');
+            }
 
-            if (($handle = fopen($file->getRealPath(), 'r')) !== FALSE) {
-                // necessary if a large csv file
-                set_time_limit(0);
+            set_time_limit(0);
+
+            $header = fgetcsv($handle);
+            // extract and validate csv header
+            $processedHeaderResults = $this->processCsvHeader($header, $hasRoute, $pointBasedUpload, $routePurpose);
+            if ($processedHeaderResults['status']) {
+                $processedHeader = $processedHeaderResults['data'];
+            } else {
+                $errorLog = $processedHeaderResults['error'];
+                return $errorLog;
+            }
+
+            if ($hasRoute === false) {
+                $outdata = [];
                 $row = 0;
-                if ($pointBasedUpload == TRUE) {
-                    $notForExtData = $this->pointBasedNotForExtData;
-                } else {
-                    $notForExtData = $this->pairBasedNotForExtData;
+
+                $specialColumns = [];
+                if (isset($processedHeader['routeindices']['route_id'])) {
+                    $specialColumns['route_id'] = [
+                        'index' => $processedHeader['routeindices']['route_id'],
+                        'mustBeEmpty' => true
+                    ];
                 }
+                $validateRow = !empty($specialColumns)
+                    ? function ($data) use ($specialColumns) {
+                        return $this->validateRowWithSpecialColumns($data, $specialColumns);
+                    }
+                    : [$this, 'validateRow'];
+                $dateIndices = array_filter(
+                    [
+                        $processedHeader['datestartindices'],
+                        $processedHeader['dateendindices']
+                    ]
+                );
+                $coordIndices = array_filter([$processedHeader['latindices'], $processedHeader['lonindices']]);
 
                 while (($data = fgetcsv($handle)) !== FALSE) {
-                    // number of fields in the csv
-                    $col_count = count($data);
+                    $row++;
 
-                    if (!$this->validateRow($data)) continue; //if the row is invalid, skip it
+                    $validationResult = $validateRow($data);
 
-                    // sanitise headings
-                    if ($row === 0) {
-
-                        // sanitise and check for required fields
-                        $header = $data;
-                        foreach ($header as &$heading) {
-                            $heading = $this->sanitiseKey($heading);
+                    if (!$validationResult['status']) {
+                        if ($validationResult['stopProcess']) {
+                            $errorLog = "Row $row: " . $validationResult['error'] . "\n";
+                            return $errorLog; // If route_id has value in this situation, stop upload
                         }
-
-                        // if the uploaded data includes datestart or dateend values, store the index
-                        // dates might be in datestart or date end, or there may be a single date field.
-                        // ****************************
-                        // Ivy's comment
-                        // It seems that "datestart"/"startdate"/"start date"/"begin" has priority? (which not really make sense)
-                        // Keep it anyway
-                        // The previous method default there would only be one date column or one pair of date columns
-                        // Regarding the mobility origin-destination dataset format for mobility mapping, the dataset could have
-                        // more than one/one pair of column(s). Hence the the index storage should be an array rather than an integer
-                        // TODO: the current method is too clumsy, but regarding there would not be a wide spreadsheet uploaded, just make it work for now
-                        // $datestartindex = array_search('datestart', $header); //if the uploaded header includes datestart or dateend values, store the index
-                        // $dateendindex = array_search('dateend', $header);
-                        $dataStartStrings = $this->commonDateStartCols;
-                        $dateEndStrings = $this->commonDateEndCols;
-
-                        if ($pointBasedUpload == FALSE) {
-                            $dataStartStrings = $this->pairBasedDateStartCols;
-                            $dateEndStrings = $this->pairBasedDateEndCols;
-                        }
-
-                        $latitudeIndex = array_search('latitude', $header);
-                        $longitudeIndex = array_search('longitude', $header);
-
-                        $datestartindices = [];
-                        $dateendindices = [];
-
-                        foreach ($dataStartStrings as $dataStartString) {
-                            $index = array_search($dataStartString, $header);
-                            if ($index !== false) {
-                                $datestartindices[] = $index;
-                            }
-                        }
-                        foreach ($dateEndStrings as $dateEndString) {
-                            $index = array_search($dateEndString, $header);
-                            if ($index !== false) {
-                                $dateendindices[] = $index;
-                            }
-                        }
-
-                        // this part is just for checking the date formatting. We'll handle default and mapping fields back in the calling function.
-                        if (empty($datestartindices) && empty($dateendindices)) {
-                            $datestartindices[] = array_search('date', $header);
-                            $dateendindices[] = array_search('date', $header);
-                        }
-                    } else { // not a heading format the dates
-                        $fields = $data;
-
-                        $dateIndices = array_merge($datestartindices, $dateendindices);
-                        // Check if $dateIndices contains only false values, then set it to an empty array
-                        if (count(array_unique($dateIndices)) === 1 && reset($dateIndices) === false) {
-                        } else {
-                            foreach ($dateIndices as $dateIndex) {
-                                $parsedate = GeneralFunctions::dateMatchesRegexAndConvertString($fields[$dateIndex]);
-                                if ($parsedate === -1) {
-                                    return $row;
-                                } else {
-                                    $fields[$dateIndex] = $parsedate;
-                                }
-                            }
-                        }
-
-                        if ($latitudeIndex !== false) {
-                            // Remove spaces, non-breaking spaces, and non-numeric characters.
-                            $fields[$latitudeIndex] = preg_replace('/[^\d\.-]/', '', str_replace("\xc2\xa0", ' ', $fields[$latitudeIndex]));
-                        }
-                        if ($longitudeIndex !== false) {
-                            // Remove spaces, non-breaking spaces, and non-numeric characters.
-                            $fields[$longitudeIndex] = preg_replace('/[^\d\.-]/', '', str_replace("\xc2\xa0", ' ', $fields[$longitudeIndex]));
-                        }
-
-                        $outdata[] = array_combine($header, $fields); //data[this] is now an array mapping header to field eg data[this] = ['placename' => 'newcastle', ... => ..., etc]
-
+                        continue; // if the row is invalid but just has all empty values, skip it
                     }
 
+                    $fields = $data;
 
-                    $row++;
+                    // Process date
+                    $dateResult = $this->processCsvDateFields($fields, $dateIndices);
+
+                    if (!$dateResult['status']) {
+                        $errorLog = "Row $row: " . $dateResult['error'] . "\n";
+                        return $errorLog;
+                    }
+
+                    // Process coordinates
+                    $fields = $this->processCsvCoordFields($fields, $coordIndices);
+
+                    // Combine headers and values of fields
+                    $outdata[] = array_combine($processedHeader['header'], $fields); //data[this] is now an array mapping header to field eg data[this] = ['placename' => 'newcastle', ... => ..., etc]
                 }
-                fclose($handle);
+                $outdata['points'] = $outdata;
             } else {
-                LOG::error("File import error NO HANDLE");
-                throw new Exception('File import error NO HANDLE');
+                // processCsvWithRoute
+                if ($pointBasedUpload) {
+                    $outdata = $this->processCsvPointWithRoute($handle, $dataset, $processedHeader, $routePurpose);
+                } else {
+                    $outdata = $this->processCsvPairWithRoute($handle, $dataset, $processedHeader, $routePurpose);
+                }
             }
+
+            fclose($handle);
         } catch (Exception $e) {
             LOG::error('File Import Caught exception: ', $e->getMessage(), "\n");
         }
 
-
-        return $outdata; //return the array of lines and headers
+        return $outdata;
     }
 
     /*
@@ -1223,23 +1239,75 @@ class UserController extends Controller
     */
     function validateRow($array)
     {
+        $hasNonEmptyValue = false;
         foreach ($array as $value) {
             $trimmedValue = trim($value);
             if ($trimmedValue !== '' && $trimmedValue !== ',') {
-                return true;
+                $hasNonEmptyValue = true;
+                break;
             }
         }
-        return false;
+        return $hasNonEmptyValue
+            ? ['status' => true]
+            : ['status' => false, 'error' => 'Row contains only empty values.', 'stopProcess' => false];
+    }
+
+    /**
+     * Validate a row with special column requirements.
+     *
+     * @param array $array The row data to validate.
+     * @param array $specialColumns An array of special columns with their validation rules.
+     * @return array Validation result with status, error message, and process control flag.
+     */
+    private function validateRowWithSpecialColumns($array, $specialColumns)
+    {
+        foreach ($specialColumns as $columnName => $rules) {
+            $columnIndex = $rules['index'];
+            $mustBeEmpty = $rules['mustBeEmpty'] ?? false;
+
+            $value = trim($array[$columnIndex]);
+
+            if ($mustBeEmpty && !empty($value)) {
+                return [
+                    'status' => false,
+                    'error' => "Column '$columnName' must be empty but contains a value.",
+                    'stopProcess' => true
+                ];
+            } elseif (!$mustBeEmpty && empty($value)) {
+                return [
+                    'status' => false,
+                    'error' => "Column '$columnName' must not be empty but is empty.",
+                    'stopProcess' => true
+                ];
+            }
+        }
+
+        $hasNonEmptyValue = false;
+        foreach ($array as $index => $value) {
+            if (!isset($specialColumns[$index])) {
+                $trimmedValue = trim($value);
+                if ($trimmedValue !== '' && $trimmedValue !== ',') {
+                    $hasNonEmptyValue = true;
+                    break;
+                }
+            }
+        }
+
+        return $hasNonEmptyValue
+            ? ['status' => true]
+            : ['status' => false, 'error' => 'Row contains only empty values.', 'stopProcess' => false];
     }
 
     /**
      * Sanitizes and standardizes the key (column names).
      *
      * @param string $s The input string to be sanitized.
+     * @param bool $pointBasedUpload Determines which set of keys should be converted to lowercase.
+     *      True for point-based upload, false for pair-based upload.
      * @return string The sanitized string after removing spaces, dodgy characters,
      *                converting to UTF-8, and applying lowercase handling for specific keys.
      */
-    function sanitiseKey($s)
+    function sanitiseKey($s, $pointBasedUpload = True)
     {
         // remove spaces and dodgy characters
         $s = trim($s);
@@ -1250,11 +1318,12 @@ class UserController extends Controller
         // convert in a lot of clumsy comparison elsewhere, yet we can't just lc everything, cause we can't assume the case when outputting,
         // so need to retain case for other things like extended data. Noticed glitch between lcing everying in CSV, but not in KML, so was
         // no way out but this.
-        $notForExtData = [
-            "id", "title", "placename", "name", "description", "type", "linkback", "latitude", "longitude",
-            "startdate", "enddate", "date", "datestart", "dateend", "begin", "end", "linkback", "external_url",
-            "record_type", "start_date", "end_date"
-        ];
+        if ($pointBasedUpload == TRUE) {
+            $notForExtData = $this->pointBasedNotForExtData;
+        } else {
+            $notForExtData = $this->pairBasedNotForExtData;
+        }
+
         if (in_array(strtolower($s), array_map('strtolower', $notForExtData))) {
             $s = strtolower($s);
         }
@@ -1266,6 +1335,7 @@ class UserController extends Controller
         $s = iconv("UTF-8", "UTF-8//IGNORE", $s);
         return $s;
     }
+
     //array of asoc arrays of form  [['placename' => 'newcastle', 'latitude' => 123.456, etc], ['placename' => etc], ['placename' => etc]]
     //sppendStyle is true if we want to grab the styleUrl tag for each placemark (if it exists) and import that to the database as well
     function kmlToArray($file, $appendStyle = false)
@@ -1436,5 +1506,1318 @@ class UserController extends Controller
             ) + $ed_out; //adding on the extended data
         }
         return $data;
+    }
+
+    /**
+     * Process CSV header to identify and store indices for date, coordinate, and route columns.
+     *
+     * This function performs the following operations:
+     * 1. Sanitizes the header column names.
+     * 2. Identifies and stores indices for date start, date end, and coordinate columns.
+     * 3. Handles both point-based and pair-based upload formats.
+     * 4. Processes route fields if applicable.
+     *
+     * @param array $header The original CSV header array.
+     * @param bool $hasRoute Indicates whether the CSV contains route data.
+     * @param bool $pointBasedUpload True for point-based upload, false for pair-based upload.
+     * @param string $routePurpose The purpose of route processing (e.g., "addNewPlaces", "reorderRoutes").
+     *
+     * @return array An associative array containing:
+     *               - 'header': Processed CSV header array
+     *               - 'datestartindices': Array of indices for date start columns
+     *               - 'dateendindices': Array of indices for date end columns
+     *               - 'latindices': Array of indices for latitude columns
+     *               - 'lonindices': Array of indices for longitude columns
+     *               - 'routeindices': Array of indices for route columns (if applicable)
+     *
+     * @note For point-based uploads, date and coordinate indices are simple arrays.
+     *       For pair-based uploads, these indices are nested arrays with 'origin' and 'destination' keys.
+     *
+     * @note The route indices ('routeindices') format depends on the upload type:
+     *       - For point-based: A simple array of column name to index mappings.
+     *       - For pair-based: A nested array with 'origin' and 'destination' keys, each containing column mappings.
+     *
+     * @note This function uses predefined lists of common column names for dates and coordinates,
+     *       and applies appropriate prefixes for pair-based uploads.
+     *
+     * @see processCsvRouteHeaders() for detailed route column processing.
+     *
+     * @throws \RuntimeException If duplicate fields are found in pair-based uploads.
+     *
+     * @todo The current method is somewhat clumsy and may need optimization for handling
+     *       wider spreadsheets in the future. For now, it's functional for typical use cases.
+     */
+    private function processCsvHeader(array $header, bool $hasRoute, bool $pointBasedUpload, $routePurpose): array
+    {
+        $sanitizedHeader = array_map(function ($item) use ($pointBasedUpload) {
+            return $this->sanitiseKey($item, $pointBasedUpload);
+        }, $header);
+
+        if ($hasRoute && !$pointBasedUpload) {
+            $processedHeader = [
+                'origin' => [],
+                'destination' => []
+            ];
+            $seenFields = [
+                'origin' => [],
+                'destination' => []
+            ];
+            foreach ($sanitizedHeader as $index => $column) {
+                $isOrigin = false;
+                $isDestination = false;
+
+                // extract "origin" point column
+                foreach ($this->originPrefixes as $prefix) {
+                    if (strpos($column, $prefix) === 0) {
+                        $fieldName = preg_replace('/^(' . preg_quote($prefix, '/') . ')_?/', '', $column);
+                        if (isset($seenFields['origin'][$fieldName])) {
+                            return [
+                                'status' => false,
+                                'error' => "Duplicate origin field: '{$seenFields['origin'][$fieldName]}' and '$column'"
+                            ];
+                        }
+                        $processedHeader['origin'][$fieldName] = $index;
+                        $seenFields['origin'][$fieldName] = $column;
+                        $isOrigin = true;
+                        break;
+                    }
+                }
+
+                // extract "destination" point column
+                if (!$isOrigin) {
+                    foreach ($this->destintionPrefixes as $prefix) {
+                        if (strpos($column, $prefix) === 0) {
+                            $fieldName = preg_replace('/^(' . preg_quote($prefix, '/') . ')_?/', '', $column);
+                            if (isset($seenFields['destination'][$fieldName])) {
+                                return [
+                                    'status' => false,
+                                    'error' => "Duplicate destination field: '{$seenFields['destination'][$fieldName]}' and '$column'"
+                                ];
+                            }
+                            $processedHeader['destination'][$fieldName] = $index;
+                            $seenFields['destination'][$fieldName] = $column;
+                            $isDestination = true;
+                            break;
+                        }
+                    }
+                }
+
+                // extract shared columns
+                if (!$isOrigin && !$isDestination) {
+                    $processedHeader['origin'][$column] = $index;
+                    $processedHeader['destination'][$column] = $index;
+                }
+            }
+        } else {
+            $processedHeader = $sanitizedHeader;
+        }
+
+
+        $indices = [
+            'datestart' => $this->commonDateStartCols,
+            'dateend' => $this->commonDateEndCols,
+            'lat' => $this->commonLatCols,
+            'lon' => $this->commonLonCols
+        ];
+
+        if ($pointBasedUpload) {
+            $result = [];
+            foreach ($indices as $key => $cols) {
+                $result[$key . 'indices'] = $this->findFirstMatchingCsvPointColumnIndex($sanitizedHeader, $cols);
+            }
+        } else {
+            foreach ($indices as $key => $cols) {
+                $result[$key . 'indices'] = [
+                    'origin' => $this->findFirstMatchingCsvPairColumnIndex($processedHeader['origin'], $cols),
+                    'destination' => $this->findFirstMatchingCsvPairColumnIndex($processedHeader['destination'], $cols)
+                ];
+            }
+        }
+
+        $routeColsIndices = [];
+        if ($hasRoute) {
+            $routeColsIndices = $this->processCsvRouteHeaders($processedHeader, $pointBasedUpload, $routePurpose);
+        } else {
+            // Check for 'route_id' when user hasn't checked "Upload mobility dataset with routes"
+            $routeIdIndex = array_search('route_id', $processedHeader);
+            if ($routeIdIndex !== false) {
+                $routeColsIndices['route_id'] = $routeIdIndex;
+            }
+        }
+
+        return [
+            'status' => true,
+            'data' => array_merge([
+                'header' => $processedHeader,
+                'routeindices' => $routeColsIndices
+            ], $result)
+        ];
+    }
+
+    /**
+     * Find the index of the first matching column in a point-based CSV header.
+     *
+     * This function searches through the header array for the first occurrence
+     * of any string from the searchStrings array.
+     *
+     * @param array $header The CSV header array to search in
+     * @param array $searchStrings An array of strings to search for in the header
+     * @return int|null The index of the first matching column, or null if no match is found
+     */
+    private function findFirstMatchingCsvPointColumnIndex(array $header, array $searchStrings)
+    {
+        foreach ($searchStrings as $string) {
+            $index = array_search($string, $header);
+            if ($index !== false) {
+                return $index;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find the value of the first matching column in a pair-based CSV header.
+     *
+     * This function searches through the header array for the first occurrence
+     * of any string from the searchStrings array as a key, and returns its value.
+     *
+     * @param array $header The CSV header array to search in (key-value pairs)
+     * @param array $searchStrings An array of strings to search for as keys in the header
+     * @return mixed|null The value of the first matching column, or null if no match is found
+     */
+    private function findFirstMatchingCsvPairColumnIndex(array $header, array $searchStrings)
+    {
+        foreach ($searchStrings as $string) {
+            if (isset($header[$string])) {
+                return $header[$string];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Process CSV route headers and validate them based on the upload type and purpose.
+     *
+     * @param array $processedHeader The processed CSV header
+     * @param bool $pointBasedUpload Whether the upload is point-based or pair-based
+     * @param string $routePurpose The purpose of the route
+     * @return array The indices of route columns
+     *
+     * Example return format for point-based upload:
+     * [
+     *     'route_id' => 0,
+     *     'ghap_id' => 1,
+     *     'stop_idx' => 2,
+     *     // ...
+     * ]
+     *
+     * Example return format for pair-based upload:
+     * [
+     *     'origin' => [
+     *         'route_id' => 0,
+     *         'ghap_id' => 1,
+     *         // ...
+     *     ],
+     *     'destination' => [
+     *         'route_id' => 5,
+     *         'ghap_id' => 6,
+     *         // ...
+     *     ]
+     * ]
+     */
+    private function processCsvRouteHeaders(array $processedHeader, bool $pointBasedUpload, string $routePurpose): array
+    {
+        /**
+         * Shall we use $originPrefixes and $destintionPrefixes here?
+         */
+        $routeColsConfigs = [
+            "addNewPlaces" => [
+                "requiredCols" => ['route_id', 'route_ori_id'],
+                // "forbiddenCols" => ['ghap_id', 'origin_ghap_id', 'destination_ghap_id'],
+                "forbiddenCols" => ['ghap_id', 'origin_ghap_id', 'destination_ghap_id'],
+                "requireEither" => true
+            ],
+            "reorderRoutes" => [
+                // "requiredCols" => ['route_id', 'ghap_id', 'origin_ghap_id', 'destination_ghap_id'],
+                "requiredCols" => ['route_id', 'ghap_id'],
+                "forbiddenCols" => ['route_ori_id'],
+                "requireEither" => false
+            ],
+            "reorganizeRoutes" => [
+                // "requiredCols" => ['route_id', 'ghap_id', 'origin_ghap_id', 'destination_ghap_id'],
+                "requiredCols" => ['route_id', 'ghap_id', 'origin_ghap_id', 'destination_ghap_id'],
+                "forbiddenCols" => ['route_ori_id'],
+                "requireEither" => false
+            ]
+        ];
+
+        if (!isset($routeColsConfigs[$routePurpose])) {
+            throw new \InvalidArgumentException("Invalid route purpose: $routePurpose");
+        }
+        $routeColsConfigs = $routeColsConfigs[$routePurpose];
+        $optionalRouteCols = ['stop_idx', 'route_title', 'route_description'];
+        $routeCols = array_merge($routeColsConfigs['requiredCols'], $optionalRouteCols);
+
+        if ($pointBasedUpload) {
+            $allPrefixes = array_merge($this->originPrefixes, $this->destintionPrefixes);
+            $hasPrefixes = function ($column) use ($allPrefixes) {
+                foreach ($allPrefixes as $prefix) {
+                    if (strpos($column, $prefix) === 0) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+            $routeColsConfigs['requiredCols'] = array_filter($routeColsConfigs['requiredCols'], function ($col) use ($hasPrefixes) {
+                return !$hasPrefixes($col);
+            });
+            $routeColsConfigs['forbiddenCols'] = array_filter($routeColsConfigs['forbiddenCols'], function ($col) use ($hasPrefixes) {
+                return !$hasPrefixes($col);
+            });
+            $routeCols = array_merge($routeColsConfigs['requiredCols'], $optionalRouteCols);
+            $routeColsIndices = $this->findColumnIndices($processedHeader, $routeCols);
+            $this->validateCsvRouteHeaders($routeColsIndices, $routeColsConfigs, $pointBasedUpload, $routePurpose);
+        } else {
+            $originRouteColsIndices = $this->findPairColumnIndices($processedHeader['origin'], $routeCols);
+            $destinationRouteColsIndices = $this->findPairColumnIndices($processedHeader['destination'], $routeCols);
+            $this->validateCsvRouteHeaders($originRouteColsIndices, $routeColsConfigs, $routePurpose, 'origin');
+            $this->validateCsvRouteHeaders($destinationRouteColsIndices, $routeColsConfigs, $routePurpose, 'destination');
+            $routeColsIndices = [
+                'origin' => $originRouteColsIndices,
+                'destination' => $destinationRouteColsIndices
+            ];
+        }
+
+        return $routeColsIndices;
+    }
+
+    /**
+     * Find column indices for point-based uploads.
+     *
+     * @param array $header The CSV header
+     * @param array $columns The columns to find
+     * @return array An associative array of column names and their indices
+     */
+    private function findColumnIndices(array $header, array $columns)
+    {
+        $indices = [];
+        foreach ($columns as $column) {
+            $index = array_search($column, $header);
+            if ($index !== false) {
+                $indices[$column] = $index;
+            }
+        }
+        return $indices;
+    }
+
+    /**
+     * Find column indices for pair-based uploads.
+     *
+     * @param array $header The processed header for origin or destination
+     * @param array $columns The columns to find
+     * @return array An associative array of column names and their indices
+     */
+    private function findPairColumnIndices(array $header, array $columns)
+    {
+        $indices = [];
+        foreach ($columns as $column) {
+            if (isset($header[$column])) {
+                $indices[$column] = $header[$column];
+            }
+        }
+        return $indices;
+    }
+
+    /**
+     * Validate CSV route headers against the configuration.
+     *
+     * @param array $routeColsIndices The route column indices
+     * @param array $config The configuration for the route purpose
+     * @param string $routePurpose The purpose of the route
+     * @param string $pointType The point type (origin or destination) for pair-based uploads
+     * @throws \RuntimeException If validation fails
+     */
+    private function validateCsvRouteHeaders(array $routeColsIndices, array $config, string $routePurpose, string $pointType = ''): void
+    {
+        $allCols = array_keys($routeColsIndices);
+
+        // Check forbidden columns
+        $forbiddenColsPresent = array_intersect($config['forbiddenCols'], $allCols);
+        if (!empty($forbiddenColsPresent)) {
+            $this->throwCsvRouteHeaderError("Forbidden route columns present", $forbiddenColsPresent, $routePurpose);
+        }
+
+        // Check required columns
+        if ($config['requireEither']) {
+            $hasRequiredCol = !empty(array_intersect($config['requiredCols'], $allCols));
+            if (!$hasRequiredCol) {
+                $this->throwCsvRouteHeaderError("Missing required route columns", $config['requiredCols'], $routePurpose, $pointType, " or ");
+            }
+        } else {
+            $missingCols = array_diff($config['requiredCols'], $allCols);
+            if (!empty($missingCols)) {
+                $this->throwCsvRouteHeaderError("Missing required route columns", $missingCols, $routePurpose, $pointType);
+            }
+        }
+    }
+
+    /**
+     * Throw a CSV route header error.
+     *
+     * @param string $message The error message
+     * @param array $columns The columns involved in the error
+     * @param string $routePurpose The purpose of the route
+     * @param string $pointType The point type (origin or destination) for pair-based uploads
+     * @param string $separator The separator to use when joining column names
+     * @throws \RuntimeException
+     */
+    private function throwCsvRouteHeaderError(string $message, array $columns, string $routePurpose, string $pointType = '', string $separator = ", "): void
+    {
+        $columnStr = implode($separator, $columns);
+        $pointTypeStr = $pointType ? " for $pointType" : "";
+        $errorMsg = "$message$pointTypeStr for $routePurpose: $columnStr";
+        LOG::error($errorMsg);
+        throw new \RuntimeException($errorMsg);
+    }
+
+    /**
+     * Process date fields in the CSV data.
+     *
+     * @param array $fields The array of fields from a CSV row.
+     * @param array $dateIndices The indices of date fields to process.
+     * @return array An associative array with 'status' and either 'error' or 'data' keys.
+     *               If successful, returns ['status' => true, 'data' => processed_fields].
+     *               If an error occurs, returns ['status' => false, 'error' => error_message].
+     */
+    private function processCsvDateFields(array $fields, array $dateIndices)
+    {
+        // Check if $dateIndices contains only false values, then set it to an empty array
+        foreach ($dateIndices as $dateIndex) {
+            $parsedate = GeneralFunctions::dateMatchesRegexAndConvertString($fields[$dateIndex]);
+            if ($parsedate === -1) {
+                return [
+                    'status' => false,
+                    'error' => "Invalid date format in column $dateIndex"
+                ];
+            } else {
+                $fields[$dateIndex] = $parsedate;
+            }
+        }
+        return [
+            'status' => true,
+            'data' => $fields
+        ];
+    }
+
+    /**
+     * Process coordinate (latitude & longitude) fields in the CSV data.
+     *
+     * @param array $fields The array of fields from a CSV row.
+     * @param array $coordIndices The indices of coordinate fields to process.
+     * @return array The processed fields array with sanitized coordinate values.
+     */
+    private function processCsvCoordFields(array $fields, $coordIndices)
+    {
+        foreach ($coordIndices as $coordIndex) {
+            $fields[$coordIndex] = preg_replace('/[^\d\.-]/', '', str_replace("\xc2\xa0", ' ', $fields[$coordIndex]));
+        }
+        return $fields;
+    }
+
+    /**
+     * Get the appropriate row validation function for CSV row based on the route purpose.
+     *
+     * @param Dataset $dataset The dataset object containing relevant information for validation.
+     * @param array $processedHeader Processed header information.
+     * @param string $routePurpose The purpose of route processing ('addNewPlaces', 'reorderRoutes', or 'reorganizeRoutes').
+     * @param array $routeFields Array of route field names.
+     * @return callable A function to validate CSV rows based on the specified route purpose.
+     */
+    private function getValidateRowWithRouteFunction($dataset, $processedHeader, $routePurpose, $routeFields)
+    {
+        if ($routePurpose === "addNewPlaces") {
+            return $this->getAddNewPlacesValidator($dataset, $processedHeader, $routeFields);
+        } elseif ($routePurpose === "reorderRoutes") {
+            return $this->getReorderValidator($dataset, $processedHeader);
+        } elseif ($routePurpose === "reorganizeRoutes") {
+            return $this->getReorganizeValidator($dataset, $processedHeader);
+        } else {
+            return [$this, 'validateRow'];
+        }
+    }
+
+    /**
+     * Get a validator function for the 'addNewPlaces' route purpose.
+     *
+     * @param Dataset $dataset The dataset object containing relevant information for validation.
+     * @param array $processedHeader Processed header information.
+     * @param array $routeFields Array of route field names.
+     * @return callable A function to validate CSV rows for adding new places.
+     */
+    private function getAddNewPlacesValidator($dataset, $processedHeader, $routeFields)
+    {
+        if (in_array('route_id', $routeFields)) {
+            $routeIds = $dataset->getAllRouteIdsAsStrings();
+            $routeIdIndex = isset($processedHeader['routeindices']['route_id'])
+                ? $processedHeader['routeindices']['route_id']
+                : null;
+            $routeOriIdIndex = isset($processedHeader['routeindices']['route_ori_id'])
+                ? $processedHeader['routeindices']['route_ori_id']
+                : null;
+
+            return function ($row) use ($routeIds, $routeIdIndex, $routeOriIdIndex) {
+                $hasNonEmptyValue = false;
+                $foundValues = [];
+                $hasRouteOriId = $routeOriIdIndex !== null;
+
+                // either "route_id" or "route_ori_id" should have a valid value
+                $indicesToCheck = [$routeIdIndex => 'routeId'];
+                if ($hasRouteOriId) {
+                    $indicesToCheck[$routeOriIdIndex] = 'routeOriId';
+                }
+
+                foreach ($row as $index => $value) {
+                    $trimmedValue = trim($value);
+                    if ($trimmedValue !== '' && $trimmedValue !== ',') {
+                        $hasNonEmptyValue = true;
+                        $fieldName = isset($indicesToCheck[$index]) ? $indicesToCheck[$index] : false;
+
+                        if ($fieldName !== false) {
+                            $foundValues[$fieldName] = $trimmedValue;
+                        }
+                        if ($hasNonEmptyValue && count($foundValues) === count($indicesToCheck)) {
+                            break;
+                        }
+                    }
+                }
+
+                if (!$hasNonEmptyValue) {
+                    return ['status' => true, 'error' => 'Empty row'];
+                }
+
+                if (!isset($foundValues['routeId'])) {
+                    if ($hasRouteOriId) {
+                        if (!isset($foundValues['routeOriId'])) {
+                            return ['status' => false, 'error' => 'Missing route_ori_id or route_id'];
+                        }
+                    } else {
+                        return ['status' => false, 'error' => 'Missing route_id'];
+                    }
+                } else {
+                    if (!in_array($foundValues['routeId'], $routeIds)) {
+                        return ['status' => false, 'error' => 'Invalid route_id'];
+                    }
+                }
+
+                return ['status' => true];
+            };
+        } else {
+            /**
+             * $processedHeader['routeindices']['route_ori_id'] must have index, otherwise it must have thrown error when processing CSV headers
+             * when the csv only set route_ori_id.
+             * When the csv only set route_ori_id, "route_ori_id" column must have value
+             */
+            file_put_contents('my_custom_logger.log', "routeFields " . json_encode($routeFields) . PHP_EOL, FILE_APPEND);
+            file_put_contents('my_custom_logger.log', "routeindices " . json_encode($processedHeader['routeindices']) . PHP_EOL, FILE_APPEND);
+            $specialColumns['route_ori_id'] = [
+                'index' => $processedHeader['routeindices']['route_ori_id'],
+                'mustBeEmpty' => false
+            ];
+            return function ($row) use ($specialColumns) {
+                return $this->validateRowWithSpecialColumns($row, $specialColumns);
+            };
+        }
+    }
+
+    /**
+     * Get a validator function for the 'reorderRoutes' route purpose.
+     *
+     * @param Dataset $dataset The dataset object containing relevant information for validation.
+     * @param array $processedHeader Processed header information.
+     * @return callable A function to validate CSV rows for reordering routes.
+     */
+    private function getReorderValidator($dataset, $processedHeader)
+    {
+        $routeDataItems = $dataset->getDataitemsWithRouteIDAndUIDAsStrings();
+        $routeIdIndex = $processedHeader['routeindices']['route_id'];
+        $ghapIdIndex = $processedHeader['routeindices']['ghap_id'];
+
+        return function ($row) use ($routeDataItems, $routeIdIndex, $ghapIdIndex) {
+            $result = $this->validateRouteAndGhapId($row, $routeIdIndex, $ghapIdIndex);
+            if (!$result['status']) {
+                return $result;
+            }
+
+            $routeId = $result['routeId'];
+            $ghapId = $result['ghapId'];
+
+            if (!isset($routeDataItems[$routeId]) || !in_array($ghapId, $routeDataItems[$routeId]['uids'])) {
+                return ['status' => false, 'error' => 'Invalid route_id or ghap_id'];
+            }
+
+            return ['status' => true];
+        };
+    }
+
+    /**
+     * Get a validator function for the 'reorganizeRoutes' route purpose.
+     *
+     * @param Dataset $dataset The dataset object containing relevant information for validation.
+     * @param array $processedHeader Processed header information.
+     * @return callable A function to validate CSV rows for reorganizing routes.
+     */
+    private function getReorganizeValidator($dataset, $processedHeader)
+    {
+        $routeDataItems = $dataset->getDataitemsWithRouteIDAndUIDAsStrings();
+        $routeIdIndex = $processedHeader['routeindices']['route_id'];
+        $ghapIdIndex = $processedHeader['routeindices']['ghap_id'];
+
+        $allUids = [];
+        foreach ($routeDataItems as $routeData) {
+            $allUids = array_merge($allUids, $routeData['uids']);
+        }
+        $allUids = array_unique($allUids);
+
+        return function ($row) use ($routeDataItems, $routeIdIndex, $ghapIdIndex, $allUids) {
+            $result = $this->validateRouteAndGhapId($row, $routeIdIndex, $ghapIdIndex);
+            if (!$result['status']) {
+                return $result;
+            }
+
+            $routeId = $result['routeId'];
+            $ghapId = $result['ghapId'];
+
+            $routeExists = isset($routeDataItems[$routeId]);
+            $isValidRouteId = $routeExists || preg_match('/^[Nn]ew_route_[0-9]+$/', $routeId);
+            $isNewGhapId = substr($ghapId, 0, 1) !== 't';
+
+            $isValidGhapId = in_array($ghapId, $allUids) || $isNewGhapId;
+            file_put_contents('my_custom_logger.log', "allUids " . json_encode($allUids) . PHP_EOL, FILE_APPEND);
+            file_put_contents('my_custom_logger.log', "new routeId " . json_encode(preg_match('/^[Nn]ew_route_[0-9]+$/', $routeId)) . PHP_EOL, FILE_APPEND);
+            file_put_contents('my_custom_logger.log', "ghapId " . json_encode($ghapId) . PHP_EOL, FILE_APPEND);
+            file_put_contents('my_custom_logger.log', "isValidGhapId " . json_encode($isValidGhapId) . PHP_EOL, FILE_APPEND);
+            if ($isValidRouteId && $isValidGhapId) {
+                return ['status' => true];
+            } else {
+                return ['status' => false, 'error' => 'Invalid route_id or ghap_id'];
+            }
+        };
+    }
+
+    /**
+     * Validate route_id and ghap_id fields in a CSV row.
+     *
+     * @param array $row The CSV row data.
+     * @param int $routeIdIndex The index of the route_id field.
+     * @param int $ghapIdIndex The index of the ghap_id field.
+     * @return array An associative array with validation status and extracted IDs if successful.
+     */
+    private function validateRouteAndGhapId($row, $routeIdIndex, $ghapIdIndex)
+    {
+        $hasNonEmptyValue = false;
+        $routeId = null;
+        $ghapId = null;
+
+        foreach ($row as $index => $value) {
+            $trimmedValue = trim($value);
+            if ($trimmedValue !== '' && $trimmedValue !== ',') {
+                $hasNonEmptyValue = true;
+                if ($index === $routeIdIndex) {
+                    $routeId = $trimmedValue;
+                } elseif ($index === $ghapIdIndex) {
+                    $ghapId = $trimmedValue;
+                }
+                if ($hasNonEmptyValue && $routeId !== null && $ghapId !== null) {
+                    break;
+                }
+            }
+        }
+
+        if (!$hasNonEmptyValue) {
+            return ['status' => true, 'error' => 'Empty row'];
+        }
+        if ($routeId === null) {
+            return ['status' => false, 'error' => 'Missing route_id'];
+        }
+        if ($ghapId === null) {
+            return ['status' => false, 'error' => 'Missing ghap_id'];
+        }
+
+        return ['status' => true, 'routeId' => $routeId, 'ghapId' => $ghapId];
+    }
+
+    /**
+     * Process point data from CSV fields.
+     *
+     * @param array $fields The array of fields from a CSV row.
+     * @param array $dateIndices The indices of date fields to process.
+     * @param array $coordIndices The indices of coordinate fields to process.
+     * @param array $routeFields The indices of route fields to process.
+     * @return array An associative array with processing status, processed fields, and extracted route data.
+     */
+    private function processPointData($fields, $dateIndices, $coordIndices, $routeFields)
+    {
+        // Process date fields
+        $dateResult = $this->processCsvDateFields($fields, $dateIndices);
+        if (!$dateResult['status']) {
+            return ['status' => false, 'error' => $dateResult['error']];
+        }
+
+        // Process coordinates fields
+        $fields = $this->processCsvCoordFields($fields, $coordIndices);
+
+        // Process route fields
+        $routeData = $this->extractRouteDataFromCsvPoint($fields, $routeFields);
+
+        return [
+            'status' => true,
+            'fields' => $fields,
+            'routeData' => $routeData
+        ];
+    }
+
+    /**
+     * Extract route data from a CSV row array.
+     *
+     * This static method processes a single row of CSV data to extract route information
+     * based on the provided field mappings.
+     *
+     * @param array $fields An array representing a single row of CSV data.
+     * @param array $routeIndices An associative array where keys are route field names
+     *                                and values are their corresponding column indices in the CSV.
+     * @return array An associative array containing the extracted route data.
+     */
+    private static function extractRouteDataFromCsvPoint($fields, $routeIndices)
+    {
+        $routeData = [];
+        foreach ($routeIndices as $fieldName => $columnIndex) {
+            if ($columnIndex !== null && isset($fields[$columnIndex])) {
+                $key = str_replace('route_', '', $fieldName);
+                // lower id & ori_id
+                $routeData[$key] = $fields[$columnIndex];
+            }
+        }
+        return $routeData;
+    }
+
+    /**
+     * Process CSV data that includes route information for point-based uploads.
+     *
+     * This function reads a CSV file line by line, validates each row, processes date and coordinate fields,
+     * and extracts route data. It handles different route purposes such as adding new places,
+     * reordering routes, or reorganizing routes.
+     *
+     * @param resource $handle The file handle for the CSV file.
+     * @param Dataset $dataset The dataset object containing relevant information for validation.
+     * @param array $processedHeader The processed header information including indices for various field types.
+     * @param string $routePurpose The purpose of route processing ('addNewPlaces', 'reorderRoutes', or 'reorganizeRoutes').
+     *
+     * @return array|string An array containing 'points' and 'routes' data if successful,
+     *                      or a string containing error information if an error occurs during processing.
+     *
+     * @throws \Exception If there's an error in file reading or data processing.
+     */
+    private function processCsvPointWithRoute($handle, $dataset, $processedHeader, $routePurpose)
+    {
+        $outdata = [];
+        $outRouteData = [];
+        $outdataIdx = 0;
+        $row = 0; // Header has been processed, start from row 1
+
+        $dateIndices = array_filter(
+            [
+                $processedHeader['datestartindices'],
+                $processedHeader['dateendindices']
+            ]
+        );
+        $coordIndices = array_filter([$processedHeader['latindices'], $processedHeader['lonindices']]);
+        //get names of route fields
+        $routeFields = array_keys($processedHeader['routeindices']);
+        // set validateRow according to routePurpose
+        $validateRow = $this->getValidateRowWithRouteFunction(
+            $dataset,
+            $processedHeader,
+            $routePurpose,
+            $routeFields
+        );
+
+        while (($data = fgetcsv($handle)) !== FALSE) {
+            $row++;
+
+            $validationResult = $validateRow($data);
+
+            if (!$validationResult['status']) {
+                $errorLog = "Row $row: " . $validationResult['error'] . "\n";
+                return $errorLog;
+            }
+
+            // Process point in the row
+            $processedPoint = $this->processPointData($data, $dateIndices, $coordIndices, $processedHeader['routeindices']);
+            if (!$processedPoint['status']) {
+                return "Row $row: " . $processedPoint['error'] . "\n";
+            }
+
+            $fields = $processedPoint['fields'];
+            $routeData = $processedPoint['routeData'];
+            $routeData['arrIdx'] = $outdataIdx;
+
+            $outRouteData[] = $routeData;
+            $outdata[] = array_combine($processedHeader['header'], $fields);
+            $outdataIdx++;
+        }
+
+        return ['points' => $outdata, 'routes' => $outRouteData];
+    }
+
+    /**
+     * Process CSV data that includes route information for pair-based uploads.
+     *
+     * This function reads a CSV file line by line, validates each row, processes date and coordinate fields,
+     * and extracts route data. It handles different route purposes such as adding new places,
+     * reordering routes, or reorganizing routes.
+     *
+     * @param resource $handle The file handle for the CSV file.
+     * @param Dataset $dataset The dataset object containing relevant information for validation.
+     * @param array $processedHeader The processed header information including indices for various field types.
+     * @param string $routePurpose The purpose of route processing.
+     * @return array|string An array containing 'points' and 'routes' data if successful, or an error string.
+     */
+    private function processCsvPairWithRoute($handle, $dataset, $processedHeader, $routePurpose)
+    {
+        $outdata = [];
+        $outRouteData = [];
+        $outdataIdx = 0;
+        $row = 0;
+
+        $originHeader = [
+            'header' => $processedHeader['header']['origin'],
+            'datestartindices' => isset($processedHeader['datestartindices']['origin']) ? $processedHeader['datestartindices']['origin'] : null,
+            'dateendindices' => isset($processedHeader['dateendindices']['origin']) ? $processedHeader['dateendindices']['origin'] : null,
+            'latindices' => $processedHeader['latindices']['origin'],
+            'lonindices' => $processedHeader['lonindices']['origin'],
+            'routeindices' => $processedHeader['routeindices']['origin']
+        ];
+        $originRouteFields = $processedHeader['routeindices']['origin'];
+        $originDateIndices = array_filter([$originHeader['datestartindices'], $originHeader['dateendindices']]);
+        $originCoordIndices = array_filter([$originHeader['latindices'], $originHeader['lonindices']]);
+
+        $destHeader = [
+            'header' => $processedHeader['header']['destination'],
+            'datestartindices' => isset($processedHeader['datestartindices']['destination']) ? $processedHeader['datestartindices']['destination'] : null,
+            'dateendindices' => isset($processedHeader['dateendindices']['destination']) ? $processedHeader['dateendindices']['destination'] : null,
+            'latindices' => $processedHeader['latindices']['destination'],
+            'lonindices' => $processedHeader['lonindices']['destination'],
+            'routeindices' => $processedHeader['routeindices']['destination']
+        ];
+        $destRouteFields = $processedHeader['routeindices']['destination'];
+        $destDateIndices = array_filter([$destHeader['datestartindices'], $destHeader['dateendindices']]);
+        $destCoordIndices = array_filter([$destHeader['latindices'], $destHeader['lonindices']]);
+
+        $validateRowOrigin = $this->getValidateRowWithRouteFunction($dataset, $originHeader, $routePurpose, $originRouteFields);
+        $validateRowDest = $this->getValidateRowWithRouteFunction($dataset, $destHeader, $routePurpose, $destRouteFields);
+
+        while (($data = fgetcsv($handle)) !== FALSE) {
+            $row++;
+
+            // Validate O point & D point
+            $originValidationResult = $validateRowOrigin($data);
+            if (!$originValidationResult['status']) {
+                return "Row $row (Origin): " . $originValidationResult['error'];
+            }
+            $destValidationResult = $validateRowDest($data);
+            if (!$destValidationResult['status']) {
+                return "Row $row (Destination): " . $destValidationResult['error'];
+            }
+
+            // Clean (and validate) O point & D point
+            $processedOrigin = $this->processPointData(
+                $data,
+                $originDateIndices,
+                $originCoordIndices,
+                $originHeader['routeindices']
+            );
+            if (!$processedOrigin['status']) {
+                return "Row $row (Origin): " . $processedOrigin['error'];
+            }
+            $processedDest = $this->processPointData(
+                $data,
+                $destDateIndices,
+                $destCoordIndices,
+                $destHeader['routeindices']
+            );
+            if (!$processedDest['status']) {
+                return "Row $row (Destination): " . $processedDest['error'];
+            }
+
+            // Collect O point and route
+            $originRouteData = $processedOrigin['routeData'];
+            $originRouteData['arrIdx'] = $outdataIdx;
+            $outRouteData[] = $originRouteData;
+            $originFields = [];
+            foreach ($originHeader['header'] as $fieldName => $index) {
+                if (is_int($index) && isset($processedOrigin['fields'][$index])) {
+                    $originFields[$fieldName] = $processedOrigin['fields'][$index];
+                } else {
+                    $originFields[$fieldName] = null;
+                }
+            }
+            $outdata[] = $originFields;
+            $outdataIdx++;
+
+            // Collect D point and route
+            $destRouteData = $processedDest['routeData'];
+            $destRouteData['arrIdx'] = $outdataIdx;
+            $outRouteData[] = $destRouteData;
+            $destFields = [];
+            foreach ($destHeader['header'] as $fieldName => $index) {
+                if (is_int($index) && isset($processedDest['fields'][$index])) {
+                    $destFields[$fieldName] = $processedDest['fields'][$index];
+                } else {
+                    $destFields[$fieldName] = null;
+                }
+            }
+            $outdata[] = $destFields;
+            $outdataIdx++;
+        }
+
+        return ['points' => $outdata, 'routes' => $outRouteData];
+    }
+
+    /**
+     * Prepare route data based on the specified purpose.
+     *
+     * @param array $routes An array of route information.
+     * @param string $routePurpose The purpose of route processing ('addNewPlaces', 'reorderRoutes', or 'reorganizeRoutes').
+     * @return \Illuminate\Support\Collection A collection of prepared route data.
+     * @throws \Exception If an invalid route purpose is provided.
+     *
+     * The structure of $preparedRoutes is as follows:
+     * ['ROUTE_1_KEY':
+     *     {
+     *         'id': string|int,          // Route ID (string for new routes, int for existing ones)
+     *         'isNew': bool,             // Whether this is a new route
+     *         'insertStopIdx': int|string, // Where to insert new stops ('append' or an integer)
+     *         'title': string,           // Route title (optional, present in all cases)
+     *         'description': string,     // Route description (optional, present in all cases)
+     *         'dataitems': [             // Array of data items for this route
+     *             {
+     *                 'arrIdx': int,     // Original array index
+     *                 'sortIndex': int   // Sorted index
+     *             },
+     *             // ... more data items
+     *         ]
+     *     },
+     *     // ... more routes
+     * ]
+     *
+     * Note: The presence and content of certain fields may vary depending on the specific route purpose.
+     */
+    public function prepareRoutes($routes, $routePurpose)
+    {
+        $preparedRoutes = array();
+
+        switch ($routePurpose) {
+            case 'addNewPlaces':
+                $preparedRoutes = $this->prepareRouteAddNewPlaces($routes);
+                break;
+            case 'reorderRoutes':
+                $preparedRoutes = $this->prepareRouteReorderRoutes($routes);
+                break;
+            case 'reorganizeRoutes':
+                $preparedRoutes = $this->prepareRouteReorganizeRoutes($routes);
+                break;
+            default:
+                throw new \Exception("Invalid route purpose");
+        }
+
+        return $preparedRoutes;
+    }
+
+    /**
+     * Prepare route data for adding new places.
+     *
+     * @param array $routes Array of route information for each point.
+     * @return \Illuminate\Support\Collection A collection of prepared route data.
+     *
+     * Example of the returned collection structure:
+     * ['ROUTE_1_KEY':
+     *     {
+     *         'id': 'new_route_1',       // String ID for new routes
+     *         'isNew': true,             // Always true for new routes
+     *         'insertStopIdx': 'append', // 'append' or an integer
+     *         'title': 'New Route 1',    // Title is the route ID for new routes if not provided
+     *         'description': 'A new route description', // Optional
+     *         'dataitems': [
+     *             { 'arrIdx': 0, 'sortIndex': 0 },
+     *             { 'arrIdx': 1, 'sortIndex': 1 }
+     *         ]
+     *     },
+     *     // ... more routes
+     * ]
+     */
+    private function prepareRouteAddNewPlaces($routes)
+    {
+        $routeCollection = collect($routes);
+
+        return $routeCollection
+            ->groupBy(function ($route) {
+                // Group by id or ori_id, whichever is present
+                return isset($route['id']) ? $route['id'] : $route['ori_id'];
+            })
+            ->map(function ($groupedRoutes, $routeId) {
+                $firstRoute = $groupedRoutes->first();
+                $isNew = !isset($firstRoute['id']);
+                $hasStopIdx = isset($firstRoute['stop_idx']);
+
+                $minStopIdx = $groupedRoutes->pluck('stop_idx')->filter()->min();
+                if ($minStopIdx === null || $minStopIdx <= 0) {
+                    $minStopIdx = 1;
+                }
+
+                $route = [
+                    'id' => $isNew ? $routeId : (int)$routeId,
+                    'isNew' => $isNew,
+                    // $minStopIdx is not guaranteed to be valid (could larger than exisiting route size, we shall validate it in route creationg process)
+                    'insertStopIdx' => $hasStopIdx ? $minStopIdx : 'append',
+                    'dataitems' => $groupedRoutes
+                        ->sortBy(function ($route) use ($hasStopIdx) {
+                            return $hasStopIdx ? [$route['stop_idx'] ?? PHP_INT_MAX, $route['arrIdx']] : $route['arrIdx'];
+                        })
+                        ->values()
+                        ->map(function ($route, $index) {
+                            return [
+                                'arrIdx' => $route['arrIdx'],
+                                'sortIndex' => $index,
+                            ];
+                        }),
+                ];
+
+                $route += $this->addRouteTitleAndDescription($groupedRoutes, $routeId, $isNew);
+
+                return $route;
+            });
+    }
+
+    /**
+     * Prepare route data for reordering.
+     *
+     * @param array $routes An array of route information.
+     * @return \Illuminate\Support\Collection A collection of prepared route data.
+     *
+     * Example of the returned collection structure:
+     * ['ROUTE_1_KEY':
+     *     {
+     *         'id': 1,                   // Integer ID for existing routes
+     *         'isNew': false,            // Always false for reordering
+     *         'insertStopIdx': 2,        // Minimum stop_idx or 'append'
+     *         'title': 'Existing Route', // Optional
+     *         'description': 'An existing route', // Optional
+     *         'dataitems': [
+     *             { 'arrIdx': 2, 'sortIndex': 0 },
+     *             { 'arrIdx': 1, 'sortIndex': 1 },
+     *             { 'arrIdx': 0, 'sortIndex': 2 }
+     *         ]
+     *     },
+     *     // ... more routes
+     * ]
+     */
+    private function prepareRouteReorderRoutes($routes)
+    {
+        $routeCollection = collect($routes);
+
+        return $routeCollection
+            ->groupBy('id')
+            ->map(function ($groupedRoutes, $routeId) {
+                // Check if any route in the group has a stop_idx
+                $hasStopIdx = isset($groupedRoutes->first()['stop_idx']);
+                // Get the minimum stop_idx if present
+                $minStopIdx = $groupedRoutes->pluck('stop_idx')->filter()->min();
+                if ($minStopIdx === null || $minStopIdx <= 0) {
+                    $minStopIdx = 1;
+                }
+
+                $route = [
+                    'id' => (int)$routeId,
+                    'isNew' => false,
+                    'insertStopIdx' => $hasStopIdx ? $minStopIdx : 'append',
+                    'dataitems' => $groupedRoutes
+                        ->sortBy(function ($route) use ($hasStopIdx) {
+                            return $hasStopIdx ? [$route['stop_idx'] ?? PHP_INT_MAX, $route['arrIdx']] : $route['arrIdx'];
+                        })
+                        ->values()
+                        ->map(function ($route, $index) {
+                            return [
+                                'arrIdx' => $route['arrIdx'],
+                                'sortIndex' => $index,
+                            ];
+                        }),
+                ];
+
+                $route += $this->addRouteTitleAndDescription($groupedRoutes, $routeId);
+
+                return $route;
+            });
+    }
+
+    /**
+     * Prepare route data for reorganizing routes.
+     *
+     * @param array $routes An array of route information.
+     * @return \Illuminate\Support\Collection A collection of prepared route data.
+     *
+     * Example of the returned collection structure:
+     * [
+     *     'ROUTE_1_KEY' => [
+     *         'id' => 'new_route_2',       // String for new routes, int for existing
+     *         'isNew' => true,             // true for new routes, false for existing
+     *         'insertStopIdx' => 1,        // Integer or 'append'
+     *         'title' => 'Reorganized Route', // Optional
+     *         'description' => 'A reorganized route', // Optional
+     *         'dataitems' => [
+     *             ['arrIdx' => 1, 'sortIndex' => 0],
+     *             ['arrIdx' => 0, 'sortIndex' => 1],
+     *             ['arrIdx' => 2, 'sortIndex' => 2]
+     *         ]
+     *     ],
+     *     // ... more routes
+     * ]
+     */
+    private function prepareRouteReorganizeRoutes($routes)
+    {
+        $routeCollection = collect($routes);
+
+        return $routeCollection
+            ->groupBy('id')
+            ->map(function ($groupedRoutes, $routeId) {
+                $isNew = preg_match('/^[Nn]ew_route/', $routeId) !== 0;
+                $id = $isNew ? $routeId : (int)$routeId;
+
+                $hasStopIdx = isset($groupedRoutes->first()['stop_idx']);
+                $minStopIdx = $groupedRoutes->pluck('stop_idx')->filter()->min();
+                if ($minStopIdx === null || $minStopIdx <= 0) {
+                    $minStopIdx = 1;
+                }
+
+                $route = [
+                    'id' => $id,
+                    'isNew' => $isNew,
+                    'insertStopIdx' => $hasStopIdx ? $minStopIdx : 'append',
+                    'dataitems' => $groupedRoutes
+                        ->sortBy(function ($route) use ($hasStopIdx) {
+                            return $hasStopIdx ? [$route['stop_idx'] ?? PHP_INT_MAX, $route['arrIdx']] : $route['arrIdx'];
+                        })
+                        ->values()
+                        ->map(function ($route, $index) {
+                            return [
+                                'arrIdx' => $route['arrIdx'],
+                                'sortIndex' => $index,
+                            ];
+                        }),
+                ];
+
+                $route += $this->addRouteTitleAndDescription($groupedRoutes, $routeId, $isNew);
+
+                return $route;
+            });
+    }
+
+    /**
+     * Add title and description to the route data.
+     *
+     * This function extracts unique titles and descriptions from the grouped routes
+     * and adds them to the route data if they exist. It is a helper function for prepareRouteXXXXX.
+     *
+     * @param \Illuminate\Support\Collection $groupedRoutes Collection of routes grouped by ID.
+     * @param string|int $routeId The ID of the current route.
+     * @param bool $isNew Whether the route is new (default: false).
+     * @return array An array containing title and/or description if they exist.
+     */
+    private function addRouteTitleAndDescription($groupedRoutes, $routeId, $isNew = false)
+    {
+        $result = [];
+
+        // Collect all unique titles and descriptions
+        $titles = $groupedRoutes->pluck('title')->unique()->filter();
+        $descriptions = $groupedRoutes->pluck('description')->unique()->filter();
+
+        // Add title if it exists
+        if ($titles->isNotEmpty()) {
+            $result['title'] = $titles->first();
+        } elseif ($isNew) {
+            $result['title'] = (string)$routeId;
+        }
+
+        // Add description if it exists
+        if ($descriptions->isNotEmpty()) {
+            $result['description'] = $descriptions->first();
+        }
+
+        return $result;
+    }
+
+    /**
+     * Create new routes and update existing ones in the database.
+     * This function handles both the creation of new routes and the updating of existing routes.
+     * It also ensures that each route's dataitems are associated with the correct route_id.
+     *
+     * The function performs the following operations:
+     * 1. Separates new routes from existing routes in the input collection.
+     * 2. For new routes:
+     *    - Inserts them into the database.
+     *    - Updates the route objects with newly assigned IDs.
+     *    - Adds the route_id to each dataitem within the route.
+     * 3. For existing routes:
+     *    - Updates their 'size' attribute in the database. (Ignore now)
+     *    - Refreshes the route objects with updated data from the database.
+     *    - Adds or updates the route_id for each dataitem within the route.
+     * 4. Merges and returns the updated collection of both new and existing routes.
+     *
+     * @param \Illuminate\Support\Collection $routes Collection of routes to be created or updated
+     * @param int $ds_id Dataset ID
+     * @return \Illuminate\Support\Collection Updated collection of routes
+     */
+    function createRoutes($routes, $ds_id)
+    {
+        // Separate new routes and existing routes
+        $newRoutes = $routes->where('isNew', true);
+        $existingRoutes = $routes->where('isNew', false);
+
+        if ($existingRoutes->isNotEmpty()) {
+
+            // Batch update existing routes and get updated data
+            $updatedCount = Route::updateRouteMetadataBatch($existingRoutes);
+
+            // Update existing routes with new data
+            if ($updatedCount > 0) {
+                $existingRoutes = $existingRoutes->map(function ($route) {
+                    // Add route_id into route.dataitems
+                    $route['dataitems'] = collect($route['dataitems'])->map(function ($dataitem) use ($route) {
+                        $dataitem['route_id'] = $route['id'];
+                        return $dataitem;
+                    })->toArray();
+                    return $route;
+                });
+            }
+        }
+
+        if ($newRoutes->isNotEmpty()) {
+            // Convert $newRoutes to an indexed array while preserving original keys
+            $indexedRoutes = $newRoutes->values();
+            $originalKeys = $newRoutes->keys()->toArray();
+
+            // Prepare data for new routes
+            $newRoutesData = $indexedRoutes->map(function ($route) use ($ds_id) {
+                return [
+                    'title' => $route['title'],
+                    'description' => $route['description'],
+                    'dataset_id' => $ds_id,
+                ];
+            })->toArray();
+
+            $createdRoutes = Route::insertAndRetrieve($newRoutesData);
+
+            // Update $indexedRoutes, add new IDs and update dataitems
+            $indexedRoutes = $indexedRoutes->map(function ($route, $index) use ($createdRoutes) {
+                $createdRoute = $createdRoutes[$index];
+                $route['id'] = $createdRoute->id;
+                $route['dataitems'] = collect($route['dataitems'])->map(function ($dataitem) use ($createdRoute) {
+                    $dataitem['route_id'] = $createdRoute->id;
+                    return $dataitem;
+                })->toArray();
+                return $route;
+            });
+
+            // Convert $indexedRoutes back to the original associative array format
+            $newRoutes = collect(array_combine($originalKeys, $indexedRoutes->toArray()));
+        }
+
+        // Merge new and existing routes
+        return $newRoutes->concat($existingRoutes);
+    }
+
+    /**
+     * Prepare points data by updating route_id and removing unnecessary fields.
+     *
+     * @param array $points The original points data
+     * @param mixed $routes The routes data (expected to be iterable)
+     * @return array The processed points data
+     */
+    private function preparePoints(array $points, $routes): array
+    {
+        foreach ($routes as $route) {
+            foreach ($route['dataitems'] as $dataitem) {
+                $index = $dataitem['arrIdx'];
+                if (isset($points[$index])) {
+                    // Update route_id for the point
+                    $points[$index]['route_id'] = $route['id'];
+
+                    // Check and remove ghap_id if it doesn't start with 't'
+                    if (isset($points[$index]['ghap_id']) && substr($points[$index]['ghap_id'], 0, 1) !== 't') {
+                        unset($points[$index]['ghap_id']);
+                    }
+                }
+            }
+        }
+
+        return $points;
+    }
+
+    /**
+     * Prepare route orders based on processed routes with valid attributes.
+     *
+     * This function takes an array of routes, each containing a valid route ID,
+     * insert stop index, and an array of dataitem IDs. It calculates new positions
+     * for the dataitems within each route and prepares an array of route orders
+     * suitable for database insertion.
+     *
+     * @param array $routes An array of route data. Each route should contain:
+     *                      - 'id': The route ID
+     *                      - 'insertStopIdx': The insertion stop index
+     *                      - 'dataitems': A collection of dataitems, each with 'dataitem_id' and 'sortIndex'
+     *
+     * @return array An array of route orders, each containing:
+     *               - 'route_id': The ID of the route
+     *               - 'dataitem_id': The ID of the dataitem
+     *               - 'position': The calculated new position for the dataitem within the route
+     */
+    public function prepareRouteOrders($routes)
+    {
+        $routeOrders = [];
+
+        foreach ($routes as $route) {
+            $routeId = $route['id'];
+            $insertStopIdx = $route['insertStopIdx'];
+
+            // Find the route instance (route has been created in $this->createRoutes)
+            $routeInstance = Route::findOrCreateRoute($routeId);
+
+            // Ensure we use the actual route ID (in case a new route was created)
+            $routeId = $routeInstance->id;
+
+            $modifiedDataitemIds = $route['dataitems']->pluck('dataitem_id')->toArray();
+
+            // Calculate new positions for dataitems
+            $newPositions = $routeInstance->calculateNewPositions(
+                $insertStopIdx === 'append' ? null : $insertStopIdx,
+                count($modifiedDataitemIds),
+                $modifiedDataitemIds
+            );
+
+            // Sort dataitems by sortIndex
+            $sortedDataitems = $route['dataitems']->sortBy('sortIndex');
+
+            // Prepare data for insertion
+            $routeOrders = array_merge($routeOrders, $sortedDataitems->map(
+                function ($dataitem, $index) use ($routeId, $newPositions) {
+                    return [
+                        'route_id' => $routeId,
+                        'dataitem_id' => $dataitem['dataitem_id'],
+                        'position' => $newPositions[$index]
+                    ];
+                }
+            )->all());
+        }
+
+        return $routeOrders;
     }
 }

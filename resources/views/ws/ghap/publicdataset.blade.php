@@ -63,13 +63,19 @@
                 <a class="dropdown-item grab-hover"
                     onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{ url()->full() }}/json?sort=start'))">Werekata
                     Flight by Time</a>
-                @if ($ds->has_quantity || $ds->has_route)
+                @if ($hasmobinfo['default'])
                     <a class="dropdown-item grab-hover"
-                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/json?mobility=route'))">Mobility
-                        Route</a>
-                    <a class="dropdown-item grab-hover"
-                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/json?mobility=time'))">Mobility
-                        Times</a>
+                        onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=route'))">Mobility</a>
+                    @if ($hasmobinfo['hasrouteiddatestart'])
+                        <a class="dropdown-item grab-hover"
+                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=timestart'))">Mobility
+                            by Time Start</a>
+                    @endif
+                    @if ($hasmobinfo['hasrouteiddateend'])
+                        <a class="dropdown-item grab-hover"
+                            onclick="window.open('{{ config('app.views_root_url') }}/mobility.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{ $ds->id }}/json?mobility=timeend'))">Mobility
+                            by Time End</a>
+                    @endif
                 @endif
                 @if (!empty(config('app.views_temporal_earth_url')))
                     <a class="dropdown-item grab-hover"
@@ -81,19 +87,20 @@
     @endif
 
     @if ($ds->public)
-    <!-- Basic Statistics Feed -->
-    <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Analyse
-        </button>
-        <div class="dropdown-menu" aria-labelledby="analyseDropdown">
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/basicstatistics">Basic Statistics</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/advancedstatistics">Advanced Statistics</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/clusteranalysis">Cluster Analysis</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/temporalclustering">Temporal Clustering</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/closenessanalysis">Closeness Analysis</a>
+        <!-- Basic Statistics Feed -->
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                Analyse
+            </button>
+            <div class="dropdown-menu" aria-labelledby="analyseDropdown">
+                <a class="dropdown-item grab-hover" href="{{ url()->full() }}/basicstatistics">Basic Statistics</a>
+                <a class="dropdown-item grab-hover" href="{{ url()->full() }}/advancedstatistics">Advanced Statistics</a>
+                <a class="dropdown-item grab-hover" href="{{ url()->full() }}/clusteranalysis">Cluster Analysis</a>
+                <a class="dropdown-item grab-hover" href="{{ url()->full() }}/temporalclustering">Temporal Clustering</a>
+                <a class="dropdown-item grab-hover" href="{{ url()->full() }}/closenessanalysis">Closeness Analysis</a>
+            </div>
         </div>
-    </div>
     @endif
 
     <!-- Quick Info -->
@@ -123,7 +130,7 @@
                     </tr>
                     <tr>
                         <th>Entries</th>
-                        <td id="dscount">{{ count($ds->dataitems) }}</td>
+                        <td id="dscount">{{ $ds->dataitems_count }}</td>
                     </tr>
                     <tr>
                         <th>Allow ANPS?</th>
@@ -153,8 +160,8 @@
                     <tr>
                         <th class="w-25">Subject</th>
                         <td>
-                            @for ($i = 0; $i < count($ds->subjectKeywords); $i++)
-                                @if ($i == count($ds->subjectKeywords) - 1)
+                            @for ($i = 0; $i < $ds->subject_keywords_count; $i++)
+                                @if ($i == $ds->subject_keywords_count - 1)
                                     {{ $ds->subjectKeywords[$i]->keyword }}
                                 @else
                                     {{ $ds->subjectKeywords[$i]->keyword }},
@@ -255,9 +262,9 @@
 
     <div class="container-fluid">
         <div class="place-list">
-            @foreach ($ds->dataitems as $data)
+            @foreach ($ds->dataitemsWithRoute as $data)
                 <div class="row">
-                    <div class="col col-xl-2">
+                    <div class="col col-xl-3">
                         <h4><button type="button" class="btn btn-primary btn-sm"
                                 onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
                             <a
@@ -290,6 +297,17 @@
                                             onclick="window.open(`{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(config('app.url') . '/places/' . \TLCMap\Http\Helpers\UID::create($data->id, 't') . '/json') }}`)">3D
                                             Viewer</a>
                                     @endif
+                                    <a class="dropdown-item grab-hover"
+                                        onclick="window.open('https\:\/\/www.google.com/maps/search/?api=1&query={{ $data->latitude }},{{ $data->longitude }}')">Google
+                                        Maps</a>
+                                    @if (isset($data->placename))
+                                        <a class="dropdown-item grab-hover" target="_blank"
+                                            href="https://trove.nla.gov.au/search?keyword={{ $data->placename }}">Trove
+                                            Search</a>
+                                    @else<a class="dropdown-item grab-hover" target="_blank"
+                                            href="https://trove.nla.gov.au/search?keyword={{ $data->title }}">Trove
+                                            Search</a>
+                                    @endif
 
                                 </div>
                             </div>
@@ -306,10 +324,6 @@
                         @if (isset($data->longitude))
                             <dt>Longitude</dt>
                             <dd>{{ $data->longitude }}</dd>
-                        @endif
-                        @if (isset($data->quantity))
-                            <dt>Quantity</dt>
-                            <dd>{{ $data->quantity }}</dd>
                         @endif
                         @if (isset($data->datestart))
                             <dt>Start Date</dt>
@@ -345,22 +359,28 @@
                             <div>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->description) !!}</div>
                         @endif
                     </div>
-                    @if (isset($data->route_id))
+                    @if ($data->recordtype->type === 'Mobility')
                         <div class="col col-xl-2">
-                            <h4>Route Details</h4>
-                            <dt>Route ID</dt>
-                            <dd>{{ $data->route_id }}</dd>
-                            @if (isset($data->route_original_id))
-                                <dt>Route Original ID</dt>
-                                <dd>{{ $data->route_original_id }}</dd>
+                            <h4>Mobility Details</h4>
+                            @if (isset($data->quantity))
+                                <dt>Quantity</dt>
+                                <dd>{{ $data->quantity }}</dd>
                             @endif
-                            @if (isset($data->route_title))
-                                <dt>Route Title</dt>
-                                <dd>{{ $data->route_title }}</dd>
-                            @endif
-                            @if (isset($data->stop_idx))
-                                <dt>Route Stop Number</dt>
-                                <dd>{{ $data->stop_idx }}</dd>
+                            @if (isset($data->route_id))
+                                <dt>Route ID</dt>
+                                <dd>{{ $data->route_id }}</dd>
+                                @if (isset($data->stop_idx))
+                                    <dt>Route Stop Number</dt>
+                                    <dd>{{ $data->stop_idx }}</dd>
+                                @endif
+                                @if (isset($data->route_title))
+                                    <dt>Route Title</dt>
+                                    <dd>{{ $data->route_title }}</dd>
+                                @endif
+                                @if (isset($data->route_description))
+                                    <dt>Route Description</dt>
+                                    <dd>{{ $data->route_description }}</dd>
+                                @endif
                             @endif
                         </div>
                     @endif

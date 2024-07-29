@@ -35,6 +35,7 @@ use TLCMap\Models\Datasource;
 use TLCMap\ROCrate\ROCrateGenerator;
 
 use TLCMap\Models\RecordType;
+use TLCMap\Models\Route;
 
 class GazetteerController extends Controller
 {
@@ -204,14 +205,27 @@ class GazetteerController extends Controller
 
         /* LIMIT PAGING */
         $paging = $parameters['paging'];
-        if (!$paging && ($parameters['format'] == 'html' || $parameters['format'] == '')) $paging = $DEFAULT_PAGING; //limit to DEFAULT if no limit set (to speed it up)
+        if (!$paging && ($parameters['format'] == '') || !$parameters['format'] || $parameters['format'] == 'html') $paging = $DEFAULT_PAGING; //limit to DEFAULT if no limit set (to speed it up)
         if (!$paging || $paging > $MAX_PAGING) $paging = $MAX_PAGING; //limit to MAX if over max
 
         // Search dataitems.
         $results = $this->searchDataitems($parameters);
 
         /* MAX SIZE CHECK */
-        if ($this->maxSizeCheck($results, $parameters['format'], $MAX_PAGING)) return redirect()->route('maxPagingMessage'); //if results > $MAX_PAGING show warning msg
+        /*
+        Ivy's note
+            Attention!!
+            We are using $MAX_PAGING to check the maximum size of searched results for downloading and mapping!
+            That's why FileFormatter::toGeoJSON() doesn't have process for paginated results.
+        */
+        $reachMaximumSize = $this->maxSizeCheck($results, $parameters['format'], $MAX_PAGING);
+        if ($reachMaximumSize) {
+            if ($parameters['mapping'] === null) {
+                return redirect()->route('maxPagingMessage'); //if results > $MAX_PAGING show warning msg
+            } else {
+                $this->maxPagingRedirect($request);
+            }
+        }
 
         /* FUZZY NAME SORTING - skip if table sorting is applied */
         if ($parameters['fuzzyname'] && (!$parameters['sort'] || !$parameters['direction'])) $results = $this->fuzzysort($results, $parameters['fuzzyname'], true); //last param true if fuzzy, false if contains
@@ -220,20 +234,36 @@ class GazetteerController extends Controller
         /* SORT AND DIRECTION */
         if ($parameters['sort'] && $parameters['direction']) $results = ($parameters['direction'] == 'asc') ? $results->sortBy($parameters['sort']) : $results->sortByDesc($parameters['sort']);
 
+        /***
+         * COLLECT ROUTES
+         * This section is only executed under specific conditions:
+         * 1. When the output format is JSON AND
+         * 2. When mapping is enabled AND
+         * 3. When mobility mapping is requested AND
+         * 4. When the maximum allowable mapping volume of searched data items includes routes
+         *
+         * Purpose:
+         * - To process and include route information for mobility mapping
+         * - Limited to the system's maximum allowed mapping quantity of searched data items
+         * - Ensures efficient handling of large datasets by processing only the necessary items
+         ***/
+        $routes = null;
+        if ($parameters['format'] == "json" && $parameters['mapping'] && $parameters['mobility'] && !empty($this->hasMobInfo) && $this->hasMobInfo['hasrouteid']) {
+            $routes = collect();
+            $limitedResults = $results->take($MAX_PAGING);
+            $displayMode = $parameters["mobility"];
+
+            if ($displayMode !== 'route') {
+                $limitedResults = $this->addTimeStopIndex($limitedResults, $displayMode);
+            }
+            $routes = $this->processRoutes($limitedResults, $displayMode);
+        }
+
         /* APPLY PAGING/LIMITING */
         $results = $this->paginate($results, $paging); //Turn into a LengthAwarePaginator - APPLIES LIMITING!
 
-        /* MOBILITY DATA CHECKING - whether the returned item having quantity or route_id attribute */
-        $parameters['hasmobinfo'] = [];
-        $parameters['hasmobinfo']['hasquantity'] = $results->contains(function ($item) {
-            return isset($item->quantity);
-        });
-        $parameters['hasmobinfo']['hasrouteid'] = $results->contains(function ($item) {
-            return isset($item->route_id);
-        });
-
         /* OUTPUT */
-        return $this->outputs($parameters, $results);
+        return $this->outputs($parameters, $results, $routes);
     }
 
     /********************/
@@ -554,14 +584,92 @@ class GazetteerController extends Controller
             }
         }
 
+        // Fetch associated route information if the dataitem has any
+        $dataitems = $dataitems->withStopIdxForSearchedDataitems();
+
+        /*
+        MOBILITY DATA CHECKING - whether the returned dataitems having mobility-related attributes
+                Step 1: Collect qualified mobility datatiem IDs
+                        As searched dataitems mapping using download URL, we need to update $hasMobInfo that is used for mobility mapping
+                        according to maximum showing number of results. (Pairing with MAX SIZE CHECK in this->search())
+        */
+        $hasMobilityInfo = [
+            'default' => [],
+            'hasquantity' => [],
+            'hasrouteid' => [],
+            'hasrouteiddatestart' => [],
+            'hasrouteiddateend' => []
+        ];
+        $MAX_PAGING = config('app.maxpaging');
+
+        $mobilityDataitems = (clone $dataitems->getQuery())
+            ->select('*')
+            ->limit($MAX_PAGING)
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('tlcmap.recordtype')
+                    ->whereColumn('recordtype.id', 'tlcmap.dataitem.recordtype_id')
+                    ->where('recordtype.type', 'Mobility');
+            });
+        $mobilityCollection = $mobilityDataitems->get();
+
+        foreach ($mobilityCollection as $item) {
+            $hasMobilityInfo['default'][] = $item->id;
+
+            if (isset($item->quantity)) {
+                $hasMobilityInfo['hasquantity'][] = $item->id;
+            }
+
+            if (isset($item->route_id)) {
+                $hasMobilityInfo['hasrouteid'][] = $item->id;
+
+                if (isset($item->datestart)) {
+                    $hasMobilityInfo['hasrouteiddatestart'][] = $item->id;
+                }
+
+                if (isset($item->dateend)) {
+                    $hasMobilityInfo['hasrouteiddateend'][] = $item->id;
+                }
+            }
+        }
+
         $collection = $dataitems->get(); //needs to be applied a second time for some reason (maybe because of the subquery?)
 
         //Modifying the collection directly, as datestart and dateend fields are TEXT fields not dates, simpler this way (might be a little slower)
         if ($parameters['dateto'] || $parameters['datefrom']) {
-            $collection = $collection->filter(function ($v) use ($parameters, $that) {
-                return $that::dateSearch($parameters['datefrom'], $parameters['dateto'], $v->datestart, $v->dateend);
-            });
+            if ($mobilityCollection->isEmpty()) {
+                $collection = $collection->filter(function ($v) use ($parameters, $that) {
+                    return $that::dateSearch($parameters['datefrom'], $parameters['dateto'], $v->datestart, $v->dateend);
+                });
+            } else {
+                /*
+                MOBILITY DATA CHECKING - whether the returned dataitems having mobility-related attributes
+                        Step 2: Collect filtered datatiem IDs in dateSearch
+                */
+                $excludedIds = [];
+                $collection = $collection->filter(function ($v) use ($parameters, $that, &$excludedIds) {
+                    $isIncluded = $that::dateSearch($parameters['datefrom'], $parameters['dateto'], $v->datestart, $v->dateend);
+                    if (!$isIncluded) {
+                        $excludedIds[] = $v->id;
+                    }
+                    return $isIncluded;
+                });
+                // Exclude filtered dataitem IDs in $hasMobilityInfo
+                foreach ($hasMobilityInfo as $key => $ids) {
+                    $hasMobilityInfo[$key] = array_diff($ids, $excludedIds);
+                }
+            }
         }
+
+        /*
+        MOBILITY DATA CHECKING - whether the returned dataitems having mobility-related attributes
+                Step 3: Check final qualified datatiem IDs and store
+        */
+        foreach ($hasMobilityInfo as $key => $ids) {
+            $hasMobilityInfo[$key] = !empty($ids);
+        }
+
+        $this->hasMobInfo = $hasMobilityInfo;
 
         return $collection;
     }
@@ -715,6 +823,11 @@ class GazetteerController extends Controller
         $parameters['names'] = (isset($parameters['names'])) ? $parameters['names'] : null;
         $parameters['containsnames'] = (isset($parameters['containsnames'])) ? $parameters['containsnames'] : null;
 
+        // Check whether request is for data mapping
+        $parameters['mapping'] = (isset($parameters['mapping'])) ? $parameters['mapping'] : null;
+        // Check whether request is for mobility data mapping
+        $parameters['mobility'] = (isset($parameters['mobility'])) ? $parameters['mobility'] : null;
+
         //Trove style parameters
         if (isset($parameters['exactq'])) $parameters['name'] = $parameters['exactq'];
         if (isset($parameters['q'])) $parameters['fuzzyname'] = $parameters['q'];
@@ -743,7 +856,10 @@ class GazetteerController extends Controller
             $resultscount = clone $results;
             $resultscount = count($resultscount); //get the count of results without getting results
             if ($resultscount > $MAX_PAGING) {
-                session(['paging.redirect.url' => url()->full(), 'paging.redirect.countchecked' => 'true']); //set the redirect url and set countchecked to true so we do not run this block twice
+                session([
+                    'paging.redirect.url' => url()->full(),
+                    'paging.redirect.countchecked' => 'true'
+                ]); //set the redirect url and set countchecked to true so we do not run this block twice
                 return true;  //redirect to the max paging message page
             }
         }
@@ -751,23 +867,33 @@ class GazetteerController extends Controller
         return false;
     }
 
+    protected $hasMobInfo = null;
+
     /**
      * Format and Redirect according to the return format type: kml, csv, json, html
      */
-    function outputs($parameters, $results)
+    function outputs($parameters, $results, $routeInResults = null)
     {
         /* Outputs */
         $headers = array(); //Create an array for headers
         $filename = "tlcmap_output"; //name for the output file
 
-        $headers["hasmobinfo"] = $parameters['hasmobinfo'];
+        $headers["hasmobinfo"] = $this->hasMobInfo;
         if ($parameters['format'] == "json") {
             // Note: not sure this chuck part gets called anywhere. May delete this after verification.
+            /*
+            Ivy's note:
+                I guess that's for developing large dataset download and mapping functionality?
+                Or maybe it's been deleted??
+            */
             if ($parameters['chunks']) { //if we have sent the chunks parameter through
                 return FileFormatter::jsonChunk($results, $parameters['chunks']); //download a zip containing the json files in chunks
             }
             $headers['Content-Type'] = 'application/json'; //set header content type
             if ($parameters['download']) $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.json"'; //if we are downloading, add a 'download attachment' header
+            if ($parameters['mapping'] && $parameters['mobility'] && $routeInResults) {
+                return Response::make(FileFormatter::toGeoJSON($results, $parameters, $this->hasMobInfo, $routeInResults), '200', $headers);
+            }
             return Response::make(FileFormatter::toGeoJSON($results, $parameters), '200', $headers); //serve the file to browser (or download)
         }
         if ($parameters['format'] == "csv") {
@@ -779,7 +905,7 @@ class GazetteerController extends Controller
             //Internal process only
             //Return the content of the csv report as string by stream_get_contents()
             //Used for ro-crate export of saved search results on multilayers
-            return FileFormatter::toCSVContent($results, $parameters['hasmobinfo']);
+            return FileFormatter::toCSVContent($results, $this->hasMobInfo);
         }
         if ($parameters['format'] == "kml") {
             // Note: not sure this chuck part gets called anywhere. May delete this after verification.
@@ -797,8 +923,9 @@ class GazetteerController extends Controller
                 return response()->download($crate, "ghap-ro-crate-search-results-{$timestamp}.zip")->deleteFileAfterSend();
             }
         }
+        // TO Check!!!
         if (array_key_exists('savedSearch', $parameters) && $parameters['savedSearch'] === true) {
-            return ['details' => $results, 'hasmobinfo' => $parameters['hasmobinfo'],];
+            return ['details' => $results, 'hasmobinfo' => $this->hasMobInfo,];
         }
 
         $recordtypes = RecordType::types();
@@ -807,7 +934,7 @@ class GazetteerController extends Controller
             'details' => $results,
             'query' => $results,
             'recordtypes' => $recordtypes,
-            'hasmobinfo' => $parameters['hasmobinfo'],
+            'hasmobinfo' => $this->hasMobInfo,
         ]);
     }
 
@@ -934,6 +1061,102 @@ class GazetteerController extends Controller
                 'pageName' => $pageName,
             ]
         );
+    }
+
+    /**
+     * Process and collect route information from the given results.
+     *
+     * @param Collection $results The collection of data items to process.
+     * @param string $displayMode The display mode ('route', 'timeend', or 'timestart').
+     * @return Collection A collection of processed route information.
+     */
+    public static function processRoutes(Collection $results, string $displayMode): Collection
+    {
+        $routeOrderColumn = $displayMode === 'route' ? 'stop_idx' : 'time_stop_idx';
+        return $results
+            ->filter(function ($item) {
+                return !is_null($item->route_id);
+            })
+            ->groupBy('route_id')
+            ->map(function ($group) use ($routeOrderColumn) {
+                $sortedGroup = $group->sortBy($routeOrderColumn);
+                $firstItem = $sortedGroup->first();
+
+                if (!$firstItem || !$firstItem->route) {
+                    // It shouldn't happen as that means route record is broken or current dataitem was cleared properly...
+                    return null;
+                }
+
+                $datasetId = $firstItem->dataset_id;
+                $routeId = $firstItem->route_id;
+                $routeLayerText = "";
+                $routeCoords = [];
+
+                if ($sortedGroup->count() > 1) {
+                    $routeCoords = $sortedGroup->map(function ($item) {
+                        return [$item->longitude, $item->latitude];
+                    })->filter()->values()->all();
+                } else {
+                    $onlyDataItem = $sortedGroup->first();
+                    $routeCoords = [
+                        [$onlyDataItem->longitude, $onlyDataItem->latitude],
+                        [$onlyDataItem->longitude + 1, $onlyDataItem->latitude + 1]
+                    ];
+                    $routeLayerText = "Single Place From ";
+                }
+
+                // Set footer links.
+                // Add original route id and layer name of this route in the footer link
+                $routeLayerText .= "Route (ID) " . $routeId . " of TLCMap Layer " . $datasetId;
+                $routeLayerUrl = url("publicdatasets/" . $datasetId);
+
+                return [
+                    'title' => $firstItem->route->title,
+                    'route_id' => $routeId,
+                    'route_title' => $firstItem->route->title,
+                    'route_description' => $firstItem->route->description,
+                    'route_size' => $firstItem->route->size,
+                    'curr_size' => $sortedGroup->count(),
+                    'routeCoords' => $routeCoords,
+                    'routeLayerText' => $routeLayerText,
+                    'routeLayerUrl' => $routeLayerUrl,
+                ];
+            })
+            ->filter()
+            ->values();
+    }
+
+    /**
+     * Add time_stop_idx to items with route_id and maintain original order.
+     *
+     * @param Collection $results The original collection of data items.
+     * @param string $displayMode The display mode ('route', 'timeend', or 'timestart').
+     * @return Collection The processed collection with added time_stop_idx.
+     */
+    public static function addTimeStopIndex(Collection $results, string $displayMode): Collection
+    {
+        $dateOrderColumn = $displayMode === 'timeend' ? 'dateend' : 'datestart';
+
+        // consider to use lazy() when $withRoute is large
+        [$withRoute, $withoutRoute] = $results->partition(function ($item) {
+            return !is_null($item->route_id);
+        });
+        $processedWithRoute = $withRoute->groupBy('route_id')
+            ->flatMap(function ($group) use ($dateOrderColumn) {
+                return $group->sortBy($dateOrderColumn)
+                    ->values()
+                    ->map(function ($item, $index) {
+                        $item->time_stop_idx = $index + 1;
+                        return $item;
+                    });
+            });
+
+        $updatedResults = $withoutRoute->concat($processedWithRoute);
+        $originalOrder = $results->pluck('id')->flip();
+
+        return $updatedResults->sortBy(function ($item) use ($originalOrder) {
+            return $originalOrder[$item->id];
+        });
     }
 
     /* File Formatting related helper functions all moved to App/Http/Helpers/FileFormatter.php */

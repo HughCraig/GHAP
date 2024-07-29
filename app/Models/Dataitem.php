@@ -5,6 +5,8 @@ namespace TLCMap\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
+use TLCMap\Models\Route;
 use function foo\func;
 
 class Dataitem extends Model
@@ -23,13 +25,9 @@ class Dataitem extends Model
      */
     protected $fillable = [
         'id', 'dataset_id', 'recordtype_id', 'title', 'description', 'latitude', 'longitude',
-        'datestart', 'dateend', 'quantity', 'state', 'feature_term', 'lga', 'source', 'external_url',
-        'extended_data', 'kml_style_url', 'placename', 'original_id', 'parish' , 'image_path', 'dataset_order',
-        'route_id', 'route_title', 'route_original_id',
-        // Ivy's note:
-        // stop_idx is generated based on matching data items, not quite sure whether it should be
-        // added into $fillable, here it's added for the convenience of exporting dataset
-        'stop_idx'
+        'datestart', 'dateend', 'state', 'feature_term', 'lga', 'source', 'external_url',
+        'extended_data', 'kml_style_url', 'placename', 'original_id', 'parish', 'image_path', 'dataset_order',
+        'route_id', 'quantity'
 
     ];
 
@@ -40,6 +38,15 @@ class Dataitem extends Model
     public function dataset()
     {
         return $this->belongsTo(Dataset::class);
+    }
+
+    /**
+     * Defines a route relationship
+     * 1 dataitem belongs to 1 route only
+     */
+    public function route()
+    {
+        return $this->belongsTo(Route::class, 'route_id');
     }
 
     public function recordtype()
@@ -161,12 +168,12 @@ class Dataitem extends Model
         $extData = [];
         try {
             $extDataXML = simplexml_load_string($this->extended_data, 'SimpleXMLElement', LIBXML_NOCDATA);
-            if( isset($extDataXML->Data) ) {
+            if (isset($extDataXML->Data)) {
                 foreach ($extDataXML->Data as $item) {
                     $extData[(string) $item->attributes()->name] = (string) $item->value;
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
         return $extData;
@@ -296,5 +303,166 @@ class Dataitem extends Model
     private static function getColumnEnumeration($column)
     {
         return self::select($column)->distinct()->where($column, '<>', '')->pluck($column)->toArray();
+    }
+
+    /**
+     * Scope query to include route information and stop index for searched dataitems.
+     *
+     * This scope performs the following:
+     * 1. Creates a subquery to get route information and calculate stop index for each dataitem.
+     * 2. Left joins this subquery with the main dataitem query.
+     * 3. Adds additional columns from the route information to the select statement.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeWithStopIdxForSearchedDataitems($query)
+    {
+        return $query->leftJoinSub(
+            function ($subQuery) use ($query) {
+                $subQuery->select(
+                    'tlcmap.route_order.dataitem_id',
+                    'tlcmap.route.title as route_title',
+                    'tlcmap.route.description as route_description',
+                    'tlcmap.route.size as route_size',
+                    // Calculate the stop index for each dataitem within its route
+                    DB::raw('ROW_NUMBER() OVER (PARTITION BY tlcmap.route_order.route_id ORDER BY tlcmap.route_order.position) as stop_idx')
+                )
+                    ->from('tlcmap.route_order')
+                    ->join('tlcmap.route', 'tlcmap.route_order.route_id', '=', 'tlcmap.route.id')
+                    ->joinSub($query->select('id', 'route_id'), 'filtered_dataitems', function ($join) {
+                        $join->on('tlcmap.route_order.dataitem_id', '=', 'filtered_dataitems.id');
+                    });
+            },
+            'route_info',
+            'tlcmap.dataitem.id',
+            '=',
+            'route_info.dataitem_id'
+        )->addSelect(
+            'tlcmap.dataitem.*',
+            'route_info.route_title',
+            'route_info.route_description',
+            'route_info.route_size',
+            'route_info.stop_idx'
+        );
+    }
+
+    public function getCurrentStopIdx()
+    {
+        $route = $this->route;
+
+        if (!$route) {
+            return null;
+        }
+
+        $stopIndices = $route->allStopIndices();
+        return $stopIndices[(string)$this->id] ?? null;
+    }
+
+    /**
+     * Get the details of the Route associated with the current Dataitem instance.
+     * If no Route is associated, it returns null.
+     *
+     * @return array|null An associative array containing the details of the associated Route, or null if no Route is associated.
+     */
+    public function currentRouteDetails()
+    {
+        $route = $this->route;
+
+        if ($route) {
+            $details = $route->currentDetails();
+            $stopIndices = $details['allStopIndices'];
+            $details['currentStopIdx'] = $stopIndices[$this->id] ?? null;
+            $details['allStopIndices'] = array_values($stopIndices);
+
+            return $details;
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if the dataset that current dataitem is associated
+     * with has other routes
+     *
+     * @return bool
+     */
+    public function hasOtherRoutes(): bool
+    {
+        $tjcsNum = count($this->dataset->routes);
+        $has_route = $this->route_id;
+
+        // Return true if the Dataitem is associated with a route and
+        // there are more than one route in the dataset,
+        // or if the Dataitem is not associated with a route but there are routes in the dataset
+        return ($tjcsNum > ($has_route ? 1 : 0));
+    }
+
+    /**
+     * Get all other Routes associated with the same Dataset as the current Dataitem instance,
+     * excluding the Route associated with the current Dataitem instance.
+     * If the current Dataitem instance is not associated with any Route, it returns all Routes associated with the Dataset.
+     *
+     * @return Collection|null A collection of Route instances.
+     */
+    public function allOtherRoutes()
+    {
+        $dataset = $this->dataset;
+        $currentRouteId = $this->route_id;
+
+        if ($dataset) {
+            $routes = $dataset->routes;
+
+            if ($currentRouteId) {
+                return $routes->filter(function ($route) use ($currentRouteId) {
+                    return $route->id !== $currentRouteId;
+                });
+            } else {
+                return $routes;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the details of all other Routes associated with the same Dataset as the current Dataitem instance,
+     * excluding the Route associated with the current Dataitem.
+     *
+     * @return array An array of associative arrays, each containing the details of a Route.
+     */
+    public function allOtherRoutesDetails()
+    {
+        $otherRoutes = $this->allOtherRoutes();
+
+        $otherRoutesDetails = [];
+        foreach ($otherRoutes as $route) {
+            $otherRoutesDetails[] = $route->currentDetails();
+        }
+
+        return $otherRoutesDetails;
+    }
+
+    /**
+     * Update route_id for multiple dataitems
+     *
+     * @param int $routeId
+     * @param array $dataitemIds
+     */
+    public static function updateRouteIdBatch($routeId, $dataitemIds)
+    {
+        return self::whereIn('id', $dataitemIds)
+            ->update(['route_id' => $routeId]);
+    }
+
+    /**
+     * Batch update to set route_id to null for multiple dataitems
+     *
+     * @param array $dataitemIds
+     * @return int The number of affected rows
+     */
+    public static function clearRouteIdBatch(array $dataitemIds)
+    {
+        return self::whereIn('id', $dataitemIds)->update(['route_id' => null]);
     }
 }

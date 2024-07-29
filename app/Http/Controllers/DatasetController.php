@@ -5,6 +5,7 @@ namespace TLCMap\Http\Controllers;
 use Illuminate\Support\Collection;
 use TLCMap\Http\Helpers\UID;
 use TLCMap\Models\Dataset;
+use TLCMap\Models\RecordType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -33,15 +34,19 @@ class DatasetController extends Controller
     /**
      * View a specific public dataset by id, if it exists and is public
      * If dataset does not exist with this id OR it is not public, @return redirect to viewPublicDatasets
-     * else @return view with this dataset
+     * else @return view with this dataset and associated mapping mobility information
      *
      */
     public function viewPublicDataset(Request $request, int $id)
     {
-        //Get the first dataset with this id that is 'public', if it exists
-        $ds = Dataset::getPublicDatasetById($id);
+
+        $ds = Dataset::with(['dataitemsWithRoute' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->withCount(['dataitems', 'subjectKeywords', 'routes'])->where(['public' => 1, 'id' => $id])->first(); // get this dataset by id if it is also public
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        return view('ws.ghap.publicdataset', ['ds' => $ds]); // if found return it with the next view
+        // get mobility status for mapping
+        $hasmobinfo = $ds->getMappingMobilityInfo();
+        return view('ws.ghap.publicdataset', ['ds' => $ds, 'hasmobinfo' => $hasmobinfo]); // if found return it with the next view
     }
 
     /**
@@ -54,7 +59,7 @@ class DatasetController extends Controller
         Log::info('viewPublicDatasetBasicStatistics');
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        return view('statistic.basicstatistics', ['ds' => $ds , 'statistic' => $ds->getBasicStatistics() ]);
+        return view('statistic.basicstatistics', ['ds' => $ds, 'statistic' => $ds->getBasicStatistics()]);
     }
 
     /**
@@ -67,7 +72,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        return view('statistic.basicstatistics', ['ds' => $ds , 'statistic' => $ds->getBasicStatistics() ]);
+        return view('statistic.basicstatistics', ['ds' => $ds, 'statistic' => $ds->getBasicStatistics()]);
     }
 
     /**
@@ -130,7 +135,7 @@ class DatasetController extends Controller
     {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        return view('statistic.advancedstatistics', ['ds' => $ds , 'statistic' => $ds->getAdvancedStatistics() ]);
+        return view('statistic.advancedstatistics', ['ds' => $ds, 'statistic' => $ds->getAdvancedStatistics()]);
     }
 
     /**
@@ -143,7 +148,7 @@ class DatasetController extends Controller
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
-        return view('statistic.advancedstatistics', ['ds' => $ds , 'statistic' => $ds->getAdvancedStatistics() ]);
+        return view('statistic.advancedstatistics', ['ds' => $ds, 'statistic' => $ds->getAdvancedStatistics()]);
     }
 
     /**
@@ -151,7 +156,8 @@ class DatasetController extends Controller
      * Redirects to the list of public datasets if the specified dataset is not found or not public.
      * @return view with cluster analysis results or redirect if dataset not found
      */
-    public function viewPublicDatasetClusterAnalysis(Request $request, int $id){
+    public function viewPublicDatasetClusterAnalysis(Request $request, int $id)
+    {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
         return view('statistic.clusteranalysis', ['ds' => $ds]);
@@ -162,7 +168,8 @@ class DatasetController extends Controller
      * Check ownership and redirects if the specified dataset is not found or not public.
      * @return view with cluster analysis results or redirect if dataset not found
      */
-    public function viewPrivateDatasetClusterAnalysis(Request $request, int $id){
+    public function viewPrivateDatasetClusterAnalysis(Request $request, int $id)
+    {
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
@@ -179,7 +186,7 @@ class DatasetController extends Controller
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
 
-        if( $_GET["distance"] == null || $_GET["distance"] < 0 || !is_numeric($_GET["distance"]) ){
+        if ($_GET["distance"] == null || $_GET["distance"] < 0 || !is_numeric($_GET["distance"])) {
             return response()->json(['error' => 'Invalid distance'], 400);
         }
 
@@ -209,7 +216,7 @@ class DatasetController extends Controller
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
 
-        if( $_GET["distance"] == null || $_GET["distance"] < 0 || !is_numeric($_GET["distance"]) ){
+        if ($_GET["distance"] == null || $_GET["distance"] < 0 || !is_numeric($_GET["distance"])) {
             return response()->json(['error' => 'Invalid distance'], 400);
         }
 
@@ -284,7 +291,8 @@ class DatasetController extends Controller
      * Redirects to the list of public datasets if the specified dataset is not found or not public.
      * @return view with temporal clustering results or redirect if dataset not found
      */
-    public function viewPublicDatasetTemporalClustering(Request $request, int $id){
+    public function viewPublicDatasetTemporalClustering(Request $request, int $id)
+    {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
         return view('statistic.temporalclustering', ['ds' => $ds]);
@@ -295,7 +303,8 @@ class DatasetController extends Controller
      * Check ownership and redirects if the specified dataset is not found or not public.
      * @return view with temporal clustering results or redirect if dataset not found
      */
-    public function viewPrivateDatasetTemporalClustering(Request $request, int $id){
+    public function viewPrivateDatasetTemporalClustering(Request $request, int $id)
+    {
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
@@ -356,7 +365,8 @@ class DatasetController extends Controller
      * Displays the closeness analysis interface for a public dataset identified by its ID.
      * @return view with closeness analysis interface or redirect if dataset not found
      */
-    public function viewPublicDatasetClosenessAnalysis(Request $request, int $id){
+    public function viewPublicDatasetClosenessAnalysis(Request $request, int $id)
+    {
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
 
@@ -369,7 +379,8 @@ class DatasetController extends Controller
      * Check ownership and redirects if the specified dataset is not found or not public.
      * @return view with closeness analysis interface or redirect if dataset not found
      */
-    public function viewPrivateDatasetClosenessAnalysis(Request $request, int $id){
+    public function viewPrivateDatasetClosenessAnalysis(Request $request, int $id)
+    {
         $user = auth()->user();
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
@@ -388,7 +399,7 @@ class DatasetController extends Controller
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
 
-        if( !$_GET["targetLayer"] ){
+        if (!$_GET["targetLayer"]) {
             return response()->json(['error' => 'Invalid target layer'], 400);
         }
         $targerDs = Dataset::where(['public' => 1, 'id' => $_GET["targetLayer"]])->first();
@@ -408,7 +419,7 @@ class DatasetController extends Controller
         $ds = $user->datasets()->find($id);
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
 
-        if( !$_GET["targetLayer"] ){
+        if (!$_GET["targetLayer"]) {
             return response()->json(['error' => 'Invalid target layer'], 400);
         }
         $targerDs = Dataset::where(['public' => 1, 'id' => $_GET["targetLayer"]])->first();
@@ -424,8 +435,9 @@ class DatasetController extends Controller
      */
     public function viewPublicKML(Request $request, int $id)
     {
-        //Get the first dataset with this id that is 'public', if it exists
-        $dataset = Dataset::getPublicDatasetById($id);
+        $dataset = Dataset::with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
         if (!$dataset) return redirect()->route('layers'); //redirect if not found (invalid id or not public)
         return Response::make($dataset->kml(), '200', array('Content-Type' => 'text/xml')); //generate the KML response
     }
@@ -437,8 +449,9 @@ class DatasetController extends Controller
      */
     public function downloadPublicKML(Request $request, int $id)
     {
-        //Get the first dataset with this id that is 'public', if it exists
-        $dataset = Dataset::getPublicDatasetById($id);
+        $dataset = Dataset::with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
         if (!$dataset) return redirect()->route('layers');
         $filename = 'TLCMLayer_' . $id;
         return Response::make($dataset->kml(), '200', array('Content-Type' => 'text/xml', 'Content-Disposition' => 'attachment; filename="' . $filename . '.kml"'));
@@ -451,8 +464,10 @@ class DatasetController extends Controller
      */
     public function viewPublicJSON(Request $request, int $id)
     {
-        //Get the first dataset with this id that is 'public', if it exists
-        $dataset = Dataset::getPublicDatasetById($id);
+
+        $dataset = Dataset::with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
         if (!$dataset) return Response::make(Dataset::getRestrictedDatasetGeoJSON(), '200', array('Content-Type' => 'application/json'));
         return Response::make($dataset->json(), '200', array('Content-Type' => 'application/json')); //generate the json response
     }
@@ -464,8 +479,9 @@ class DatasetController extends Controller
      */
     public function downloadPublicJson(Request $request, int $id)
     {
-        //Get the first dataset with this id that is 'public', if it exists
-        $dataset = Dataset::getPublicDatasetById($id);
+        $dataset = Dataset::with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
         if (!$dataset) return redirect()->route('layers');
         $filename = 'TLCMLayer_' . $id;
         return Response::make($dataset->json(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
@@ -478,8 +494,9 @@ class DatasetController extends Controller
      */
     public function viewPublicCSV(Request $request, int $id)
     {
-        //Get the first dataset with this id that is 'public', if it exists
-        $dataset = Dataset::getPublicDatasetById($id);
+        $dataset = Dataset::with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
         if (!$dataset) return redirect()->route('layers'); //redirect if not found (invalid id or not public)
         return Response::make($dataset->csv(), '200', array('Content-Type' => 'text/csv')); //generate the CSV response
     }
@@ -491,8 +508,9 @@ class DatasetController extends Controller
      */
     public function downloadPublicCSV(Request $request, int $id)
     {
-        //Get the first dataset with this id that is 'public', if it exists
-        $dataset = Dataset::getPublicDatasetById($id);
+        $dataset = Dataset::with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->where(['public' => 1, 'id' => $id])->first(); //Get the first dataset with this id that is 'public', if it exists
         if (!$dataset) return redirect()->route('layers');
         $filename = 'TLCMLayer_' . $id;
         return Response::make($dataset->csv(), '200', array('Content-Type' => 'text/csv', 'Content-Disposition' => 'attachment; filename="' . $filename . '.CSV"'));
@@ -510,8 +528,9 @@ class DatasetController extends Controller
     public function viewPrivateKML(Request $request, int $id)
     {
         $user = auth()->user();
-        //Search for this dataset id ONLY within datasets associated with this user
-        $dataset = Dataset::getPrivateDatasetById($user, $id);
+        $dataset = $user->datasets()->with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->find($id); //Search for this dataset id ONLY within datasets associated with this user
         if (!$dataset) return redirect('myprofile/mydatasets');
         return Response::make($dataset->kml(), '200', array('Content-Type' => 'text/xml'));
     }
@@ -525,8 +544,9 @@ class DatasetController extends Controller
     public function downloadPrivateKML(Request $request, int $id)
     {
         $user = auth()->user();
-        //Search for this dataset id ONLY within datasets associated with this user
-        $dataset = Dataset::getPrivateDatasetById($user, $id);
+        $dataset = $user->datasets()->with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->find($id); //Search for this dataset id ONLY within datasets associated with this user
         if (!$dataset) return redirect('myprofile/mydatasets');
         $filename = 'TLCMLayer_' . $id;
         return Response::make($dataset->kml(), '200', array('Content-Type' => 'text/xml', 'Content-Disposition' => 'attachment; filename="' . $filename . '.kml"'));
@@ -541,8 +561,9 @@ class DatasetController extends Controller
     public function viewPrivateJSON(Request $request, int $id)
     {
         $user = auth()->user();
-        //Search for this dataset id ONLY within datasets associated with this user
-        $dataset = Dataset::getPrivateDatasetById($user, $id);
+        $dataset = $user->datasets()->with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->find($id); //Search for this dataset id ONLY within datasets associated with this user
         if (!$dataset) return redirect('myprofile/mydatasets');
         return Response::make($dataset->json(), '200', array('Content-Type' => 'application/json'));
     }
@@ -556,8 +577,9 @@ class DatasetController extends Controller
     public function downloadPrivateJSON(Request $request, int $id)
     {
         $user = auth()->user();
-        //Search for this dataset id ONLY within datasets associated with this user
-        $dataset = Dataset::getPrivateDatasetById($user, $id);
+        $dataset = $user->datasets()->with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->find($id); //Search for this dataset id ONLY within datasets associated with this user
         if (!$dataset) return redirect('myprofile/mydatasets');
         $filename = 'TLCMLayer_' . $id;
         return Response::make($dataset->json(), '200', array('Content-Type' => 'application/json', 'Content-Disposition' => 'attachment; filename="' . $filename . '.json"'));
@@ -566,8 +588,9 @@ class DatasetController extends Controller
     public function viewPrivateCSV(Request $request, int $id)
     {
         $user = auth()->user();
-        //Search for this dataset id ONLY within datasets associated with this user
-        $dataset = Dataset::getPrivateDatasetById($user, $id);
+        $dataset = $user->datasets()->with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->find($id); //Search for this dataset id ONLY within datasets associated with this user
         if (!$dataset) return redirect('myprofile/mydatasets');
         return Response::make($dataset->csv(), '200', array('Content-Type' => 'text/csv'));
     }
@@ -581,8 +604,9 @@ class DatasetController extends Controller
     public function downloadPrivateCSV(Request $request, int $id)
     {
         $user = auth()->user();
-        //Search for this dataset id ONLY within datasets associated with this user
-        $dataset = Dataset::getPrivateDatasetById($user, $id);
+        $dataset = $user->datasets()->with(['dataitems' => function ($query) {
+            $query->orderBy('dataset_order');
+        }])->find($id); //Search for this dataset id ONLY within datasets associated with this user
         if (!$dataset) return redirect('myprofile/mydatasets');
         $filename = 'TLCMLayer_' . $id;
         return Response::make($dataset->csv(), '200', array('Content-Type' => 'text/csv', 'Content-Disposition' => 'attachment; filename="' . $filename . '.CSV"'));
@@ -598,7 +622,10 @@ class DatasetController extends Controller
      */
     public function downloadPublicROCrate(Request $request, $datasetID)
     {
-        $dataset = Dataset::getPublicDatasetById($datasetID);
+        $dataset = Dataset::where([
+            'id' => $datasetID,
+            'public' => true,
+        ])->first();
         if (!$dataset) {
             abort(404);
         }
@@ -621,7 +648,7 @@ class DatasetController extends Controller
     public function downloadPrivateROCrate(Request $request, $datasetID)
     {
         $user = auth()->user();
-        $dataset = Dataset::getPrivateDatasetById($user, $datasetID);
+        $dataset = $user->datasets()->find($datasetID);
         if (!$dataset) {
             abort(404);
         }

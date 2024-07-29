@@ -132,31 +132,6 @@ $(document).ready(function () {
                     // Unset IDs.
                     $(this).data("itemId", "");
                     $(this).data("setId", "");
-                    const diDiv = document.querySelector(
-                        `[data-id="${dataitemID}"]`
-                    );
-                    let siblingDataId =
-                        diDiv.previousElementSibling.getAttribute("data-id");
-                    let insertPosition = "afterend";
-                    if (siblingDataId === null) {
-                        siblingDataId =
-                            diDiv.nextElementSibling.getAttribute("data-id");
-                        insertPosition = "beforebegin";
-                    }
-                    if (
-                        result.hasOwnProperty("deleteWarning") &&
-                        result.deleteWarning !== ""
-                    ) {
-                        sessionStorage.setItem(
-                            "userViewDIMsgBanner",
-                            result.deleteWarning
-                        );
-                        sessionStorage.setItem("siblingDataId", siblingDataId);
-                        sessionStorage.setItem(
-                            "insertPosition",
-                            insertPosition
-                        );
-                    }
                     location.reload();
                 },
                 error: function (xhr, textStatus, errorThrown) {
@@ -167,6 +142,22 @@ $(document).ready(function () {
             });
         }
     });
+
+    // Selectors for mobility-related fields
+    const csrfToken = $('meta[name="csrf-token"]').attr("content");
+    const recordTypeSelector = "#editRecordtype";
+    const qtySelector = "#editQuantity";
+    const qtyGroupSelector = ".edit-quantity-group";
+    const routeOptionSelector = 'input[name="routeOption"]';
+    const routeOptionsContainerSelector = ".route-options-container";
+    const routeGroupSelector = ".edit-route-info-group";
+    const routeIdSelector = "#editRouteId";
+    const stopIdxSelector = "#editStopIdx";
+    const routeIdStopIdxGroupSelector = ".route-existing-row";
+    const routeTitleSelector = "#editRouteTitle";
+    const routeTitleGroupSelector = ".route-title-row";
+    const routeDescriptionSelector = "#editRouteDescription";
+    const routeDescriptionGroupSelector = ".route-description-row";
 
     /**
      * Set the values of controls in the dataitem editing form.
@@ -192,18 +183,6 @@ $(document).ready(function () {
         }
         if (dataitem.description) {
             tinymce.get("editDescription").setContent(dataitem.description);
-        }
-        if (dataitem.quantity) {
-            $("#editQuantity").val(dataitem.quantity);
-        }
-        if (dataitem.route_id) {
-            $("#editRouteId").val(dataitem.route_id);
-        }
-        if (dataitem.route_original_id) {
-            $("#editRouteOriId").val(dataitem.route_original_id);
-        }
-        if (dataitem.route_title) {
-            $("#editRouteTitle").val(dataitem.route_title);
         }
         if (dataitem.feature_term) {
             $("#editFeatureterm").val(dataitem.feature_term);
@@ -256,17 +235,14 @@ $(document).ready(function () {
         formData.append("ds_id", $("#editDataitemModal").data("setId"));
         formData.append("title", $("#editTitle").val());
         formData.append("placename", $("#editPlacename").val());
-        formData.append("recordtype", $("#editRecordtype").val());
+        let recordType = $("#editRecordtype").val();
+        formData.append("recordtype", recordType);
         formData.append("latitude", $("#editLatitude").val());
         formData.append("longitude", $("#editLongitude").val());
         formData.append(
             "description",
             tinymce.get("editDescription").getContent()
         );
-        formData.append("quantity", $("#editQuantity").val());
-        formData.append("routeId", $("#editRouteId").val());
-        formData.append("routeOriId", $("#editRouteOriId").val());
-        formData.append("routeTitle", $("#editRouteTitle").val());
         formData.append("datestart", $("#editDatestart").val());
         formData.append("dateend", $("#editDateend").val());
         formData.append("state", $("#editState").val());
@@ -291,6 +267,22 @@ $(document).ready(function () {
             formData.append("image", $("#editImage")[0].files[0]);
         }
 
+        // Handle the mobility-related fields input
+        if (recordType === "Mobility") {
+            formData.append("quantity", $(qtySelector).val());
+            formData.append(
+                "routeOption",
+                $(`${routeOptionSelector}:checked`).val()
+            );
+            formData.append("routeId", $(routeIdSelector).val());
+            formData.append("stopIdx", $(stopIdxSelector).val());
+            formData.append("routeTitle", $(routeTitleSelector).val());
+            formData.append(
+                "routeDescription",
+                $(routeDescriptionSelector).val()
+            );
+        }
+
         return formData;
     };
 
@@ -304,10 +296,6 @@ $(document).ready(function () {
         $("#editLongitude").val("");
         $("#editRecordtype").val("");
         tinymce.get("editDescription").setContent("");
-        $("#editQuantity").val("");
-        $("#editRouteId").val("");
-        $("#editRouteOriId").val("");
-        $("#editRouteTitle").val("");
         $("#editFeatureterm").val("");
         $("#editState").val("");
         $("#editDateStartDiv").datepicker("setDate", null);
@@ -322,26 +310,60 @@ $(document).ready(function () {
     };
 
     // Handle dataitem edit.
-    $(".edit-dataitem-button").on("click", function () {
+    $(".edit-dataitem-button").on("click", async function () {
         const dataitemID = $(this).data("itemId");
         const datasetID = $(this).data("setId");
-        $.ajax({
-            type: "GET",
-            url: ajaxviewdataitem,
-            data: {
-                id: dataitemID,
-                dataset_id: datasetID,
-            },
-            success: function (result) {
-                setEditDataitemFormValues(result);
-                $("#editDataitemModal").data("itemId", dataitemID);
-                $("#editDataitemModal").data("setId", datasetID);
-                $("#editDataitemModal").modal("show");
-            },
-            error: function (xhr, textStatus, errorThrown) {
-                alert(xhr.responseText); //error message with error info
-            },
-        });
+
+        try {
+            const result = await $.ajax({
+                type: "GET",
+                url: ajaxviewdataitem,
+                data: {
+                    id: dataitemID,
+                    dataset_id: datasetID,
+                },
+            });
+            setEditDataitemFormValues(result);
+            $("#editDataitemModal").data("itemId", dataitemID);
+            $("#editDataitemModal").data("setId", datasetID);
+            $("#editDataitemModal").modal("show");
+
+            $(recordTypeSelector)
+                .off("change")
+                .on("change", function () {
+                    const selectedRecordType = $(this).val();
+                    MobilityFields.handleRecordTypeChange(
+                        selectedRecordType,
+                        qtySelector,
+                        qtyGroupSelector,
+                        routeGroupSelector,
+                        routeOptionSelector,
+                        routeOptionsContainerSelector
+                    );
+                    if (selectedRecordType === "Mobility") {
+                        MobilityFields.initializeMobilityFields(
+                            result,
+                            csrfToken,
+                            qtySelector,
+                            routeOptionsContainerSelector,
+                            routeOptionSelector,
+                            stopIdxSelector,
+                            routeIdSelector,
+                            routeTitleSelector,
+                            routeDescriptionSelector,
+                            routeGroupSelector,
+                            routeIdStopIdxGroupSelector,
+                            routeTitleGroupSelector,
+                            routeDescriptionGroupSelector
+                        );
+                    }
+                });
+            // Trigger change event to initialize mobility fields
+            $(recordTypeSelector).trigger("change");
+        } catch (error) {
+            console.error("Error:", error);
+            alert(error.responseText);
+        }
     });
 
     // Create the message banner for edit modal.
@@ -355,8 +377,25 @@ $(document).ready(function () {
         clearEditDataitemFormValues();
         msgBanner.clear();
         msgBanner.hide();
+        let dataitemId = $(this).data("itemId");
         $("#editDataitemModal").data("itemId", "");
         $("#editDataitemModal").data("setId", "");
+        // clear all values in mobility fields
+        MobilityFields.clearMobilityFields(
+            qtySelector,
+            qtyGroupSelector,
+            routeGroupSelector,
+            routeOptionsContainerSelector
+        );
+        // unbind events on selectors
+        $(recordTypeSelector).off("change");
+        $(routeOptionSelector).off("change");
+        // clear other route details in sessionStorage
+        let fetchOtherRoutesDetailsUrl = updateOtherRoutesDetailsUrl.replace(
+            "{dataitemId}",
+            dataitemId
+        );
+        sessionStorage.removeItem(`route_${fetchOtherRoutesDetailsUrl}`);
     });
 
     // Refresh the map when the modal is shown.
@@ -390,26 +429,6 @@ $(document).ready(function () {
             isValid = false;
             msgBanner.error("Longitude must be valid from -180 to 180");
         }
-        if ($("#editQuantity").val() === "") {
-            // Value of quantity is allowed to be removed
-            isValid = true;
-        } else if (!Validation.naturalNumber($("#editQuantity").val())) {
-            isValid = false;
-            msgBanner.error(
-                "Quantity must be an integer greater or equal to 0"
-            );
-        }
-        var routeIdValue = $("#editRouteId").val();
-        if (
-            routeIdValue !== "" &&
-            routeIdValue !== "0" &&
-            !Validation.naturalNumber($("#editRouteId").val())
-        ) {
-            isValid = false;
-            msgBanner.error(
-                "GHAP Route ID must be an integer greater or equal to 1"
-            );
-        }
         if (
             $("#editDatestart").val() !== "" &&
             !Validation.date($("#editDatestart").val())
@@ -440,6 +459,61 @@ $(document).ready(function () {
                     " MB"
             );
         }
+        if ($("#editRecordtype").val() === "Mobility") {
+            const quantity = $("#editQuantity").val();
+            if (
+                quantity !== "" &&
+                quantity !== "0" &&
+                !Validation.naturalNumber(quantity)
+            ) {
+                isValid = false;
+                // TODO: shall we allow users to enter negative float?
+                msgBanner.error(
+                    "Quantity must be empty, or an integer greater or equal to 0"
+                );
+            }
+            const routeOption = $(`${routeOptionSelector}:checked`).val();
+            const routeId = $("#editRouteId").val();
+            const stopIdx = $(stopIdxSelector).val();
+            const routeTitle = $(routeTitleSelector).val();
+            // const routeDescription = $("#editRouteDescription").val();
+            if (routeOption === "keep") {
+            } else if (
+                ["drop", "update-current", "update-existing"].includes(
+                    routeOption
+                )
+            ) {
+                if (routeId === null || stopIdx === null) {
+                    isValid = false;
+                    msgBanner.error("Route ID and Stop Number must be filled.");
+                }
+                if (
+                    !(stopIdx === "append" || Validation.naturalNumber(stopIdx))
+                ) {
+                    isValid = false;
+                    msgBanner.error("Stop Number must be in valid format.");
+                }
+                if (routeTitle === "") {
+                    isValid = false;
+                    msgBanner.error("You need to set a title for route.");
+                }
+            } else if (routeOption === "update-new") {
+                if (routeTitle === "") {
+                    isValid = false;
+                    msgBanner.error("You need to set title for new route.");
+                }
+                if (routeId !== null || stopIdx !== null) {
+                    isValid = false;
+                    msgBanner.error(
+                        "No need to set ID and Stop Number of new route."
+                    );
+                }
+            } else {
+                console.log(routeOption);
+                isValid = false;
+                msgBanner.error("Invalid manipulation on route.");
+            }
+        }
 
         if (isValid) {
             var saveButton = $(this);
@@ -452,17 +526,7 @@ $(document).ready(function () {
                 contentType: false,
                 processData: false,
                 success: function (result) {
-                    if (
-                        result.hasOwnProperty("editWarning") &&
-                        result.editWarning !== ""
-                    ) {
-                        sessionStorage.setItem(
-                            "userViewDIMsgBanner",
-                            result.editWarning
-                        );
-                        sessionStorage.setItem("siblingDataId", result.dataId);
-                        sessionStorage.setItem("insertPosition", "afterend");
-                    }
+                    // TODO: shall we show result.editWarning for mobility modification?
                     saveButton.prop("disabled", true);
                     $("#editDataitemModal").modal("hide");
                     location.reload();

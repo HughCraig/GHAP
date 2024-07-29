@@ -1,7 +1,10 @@
 @push('scripts')
     <script src="{{ asset('js/addtodatasetmodal.js') }}"></script>
+    <script>
+        var updateStopIndicesUrl = "{{ url('routes/{routeId}/all-stop-indices') }}";
+        var updateRoutesIdsUrl = "{{ url('dataitems/{dataitemId}/other-routes-ids') }}";
+    </script>
 @endpush
-
 <button type="button" class="mt-3 mb-3 btn btn-primary" data-toggle="modal" data-target="#addModal">Add to layer</button>
 <!-- MODAL popup -->
 <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -63,70 +66,16 @@
                         <div class="mp-map"></div>
                     </div>
 
-                    <label for="addrecordtype">Record Type</label>
-                    <select class="w3-white form-control mb-3" id="addrecordtype" name="addrecordtype">
-                        @foreach ($recordtypes as $type)
-                            <option label="{{ $type }}">{{ $type }}</option>
-                        @endforeach
-                    </select>
-
                     <div class="mb-3">
                         <label for="adddescription">Description</label>
                         <textarea rows="3" class="mb-3 form-control w-100 wysiwyg-editor" id="adddescription" placeholder="Description"></textarea>
                     </div>
 
-                    <!-- Quantity-->
-                    <label for="addquantity">Quantity</label>
-                    <span tabindex="0" data-html="true" data-animation="true"
-                        class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                        title="Please ensure you enter a integer greater or equal to 0."></span>
-                    <input type="text" class="mb-3 form-control" id="addquantity" placeholder="10">
-                    {{-- TODO: Not sure how can I validate the number properliy, use the string validation like coordinates for now. --}}
-                    {{-- <input type="number" min="0" step="1" class="mb-3 form-control" id="addquantity" placeholder="10"> --}}
-
-                    <!-- Route Info-->
-                    <div class="route-info border p-3">
-                        <p><small>Set the route information if you want to add a place into an exsiting route or create
-                                a place for a new route.</small></p>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label for="addRouteId">
-                                    Route ID</label>
-                                <span tabindex="0" data-html="true" data-animation="true"
-                                    class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
-                                    data-placement="right"
-                                    title="Use the existing Route ID if you want to add a place into an exsiting route in GHAP."></span>
-                                <input type="text" class="mb-3 form-control" id="addRouteId"
-                                    placeholder="Route ID Shown in GHAP">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="addRouteOriId">Route Original ID</label>
-                                <span tabindex="1" data-html="true" data-animation="true"
-                                    class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
-                                    data-placement="right"
-                                    title="The Route Original ID will be searched in the exsiting original Route IDs to find the existing system-generated Route ID in this layer. If there is nothing found, a new GHAP Route ID will be generated for this original Route ID"></span>
-                                <input type="text" class="mb-3 form-control" id="addRouteOriId"
-                                    placeholder="Route ID in Your Dataset">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <label for="addRouteTitle">Route Title</label>
-                                <span tabindex="1" data-html="true" data-animation="true"
-                                    class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
-                                    data-placement="right"
-                                    title="The Route Title will be searched in the exsiting original Route Titles to find the existing Route Titles in this layer. If there is nothing found, a new GHAP Route ID will be generated for this Route Title."></span>
-                                <input type="text" class="mb-3 form-control" id="addRouteTitle"
-                                    placeholder="Route Title in Your Dataset">
-                            </div>
-                        </div>
-                    </div>
-
                     <label for="addfeatureterm">Feature Term
                         <a href="/guides/featureterms.php" target="_blank">
                             <span tabindex="0" data-html="true" data-animation="true"
-                                class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
-                                data-placement="right" title="Click here for information on valid feature terms">
+                                class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                                title="Click here for information on valid feature terms">
                             </span>
                         </a>
                     </label>
@@ -170,6 +119,90 @@
                     <div class="mb-3">
                         <label for="addsource">Source (Website url, ISBN, Book title, etc)</label>
                         <textarea rows="3" class="mb-3 form-control w-100 wysiwyg-editor" id="addsource" placeholder="Source"></textarea>
+                    </div>
+
+
+                    <!-- Record Type Selection-->
+                    <label for="addrecordtype">Record Type</label>
+                    <select class="w3-white form-control mb-3" id="addrecordtype" name="addrecordtype">
+                        @foreach ($recordtypes as $type)
+                            <option label="{{ $type }}">{{ $type }}</option>
+                        @endforeach
+                    </select>
+
+                    <!-- Quantity-->
+                    <div class="add-quantity-group" style="display: none;">
+                        <label for="addquantity">Quantity</label>
+                        <span tabindex="0" data-html="true" data-animation="true"
+                            class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                            title="Please ensure you enter a integer greater or equal to 0."></span>
+                        <input type="text" class="mb-3 form-control" id="addquantity"
+                            placeholder="Non-negative Integer / Keep it empty">
+                        {{-- TODO: Not sure how can I validate the number properliy, use the string validation like coordinates for now. --}}
+                        {{-- <input type="number" min="0" step="1" class="mb-3 form-control" id="addquantity" placeholder="10"> --}}
+                    </div>
+
+                    <!-- Route Info-->
+                    <div class="add-route-info-group border p-3" style="display: none;">
+                        <p><small>Set the route information.</small></p>
+                        @php
+                            $routeOptions = [
+                                'new' => 'Add to a new route',
+                                'none' => 'Do not add to any route',
+                            ];
+                            if (count($dataset->routes) > 0) {
+                                $routeOptions['existing'] = 'Add to an existing route';
+                            }
+                        @endphp
+                        @foreach ($routeOptions as $value => $label)
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="routeOption"
+                                    id="routeOption{{ $value }}" value="{{ $value }}"
+                                    @if ($loop->first) checked @endif>
+                                <label class="form-check-label" for="routeOption{{ $value }}">
+                                    {{ $label }}
+                                </label>
+                            </div>
+                        @endforeach
+                        <div class="row route-title-row" style="display: none;">
+                            <div class="col-md-12">
+                                <label for="addRouteTitle">Route Title</label><label class="text-danger">*</label>
+                                <span tabindex="0" data-html="true" data-animation="true"
+                                    class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
+                                    data-placement="right" title='Title for the new route'>
+                                </span>
+                                <input type="text" class="mb-3 form-control" id="addRouteTitle"
+                                    placeholder="Title of new route" maxlength="255">
+                            </div>
+                        </div>
+                        <div class="row route-description-row" style="display: none;">
+                            <div class="col-md-12">
+                                <label for="addRouteDescription">Route Description</label>
+                                <span tabindex="0" data-html="true" data-animation="true"
+                                    class="glyphicon glyphicon-question-sign" data-toggle="tooltip"
+                                    data-placement="right" title='Description for the new route'>
+                                </span>
+                                <input type="text" class="mb-3 form-control" id="addRouteDescription"
+                                    placeholder="Description of new route" maxlength="800">
+                            </div>
+                        </div>
+                        <div class="row route-existing-row" style="display: none;">
+                            <div class="col-md-6">
+                                <label for="addRouteId">Existing Route</label>
+                                <select class="form-control" id="addRouteId"><label class="text-danger">*</label>
+                                    @foreach ($dataset->routes as $route)
+                                        <option value={{ $route->id }}>{{ $route->id }} --
+                                            {{ $route->title }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addStopIdx">Stop Number</label>
+                                <select class="form-control" id="addStopIdx" name="addStopIdx">
+                                    <option value="">Select Insert Index</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Extended data editor -->

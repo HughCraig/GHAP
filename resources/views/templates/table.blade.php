@@ -115,10 +115,6 @@
                                 <dt>Longitude</dt>
                                 <dd>{{ $line->longitude }}</dd>
                             @endif
-                            @if (isset($line->quantity))
-                                <dt>Quantity</dt>
-                                <dd>{{ $line->quantity }}</dd>
-                            @endif
                             @if (isset($line->datestart))
                                 <dt>Start Date</dt>
                                 <dd>{{ $line->datestart }}</dd>
@@ -160,24 +156,28 @@
                         </dl>
                     </div>
                 </div>
-                @if (isset($line->route_id) || isset($line->stop_idx))
+                @if ($line->recordtype->type === 'Mobility')
                     <div class="col col-xl-2">
-                        <h4>Route Details</h4>
-                        @if (isset($line->route_id) && $line->route_id !== '')
+                        <h4>Mobility Details</h4>
+                        @if (isset($line->quantity))
+                        <dt>Quantity</dt>
+                        <dd>{{ $line->quantity }}</dd>
+                        @endif
+                        @if ($line->route_id)
                             <dt>Route ID</dt>
                             <dd>{{ $line->route_id }}</dd>
-                        @endif
-                        @if (isset($line->route_original_id) && $line->route_original_id !== '')
-                            <dt>Route Original ID</dt>
-                            <dd>{{ $line->route_original_id }}</dd>
-                        @endif
-                        @if (isset($line->route_title) && $line->route_title !== '')
-                            <dt>Route Title</dt>
-                            <dd>{{ $line->route_title }}</dd>
-                        @endif
-                        @if (isset($line->stop_idx))
-                            <dt>Route Stop Number</dt>
-                            <dd>{{ $line->stop_idx }}</dd>
+                            @if ($line->stop_idx)
+                                <dt>Route Stop Number</dt>
+                                <dd>{{ $line->stop_idx }}</dd>
+                            @endif
+                            @if ($line->route_title)
+                                <dt>Route Title</dt>
+                                <dd>{{ $line->route_title }}</dd>
+                            @endif
+                            @if ($line->route_description)
+                                <dt>Route Description</dt>
+                                <dd>{{ $line->route_description }}</dd>
+                            @endif
                         @endif
                     </div>
                 @endif

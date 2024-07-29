@@ -20,9 +20,11 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
 use SebastianBergmann\Environment\Console;
+use TLCMap\Http\Controllers\GazetteerController;
 use TLCMap\Models\Collection;
 use TLCMap\Models\Dataset;
 use TLCMap\Models\Dataitem;
+use TLCMap\Models\Route;
 use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
@@ -179,7 +181,7 @@ class FileFormatter
             "id", "title", "placename", "state", "lga", "parish", "feature_term", "latitude", "longitude",
             "source", "flag", "description", "datestart", "dateend", "linkback", "tlcmaplink", "layerlink",
         );
-        $routeColumns = ["route_id", "route_original_id", "route_title",];
+        $routeColumns = ["route_id", "stop_idx", "route_title", "route_description",];
         // Check if both quantity and route_id are absent
         if ($hasmobinfo['hasquantity'] == false && $hasmobinfo['hasrouteid'] == false) {
             fputcsv($file, $columns);
@@ -265,9 +267,10 @@ class FileFormatter
     private static function addCSVRowRoute($r)
     {
         $route_id = (isset($r->route_id)) ? $r->route_id : '';
-        $route_original_id = (isset($r->route_original_id)) ? $r->route_original_id : '';
+        $stop_idx = (isset($r->stop_idx)) ? $r->stop_idx : '';
         $route_title = (isset($r->route_title)) ? $r->route_title : '';
-        $allValues = array($route_id, $route_original_id, $route_title);
+        $route_description = (isset($r->route_description)) ? $r->route_description : '';
+        $allValues = array($route_id, $stop_idx, $route_title, $route_description);
         return $allValues;
     }
 
@@ -288,11 +291,13 @@ class FileFormatter
      * Ivy's notes (update)
      * It should be merged with Dataset->json()
      * What's the difference between Dataset-json() & FileFormatter->toGeoJson()
-     * 1. FileFormatter::toGeoJSON() is the generator for dataitems from various datasets, no united dataset metadata is included.
+     * 1. FileFormatter::toGeoJSON() is the generator for dataitems searched from various datasets, no united dataset metadata is included.
      * 2. FileFormatter::toGeoJSON() doesn't have sorting option in line.
-     * 3. ...?
+     * 3. That means FileFormatter::toGeoJSON() is used for savedSearch visualization, which is not so easy to merge with Dataset->json()
+     * 4. So far, FileFormatter::toGeoJSON() has only handled the first $MAX_PAGING page of in the searched dataitems,
+     *    the unfound FileFormatter::toGeoJSON2() could be designed for handling paginated searched dataitems.
      */
-    public static function toGeoJSON($results, $parameters = null)
+    public static function toGeoJSON($results, $parameters = null, $hasMobInfo = null, $routeInResults = null)
     {
         $features = array();
 
@@ -300,9 +305,12 @@ class FileFormatter
         $featureCollectionConfig = new FeatureCollectionConfig();
         $featureCollectionConfig->setBlockedFields(GhapConfig::blockedFields());
         $featureCollectionConfig->setFieldLabels(GhapConfig::fieldLabels());
-        $hasRoute = NULL;
+        $isMobilityMapping = isset($parameters['mobility']);
+        $displayMode = $isMobilityMapping ? $parameters['mobility'] : null;
 
+        $quantityValues = array();
         foreach ($results as $r) {
+
             // Set metadata
             $metadata = array(
                 'name' => 'TLCMap Gazetteer Query',
@@ -311,7 +319,6 @@ class FileFormatter
 
             // Set feature config.
             $featureConfig = new FeatureConfig();
-            $hasQuantity = FALSE;
 
             $proppairs = array();
 
@@ -379,24 +386,6 @@ class FileFormatter
                 $proppairs["longitude"] = $r->longitude;
             }
 
-            if (!empty($r->quantity)) {
-                $hasQuantity = TRUE;
-                $proppairs["quantity"] = $r->quantity;
-                $quantityValues[] = $r->quantity; // Add quantity to the quantityValues array
-                $proppairs["logQuantity"] = round(log($r->quantity), 2);
-            }
-            // Collect route information if there is any
-            if (!empty($r->route_id)) {
-                $proppairs["route_id"] = $r->route_id;
-                $hasRoute = TRUE;
-            }
-            if (!empty($r->route_original_id)) {
-                $proppairs["route_original_id"] = $r->route_original_id;
-            }
-            if (!empty($r->route_title)) {
-                $proppairs["route_title"] = $r->route_title;
-            }
-
             if (!empty($r->external_url)) {
                 $proppairs["linkback"] = $r->external_url;
             } else if (!empty($r->dataset_id)) {
@@ -423,20 +412,40 @@ class FileFormatter
                 $proppairs = array_merge($proppairs, $r->extDataAsKeyValues());
             }
 
-            $newFeature = array(
+            if (!empty($r->quantity)) {
+                $proppairs["quantity"] = $r->quantity;
+                $quantityValues[] = $r->quantity;
+                $proppairs["logQuantity"] = round(log($r->quantity), 2);
+            } else if ($isMobilityMapping) {
+                $proppairs["quantity"] = null;
+            }
+            // Collect route information if there is any
+            if (!empty($r->route_id)) {
+                if ($displayMode !== "route") {
+                    $proppairs["route_id"] = $r->route_id;
+                    $proppairs["stop_idx"] = !empty($r->stop_idx) ? $r->stop_idx : null;
+                    if (!empty($r->time_stop_idx)) {
+                        $proppairs["time_stop_idx"] = $r->time_stop_idx;
+                    }
+                    $proppairs["route_title"] = !empty($r->route_title) ? $r->route_title : null;
+                    $proppairs["route_description"] = !empty($r->route_description) ? $r->route_description : null;
+                } else {
+                    $proppairs["route_id"] = $r->route_id;
+                    $proppairs["stop_idx"] = !empty($r->stop_idx) ? $r->stop_idx : null;
+                    $proppairs["route_title"] = !empty($r->route_title) ? $r->route_title : null;
+                    $proppairs["route_description"] = !empty($r->route_description) ? $r->route_description : null;
+                }
+            } else if ($isMobilityMapping) {
+                $proppairs["route_id"] = null;
+            }
+
+            $features[] = array(
                 'type' => 'Feature',
                 'geometry' => array('type' => 'Point', 'coordinates' => array((float)$r->longitude, (float)$r->latitude)),
                 'properties' => $proppairs,
                 'display' => $featureConfig->toArray(),
             );
-            if ($hasQuantity) {
-                array_unshift($features, $newFeature);
-            } else {
-                $features[] = $newFeature;
-            }
         }
-
-        $hasRoute = ($hasRoute !== NULL) ? $hasRoute : FALSE;
 
         if (isset($parameters) && isset($parameters['line'])) {
 
@@ -457,7 +466,8 @@ class FileFormatter
             );
         }
 
-        if (isset($parameters) && array_key_exists("mobility", $parameters)) {
+        if ($isMobilityMapping) {
+
             //Reconstruct saved search URL
             $urlParts = parse_url(URL::full());
             parse_str($urlParts['query'], $ssParameters);
@@ -466,178 +476,49 @@ class FileFormatter
             $ssQuery = http_build_query($ssParameters);
             $ssUrl = url('/places?') . $ssQuery;
 
-            //
-            if ($parameters['mobility'] === 'time') {
-                foreach ($results as &$i) {
-                    $i = Dataset::infillDataitemDates($i);
-                }
-            }
-
-            $routeGroups = [];
-            $separatedGroup = [];
-            $separatedGroupCoords = [];
-
             // Default display setting of line
-            $lineColor = [255, 255, 255, 255];
-            $lineWidth = 2;
-            $lineAllowFields = ['route_id', 'route_title', 'route_description'];
-            // Initialize line feature config for discrete points group.
-            $featureConfig = new FeatureConfig();
-            $featureConfig->setAllowedFields($lineAllowFields);
-            if ($parameters['requestFrom'] ?? '' === "multilayers") {
-                $featureConfig->addLink("Original TLCMap Gazetteer Query", $ssUrl);
-            }
+            $lineAllowFields = ['route_id', 'route_title', 'route_description', 'route_size', "curr_size"];
 
-            if ($hasRoute === TRUE) {
-                // Divide places with / without route information
-                foreach ($results as $i) {
-                    $routeId = $i->route_id;
-                    $datasetId = $i->dataset_id;
-                    if ($routeId && $datasetId) {
-                        $datasetRouteId = $datasetId . '-' . $routeId;
-                        if (!isset($routeGroups[$datasetRouteId])) {
-                            $routeGroups[$datasetRouteId] = [];
-                        }
-                        $routeGroups[$datasetRouteId][] = $i;
-                    } else {
-                        array_push($separatedGroup, $i);
-                    }
-                }
-                if ($parameters['mobility'] === 'time') {
-                    // Sort items within each route group by date
-                    usort($separatedGroup, function ($a, $b) {
-                        return strtotime($a->datestart) - strtotime($b->datestart);
-                    });
-                }
-                foreach ($separatedGroup as $i) {
-                    array_push($separatedGroupCoords, [$i->longitude, $i->latitude]);
-                }
-                $features[] = array(
-                    'type' => 'Feature',
-                    'geometry' => array('type' => 'LineString', 'coordinates' => $separatedGroupCoords),
-                    'properties' => ['name' => "Discrete Points"],
-                    'display' => array_merge($featureConfig->toArray(), [
-                        'color' => $lineColor,
-                        "lineWidth" => $lineWidth
-                    ]),
-                );
-
-                // Process each route group
-                foreach ($routeGroups as $datasetRouteId => $items) {
-                    $routeCoords = [];
-                    // Initialize properties with default values
-                    $defaultRouteDescr = "No detailed description";
-                    $routeLayerText = "";
-                    $routeProps = [
-                        'title' => null,
-                        'route_id' => null,
-                        'route_title' => null,
-                        'route_description' => $defaultRouteDescr
-                    ];
-
-                    // If the route has multi-stops
-                    if (count($items) > 1) {
-                        if ($parameters['mobility'] === 'time') {
-                            // Sort items within each route group by date
-                            usort($items, function ($a, $b) {
-                                return strtotime($a->datestart) - strtotime($b->datestart);
-                            });
-                        }
-                        foreach ($items as $item) {
-                            $routeCoords[] = [$item->longitude, $item->latitude];
-                        }
-                        foreach ($items as $item) {
-                            if (empty($routeProps['route_id']) && !empty($item->route_id)) {
-                                $routeProps['route_id'] = $item->route_id;
-                            }
-                            if (empty($routeProps['route_title']) && !empty($item->route_title)) {
-                                $routeProps['route_title'] = $item->route_title;
-                                $routeProps['title'] = $item->route_title;
-                            }
-                            // Update route_description only if it's the default value
-                            if ($routeProps['route_description'] === $defaultRouteDescr && !empty($item->route_description)) {
-                                $routeProps['route_description'] = $item->route_description;
-                            }
-                        }
-                    } else { // If the route has only one stop.
-                        // A new stop with 1-offset coordinates is added
-                        $routeCoords = [
-                            [$items[0]->longitude, $items[0]->latitude],
-                            [$items[0]->longitude + 1, $items[0]->latitude + 1]
-                        ];
-                        $routeLayerText = "Single Place From ";
-                        if (empty($routeProps['route_id']) && !empty($items[0]->route_id)) {
-                            $routeProps['route_id'] = $items[0]->route_id;
-                        }
-                        if (empty($routeProps['route_title']) && !empty($items[0]->route_title)) {
-                            $routeProps['route_title'] = $items[0]->route_title;
-                            $routeProps['title'] = $items[0]->route_title;
-                        }
-                        // Update route_description only if it's the default value
-                        if ($routeProps['route_description'] === $defaultRouteDescr && !empty($items[0]->route_description)) {
-                            $routeProps['route_description'] = $items[0]->route_description;
-                        }
-                        $lineColor = [255, 140, 0, 255];
-                        $lineWidth = 4;
-                    }
-
-                    // Initialize line feature config for individual route group
+            if (!$routeInResults->isEmpty()) {
+                foreach ($routeInResults as $route) {
+                    // Initialize line feature config for individual route
                     $featureConfig = new FeatureConfig();
                     $featureConfig->setAllowedFields($lineAllowFields);
                     if ($parameters['requestFrom'] ?? '' === "multilayers") {
                         $featureConfig->addLink("Original Saved Search", $ssUrl);
                     }
 
+                    // Save coordinates of route
+                    $routeCoords = $route['routeCoords'];
+
                     // Set footer links.
-                    // Add original route id and layer name of this route in the footer link
-                    $routeMeta = explode("-", $datasetRouteId);
-                    if ($routeMeta) {
-                        $datasetId = $routeMeta[0];
-                        $routeId = $routeMeta[1];
-                        $routeLayerText = $routeLayerText . "Route (ID) " . $routeId . " of TLCMap Layer " . $datasetId;
-                        $routeLayerUrl = url("publicdatasets/" . $datasetId);
-                        $featureConfig->addLink($routeLayerText, $routeLayerUrl);
-                    }
+                    $featureConfig->addLink($route['routeLayerText'], $route['routeLayerUrl']);
+
+                    // Remove footer links from $route
+                    unset($route['routeCoords'], $route['routeLayerText'], $route['routeLayerUrl']);
 
                     // Create a geojson feature for this route
                     $features[] = [
                         'type' => 'Feature',
-                        'display' => array_merge($featureConfig->toArray(), [
-                            'color' => $lineColor,
-                            "lineWidth" => $lineWidth
-                        ]),
+                        'display' => $featureConfig->toArray(),
                         'geometry' => [
                             'type' => 'LineString',
                             'coordinates' => $routeCoords
                         ],
-                        'properties' => $routeProps
+                        'properties' => $route
                     ];
                 }
-            } else { // If there is no existing route in searching results
-                $routeData = [];
-                if ($parameters['mobility'] === 'time') {
-                    usort($results, function ($a, $b) {
-                        return strtotime($a->datestart) - strtotime($b->datestart);
-                    });
-                }
-                foreach ($results as $i) {
-                    array_push($routeData, [$i->longitude, $i->latitude]);
-                }
-                // Set line feature for discrete points group.
-                $features[] = array(
-                    'type' => 'Feature',
-                    'display' => array_merge($featureConfig->toArray(), [
-                        'color' => $lineColor,
-                        "lineWidth" => $lineWidth
-                    ]),
-                    'geometry' => array('type' => 'LineString', 'coordinates' => $routeData),
-                    'properties' => ['name' => "Discrete Points"],
-                );
             }
 
-            // Remove route metadata fields from the blocked fields for mobility feature collection
+            // Remove route-related fields from the blocked fields for mobility feature collection
             $allowedFields = [
-                "stop_idx", "route_title", "route_description",
+                "route_id",
+                "time_stop_idx",
+                "stop_idx",
+                "route_title",
+                "route_description",
+                "route_size",
+                "curr_size"
             ];
             $featureCollectionConfig->setBlockedFields(
                 array_values(
@@ -646,7 +527,7 @@ class FileFormatter
             );
         }
 
-        if (!empty($quantityValues)) {
+        if ($hasMobInfo['hasquantity']) {
             $metadata['has_quantity'] = true;
             if (count($quantityValues) >= 2) {
                 $logQuantiles = Dataset::getQuantiles($quantityValues, 'log');
@@ -657,7 +538,7 @@ class FileFormatter
                 $metadata['quantiles'] = $quantiles;
             }
 
-            // Remove quantity fields from the blocked fields for mobility feature collection
+            // Remove quantity-related fields from the blocked fields for mobility feature collection
             $allowedFields = [
                 'quantity', 'logQuantity',
             ];
@@ -742,14 +623,14 @@ class FileFormatter
             if (!empty($r->route_id)) {
                 $RouteInfo = $place->appendChild($dom->createElement('RouteInfo'));
                 $RouteInfo->appendChild($dom->createElement('routeId', $r->route_id));
-                if (!empty($r->route_original_id)) {
-                    $RouteInfo->appendChild($dom->createElement('routeOriginalId', $r->route_original_id));
+                if (!empty($r->stop_idx)) {
+                    $RouteInfo->appendChild($dom->createElement('stopNum', $r->stop_idx));
                 }
                 if (!empty($r->route_title)) {
                     $RouteInfo->appendChild($dom->createElement('routeTitle', $r->route_title));
                 }
-                if (!empty($r->stop_idx)) {
-                    $RouteInfo->appendChild($dom->createElement('routeStopNum', $r->stop_idx));
+                if (!empty($r->route_description)) {
+                    $RouteInfo->appendChild($dom->createElement('routeDescription', $r->route_description));
                 }
             }
 

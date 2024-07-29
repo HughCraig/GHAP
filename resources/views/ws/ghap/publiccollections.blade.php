@@ -63,15 +63,21 @@
                                     <a class="dropdown-item grab-hover"
                                         onclick="window.open('{{ config('app.views_root_url') }}/collection-werekata.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $collection->id }}/json?sort=start'))">Werekata
                                         Flight by Time</a>
-                                    @if ($collectionsHasMobInfo[$collectionIdx])
+                                    @if ($collectionsHasMobInfo[$loop->index]['default'])
                                         <a class="dropdown-item grab-hover"
                                             onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $collection->id }}/json?mobility=route'))">Mobility
-                                            Route
                                         </a>
-                                        <a class="dropdown-item grab-hover"
-                                            onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $collection->id }}/json?mobility=time'))">Mobility
-                                            Times
-                                        </a>
+                                        @if ($collectionsHasMobInfo[$loop->index]['hasrouteiddatestart'])
+                                            <a class="dropdown-item grab-hover"
+                                                onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $collection->id }}/json?mobility=timestart'))">Mobility
+                                                by Time Start
+                                            </a>
+                                        @endif
+                                        @if ($collectionsHasMobInfo[$loop->index]['hasrouteiddateend'])
+                                            <a class="dropdown-item grab-hover"
+                                                onclick="window.open('{{ config('app.views_root_url') }}/collection-mobility.html?load=' + encodeURIComponent('{{ url()->full() }}/{{ $collection->id }}/json?mobility=timeend'))">Mobility
+                                                by Time End</a>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
