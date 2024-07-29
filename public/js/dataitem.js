@@ -90,72 +90,13 @@ const msgBanner = new MessageBanner($("#addModal .message-banner"));
 msgBanner.hide();
 
 /**
- * Get the data to send to the dataitem add service.
+ * Validate the input for adding a data item.
  *
- * @returns {*}
- *   The request data.
+ * @param {MessageBanner} msgBanner
+ *  The message banner to display errors.
+ *
  */
-const getAddDataitemRequestData = function () {
-    const formData = new FormData();
-
-    formData.append("ds_id", $("#ds_id").val());
-    formData.append("title", $("#addtitle").val());
-    formData.append("placename", $("#addplacename").val());
-    formData.append(
-        "recordtype",
-        $("#addrecordtype").children("option:selected").val()
-    );
-    formData.append("latitude", $("#addlatitude").val());
-    formData.append("longitude", $("#addlongitude").val());
-    formData.append("description", tinymce.get("adddescription").getContent());
-    formData.append("datestart", $("#adddatestart").val());
-    formData.append("dateend", $("#adddateend").val());
-    formData.append("state", $("#addstate").children("option:selected").val());
-    formData.append("featureterm", $("#addfeatureterm").val().toLowerCase());
-    formData.append("lga", $("#addlga").val().toUpperCase());
-    formData.append("parish", $("#addparish").val());
-    formData.append("source", tinymce.get("addsource").getContent());
-    formData.append("url", $("#addexternalurl").val());
-    formData.append(
-        "extendedData",
-        JSON.stringify(
-            new ExtendedDataEditor("#addModal .extended-data-editor").getData()
-        )
-    );
-    // image file upload
-    if ($("#addImage").length && $("#addImage")[0].files[0]) {
-        formData.append("image", $("#addImage")[0].files[0]);
-    }
-    // get mobility information
-    if ($("#addrecordtype").val() === "Mobility") {
-        formData.append("quantity", $("#addquantity").val());
-
-        const routeOption = $('input[name="routeOption"]:checked').val();
-        formData.append("routeOption", routeOption);
-
-        if (routeOption === "new") {
-            formData.append("routeTitle", $("#addRouteTitle").val());
-            formData.append(
-                "routeDescription",
-                $("#addRouteDescription").val()
-            );
-        } else if (routeOption === "existing") {
-            formData.append("routeId", $("#addRouteId").val());
-            formData.append("stopIdx", $("#addStopIdx").val());
-        }
-    }
-
-    return formData;
-};
-
-/*
- *  ADDING DATA ITEMS
-
-    changed to bootstrap modal
- */
-
-/* Add data item was clicked */
-$("main").on("click", "#add_dataitem_button_submit", function () {
+const validateAddDataRequestData = function (msgBanner) {
     // Validate the input.
     let isValid = true;
     msgBanner.clear();
@@ -207,45 +148,80 @@ $("main").on("click", "#add_dataitem_button_submit", function () {
                 " MB"
         );
     }
-    // Validate mobility value input
-    const recordType = $("#addrecordtype").val();
-    const routeOption = $('input[name="routeOption"]:checked').val();
-    const routeTitle = $("#addRouteTitle").val();
-    const routeId = $("#addRouteId").val();
-    const stopIdx = $("#addStopIdx").val();
-    const quantity = $("#addquantity").val();
-    if (recordType === "Mobility") {
-        if (routeOption === "none") {
-            if (quantity === "") {
-                isValid = false;
-                msgBanner.error(
-                    "Mobilty place must either belong to a <b>Route</b> or have a <b>Quantity</b> value."
-                );
-            }
-        } else if (routeOption === "new") {
-            if (routeTitle === "") {
-                isValid = false;
-                msgBanner.error("Route Title must be filled");
-            }
+    return isValid;
+};
+
+/**
+ * Get the data to send to the dataitem add service.
+ *
+ * @returns {*}
+ *   The request data.
+ */
+const getAddDataitemRequestData = function () {
+    const formData = new FormData();
+
+    formData.append("ds_id", $("#ds_id").val());
+    formData.append("title", $("#addtitle").val());
+    formData.append("placename", $("#addplacename").val());
+    formData.append(
+        "recordtype",
+        $("#addrecordtype").children("option:selected").val()
+    );
+    formData.append("latitude", $("#addlatitude").val());
+    formData.append("longitude", $("#addlongitude").val());
+    formData.append("description", tinymce.get("adddescription").getContent());
+    formData.append("datestart", $("#adddatestart").val());
+    formData.append("dateend", $("#adddateend").val());
+    formData.append("state", $("#addstate").children("option:selected").val());
+    formData.append("featureterm", $("#addfeatureterm").val().toLowerCase());
+    formData.append("lga", $("#addlga").val().toUpperCase());
+    formData.append("parish", $("#addparish").val());
+    formData.append("source", tinymce.get("addsource").getContent());
+    formData.append("url", $("#addexternalurl").val());
+    formData.append(
+        "extendedData",
+        JSON.stringify(
+            new ExtendedDataEditor("#addModal .extended-data-editor").getData()
+        )
+    );
+    // image file upload
+    if ($("#addImage").length && $("#addImage")[0].files[0]) {
+        formData.append("image", $("#addImage")[0].files[0]);
+    }
+
+    // get mobility information
+    if ($("#addrecordtype").val() === "Mobility") {
+        formData.append("quantity", $("#addquantity").val());
+
+        const routeOption = $('input[name="routeOption"]:checked').val();
+        formData.append("routeOption", routeOption);
+
+        if (routeOption === "new") {
+            formData.append("routeTitle", $("#addRouteTitle").val());
+            formData.append(
+                "routeDescription",
+                $("#addRouteDescription").val()
+            );
         } else if (routeOption === "existing") {
-            if (routeId === "") {
-                isValid = false;
-                msgBanner.error("Existing Route must be selected");
-            }
-            if (stopIdx === "") {
-                isValid = false;
-                msgBanner.error("Stop Number must be filled");
-            } else if (
-                stopIdx.toLowerCase() !== "append" &&
-                !Validation.naturalNumber($("#addStopIdx").val())
-            ) {
-                isValid = false;
-                msgBanner.error(
-                    "Stop Number must be 'append'/'Append' OR an integer ≥ 0"
-                );
-            }
+            formData.append("routeId", $("#addRouteId").val());
+            formData.append("stopIdx", $("#addStopIdx").val());
         }
     }
+
+    return formData;
+};
+
+/*
+ *  ADDING DATA ITEMS
+
+    changed to bootstrap modal
+ */
+
+/* Add data item was clicked */
+$("main").on("click", "#add_dataitem_button_submit", function () {
+    // Validate the input.
+    let isValid = validateAddDataRequestData(msgBanner);
+
     if (isValid) {
         $.ajax({
             type: "POST",
@@ -294,7 +270,6 @@ $("main").on("click", "#add_dataitem_button_submit", function () {
 });
 
 /* Show edit controls for this dataitem */
-// Ivy's note: It seems that it's not used in user view dataset edition.
 $("main").on("click", '[name="edit_dataitem_button_show"]', function () {
     var id = this.id.split("_")[4]; //id will be edit_dataitem_button_show_##, we jst want the number
 
@@ -321,7 +296,6 @@ $("main").on("click", '[name="edit_dataitem_button_show"]', function () {
 });
 
 /* Cancel edits for this dataitem */
-// Ivy's note: It seems that it's not used in user view dataset edition.
 $("main").on("click", '[name="edit_dataitem_button_cancel"]', function () {
     var id = this.id.split("_")[4]; //id will be edit_dataitem_button_cancel_##, we jst want the number
 
@@ -359,7 +333,6 @@ $("main").on("click", '[name="edit_dataitem_button_cancel"]', function () {
 });
 
 /* Submit edits for this dataitem */
-// Ivy's note: It seems that it's not used in user view dataset edition.
 $("main").on("click", '[name="edit_dataitem_button"]', function () {
     var ds_id = $("#ds_id").val(); //the id of the dataset we are editing
     var id = this.id.split("_")[3]; //id will be edit_dataitem_button_##, we jst want the number

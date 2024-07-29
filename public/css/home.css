@@ -1,0 +1,154 @@
+.footer{
+    display: none;
+}
+
+div.header {
+    border-bottom: 3px solid black;
+    height: auto;
+}
+
+#viewDiv {
+   height: 78vh; 
+   border-top: 3px solid black;
+}
+
+#mainsearchdiv {
+    margin: 1% 0;
+    display: flex;
+    padding: 0 1%;
+    height: auto;
+    max-height: 4vh;
+}
+
+#advancedaccordion{
+    font-size: 14px;
+}
+
+.tlcmapcontainer {
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+}
+.w3-container {
+    padding: 0;
+}
+.footer{
+    display: none;
+}
+
+.secondary-nav{
+    margin-bottom: 0;
+}
+
+.scroll-to-top {
+    position: fixed;
+    bottom: 27px;
+    left: 18px;
+    z-index: 9999;
+    display: none;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+@media (max-width: 650px) {
+
+    .scroll-to-top {
+        display: flex;
+    }
+
+    #mainsearchdiv {
+        height:100%;
+    }
+
+    #radio-map{
+        padding-left: 0 !important;
+    }
+
+    #radio-list{
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .col-sm-auto{
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    #mainsearchdiv .d-flex {
+        flex-direction: column;
+        align-items: center !important;
+    }
+
+    #searchbutton, #resetbutton {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .view-button label.radio {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    #num-places {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .datasource-filter{
+        margin-top: 10px;
+        width: 100%;
+    }
+
+    #filterType {
+        width: 100%;
+    }
+
+    #input-select-box{
+        width: 100%;
+    }
+}
+
+
+#loadingWheel {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: 16px solid lightgray;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 90px;
+    height: 90px;
+    animation: spin 2s linear infinite;
+    display: none;
+    z-index: 9999;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#filterType{
+    width: 110%;
+}
+
+.vertical-center{
+    display: flex;
+    align-items: center;
+}
+
+.remove-filter-button{
+    margin-left: 10px;
+    font-size:14px ; 
+    cursor: pointer;
+    margin-left: 5px;
+}
