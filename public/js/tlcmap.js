@@ -983,6 +983,8 @@ class TLCMap {
                 this.view.goTo(calculatedExtent).then(() => {
                     this.ignoreExtentChange = false;
                 });
+            }else{
+                this.ignoreExtentChange = false;
             }
 
             if(this.isSearchOn){
@@ -991,7 +993,6 @@ class TLCMap {
                 var totalPoints = this.totalBboxScanDataitems;
             }
 
-            this.ignoreExtentChange = false;
             setListViewDisplayInfo(dataitems.length , totalPoints , this);
         });
     }
