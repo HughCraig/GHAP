@@ -842,7 +842,6 @@ function presetSearchForm() {
  *x
  */
 function searchActions(tlcMap, isUserSearch, viewBbox) {
-    console.log("searchActions");
     var bulkfileinput = document.getElementById("bulkfileinput");
     var CSRF_TOKEN = $("input[name=_token]").val();
 

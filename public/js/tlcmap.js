@@ -311,7 +311,6 @@ class TLCMap {
                     }
 
                     debounceTimer = setTimeout(() => {
-                        console.log("Extent changed");
                         this.refreshMapPins();
                     }, debounceDelay);
                 });
@@ -392,7 +391,6 @@ class TLCMap {
 
                     data.datasourceIDs = getDatasources();
 
-                    console.log("Refresh"  + this.isSearchOn );
                     if (this.isSearchOn && this.dataitems != null) {
                         const viewBbox = "" +  data.bbox.minLng + "," + data.bbox.minLat + "," + data.bbox.maxLng + "," + data.bbox.maxLat;
                         searchActions(this, false, viewBbox);
@@ -1090,41 +1088,6 @@ class TLCMap {
         });
     }
 
-    /**
-     * Slice data items by the bounding box.
-     *
-     * @param {Object} bbox - Bounding box with minLat, minLng, maxLat, maxLng.
-     * @param {Array} datasourceIDs - Array of datasource IDs to filter by.
-     * 
-     * @return {Array} - Array of data items within the bounding box.
-     */
-
-    sliceDataitemsByBboxAndDatasources(bbox , datasourceIDs) {
-        if (!Array.isArray(this.dataitems) || bbox == null || datasourceIDs == null || datasourceIDs.length == 0) {
-            return [];
-        }
-        
-        var minLat = bbox.minLat;
-        var minLng = bbox.minLng;
-        var maxLat = bbox.maxLat;
-        var maxLng = bbox.maxLng;
-
-        let items = this.dataitems.slice();
-
-        let res = [];
-        items.forEach((item) => {
-            if (
-                item.latitude >= minLat &&
-                item.latitude <= maxLat &&
-                item.longitude >= minLng &&
-                item.longitude <= maxLng && datasourceIDs.includes(item.datasource.id.toString())
-            ) {
-                res.push(item);
-            }
-        });
-
-        return res;
-    }
 
     /**
      * Update the map with new data items based on the current bounding box.
