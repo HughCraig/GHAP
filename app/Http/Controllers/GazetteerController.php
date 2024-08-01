@@ -511,6 +511,22 @@ class GazetteerController extends Controller
                 });
             }
         }
+
+        $viewBbox = isset($parameters['viewBbox']) ? $gazetteerController->getBbox($parameters['viewBbox']) : null;
+        if ($viewBbox) {
+            $dataitems->where('latitude', '>=', $viewBbox['min_lat']);
+            $dataitems->where('latitude', '<=', $viewBbox['max_lat']);
+
+            if ($viewBbox['min_long'] <= $viewBbox['max_long']) { //if min is lower than max we have not crossed the 180th meridian
+                $dataitems->where('longitude', '>=', $viewBbox['min_long']);
+                $dataitems->where('longitude', '<=', $viewBbox['max_long']);
+            } else { //else we have crossed the 180th meridian
+                $dataitems->where(function ($query) use ($viewBbox) {
+                    $query->where('longitude', '>=', $viewBbox['min_long'])->orWhere('longitude', '<=', $viewBbox['max_long']);
+                });
+            }
+        }
+
         if ($polygon) { //sql: WHERE ST_CONTAINS(ST_GEOMFROMTEXT('POLYGON((lng1 lat1, lng2 lat2, lngn latn, lng1 lat1))'), POINT(longitude,latitude) )
             $polygonsql = "ST_GEOMFROMTEXT('POLYGON((";
             for ($i = 0; $i < count($polygon); $i += 2) { //for each point
@@ -538,6 +554,16 @@ class GazetteerController extends Controller
             } else {
                 $dataitems = $dataitems->orderBy('datestart');
             }
+        }
+
+        if (isset($parameters['limit'])) {
+            $limit = filter_var($parameters['limit'], FILTER_VALIDATE_INT);
+        
+            if ($limit !== false && $limit > 0) {
+                if ($dataitems->count() > $limit) {
+                    $dataitems = $dataitems->inRandomOrder()->take($limit);
+                }
+            } 
         }
 
         $collection = $dataitems->get(); //needs to be applied a second time for some reason (maybe because of the subquery?)

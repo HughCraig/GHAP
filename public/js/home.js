@@ -1,12 +1,11 @@
 var shapetype = "bbox";
 
-
 function showLoadingWheel() {
-    document.getElementById('loadingWheel').style.display = 'block';
+    document.getElementById("loadingWheel").style.display = "block";
 }
 
 function hideLoadingWheel() {
-    document.getElementById('loadingWheel').style.display = 'none';
+    document.getElementById("loadingWheel").style.display = "none";
 }
 
 function scrollToTopFunction() {
@@ -207,36 +206,6 @@ function changeShapeType(type) {
     $("#mapselector").val(type + "option"); //change what is selected on the select box
 }
 
-/**
- * Selects a specified number of random data items from an array using the Fisher-Yates shuffle algorithm.
- *
- * @param array dataitems An array of data items.
- * @param int num The number of data items to select.
- * @return array An array containing the selected random data items.
- */
-function selectRandomDataitems(dataitems, num) {
-    if (!Array.isArray(dataitems) || num <= 0) {
-        return [];
-    }
-
-    if (num >= dataitems.length) {
-        return dataitems;
-    }
-
-    let items = dataitems.slice();
-
-    // Shuffle the array using the Fisher-Yates algorithm and select the first num elements
-    for (let i = 0; i < num; i++) {
-        // Pick a random index between current index i and the end of the array
-        let j = Math.floor(Math.random() * (items.length - i) + i);
-
-        // Swap elements at indices i and j
-        [items[i], items[j]] = [items[j], items[i]];
-    }
-
-    // Return the first num elements of the shuffled array
-    return items.slice(0, num);
-}
 
 /**
  * Retrieves the number of places to be displayed based on user selection.
@@ -266,7 +235,7 @@ function getNumPlaces() {
  * @param object tlcMap The map instance used for search operations.
  * @return object An object containing the formatted search form data.
  */
-function getSearchFormData(names, tlcMap) {
+function getSearchFormData(names, tlcMap , viewBbox) {
     //Checking that date inputs match the proper format
     var datefrom = document.getElementById("datefrom");
     var dateto = document.getElementById("dateto");
@@ -308,6 +277,8 @@ function getSearchFormData(names, tlcMap) {
     }
 
     const input = {
+        limit: getNumPlaces(),
+        viewBbox: viewBbox,
         recordtype: $("#recordtype").val() || null,
         searchlayers: $("#selected-layers").val() || null,
         lga: $("#lga").val() || null,
@@ -402,7 +373,9 @@ function updateUrlParameters(data) {
             if (
                 data[key] !== null &&
                 data[key] !== "" &&
-                data[key] !== undefined
+                data[key] !== undefined &&
+                key !== "viewBbox" &&
+                key !== "limit"
             ) {
                 newUrl.searchParams.set(key, data[key]);
             }
@@ -563,7 +536,7 @@ function bindViewLinks() {
 function setListViewDisplayInfo(pointsInMap, totalPoints, tlcMap) {
     const displayPlaces = Math.min(getNumPlaces(), pointsInMap);
 
-    if(totalPoints == null || totalPoints == undefined){
+    if (totalPoints == null || totalPoints == undefined) {
         totalPoints = 0;
     }
 
@@ -582,11 +555,22 @@ function setListViewDisplayInfo(pointsInMap, totalPoints, tlcMap) {
 /**
  * Continues the search form submission process, sending data via AJAX and updating the map with the results.
  *
+ * @param object tlcMap The map instance.
  * @param array|null names Optional array of names for bulk search.
- * @param object tlcMap The map instance used for search operations.
+ * @param object|null defaultLocation Optional default location to zoom to.
+ * @param bool isUserSearch. True is user initiated search, false if it trigger by bounding box change
+ * @param string bbox. Bounding box coordinates, if triggered by bounding box change after search
+
+ * 
  */
-function continueSearchForm(tlcMap, names = null, defaultLocation = null) {
-    const data = getSearchFormData(names, tlcMap);
+function continueSearchForm(
+    tlcMap,
+    names = null,
+    defaultLocation = null,
+    isUserSearch,
+    viewBbox
+) {
+    const data = getSearchFormData(names, tlcMap , viewBbox);
     updateUrlParameters(data);
     showLoadingWheel();
 
@@ -600,36 +584,37 @@ function continueSearchForm(tlcMap, names = null, defaultLocation = null) {
                 tlcMap.isSearchOn = true;
 
                 tlcMap.dataitems = response.dataitems;
-                dataitemsInMap = selectRandomDataitems(
-                    tlcMap.dataitems,
-                    getNumPlaces()
-                );
 
-                tlcMap.addPointsToMap(dataitemsInMap);
-                tlcMap.renderDataItems(dataitemsInMap);
+                tlcMap.addPointsToMap(tlcMap.dataitems , viewBbox);
+                tlcMap.renderDataItems(tlcMap.dataitems);
 
                 if (defaultLocation) {
                     tlcMap.zoomTo(defaultLocation[1], defaultLocation[0]);
                     updateParameter("goto", defaultLocation.join(","));
                 }
 
-                if (
-                    $(".typeFilter-map").is(":checked") ||
-                    $(".typeFilter-cluster").is(":checked")
-                ) {
-                    window.scrollTo({
-                        top: document.body.scrollHeight,
-                        behavior: "smooth",
-                    });
+                if (isUserSearch) {
+                    if (
+                        $(".typeFilter-map").is(":checked") ||
+                        $(".typeFilter-cluster").is(":checked")
+                    ) {
+                        window.scrollTo({
+                            top: document.body.scrollHeight,
+                            behavior: "smooth",
+                        });
+                    }
                 }
-            } else {
+
+            } else if (isUserSearch) {
                 alert("No places found");
             }
 
             hideLoadingWheel();
         },
         error: function (xhr, textStatus, errorThrown) {
-            alert('Your search has timed out on the server. Please refine your query.')
+            alert(
+                "Your search has timed out on the server. Please refine your query."
+            );
             hideLoadingWheel();
             console.log(xhr.responseText);
         },
@@ -850,6 +835,47 @@ function presetSearchForm() {
     $(".num-places").val(numPlaces);
 }
 
+/**
+ *
+ * @param bool isUserSearch. True is user initiated search, false if it trigger by bounding box change
+ * @param string bbox. Bounding box coordinates, if triggered by bounding box change after search
+ *x
+ */
+function searchActions(tlcMap, isUserSearch, viewBbox) {
+    console.log("searchActions");
+    var bulkfileinput = document.getElementById("bulkfileinput");
+    var CSRF_TOKEN = $("input[name=_token]").val();
+
+    if (bulkfileinput.value.length) {
+        var myFormData = new FormData();
+        myFormData.append("file", bulkfileinput.files[0]);
+        myFormData.append("_token", CSRF_TOKEN);
+
+        $.ajax({
+            url: bulkfileparser,
+            type: "POST",
+            dataType: "json",
+            contentType: false,
+            processData: false,
+            data: myFormData,
+            success: function (result) {
+                continueSearchForm(
+                    tlcMap,
+                    result.names,
+                    null,
+                    isUserSearch,
+                    viewBbox
+                );
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                alert(xhr.responseText); //error message with error info
+            },
+        });
+    } else {
+        continueSearchForm(tlcMap, null, null, isUserSearch, viewBbox);
+    }
+}
+
 $(function () {
     $("#input").trigger("focus");
     $("#input").on("keyup", function (event) {
@@ -929,7 +955,7 @@ $(document).ready(async function () {
 
         if (isSearchOn()) {
             presetSearchForm();
-            continueSearchForm(tlcMap, null, defaultLocation);
+            continueSearchForm(tlcMap, null, defaultLocation, true, null);
         } else {
             tlcMap.ignoreExtentChange = false;
 
@@ -948,8 +974,10 @@ $(document).ready(async function () {
 
     document.getElementById("addFilter").addEventListener("click", function () {
         var filterTypeSelect = document.getElementById("filterType");
-     
-        var filterElement = document.getElementById("filter-" + filterTypeSelect.value);
+
+        var filterElement = document.getElementById(
+            "filter-" + filterTypeSelect.value
+        );
 
         if (filterElement) {
             filterElement.style.display = "flex";
@@ -958,25 +986,29 @@ $(document).ready(async function () {
         }
     });
 
-    document.querySelectorAll(".remove-filter-button").forEach(function (button) {
-        button.addEventListener("click", function () {
-            var filterRow = this.closest(".row.align-items-center.my-auto");
-            var filterType = filterRow.id.replace("filter-", "");
-            filterRow.style.display = "none";
+    document
+        .querySelectorAll(".remove-filter-button")
+        .forEach(function (button) {
+            button.addEventListener("click", function () {
+                var filterRow = this.closest(".row.align-items-center.my-auto");
+                var filterType = filterRow.id.replace("filter-", "");
+                filterRow.style.display = "none";
 
-            // Clear values
-            filterRow.querySelectorAll("input, select").forEach(function (input) {
-                input.value = "";
+                // Clear values
+                filterRow
+                    .querySelectorAll("input, select")
+                    .forEach(function (input) {
+                        input.value = "";
+                    });
+
+                // Add the option back to the select
+                var filterTypeSelect = document.getElementById("filterType");
+                var newOption = document.createElement("option");
+                newOption.value = filterType;
+                newOption.text = filterType.replace(/-/g, " ");
+                filterTypeSelect.appendChild(newOption);
             });
-
-            // Add the option back to the select
-            var filterTypeSelect = document.getElementById("filterType");
-            var newOption = document.createElement("option");
-            newOption.value = filterType;
-            newOption.text = filterType.replace(/-/g, ' ');
-            filterTypeSelect.appendChild(newOption);
         });
-    });
 
     document.getElementById("mapdraw").addEventListener("click", function () {
         if (shapetype == "bbox") {
@@ -1142,30 +1174,6 @@ $(document).ready(async function () {
     });
 
     $("#searchbutton").click(function (e) {
-        var bulkfileinput = document.getElementById("bulkfileinput");
-        var CSRF_TOKEN = $("input[name=_token]").val();
-
-        if (bulkfileinput.value.length) {
-            var myFormData = new FormData();
-            myFormData.append("file", bulkfileinput.files[0]);
-            myFormData.append("_token", CSRF_TOKEN);
-
-            $.ajax({
-                url: bulkfileparser,
-                type: "POST",
-                dataType: "json",
-                contentType: false,
-                processData: false,
-                data: myFormData,
-                success: function (result) {
-                    continueSearchForm(tlcMap, result.names);
-                },
-                error: function (xhr, textStatus, errorThrown) {
-                    alert(xhr.responseText); //error message with error info
-                },
-            });
-        } else {
-            continueSearchForm(tlcMap);
-        }
+        searchActions(tlcMap, true, null);
     });
 });

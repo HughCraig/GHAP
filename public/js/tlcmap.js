@@ -311,6 +311,7 @@ class TLCMap {
                     }
 
                     debounceTimer = setTimeout(() => {
+                        console.log("Extent changed");
                         this.refreshMapPins();
                     }, debounceDelay);
                 });
@@ -391,17 +392,10 @@ class TLCMap {
 
                     data.datasourceIDs = getDatasources();
 
+                    console.log("Refresh"  + this.isSearchOn );
                     if (this.isSearchOn && this.dataitems != null) {
-                        const filteredDateitems = this.sliceDataitemsByBboxAndDatasources(
-                            data.bbox , data.datasourceIDs
-                        );
-                        const dataitemsInMap = selectRandomDataitems(
-                            filteredDateitems,
-                            getNumPlaces()
-                        );
-
-                        this.addPointsToMap(dataitemsInMap, data.bbox);
-                        this.renderDataItems(dataitemsInMap);
+                        const viewBbox = "" +  data.bbox.minLng + "," + data.bbox.minLat + "," + data.bbox.maxLng + "," + data.bbox.maxLat;
+                        searchActions(this, false, viewBbox);
                     } else {
                         this.updateMapByBbox(data);
                     }
@@ -998,6 +992,7 @@ class TLCMap {
                 var totalPoints = this.totalBboxScanDataitems;
             }
 
+            this.ignoreExtentChange = false;
             setListViewDisplayInfo(dataitems.length , totalPoints , this);
         });
     }
