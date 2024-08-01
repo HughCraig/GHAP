@@ -109,7 +109,8 @@ class Dataset extends Model
      * and adding route information to the result set. It includes:
      * - Joining the route_order and route tables
      * - Selecting additional fields for route details
-     * - Calculating a stop index for each data item within its route
+     * - Calculating a stop index for each data item within its route,
+     *   but only for data items that have an associated route
      *
      * @param \Illuminate\Database\Eloquent\Builder $query The query builder instance to modify
      * @return \Illuminate\Database\Eloquent\Builder The modified query builder instance
@@ -129,10 +130,14 @@ class Dataset extends Model
                 'tlcmap.route.description as route_description',
                 'tlcmap.route.size as route_size'
             ])
-            ->selectRaw('ROW_NUMBER() OVER (
-            PARTITION BY tlcmap.dataitem.route_id
-            ORDER BY tlcmap.route_order.position
-        ) as stop_idx');
+            ->selectRaw('CASE
+            WHEN tlcmap.dataitem.route_id IS NOT NULL THEN
+                ROW_NUMBER() OVER (
+                    PARTITION BY tlcmap.dataitem.route_id
+                    ORDER BY tlcmap.route_order.position
+                )
+            ELSE NULL
+        END as stop_idx');
     }
 
 
