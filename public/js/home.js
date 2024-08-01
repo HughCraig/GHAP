@@ -206,7 +206,6 @@ function changeShapeType(type) {
     $("#mapselector").val(type + "option"); //change what is selected on the select box
 }
 
-
 /**
  * Retrieves the number of places to be displayed based on user selection.
  *
@@ -235,7 +234,7 @@ function getNumPlaces() {
  * @param object tlcMap The map instance used for search operations.
  * @return object An object containing the formatted search form data.
  */
-function getSearchFormData(names, tlcMap , viewBbox) {
+function getSearchFormData(names, tlcMap, viewBbox) {
     //Checking that date inputs match the proper format
     var datefrom = document.getElementById("datefrom");
     var dateto = document.getElementById("dateto");
@@ -570,7 +569,7 @@ function continueSearchForm(
     isUserSearch,
     viewBbox
 ) {
-    const data = getSearchFormData(names, tlcMap , viewBbox);
+    const data = getSearchFormData(names, tlcMap, viewBbox);
     updateUrlParameters(data);
     showLoadingWheel();
 
@@ -579,36 +578,38 @@ function continueSearchForm(
         url: ajaxsearchdataitems,
         data: data,
         success: function (response) {
-            if (response.dataitems.length > 0) {
-                tlcMap.ignoreExtentChange = true;
-                tlcMap.isSearchOn = true;
 
-                tlcMap.dataitems = response.dataitems;
-
-                tlcMap.addPointsToMap(tlcMap.dataitems , viewBbox);
-                tlcMap.renderDataItems(tlcMap.dataitems);
-
-                if (defaultLocation) {
-                    tlcMap.zoomTo(defaultLocation[1], defaultLocation[0]);
-                    updateParameter("goto", defaultLocation.join(","));
-                }
-
-                if (isUserSearch) {
-                    if (
-                        $(".typeFilter-map").is(":checked") ||
-                        $(".typeFilter-cluster").is(":checked")
-                    ) {
-                        window.scrollTo({
-                            top: document.body.scrollHeight,
-                            behavior: "smooth",
-                        });
-                    }
-                }
-
-            } else if (isUserSearch) {
+            if (isUserSearch && response.count <= 0) {
+                hideLoadingWheel();
                 alert("No places found");
+                return;
             }
 
+            tlcMap.ignoreExtentChange = true;
+            tlcMap.isSearchOn = true;
+            tlcMap.totalSearchCount = response.count;
+
+            tlcMap.dataitems = response.dataitems;
+
+            tlcMap.addPointsToMap(tlcMap.dataitems, viewBbox);
+            tlcMap.renderDataItems(tlcMap.dataitems);
+
+            if (defaultLocation) {
+                tlcMap.zoomTo(defaultLocation[1], defaultLocation[0]);
+                updateParameter("goto", defaultLocation.join(","));
+            }
+
+            if (isUserSearch) {
+                if (
+                    $(".typeFilter-map").is(":checked") ||
+                    $(".typeFilter-cluster").is(":checked")
+                ) {
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: "smooth",
+                    });
+                }
+            }
             hideLoadingWheel();
         },
         error: function (xhr, textStatus, errorThrown) {

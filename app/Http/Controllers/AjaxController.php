@@ -131,7 +131,11 @@ class AjaxController extends Controller
     public function search(Request $request)
     {
         $parameters = $request->all();
-        $dataitems = GazetteerController::searchDataitems($parameters);
+
+        $res = GazetteerController::searchDataitems($parameters);
+        $dataitems = $res['dataitems'];
+        $count = $res['count'];
+
         foreach ($dataitems as $dataitem) {
             $dataitem->extended_data = $dataitem->extDataAsHTML();
             if($dataitem->image_path){
@@ -141,6 +145,7 @@ class AjaxController extends Controller
 
         return response()->json([
             'dataitems' => $dataitems,
+            'count' => $count
         ]);
     }
     

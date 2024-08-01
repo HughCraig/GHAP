@@ -19,6 +19,7 @@ class TLCMap {
 
         this.isSearchOn = false; // True if the search is applied.
         this.dataitems = null; // The search results data items.
+        this.totalSearchCount = null; // Total search results count without filter by limit.
 
         this.ignoreExtentChange = true; // Stop refreshing pins when the map extent changes.
         this.placeMarkers = []; // User placed marker for add place.
@@ -985,7 +986,7 @@ class TLCMap {
             }
 
             if(this.isSearchOn){
-                var totalPoints = this.dataitems.length;   
+                var totalPoints = this.totalSearchCount;   
             }else{
                 var totalPoints = this.totalBboxScanDataitems;
             }

@@ -217,7 +217,7 @@ class GazetteerController extends Controller
         if (!$paging || $paging > $MAX_PAGING) $paging = $MAX_PAGING; //limit to MAX if over max
 
         // Search dataitems.
-        $results = $this->searchDataitems($parameters);
+        $results = $this->searchDataitems($parameters)['dataitems'];
         /* MAX SIZE CHECK */
         if ($this->maxSizeCheck($results, $parameters['format'], $MAX_PAGING)) return redirect()->route('maxPagingMessage'); //if results > $MAX_PAGING show warning msg
 
@@ -512,21 +512,7 @@ class GazetteerController extends Controller
             }
         }
 
-        $viewBbox = isset($parameters['viewBbox']) ? $gazetteerController->getBbox($parameters['viewBbox']) : null;
-        if ($viewBbox) {
-            $dataitems->where('latitude', '>=', $viewBbox['min_lat']);
-            $dataitems->where('latitude', '<=', $viewBbox['max_lat']);
-
-            if ($viewBbox['min_long'] <= $viewBbox['max_long']) { //if min is lower than max we have not crossed the 180th meridian
-                $dataitems->where('longitude', '>=', $viewBbox['min_long']);
-                $dataitems->where('longitude', '<=', $viewBbox['max_long']);
-            } else { //else we have crossed the 180th meridian
-                $dataitems->where(function ($query) use ($viewBbox) {
-                    $query->where('longitude', '>=', $viewBbox['min_long'])->orWhere('longitude', '<=', $viewBbox['max_long']);
-                });
-            }
-        }
-
+    
         if ($polygon) { //sql: WHERE ST_CONTAINS(ST_GEOMFROMTEXT('POLYGON((lng1 lat1, lng2 lat2, lngn latn, lng1 lat1))'), POINT(longitude,latitude) )
             $polygonsql = "ST_GEOMFROMTEXT('POLYGON((";
             for ($i = 0; $i < count($polygon); $i += 2) { //for each point
@@ -556,6 +542,22 @@ class GazetteerController extends Controller
             }
         }
 
+        $totalCount = $dataitems->count();
+
+        $viewBbox = isset($parameters['viewBbox']) ? $gazetteerController->getBbox($parameters['viewBbox']) : null;
+        if ($viewBbox) {
+            $dataitems->where('latitude', '>=', $viewBbox['min_lat']);
+            $dataitems->where('latitude', '<=', $viewBbox['max_lat']);
+
+            if ($viewBbox['min_long'] <= $viewBbox['max_long']) { //if min is lower than max we have not crossed the 180th meridian
+                $dataitems->where('longitude', '>=', $viewBbox['min_long']);
+                $dataitems->where('longitude', '<=', $viewBbox['max_long']);
+            } else { //else we have crossed the 180th meridian
+                $dataitems->where(function ($query) use ($viewBbox) {
+                    $query->where('longitude', '>=', $viewBbox['min_long'])->orWhere('longitude', '<=', $viewBbox['max_long']);
+                });
+            }
+        }
         if (isset($parameters['limit'])) {
             $limit = filter_var($parameters['limit'], FILTER_VALIDATE_INT);
         
@@ -580,8 +582,10 @@ class GazetteerController extends Controller
             });
         }
 
-        return $collection;
-
+        return [
+            'dataitems' => $collection,
+            'count' => $totalCount
+        ];
     }
 
     /********************/
