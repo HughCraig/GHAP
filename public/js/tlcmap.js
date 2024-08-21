@@ -99,7 +99,6 @@ class TLCMap {
                 name: "dataset_name",
                 alias: "Datasource Name",
                 type: "string",
-
             },
             {
                 name: "image_path",
@@ -309,6 +308,11 @@ class TLCMap {
                 const debounceDelay = 250;
 
                 this.view.watch("extent", () => {
+                    // Remove the previous div if it exists
+                    let existingDiv = document.getElementById("customPlaceDiv");
+                    if (existingDiv) {
+                        existingDiv.remove();
+                    }
                     if (this.ignoreExtentChange) {
                         return;
                     }
@@ -352,6 +356,20 @@ class TLCMap {
                             event.mapPoint.latitude.toFixed(6),
                             event.mapPoint.longitude.toFixed(6),
                         ];
+
+                        // Remove the previous div if it exists
+                        let existingDiv =
+                            document.getElementById("customPlaceDiv");
+                        if (existingDiv) {
+                            existingDiv.remove();
+                        }
+                        // Create a new div element
+                        var addPlace = this.getAddPlaceButton();
+                        addPlace.id = "customPlaceDiv";
+                        addPlace.style.position = "absolute";
+                        addPlace.style.left = `${event.x + 15}px`;
+                        addPlace.style.top = `${event.y + 260}px`;
+                        document.body.appendChild(addPlace);
 
                         const pointGraphic = new Graphic({
                             geometry: point,
@@ -555,6 +573,11 @@ class TLCMap {
     setupSketchHandlers(sketch, webMercatorUtils) {
         sketch.on("create", (event) => {
             if (event.state === "start") {
+                // Remove the previous div if it exists
+                let existingDiv = document.getElementById("customPlaceDiv");
+                if (existingDiv) {
+                    existingDiv.remove();
+                }
                 this.graphicsLayer.removeAll();
                 $("#minlong").val("");
                 $("#minlat").val("");
@@ -615,6 +638,54 @@ class TLCMap {
     }
 
     /**
+     * Function to get the add place button.
+     * Bind click event to it
+     * @return {Object} - The add place button element.
+     */
+    getAddPlaceButton() {
+        var addPlace = document.createElement("div");
+        addPlace.style.backgroundColor = "#FFD580";
+        addPlace.className =
+            "esri-icon-map-pin esri-widget--button esri-widget esri-interactive";
+        addPlace.setAttribute("tabindex", "0");
+        addPlace.setAttribute("data-html", "true");
+        addPlace.setAttribute("data-animation", "true");
+        addPlace.setAttribute("data-toggle", "tooltip");
+        addPlace.setAttribute("data-placement", "top");
+        addPlace.setAttribute("title", "Contribute to TLCMap");
+
+        $(addPlace).tooltip();
+
+        // Add event listener for click on the new div
+        addPlace.addEventListener("click", () => {
+            if (!isLoggedIn) {
+                window.location.href = baseUrl + "login";
+                return;
+            }
+
+            if (this.placeMarkers.length == 2) {
+                $("#addlatitude").val(this.placeMarkers[0]);
+                $("#addlongitude").val(this.placeMarkers[1]);
+                this.addModalMapPicker.createMarkerAt(
+                    [
+                        parseFloat(this.placeMarkers[1]),
+                        parseFloat(this.placeMarkers[0]),
+                    ],
+                    true,
+                    true
+                );
+            } else {
+                $("#addlatitude").val("");
+                $("#addlongitude").val("");
+                this.addModalMapPicker.clearMarkers();
+            }
+
+            $("#addModal").modal("show");
+        });
+        return addPlace;
+    }
+
+    /**
      * Function to get the coordinates of the sketch drawing (only 1 shape is possible).
      *
      * @return {Promise} - Promise that resolves to the coordinates of the drawn shape.
@@ -661,44 +732,7 @@ class TLCMap {
             this.gotoUserLocation();
         });
 
-        var addPlace = document.createElement("div");
-        addPlace.style.backgroundColor = "#FFD580";
-        addPlace.className =
-            "esri-icon-map-pin esri-widget--button esri-widget esri-interactive";
-        addPlace.setAttribute("tabindex", "0");
-        addPlace.setAttribute("data-html", "true");
-        addPlace.setAttribute("data-animation", "true");
-        addPlace.setAttribute("data-toggle", "tooltip");
-        addPlace.setAttribute("data-placement", "top");
-        addPlace.setAttribute("title", "Contribute to TLCMap");
-
-        // Initialize Bootstrap tooltip for the element
-        $(addPlace).tooltip();
-        addPlace.addEventListener("click", () => {
-            if (!isLoggedIn) {
-                window.location.href = baseUrl + "login";
-                return;
-            }
-
-            if (this.placeMarkers.length == 2) {
-                $("#addlatitude").val(this.placeMarkers[0]);
-                $("#addlongitude").val(this.placeMarkers[1]);
-                this.addModalMapPicker.createMarkerAt(
-                    [
-                        parseFloat(this.placeMarkers[1]),
-                        parseFloat(this.placeMarkers[0]),
-                    ],
-                    true,
-                    true
-                );
-            } else {
-                $("#addlatitude").val("");
-                $("#addlongitude").val("");
-                this.addModalMapPicker.clearMarkers();
-            }
-
-            $("#addModal").modal("show");
-        });
+        var addPlace = this.getAddPlaceButton();
 
         this.view.ui.add(addPlace, "bottom-right");
         this.view.ui.add(locate, "bottom-right");
@@ -979,7 +1013,7 @@ class TLCMap {
                     dataitem.datasource.description;
                 dataitem["datasource_link"] = dataitem.datasource.link;
 
-                if(dataitem['dataset']){
+                if (dataitem["dataset"]) {
                     dataitem["dataset_name"] = dataitem.dataset.name;
                 }
 
