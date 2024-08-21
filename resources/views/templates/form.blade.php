@@ -87,33 +87,25 @@
 
                 <div class="d-flex" style="align-items: center;">
 
-                    @foreach ($datasources as $datasource)
-                        <?php 
-                            if($datasource->id == '1'){ //Ghap
-                                $background_color = 'background-color: #FFD580;';
-                            } else if($datasource->id == '2'){ //ANPS
-                                $background_color = 'background-color: orange;';
-                            } else if($datasource->id == '3'){ //NCG
-                                $background_color = 'background-color: #FE6A1B;';
-                            }
+                    <label data-toggle="tooltip" title="" class="d-flex mb-0 mr-3 datasource-filter btn" style="background-color: orange;" data-original-title="Official Australian Placenames">
+                        <div class="pl-1 pr-1">
+                            ANPS Gazeetteer
+                        </div>
+                        <input type="checkbox" id="searchausgaz" name="searchausgaz" style="margin-top: 2px; cursor:pointer" checked>
+                    </label>
+                    <label data-toggle="tooltip" title="" class="d-flex mb-0 mr-3 datasource-filter btn" style="background-color: #FE6A1B;" data-original-title="Composite Gazetteer of Australia">
+                        <div class="pl-1 pr-1">
+                            NCG Gazetteer
+                        </div>
+                        <input type="checkbox" id="searchncg" name="searchncg" style="margin-top: 2px; cursor:pointer" checked>
+                    </label>
+                    <label data-toggle="tooltip"  class="d-flex mb-0 mr-2 datasource-filter btn" style="background-color: #FFD580;" data-original-title="Contributed layers">
+                        <div class="pl-1 pr-1">
+                            Layers
+                        </div>
+                        <input type="checkbox" id="searchpublicdatasets" name="searchpublicdatasets" style="margin-top: 2px; cursor:pointer" checked >
+                    </label>
 
-                            // Change GHAP to LAYER
-                            if($datasource->name == 'GHAP'){
-                                $datasource->name = 'Layers';
-                                $remove_tooltip = true;
-                            } else {
-                                $remove_tooltip = false;
-                            }
-                        ?>
-                        
-                        <label data-toggle="tooltip" title="{{ $remove_tooltip ? '' : $datasource->description }}" class="d-flex mb-0 mr-2 datasource-filter btn" <?php if(isset($background_color)): echo 'style="'.$background_color.'"'; endif; ?>>
-                            <div class="pl-1 pr-1">
-                                {{ $datasource->name }}
-                            </div>
-                            <input type="checkbox" id="{{ $datasource->search_param_name }}" name="{{ $datasource->search_param_name }}" style="margin-top: 2px; cursor:pointer"  checked>
-                        </label>
-                    @endforeach
-                
                     <div class="d-flex view-button pl-5" style="align-items: baseline;">
                         <label class="radio" id="radio-map">
                             <input type="radio" name="typeFilter" class="typeFilter-map">
