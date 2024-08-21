@@ -533,14 +533,13 @@ function bindViewLinks() {
 }
 
 function setListViewDisplayInfo(pointsInMap, totalPoints, tlcMap) {
-    const displayPlaces = Math.min(getNumPlaces(), pointsInMap);
-
+    totalPoints = Math.max(totalPoints, pointsInMap);
     if (totalPoints == null || totalPoints == undefined) {
         totalPoints = 0;
     }
 
     $("#display_info").text(
-        `Displaying ${displayPlaces} from a total of ${totalPoints}`
+        `Displaying ${pointsInMap} from a total of ${totalPoints}`
     );
 
     if (tlcMap.isSearchOn) {
@@ -578,11 +577,15 @@ function continueSearchForm(
         url: ajaxsearchdataitems,
         data: data,
         success: function (response) {
-
             if (isUserSearch && response.count <= 0) {
                 hideLoadingWheel();
                 alert("No places found");
                 return;
+            }
+
+            if (isUserSearch) {
+                //If it is the new search (Not triggered by boundind box change after change
+                tlcMap.removeAllPlacesFromFeatureLayer();
             }
 
             tlcMap.ignoreExtentChange = true;
@@ -1109,6 +1112,7 @@ $(document).ready(async function () {
         tlcMap.ignoreExtentChange = false;
         tlcMap.dataitems = null;
         tlcMap.graphicsLayer.removeAll();
+        tlcMap.removeAllPlacesFromFeatureLayer();
 
         updateUrlParameters(null);
 

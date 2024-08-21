@@ -17,6 +17,9 @@ class TLCMap {
         this.totalBboxScanDataitems = null; // Total data items in the bounding box.
         this.bboxDataitems = null; // Data items from drag/zoom. not search results
 
+        this.currentPointIDS = new Set(); // Current point IDs on the map.
+        this.currentListItemsIDS = new Set(); // Current items IDs on the list view.
+
         this.isSearchOn = false; // True if the search is applied.
         this.dataitems = null; // The search results data items.
         this.totalSearchCount = null; // Total search results count without filter by limit.
@@ -745,9 +748,13 @@ class TLCMap {
      */
     renderDataItems(dataItems) {
         const listView = $(".place-list");
-        listView.empty();
 
         dataItems.forEach((item) => {
+            if (this.currentListItemsIDS.has(item.id)) {
+                return;
+            }
+            this.currentListItemsIDS.add(item.id);
+
             var html = `<div class="row">`;
 
             //Main info
@@ -963,6 +970,26 @@ class TLCMap {
     }
 
     /**
+     * Remove all Point from feature layer
+     * Remove all data in the list view
+     * 
+     */
+    removeAllPlacesFromFeatureLayer(){
+        this.featureLayer.queryFeatures().then((results) => {
+            // edits object tells apply edits that you want to delete the features
+            const deleteEdits = {
+                deleteFeatures: results.features,
+            };
+            // apply edits to the layer
+            this.featureLayer.applyEdits(deleteEdits);
+        });
+        const listView = $(".place-list");
+        listView.empty();
+        this.currentPointIDS.clear();
+        this.currentListItemsIDS.clear();
+    }
+
+    /**
      * Add points to the map based on data items and optionally a bounding box.
      *
      * @param {Array} dataitems - Array of data items to add.
@@ -970,20 +997,17 @@ class TLCMap {
      */
     addPointsToMap(dataitems, bbox = null) {
         require(["esri/Graphic", "esri/geometry/Extent"], (Graphic, Extent) => {
-            //Remove all existing point
-            this.featureLayer.queryFeatures().then((results) => {
-                // edits object tells apply edits that you want to delete the features
-                const deleteEdits = {
-                    deleteFeatures: results.features,
-                };
-                // apply edits to the layer
-                this.featureLayer.applyEdits(deleteEdits);
-            });
 
             let coordinates = [];
 
             // Add new points
             dataitems.forEach((dataitem) => {
+            
+                if (this.currentPointIDS.has(dataitem.id)) {
+                    return;
+                }
+                this.currentPointIDS.add(dataitem.id);
+
                 var point = {
                     type: "point",
                     latitude: dataitem.latitude,
@@ -1060,7 +1084,7 @@ class TLCMap {
                 var totalPoints = this.totalBboxScanDataitems;
             }
 
-            setListViewDisplayInfo(dataitems.length, totalPoints, this);
+            setListViewDisplayInfo(this.currentPointIDS.size, totalPoints, this);
         });
     }
 
