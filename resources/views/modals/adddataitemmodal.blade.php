@@ -45,6 +45,7 @@
 
 
                     <label for="addtitle">Title</label><label class="text-danger">*</label>
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="A short title for the information you are adding about this place."></span>
                     <input type="text" class="mb-3 form-control" id="addtitle" placeholder="Title" required>
 
                     <label for="addplacename">Placename</label>
@@ -62,11 +63,11 @@
                         <p><small>Either enter coordinates manually or click on the map and apply.</small></p>
 
                         <label for="addlatitude">Latitude</label><label class="text-danger">*</label>
-                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Try <a href='https://tlcmap.org/quicktools/quickcoordinates.html'>Quick Coordinates</a>.">
-                        </span>
+                            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Use decimal coordinates. For adding many places,try <a href='https://tlcmap.org/quicktools/quickcoordinates.html' target='_blank'>Quick Coordinates</a> and upload a CSV."></span>
                         <input type="text" class="mb-3 form-control mp-input-lat" id="addlatitude" placeholder="Latitude" required>
 
                         <label for="addlongitude">Longitude</label><label class="text-danger">*</label>
+                            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Use decimal coordinates. For adding many places,try <a href='https://tlcmap.org/quicktools/quickcoordinates.html' target='_blank'>Quick Coordinates</a> and upload a CSV."></span>
                         <input type="text" class="mb-3 form-control mp-input-lng" id="addlongitude" placeholder="Longitude" required>
 
                         <div class="mb-3">
@@ -90,10 +91,7 @@
                     </div>
 
                     <label for="addfeatureterm">Feature Term
-                        <a href="/guides/featureterms.php" target="_blank">
-                            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Click here for information on valid feature terms">
-                            </span>
-                        </a>
+                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="A list of feature terms for types of places such as mountains, towns or rivers, used by government bodies. Start typing to see a list of terms."></span>
                     </label>
                     <input type="text" class="mb-3 form-control" id="addfeatureterm" placeholder="Feature Term">
 
@@ -106,27 +104,32 @@
                     </select>
 
                     <div class="input-group date" id="addDateStartDiv">
-                        <label for="adddatestart">Date Start</label><input type="text" class="mb-3 form-control input-group-addon" id="adddatestart" autocomplete="off" />
+                        <label for="adddatestart">Date Start
+                            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Type a year, date, or select from calendar"></span>
+                        </label>
+                        <input type="text" class="mb-3 form-control input-group-addon" id="adddatestart" autocomplete="off" />
                     </div>
                     <div class="input-group date" id="addDateEndDiv">
-                        <label for="adddateend">Date End</label><input type="text" class="mb-3 form-control input-group-addon" id="adddateend" autocomplete="off">
+                        <label for="adddateend">Date End
+                            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Type a year, date, or select from calendar"></span>
+                        </label>
+                        <input type="text" class="mb-3 form-control input-group-addon" id="adddateend" autocomplete="off">
                     </div>
 
-                    <label for="addlga">LGA
-                        <a href="/guides/lgas.php" target="_blank">
-                            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Click here for information on valid Local Government Areas">
-                            </span>
-                        </a>
-                    </label>
+                    <label for="addlga">LGA</label>
+                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Local Government Area"></span>               
                     <input type="text" class="mb-3 form-control" id="addlga" placeholder="LGA">
 
                     <!-- Linkback with validator-->
-                    <label for="addexternalurl">Linkback (URL)</label>
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="For the URL to be a clickable link please ensure it starts with http:// or https://"></span>
+                    <label for="addexternalurl">Linkback (URL)
+                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="This is the main link for more information on another website about this place. Eg: a newspaper article, record in a museum database, video of a story, organisations website, etc. It must start with http:// or https://"></span>
+                    </label>
                     <input type="text" class="mb-3 form-control" id="addexternalurl" placeholder="Linkback">
 
                     <div class="mb-3">
-                        <label for="addsource">Source (Website url, ISBN, Book title, etc)</label>
+                        <label for="addsource">Source (Website url, ISBN, Book title, etc)
+                            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Please add the citation or source of this information, to ensure it is reliable and so others can follow the references."></span>
+                        </label>
                         <textarea rows="3" class="mb-3 form-control w-100 wysiwyg-editor" id="addsource" placeholder="Source"></textarea>
                     </div>
 

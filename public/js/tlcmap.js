@@ -71,13 +71,44 @@ class TLCMap {
                 outline: {
                     color: "white",
                 },
-            }
+            },
         };
 
         this.fields = [
             {
                 name: "title",
                 alias: "Title",
+                type: "string",
+            },
+            {
+                name: "uid",
+                alias: "ID",
+                type: "string",
+            },
+            {
+                name: "datasource_description",
+                alias: "Datasource Description",
+                type: "string",
+            },
+            {
+                name: "datasource_link",
+                alias: "Datasource Link",
+                type: "string",
+            },
+            {
+                name: "dataset_name",
+                alias: "Datasource Name",
+                type: "string",
+
+            },
+            {
+                name: "image_path",
+                alias: "Image",
+                type: "string",
+            },
+            {
+                name: "dataset_id",
+                alias: "Layer ID",
                 type: "string",
             },
             {
@@ -91,13 +122,8 @@ class TLCMap {
                 type: "string",
             },
             {
-                name: "uid",
-                alias: "ID",
-                type: "string",
-            },
-            {
-                name: "state",
-                alias: "State",
+                name: "datasource_id",
+                alias: "Data source",
                 type: "string",
             },
             {
@@ -106,13 +132,18 @@ class TLCMap {
                 type: "string",
             },
             {
-                name: "latitude",
-                alias: "Latitude",
+                name: "state",
+                alias: "State",
                 type: "string",
             },
             {
-                name: "longitude",
-                alias: "Longitude",
+                name: "lga",
+                alias: "LGA",
+                type: "string",
+            },
+            {
+                name: "parish",
+                alias: "Parish",
                 type: "string",
             },
             {
@@ -131,13 +162,13 @@ class TLCMap {
                 type: "string",
             },
             {
-                name: "lga",
-                alias: "LGA",
+                name: "latitude",
+                alias: "Latitude",
                 type: "string",
             },
             {
-                name: "parish",
-                alias: "Parish",
+                name: "longitude",
+                alias: "Longitude",
                 type: "string",
             },
             {
@@ -148,31 +179,6 @@ class TLCMap {
             {
                 name: "updated_at",
                 alias: "Updated At",
-                type: "string",
-            },
-            {
-                name: "image_path",
-                alias: "Image",
-                type: "string",
-            },
-            {
-                name: "dataset_id",
-                alias: "Layer ID",
-                type: "string",
-            },
-            {
-                name: "datasource_id",
-                alias: "Datasource",
-                type: "string",
-            },
-            {
-                name: "datasource_description",
-                alias: "Datasource Description",
-                type: "string",
-            },
-            {
-                name: "datasource_link",
-                alias: "Datasource Link",
                 type: "string",
             },
         ];
@@ -393,7 +399,15 @@ class TLCMap {
                     data.datasourceIDs = getDatasources();
 
                     if (this.isSearchOn && this.dataitems != null) {
-                        const viewBbox = "" +  data.bbox.minLng + "," + data.bbox.minLat + "," + data.bbox.maxLng + "," + data.bbox.maxLat;
+                        const viewBbox =
+                            "" +
+                            data.bbox.minLng +
+                            "," +
+                            data.bbox.minLat +
+                            "," +
+                            data.bbox.maxLng +
+                            "," +
+                            data.bbox.maxLat;
                         searchActions(this, false, viewBbox);
                     } else {
                         this.updateMapByBbox(data);
@@ -421,6 +435,7 @@ class TLCMap {
                         key != "dataset_id" &&
                         key != "uid" &&
                         key != "datasource_description" &&
+                        key != "dataset_name" &&
                         key != "datasource_link"
                     ) {
                         content += `<tr>
@@ -439,7 +454,7 @@ class TLCMap {
 
                 content += `<div style="margin-top: 1rem"><a style="color: #0000EE" href="${baseUrl}?gotoid=${attributes.uid}&view=list" target="_blank">TLCMap Record: tce9ac</a> `;
                 if (attributes.dataset_id) {
-                    content += `| <a style="color: #0000EE" href="${baseUrl}layers/${attributes.dataset_id}" target="_blank">TLCMap Layer</a></div>`;
+                    content += `| <a style="color: #0000EE" href="${baseUrl}layers/${attributes.dataset_id}" target="_blank">Layer: ${attributes.dataset_name}</a></div>`;
                 } else {
                     content += `| <a style="color: #0000EE" href="${attributes.datasource_link}" target="_blank">${attributes.datasource_description}</a></div>`;
                 }
@@ -572,31 +587,27 @@ class TLCMap {
     }
 
     drawPolygon(rings) {
-        require([
-            "esri/geometry/Polygon",
-            "esri/Graphic",
-        ], (
+        require(["esri/geometry/Polygon", "esri/Graphic"], (
             Polygon,
-            Graphic,
+            Graphic
         ) => {
-
             this.graphicsLayer.removeAll();
 
             const polygon = new Polygon({
                 rings: [rings],
-                spatialReference: { wkid: 4326 }
+                spatialReference: { wkid: 4326 },
             });
 
             const polygonGraphic = new Graphic({
                 geometry: polygon,
                 symbol: {
                     type: "simple-fill",
-                    color: [150, 200, 255, 0.3], 
+                    color: [150, 200, 255, 0.3],
                     outline: {
                         color: [255, 255, 255],
-                        width: 1
-                    }
-                }
+                        width: 1,
+                    },
+                },
             });
 
             this.graphicsLayer.add(polygonGraphic);
@@ -651,9 +662,18 @@ class TLCMap {
         });
 
         var addPlace = document.createElement("div");
-        addPlace.style.backgroundColor = "orange";
+        addPlace.style.backgroundColor = "#FFD580";
         addPlace.className =
-            "esri-icon-plus esri-widget--button esri-widget esri-interactive";
+            "esri-icon-map-pin esri-widget--button esri-widget esri-interactive";
+        addPlace.setAttribute("tabindex", "0");
+        addPlace.setAttribute("data-html", "true");
+        addPlace.setAttribute("data-animation", "true");
+        addPlace.setAttribute("data-toggle", "tooltip");
+        addPlace.setAttribute("data-placement", "top");
+        addPlace.setAttribute("title", "Contribute to TLCMap");
+
+        // Initialize Bootstrap tooltip for the element
+        $(addPlace).tooltip();
         addPlace.addEventListener("click", () => {
             if (!isLoggedIn) {
                 window.location.href = baseUrl + "login";
@@ -936,11 +956,20 @@ class TLCMap {
                     longitude: dataitem.longitude,
                 };
 
-                if (dataitem.datasource_id == "1" || dataitem.datasource_id == "GHAP") {
+                if (
+                    dataitem.datasource_id == "1" ||
+                    dataitem.datasource_id == "GHAP"
+                ) {
                     dataitem.datasource_id = "GHAP";
-                } else if (dataitem.datasource_id == "2" || dataitem.datasource_id == "ANPS") {
+                } else if (
+                    dataitem.datasource_id == "2" ||
+                    dataitem.datasource_id == "ANPS"
+                ) {
                     dataitem.datasource_id = "ANPS";
-                } else if (dataitem.datasource_id == "3" || dataitem.datasource_id == "NCG") {
+                } else if (
+                    dataitem.datasource_id == "3" ||
+                    dataitem.datasource_id == "NCG"
+                ) {
                     dataitem.datasource_id = "NCG";
                 } else {
                     dataitem.datasource_id = "Unknown";
@@ -949,6 +978,10 @@ class TLCMap {
                 dataitem["datasource_description"] =
                     dataitem.datasource.description;
                 dataitem["datasource_link"] = dataitem.datasource.link;
+
+                if(dataitem['dataset']){
+                    dataitem["dataset_name"] = dataitem.dataset.name;
+                }
 
                 var pointGraphic = new Graphic({
                     geometry: point,
@@ -983,17 +1016,17 @@ class TLCMap {
                 this.view.goTo(calculatedExtent).then(() => {
                     this.ignoreExtentChange = false;
                 });
-            }else{
+            } else {
                 this.ignoreExtentChange = false;
             }
 
-            if(this.isSearchOn){
-                var totalPoints = this.totalSearchCount;   
-            }else{
+            if (this.isSearchOn) {
+                var totalPoints = this.totalSearchCount;
+            } else {
                 var totalPoints = this.totalBboxScanDataitems;
             }
 
-            setListViewDisplayInfo(dataitems.length , totalPoints , this);
+            setListViewDisplayInfo(dataitems.length, totalPoints, this);
         });
     }
 
@@ -1089,7 +1122,6 @@ class TLCMap {
             });
         });
     }
-
 
     /**
      * Update the map with new data items based on the current bounding box.

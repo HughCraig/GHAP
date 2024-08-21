@@ -1,13 +1,3 @@
-function changeInput(caller) {
-    /*
-     *  Change the placeholder text depending on if name or anps_id is selected - dont disable the checkbox as we might still want to use it on bulk search
-     */
-    document.getElementById("input").placeholder =
-        caller.options[caller.selectedIndex].value == "anps_id"
-            ? "Enter anps ID"
-            : "Enter place name";
-}
-
 $(document).ready(function () {
 
     //Layers Autocomplete.

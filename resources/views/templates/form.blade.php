@@ -56,30 +56,29 @@
             <div class="d-flex justify-content-between" style="width: 100%; align-items:baseline">
 
                 <div class="d-flex">
+                 
+                    <div class="col-sm-auto pl-0 pr-0 mr-4">
+                        <input type="text" class="form-control" name="fuzzyname" id="input" placeholder="Search places and culture">
+                    </div>
 
-                    <div class="col-sm-auto pt-2 d-flex justify-content-center">
+                    <div class="col-sm-auto pt-2 d-flex justify-content-center pr-0">
                         <a id="advancedSearchButton" href="#advancedaccordion" data-toggle="collapse"><i class="fa fa-chevron-down"></i></a>
                     </div>
 
-                    <div class="col-sm-auto pl-0 pr-0">
-                        <input type="text" class="form-control" name="fuzzyname" id="input" placeholder="Enter search">
-                    </div>
-
                     <div class="col-sm-auto pl-0 pr-0 datasource-filter d-flex justify-content-center">
-                        <select class="form-control" id="input-select-box" onchange="changeInput(this);">
+                        <select class="form-control" id="input-select-box">
                             <option value="containsname" selected="selected">Contains</option>
-                            <option value="fuzzyname">Fuzzy</option>
+                            <option value="fuzzyname">Similar Match</option>
                             <option value="name">Exact Match</option>
-                            <option value="anps_id">anps_id</option>
+                            <option value="anps_id">Place ID</option>
                         </select>
                     </div>
 
                     <div class="col-sm-auto pl-0">
                         <button class="btn btn-primary" type="button" id="searchbutton">
-                            Search <i class="fa fa-search"></i>
+                            <i class="fa fa-search"></i>
                         </button>
                     </div>
-
 
                     <button class="btn" type="button" id="resetbutton">
                         Reset
@@ -297,10 +296,11 @@
                             <div class="col-lg-5" style="margin-top:6%">
 
                                 <div class="row align-items-center my-auto mb-1">
-                                    <div class="col-sm-7" data-toggle="tooltip">
+                                    <div class="col-sm-8" data-toggle="tooltip">
                                         Search Description
+                                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Also search Description field"></span>
                                     </div>
-                                    <div class="col-sm-5">
+                                    <div class="col-sm-4">
                                         <input type="checkbox" id="searchdescription" name="searchdescription">
                                     </div>
                                 </div>
@@ -313,8 +313,8 @@
                         <div class="col-lg-6">
 
                             <p class="h4">
-                                Specify map area
-                                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" style="font-size:14px" title="Pick a shape to draw on the map, or enter coordinates.">
+                                Search within region
+                                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" style="font-size:14px" title="Use the shapes at top right of the map to draw a region on the map, or provide details below.">
                                 </span>
                             </p>
 
@@ -507,7 +507,10 @@
     </div>
     <!-- END List Area Display -->
 
-    <div id="loadingWheel"></div>
+    <div id="loadingWheel">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading random places...</div>
+    </div>
 
     <!-- MODAL popup -->
     <!-- NB: this is the pop up content for a button above that opens it. This content needs to be place here outside of the main form, because it contains a form element

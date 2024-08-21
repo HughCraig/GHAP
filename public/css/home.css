@@ -119,22 +119,33 @@ div.header {
 
 #loadingWheel {
     position: fixed;
-    left: 50%;
-    top: 50%;
+    left: 55%;
+    top: 60%;
     transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 9999;
+    display: none;
+}
+
+.spinner {
+    display: inline-block;
     border: 16px solid lightgray;
     border-radius: 50%;
     border-top: 16px solid #3498db;
     width: 90px;
     height: 90px;
     animation: spin 2s linear infinite;
-    display: none;
-    z-index: 9999;
 }
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #3498db;
+    font-size: 22px;
+    font-weight: bolder;
 }
 
 #filterType{
@@ -151,4 +162,12 @@ div.header {
     font-size:14px ; 
     cursor: pointer;
     margin-left: 5px;
+}
+
+.esri-sketch__info-section calcite-action:first-child{
+    display: none;
+}
+
+#input{
+    width: 110%;
 }

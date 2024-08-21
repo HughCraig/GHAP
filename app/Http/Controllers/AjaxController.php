@@ -59,7 +59,7 @@ class AjaxController extends Controller
         return response()->json(array('minlong' => $minlong, 'minlat' => $minlat, 'maxlong' => $maxlong, 'maxlat' => $maxlat));
     }
 
-        /**
+    /**
      * Scan the bounding box for data items.
      *
      * This function retrieves data items within the specified bounding box.
