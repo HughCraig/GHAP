@@ -1188,7 +1188,7 @@ class TLCMap {
      * @param {Object} data - Data to send in the AJAX request.
      */
     updateMapByBbox(data) {
-        showLoadingWheel();
+        showLoadingWheel('Loading random places...');
         $.ajax({
             type: "POST",
             url: bboxscan,

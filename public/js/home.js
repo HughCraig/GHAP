@@ -1,6 +1,7 @@
 var shapetype = "bbox";
 
-function showLoadingWheel() {
+function showLoadingWheel(loadText) {
+    document.getElementsByClassName("loading-text")[0].innerText = loadText;
     document.getElementById("loadingWheel").style.display = "block";
 }
 
@@ -350,7 +351,7 @@ function getSearchFormData(names, tlcMap, viewBbox) {
         //containsname fuzzyname or name, turned into a plural to make the bulk search parameter active
         document.getElementById(inputName + "s").hidden = false;
         document.getElementById(inputName + "s").value = names;
-        input[inputName + "s"] = trimmed_input;
+        input[inputName + "s"] = names;
     }
 
     return input;
@@ -570,7 +571,7 @@ function continueSearchForm(
 ) {
     const data = getSearchFormData(names, tlcMap, viewBbox);
     updateUrlParameters(data);
-    showLoadingWheel();
+    showLoadingWheel('loading places...');
 
     $.ajax({
         type: "POST",

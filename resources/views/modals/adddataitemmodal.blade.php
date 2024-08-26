@@ -34,7 +34,7 @@
 
                     <div class="mb-2" style="font-weight: bold;">
                         Layer<label class="text-danger">*</label>
-                        <button style="float: right;" onclick="window.open('{{ url('/myprofile/mydatasets/newdataset') }}', '_blank')">Edit layer</button>
+                        <button style="float: right;" onclick="window.open('{{ url('/myprofile/mydatasets/newdataset') }}', '_blank')">New layer</button>
                     </div>
 
                     <div class="mb-4">

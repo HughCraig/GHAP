@@ -290,11 +290,11 @@ class GazetteerController extends Controller
         }
 
         if (isset($parameters['names']) && $parameters['names']) {
-            $names = array_filter(array_map('trim', $parameters['names']));
+            $names = array_filter(array_map('trim', explode(',', $parameters['names'])));
         } elseif (isset($parameters['fuzzynames']) && $parameters['fuzzynames']) {
-            $names = array_filter(array_map('trim', $parameters['fuzzynames']));
+            $names = array_filter(array_map('trim', explode(',', $parameters['fuzzynames'])));
         } elseif (isset($parameters['containsnames']) && $parameters['containsnames']) {
-            $names = array_filter(array_map('trim', $parameters['containsnames']));
+            $names = array_filter(array_map('trim', explode(',' , $parameters['containsnames'])));
         } else {
             $names = null;
         }

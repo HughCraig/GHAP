@@ -89,7 +89,7 @@
 
                     <label data-toggle="tooltip" title="" class="d-flex mb-0 mr-3 datasource-filter btn" style="background-color: orange;" data-original-title="Official Australian Placenames">
                         <div class="pl-1 pr-1">
-                            ANPS Gazeetteer
+                            ANPS Gazetteer
                         </div>
                         <input type="checkbox" id="searchausgaz" name="searchausgaz" style="margin-top: 2px; cursor:pointer" checked>
                     </label>
@@ -395,7 +395,7 @@
 
         <button id="scrollToTopButton" class="scroll-to-top" onclick="scrollToTopFunction()">↑</button>
 
-        <!--  not sure why these hidden fields are here, but suspect there is some funk where js sets this according to user selection from drop down. -->
+        <!--  Used for bulk name search -->
         <input type="hidden" id="names" name="names">
         <input type="hidden" id="fuzzynames" name="fuzzynames">
         <input type="hidden" id="containsnames" name="containsnames">
@@ -501,7 +501,7 @@
 
     <div id="loadingWheel">
         <div class="spinner"></div>
-        <div class="loading-text">Loading random places...</div>
+        <div class="loading-text"></div>
     </div>
 
     <!-- MODAL popup -->

@@ -149,12 +149,6 @@
                 </div>
             </div>
 
-            <div class="menu-nav-button">
-                <span class="menu-nav-button-icon">
-                    <span class="icon icon-menu-dark">
-                    </span>
-                </span>
-            </div>
         </div>
 
             <nav class="menu-nav">
@@ -198,47 +192,57 @@
         </div>
 
         <!-- Start Navbar -->
-        <div class="secondary-nav w3-bar" style="padding-left: 1%; padding-right: 1%;">     
-            <div class="w3-mobile w3-left">
-                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('layers') }}">Layers</a>
+        <div class="secondary-nav w3-bar" style="padding-left: 1%; padding-right: 1%;">    
+            <div>
+                <div class="w3-mobile w3-left">
+                        <a class="w3-bar-item w3-button w3-mobile" href="{{ url('layers') }}">Layers</a>
+                    </div>
+                <div class="w3-mobile w3-left">
+                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('multilayers') }}">Multilayers</a>
+                </div>  
+            </div> 
+
+            <div style="display: flex; align-items:center;float:right">
+                
+                @guest
+                <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
+                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('login') }}">Log in</a>
                 </div>
-            <div class="w3-mobile w3-left">
-                <a class="w3-bar-item w3-button w3-mobile" href="{{ url('multilayers') }}">Multilayers</a>
-            </div>    
+                <div class="w3-mobile w3-right">
+                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('register') }}">Register</a>
+                </div>
+                @else
+                <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
+                    <a class="w3-bar-item w3-button" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
+                </div>
 
-            @guest
-            <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
-                <a class="w3-bar-item w3-button w3-mobile" href="{{ url('login') }}">Log in</a>
-            </div>
-            <div class="w3-mobile w3-right">
-                <a class="w3-bar-item w3-button w3-mobile" href="{{ url('register') }}">Register</a>
-            </div>
-            @else
-            <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
-                <a class="w3-bar-item w3-button" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
-            </div>
+                <div class="w3-dropdown-hover w3-mobile w3-right">
+                    <button class="w3-button" style=" background-color: #17331C;color: white;">
+                        {{ Auth::user()->name }} <i class="fa fa-caret-down"></i>
+                    </button>
+                    <div class="w3-dropdown-content w3-bar-block w3-card-4">
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile') }}">My profile</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mydatasets') }}">My layers</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mysearches') }}">My searches</a>
+                        @admin
+                        <a class="w3-bar-item w3-button" href="{{ url('admin') }}">Admin</a>
+                        @endadmin
+                    </div>
+                </div>
 
-            <div class="w3-dropdown-hover w3-mobile w3-right">
-                <button class="w3-button" style=" background-color: #17331C;color: white;">
-                    {{ Auth::user()->name }} <i class="fa fa-caret-down"></i>
-                </button>
-                <div class="w3-dropdown-content w3-bar-block w3-card-4">
-                    <a class="w3-bar-item w3-button" href="{{ url('myprofile') }}">My profile</a>
-                    <a class="w3-bar-item w3-button" href="{{ url('myprofile/mydatasets') }}">My layers</a>
-                    <a class="w3-bar-item w3-button" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
-                    <a class="w3-bar-item w3-button" href="{{ url('myprofile/mysearches') }}">My searches</a>
-                    @admin
-                    <a class="w3-bar-item w3-button" href="{{ url('admin') }}">Admin</a>
-                    @endadmin
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+                @endguest
+
+                <div class="w3-mobile w3-right menu-nav-button">
+                    <span class="menu-nav-button-icon">
+                        <span class="icon icon-menu-light">
+                        </span>
+                    </span>
                 </div>
             </div>
-
-
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                @csrf
-            </form>
-            @endguest
-
         </div>
 
         <!-- End Navbar -->

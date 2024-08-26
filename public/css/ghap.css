@@ -803,10 +803,6 @@ div#mainnav {
     .site-name {
         font-size: 0.8em !important; 
     }
-
-    .menu-nav-button{
-        padding-top: 3%;
-    }
 }
 
 .secondary-nav {
@@ -901,6 +897,10 @@ div#mainnav {
         no-repeat center center;
 }
 
+.icon-menu-light {
+    background: url('data:image/svg+xml;utf8,<svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 1H20" stroke-width="1.3px" stroke="%23FFFFFF"/><path d="M0 6.99902H20" stroke-width="1.3px" stroke="%23FFFFFF"/><path d="M0 13H20" stroke-width="1.3px" stroke="%23FFFFFF"/></svg>') no-repeat center center;
+}
+
 .icon-close-dark {
     background: url('data:image/svg+xml;utf8,<svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L16 16" stroke-width="1.3px" stroke="%23000000"/><path d="M16 1L1 16" stroke-width="1.3px" stroke="%23000000"/></svg>')
         no-repeat center center;
@@ -932,6 +932,7 @@ div#mainnav {
 .menu-nav-button {
     cursor: pointer;
     font-size: 20px;
+    margin-top: 0.5%;
 }
 
 .menu-nav-button-icon .icon {
