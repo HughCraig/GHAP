@@ -598,6 +598,8 @@ function continueSearchForm(
             tlcMap.addPointsToMap(tlcMap.dataitems, viewBbox);
             tlcMap.renderDataItems(tlcMap.dataitems);
 
+            tlcMap.graphicsLayer.removeAll();
+
             if (defaultLocation) {
                 tlcMap.zoomTo(defaultLocation[1], defaultLocation[0]);
                 updateParameter("goto", defaultLocation.join(","));
@@ -1100,6 +1102,7 @@ $(document).ready(async function () {
     });
 
     $("#searchpublicdatasets, #searchausgaz, #searchncg").change(function () {
+        tlcMap.removeAllPlacesFromFeatureLayer();
         tlcMap.refreshMapPins();
     });
 
@@ -1159,7 +1162,6 @@ $(document).ready(async function () {
         $("#e").val("");
 
         $("#input-select-box").val("containsname");
-        document.getElementById("input").placeholder = "Enter place name";
 
         $(".row.align-items-center.my-auto").each(function () {
             if ($(this).css("display") === "flex") {

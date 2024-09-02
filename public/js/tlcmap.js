@@ -655,7 +655,7 @@ class TLCMap {
         addPlace.setAttribute("data-animation", "true");
         addPlace.setAttribute("data-toggle", "tooltip");
         addPlace.setAttribute("data-placement", "top");
-        addPlace.setAttribute("title", "Contribute to TLCMap");
+        addPlace.setAttribute("title", "Add Place To TLCMap");
 
         $(addPlace).tooltip();
 
@@ -1036,6 +1036,10 @@ class TLCMap {
                 dataitem["datasource_description"] =
                     dataitem.datasource.description;
                 dataitem["datasource_link"] = dataitem.datasource.link;
+               
+                if (dataitem["external_url"]) {
+                    dataitem["external_url"] = '<a href="' + dataitem.external_url + '" style="color:#0000EE;" target="_blank">' + dataitem.external_url + '</a>';
+                }
 
                 if (dataitem["dataset"]) {
                     dataitem["dataset_name"] = dataitem.dataset.name;

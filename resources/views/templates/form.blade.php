@@ -373,7 +373,7 @@
                             <div class="kml-search">
                                 <h4>
                                     Search within a KML polygon
-                                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" style="font-size:14px" title="Upload a KML file specifying a polygon.">
+                                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" style="font-size:14px" title="Upload a KML file specifying a polygon. No visualisation. Downloadable results only.">
                                     </span>
                                 </h4>
                                 <!-- MODAL Search within kml polygon from file
