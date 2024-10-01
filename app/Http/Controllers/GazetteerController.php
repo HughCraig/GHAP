@@ -558,15 +558,6 @@ class GazetteerController extends Controller
                 });
             }
         }
-        if (isset($parameters['limit'])) {
-            $limit = filter_var($parameters['limit'], FILTER_VALIDATE_INT);
-        
-            if ($limit !== false && $limit > 0) {
-                if ($dataitems->count() > $limit) {
-                    $dataitems = $dataitems->inRandomOrder()->take($limit);
-                }
-            } 
-        }
 
         $collection = $dataitems->get(); //needs to be applied a second time for some reason (maybe because of the subquery?)
 
@@ -580,6 +571,15 @@ class GazetteerController extends Controller
                     $v->dateend
                 );
             });
+        }
+    
+        // Limit the results
+        if (isset($parameters['limit'])) {
+            $limit = filter_var($parameters['limit'], FILTER_VALIDATE_INT);
+
+            if ($limit !== false && $limit > 0 && $collection->count() > $limit) {
+                $collection = $collection->shuffle()->take($limit);
+            }
         }
 
         return [

@@ -593,6 +593,9 @@ function continueSearchForm(
             tlcMap.isSearchOn = true;
             tlcMap.totalSearchCount = response.count;
 
+            if (!Array.isArray(response.dataitems)) {
+                response.dataitems = Object.values(response.dataitems);
+            }
             tlcMap.dataitems = response.dataitems;
 
             tlcMap.addPointsToMap(tlcMap.dataitems, viewBbox);
