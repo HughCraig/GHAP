@@ -46,6 +46,7 @@
     <!-- Modal Add to dataset button -->
     @auth
     @include('modals.adddataitemmodal')
+    @include('modals.addnewdatasetmodal')
     @endauth
 
     <div id="searchForm">

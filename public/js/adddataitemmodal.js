@@ -30,6 +30,16 @@ $(document).ready(function () {
     });
     $("#addfeatureterm").autocomplete("option", "appendTo", ".eventInsForm");
 
+    $("#addNewLayer").on("click", function () {
+        const currentModal = document.querySelector("#addModal");
+        $(currentModal).modal("hide");
+
+        setTimeout(() => {
+            const newModal = document.querySelector("#newLayerModal");
+            $(newModal).modal("show");
+        }, 500); // Delay to allow the current modal to fully hide
+    });
+
     function refreshSelectList() {
         // Clear all existing options.
         $("#chooseLayer").val(null).trigger("change");
