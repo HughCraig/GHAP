@@ -224,6 +224,7 @@
                         <a class="w3-bar-item w3-button" href="{{ url('myprofile') }}">My profile</a>
                         <a class="w3-bar-item w3-button" href="{{ url('myprofile/mydatasets') }}">My layers</a>
                         <a class="w3-bar-item w3-button" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mytexts') }}">My texts</a>
                         <a class="w3-bar-item w3-button" href="{{ url('myprofile/mysearches') }}">My searches</a>
                         @admin
                         <a class="w3-bar-item w3-button" href="{{ url('admin') }}">Admin</a>

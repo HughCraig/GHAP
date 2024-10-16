@@ -140,6 +140,23 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mycollections/{id}/ro-crate', 'CollectionController@downloadPrivateROCrate');
 });
 
+/** 
+ * User text CRUD pages
+ */
+Route::middleware($baseAuthMiddlewares)->group(function () {
+    Route::get('myprofile/mytexts', 'TextController@viewMyTexts');
+    Route::get('myprofile/mytexts/newtext', 'TextController@newText');
+
+    Route::post('myprofile/mytexts/newtext/create', 'TextController@createNewText');
+   
+    Route::get('myprofile/mytexts/{id}', 'TextController@viewMyText');
+    Route::get('myprofile/mytexts/{id}/parse', 'TextController@parseText');
+
+    Route::post('ajaxparsetext', 'TextController@parseTextContent');
+    // Route::post('myprofile/mycollections/{id}/edit', 'CollectionController@editCollection');
+    // Route::get('myprofile/mycollections/{id}/ro-crate', 'CollectionController@downloadPrivateROCrate');
+});
+
 /**
  * Admin pages
  * The Admin Controller passes through 'auth' and 'verified' middleware for all functions AND checks user is admin

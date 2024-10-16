@@ -227,6 +227,38 @@ class GeneralFunctions
         return true;
     }
 
+    public static function validateUserUploadText($file)
+    {
+
+        $maxSize = config('app.text_max_upload_file_size');
+        $allowedExtensions = config('app.allowed_text_file_types');
+
+        // Check the file size
+        if ($file->getSize() > $maxSize) {
+            return false; 
+        }
+
+        // Check the file extension
+        $extension = $file->getClientOriginalExtension();
+        if (!in_array(strtolower($extension), $allowedExtensions)) {
+            return false; 
+        }
+
+        // Get the file content as an array of lines
+        $fileContent = file($file->getRealPath(), FILE_IGNORE_NEW_LINES);
+
+        // Ensure the file is valid UTF-8
+        if (!mb_detect_encoding(implode("\n", $fileContent), 'UTF-8', true)) {
+            return false; // File is not valid UTF-8 text
+        }
+
+        // Join the lines into a single string with \n for each line break
+        $fileContentString = implode("\n", $fileContent);
+
+        return json_encode($fileContentString); 
+    }
+
+
     /**
      * Calulates the distance between two points by coordinates
      * 
