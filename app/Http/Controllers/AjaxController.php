@@ -7,6 +7,7 @@ use TLCMap\Http\Helpers\UID;
 use TLCMap\Models\SavedSearch;
 use TLCMap\Models\Dataitem;
 use TLCMap\Models\Dataset;
+use TLCMap\Models\Datasource;
 use TLCMap\Models\CollabLink;
 use TLCMap\Models\RecordType;
 use TLCMap\Models\User;
@@ -514,6 +515,12 @@ class AjaxController extends Controller
         return response()->json(['time' => $dataitem->updated_at->toDateTimeString(), 'datestart' => $datestart, 'dateend' => $dateend]);
     }
 
+    public function ajaxgetdataitemmaps()
+    {
+
+        
+    }
+
 
     /**
      * Add a dataitem to this dataset
@@ -596,6 +603,15 @@ class AjaxController extends Controller
             $dataitem->uid = UID::create($dataitem->id, 't');
             $isDirty = true;
         }
+
+        if($request->datasource_id){
+            $datasourceExists = Datasource::where('id', $request->datasource_id)->exists();
+
+            if ($datasourceExists) {
+                $dataitem->datasource_id = $request->datasource_id;
+            } 
+        }
+
         // Set extended data.
         if (!empty($extendedData)) {
             $dataitem->setExtendedData(json_decode($extendedData,true));

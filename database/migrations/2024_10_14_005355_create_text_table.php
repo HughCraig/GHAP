@@ -41,7 +41,7 @@ class CreateTextTable extends Migration
             $table->text('citation')->nullable();
             $table->text('rights')->nullable();
 
-            $table->string('access_token', 255);
+            $table->string('access_token', 255)->nullable();
             $table->timestamps(); 
         });
     }

@@ -36,6 +36,15 @@ class Text extends Model
     }
 
     /**
+     * Define the relationship to TextContext.
+     * One Text has many TextContexts.
+    */
+    public function textContexts()
+    {
+        return $this->hasMany(TextContext::class, 'text_id');
+    }
+
+    /**
      * Get  Text Type for this text.
      */
     public function texttype()

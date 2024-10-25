@@ -12,6 +12,8 @@ use TLCMap\Models\SubjectKeyword;
 use Illuminate\Support\Facades\Storage;
 use GuzzleHttp;
 use Response;
+use TLCMap\Models\RecordType;
+use TLCMap\Models\TextContext;
 
 class TextController extends Controller
 {
@@ -42,7 +44,7 @@ class TextController extends Controller
         $text = $user->texts()->find($textID);
         if (!$textID) {
             return redirect('myprofile/mytexts/');
-        }
+        }  
         return view('user.userviewtext', ['text' => $text]);
     }
 
@@ -106,8 +108,9 @@ class TextController extends Controller
             $textfile = $request->file('textfile');
 
             $filecontent = GeneralFunctions::validateUserUploadText($textfile);
-            Log::info("File content: ");
-            Log::info($filecontent);
+
+            $filecontent = preg_replace('/\n/', '<br> ', json_decode($filecontent) );
+
             //Validate text file.
             if (!$filecontent) {
                 return response()->json(['error' => 'Text file must be a valid text file type and size.'], 422);
@@ -159,16 +162,20 @@ class TextController extends Controller
 
         $user = Auth::user();
         $text = $user->texts()->find($textID);
+        $recordtypes = RecordType::all();
         if (!$textID) {
             return redirect('myprofile/mytexts/');
         }
-        return view('user.userparsetext', ['text' => $text]);
+        return view('user.userparsetext', ['text' => $text,  'recordtypes' => $recordtypes]);
     }
 
-    public function parseTextContent2(Request $request)
+    public function parseTextContent(Request $request)
     {
+        ini_set('max_execution_time', 3000);
+        set_time_limit(3000);
         $user = Auth::user();
         $textID = $request->id;
+        $parseMethod = $request->method;
 
         // Retrieve the text associated with the user
         $text = $user->texts()->find($textID);
@@ -176,64 +183,116 @@ class TextController extends Controller
             return response()->json(['error' => 'Text not found'], 404);
         }
 
+        $client = new \GuzzleHttp\Client();
         $apiUrl = 'http://localhost:8002/api/geoparse';
         $data = [
             'api_key' => 'GSAP-APNR-MxroY7QYIANG8YLDidq9MLEqknsI1oui',
             'text' => $text->content,
-            'method' => 'bert'
+            'method' =>  $parseMethod,
         ];
 
-        Log::info($text->content);
-        // Send the POST request to the external API
+        if ($parseMethod == "dictionary" || $parseMethod == "dictionary_with_coords") {
+
+            if ($request->hasFile('dictionary')) {
+                $file = $request->file('dictionary');
+                $csvData = array_map('str_getcsv', file($file->getRealPath()));
+
+                // If dictionary_with_coords, check for lat/lon values
+                if ($parseMethod == "dictionary_with_coords") {
+                    $places = [];
+                    foreach ($csvData as $row) {
+                        // Remove BOM from the first cell if present
+                        $row[0] = preg_replace('/^\x{FEFF}/u', '', $row[0]);
+                        if (count($row) < 3) {
+                            return response()->json(['error' => 'Invalid CSV format. Expected Place Name, Latitude, Longitude'], 400);
+                        }
+                        $places[] = [$row[0], $row[1], $row[2]]; // Place, Lat, Lon
+                    }
+                    $data['places'] = $places;
+                } else {
+                    // For dictionary method, only place names are required
+                    $places = array_column($csvData, 0);
+                    // Remove BOM from the first entry if present
+                    $places[0] = preg_replace('/^\x{FEFF}/u', '', $places[0]);
+                    $data['places'] = $places;
+                }
+            } else {
+                return response()->json(['error' => 'CSV file is required for dictionary methods'], 400);
+            }
+        }
+
         try {
-            $client = new GuzzleHttp\Client();
             $response = $client->post($apiUrl, [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                ],
-                'body' => json_encode($data),
+                'headers' => ['Content-Type' => 'application/json'],
+                'json' => $data,
             ]);
 
+            $response = json_decode($response->getBody(), true);
 
-            // Get the response from the API
-            $responseBody = json_decode($response->getBody(), true);
 
-            return response()->json($responseBody);
+            if (isset($response['data']) && $parseMethod !== "dictionary_with_coords") {
+
+                $geocoding_method = $request->geocoding_method;
+                $geocoding_bias = $request->geocoding_bias;
+
+                foreach ($response['data']['place_names'] as $index => $place) {
+                    $geocodeResult = $this->geocodePlace($client, $place['name'], $geocoding_method, $geocoding_bias);
+
+                    $response['data']['place_names'][$index]['temp_lat'] = $geocodeResult['data']['geolocated_ents'][0]['lat'] ?? "";
+                    $response['data']['place_names'][$index]['temp_lon'] = $geocodeResult['data']['geolocated_ents'][0]['lon'] ?? "";
+                    $response['data']['place_names'][$index]['name'] = ucfirst($response['data']['place_names'][$index]['name']);
+                }
+            }
+
+            return response()->json($response);
         } catch (\Exception $e) {
-            // Log the error message
-            Log::error('Failed to parse text: ' . $e->getMessage());
-
-            // Return the error response with the exception message for debugging
-            return response()->json(['error' => 'Failed to parse text.', 'message' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Failed to send request', 'details' => $e->getMessage()], 500);
         }
     }
 
-    public function parseTextContent(Request $request)
+    public function addTextContext(Request $request)
     {
-        $user = Auth::user();
-        $text = $user->texts()->find("10");
-        if (!$text) {
-            return response()->json(['error' => 'Text not found'], 404);
-        }
+        $this->middleware('auth');
 
-        $client = new GuzzleHttp\Client();
-        $apiUrl = 'http://localhost:8002/api/geoparse';
+        TextContext::create([
+            'dataitem_uid' => $request->dataitem_uid,
+            'text_id' => $request->text_id,
+            'start_index' => $request->start_index,
+            'end_index' => $request->end_index,
+            'sentence_start_index' => $request->sentence_start_index,
+            'sentence_end_index' => $request->sentence_end_index,
+            'line_index' => $request->line_index,
+            'line_word_start_index' => $request->line_word_start_index,
+            'line_word_end_index' => $request->line_word_end_index
+        ]);
+
+        return response()->json();
+    }
+
+    private function geocodePlace($client, $placeName, $geocoding_method, $bias)
+    {
+        $apiUrl = 'http://localhost:8001/api/geocode';
         $data = [
             'api_key' => 'GSAP-APNR-MxroY7QYIANG8YLDidq9MLEqknsI1oui',
-            'text' => $text->content,
-            'method' => "bert",
+            'place_name' => $placeName,
+            'context' => ' ',
+            'method' => $geocoding_method,
+            'bias' => $bias
         ];
 
         try {
             $response = $client->post($apiUrl, [
-                'json' => $data,  // Guzzle automatically sets Content-Type to application/json and encodes the data
+                'headers' => ['Content-Type' => 'application/json'],
+                'json' => $data
             ]);
 
-            $responseBody = json_decode($response->getBody(), true);
-            return response()->json($responseBody);
+            $body = json_decode($response->getBody(), true);
+
+            return $body;
         } catch (\Exception $e) {
-            Log::error('Failed to parse text: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to send request', 'details' => $e->getMessage()], 500);
+            return [
+                'error' => 'Request failed: ' . $e->getMessage()
+            ];
         }
     }
 }

@@ -153,6 +153,7 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mytexts/{id}/parse', 'TextController@parseText');
 
     Route::post('ajaxparsetext', 'TextController@parseTextContent');
+    Route::post('ajaxaddtextcontent', 'TextController@addTextContext');
     // Route::post('myprofile/mycollections/{id}/edit', 'CollectionController@editCollection');
     // Route::get('myprofile/mycollections/{id}/ro-crate', 'CollectionController@downloadPrivateROCrate');
 });
@@ -183,6 +184,8 @@ Route::post('ajaxdbscan', 'AjaxController@ajaxdbscan');
 Route::post('ajaxkmeans', 'AjaxController@ajaxkmeans');
 Route::post('ajaxtemporalclustering', 'AjaxController@ajaxtemporalclustering');
 Route::post('ajaxclosenessanalysis', 'AjaxController@ajaxclosenessanalysis');
+
+Route::post('ajaxgetdataitemmaps', 'AjaxController@ajaxgetdataitemmaps');
 
 Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in for these
     Route::post('ajaxsavesearch', 'AjaxController@ajaxsavesearch');

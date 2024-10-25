@@ -2,6 +2,7 @@
     <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/map-picker.css') }}">
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
+    <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
 @endpush
 
 @push('scripts')
@@ -31,8 +32,11 @@
     <script src="{{ asset('js/searchform.js') }}"></script>
     <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/validation.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
 
     <script type="text/javascript" src="{{ asset('/js/stmetrics-csv-download.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/dataitem.js') }}"></script> 
+    <script type="text/javascript" src="{{ asset('js/addnewdatasetmodal.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/home.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/map-picker.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/tlcmap.js') }}"></script>

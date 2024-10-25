@@ -98,7 +98,7 @@ msgBanner.hide();
  *  The message banner to display errors.
  * 
  */
-const validateAddDataRequestData = function (msgBanner) {
+function validateAddDataRequestData(msgBanner) {
      // Validate the input.
     let isValid = true;
     msgBanner.clear();

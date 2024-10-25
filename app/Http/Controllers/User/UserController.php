@@ -262,6 +262,8 @@ class UserController extends Controller
             Storage::disk('public')->putFileAs('images', $image, $filename);
         }
 
+        $from_text_id = $request->from_text_id ?? null;
+
         $dataset = Dataset::create([
             'name' => $datasetname,
             'description' => $description,
@@ -286,7 +288,8 @@ class UserController extends Controller
             'temporal_to' => $temporalto,
             'created' => $request->created,
             'warning' => $request->warning,
-            'image_path' => $filename
+            'image_path' => $filename,
+            'from_text_id' => $from_text_id
         ]);
 
         $user->datasets()->attach($dataset, ['dsrole' => 'OWNER']); //attach creator to pivot table as OWNER

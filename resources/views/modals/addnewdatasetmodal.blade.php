@@ -1,21 +1,3 @@
-@push('scripts')
-
-@push('styles')
-    <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
-@endpush
-
-
-@push('scripts')
-    <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
-    <script> 
-        const max_upload_image_size = {{ config('app.max_upload_image_size') }};
-    </script>
-    <script src="{{ asset('js/addnewdatasetmodal.js') }}"></script>
-    <script src="{{ asset('/js/dataitem.js') }}"></script> 
-@endpush
-
-@endpush
-
 <div class="modal fade" id="newLayerModal" tabindex="-1" role="dialog" aria-labelledby="newLayerModalLabel">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">

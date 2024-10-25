@@ -149,7 +149,7 @@
 
 <!-- Displaying the text content in a scrollable div  MUFENG: make this class-->
 <div class="p-4" style="border: 1px solid #ddd;width: 100%; height: 300px; overflow-y: scroll; white-space: pre-line;">
-    {{ json_decode($text->content) }}
+    {!! nl2br(htmlspecialchars_decode($text->content)) !!}
 </div>
 
 <h2>Layers created from this text</h2>
@@ -168,7 +168,7 @@
     <tbody>
         @foreach($text->datasets as $ds)
         <tr id="row_id_{{$ds->id}}">
-            <td><a href="{{url()->full()}}/{{$ds->id}}">{{$ds->name}}</a></td>
+            <td><a href="/myprofile/mydatasets/{{$ds->id}}">{{$ds->name}}</a></td>
             <td>{{$ds->recordtype->type}}</td>
             <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td>
             <td>{{$ds->created_at}}</td>

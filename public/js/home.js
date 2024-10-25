@@ -1186,4 +1186,50 @@ $(document).ready(async function () {
     $("#searchbutton").click(function (e) {
         searchActions(tlcMap, true, null);
     });
+
+    $("#add_layer_button_submit").on("click", function () {
+        let isValid = validateAddLayerRequestData(msgBanner);
+
+        if (isValid) {
+            $.ajax({
+                type: "POST",
+                url: "/myprofile/mydatasets/newdataset/create", //'User\UserController@createNewDataset'
+                data: getAddLayerRequestData(),
+                contentType: false,
+                processData: false,
+                headers: {
+                    Accept: "application/json",
+                },
+                success: function (result) {
+
+                    const new_layer_id = result.dataset_id;
+                    const new_layer_name = $("#layername").val();
+
+                    const new_layer_option = new Option(
+                        new_layer_name,
+                        new_layer_id,
+                        true,
+                        true
+                    );
+                    $("#chooseLayer").append(new_layer_option).trigger("change");
+
+                    removeExistingSelections();
+                    const currentModal = document.querySelector("#newLayerModal");
+                    $(currentModal).modal("hide");
+            
+                    setTimeout(() => {
+                        const newModal = document.querySelector("#addModal");
+                        $(newModal).modal("show");
+                    }, 500); 
+                },
+                error: function (xhr) {
+                    alert("Create layer failed");
+                },
+            });
+        } else {
+            // Display and scroll to the message banner.
+            msgBanner.show();
+            $("#newLayerModal .scrollable").scrollTop(0);
+        }
+    });
 });

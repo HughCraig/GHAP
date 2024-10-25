@@ -23,7 +23,7 @@ class Dataset extends Model
     protected $fillable = [
         'id', 'name', 'description', 'creator', 'public', 'allowanps', 'publisher', 'contact', 'citation', 'doi',
         'source_url', 'linkback', 'latitude_from', 'longitude_from', 'latitude_to', 'longitude_to', 'language', 'license', 'rights',
-        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning' , 'image_path'
+        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning' , 'image_path' , 'from_text_id', 'access_token'
     ];
 
     /**
@@ -97,6 +97,15 @@ class Dataset extends Model
     public function collections()
     {
         return $this->belongsToMany('TLCMap\Models\Collection', 'tlcmap.collection_dataset', 'dataset_id', 'collection_id');
+    }
+
+    /**
+     * Define the relationship to the Text model.
+     * One Dataset belongs to one Text (linked by `from_text_id`).
+     */
+    public function text()
+    {
+        return $this->belongsTo(Text::class, 'from_text_id');
     }
 
     public function addData($data)
@@ -491,6 +500,18 @@ class Dataset extends Model
             'features' => $features,
             'display' => $featureCollectionConfig->toArray(),
         );
+
+        if (isset($_GET["textmap"])) {
+           $text = $this->text;
+           $allfeatures['textcontent'] = ($text->content);
+
+           $textContexts = $text->textContexts()->get();
+           $allfeatures['textcontexts'] = [];
+           foreach ($textContexts as $textContext) {
+              $allfeatures['textcontexts'][] = $textContext->toArray();
+           }
+          
+        }
       
         if( count($features) == 0){
             $allfeatures['metadata']['warning'] .=  "<p>0 results found</p>";

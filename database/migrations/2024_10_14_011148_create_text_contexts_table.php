@@ -15,7 +15,7 @@ class CreateTextContextsTable extends Migration
     {
         Schema::create('tlcmap.text_contexts', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('dataitem_id'); 
+            $table->text('dataitem_uid'); 
             $table->unsignedBigInteger('text_id'); 
             $table->unsignedBigInteger('start_index'); 
             $table->unsignedBigInteger('end_index'); 
