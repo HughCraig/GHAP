@@ -31,12 +31,23 @@ $(document).ready(function () {
     $("#addfeatureterm").autocomplete("option", "appendTo", ".eventInsForm");
 
     $("#addNewLayer").on("click", function () {
+
+        tlcMap.ignoreExtentChange = true;
         const currentModal = document.querySelector("#addModal");
         $(currentModal).modal("hide");
 
         setTimeout(() => {
             const newModal = document.querySelector("#newLayerModal");
-            $(newModal).modal("show");
+            $(newModal).modal("show")
+                .on('hide.bs.modal', () => {
+                    tlcMap.ignoreExtentChange = true;
+                })
+                .on('hidden.bs.modal', () => {
+                    setTimeout(() => {
+                        tlcMap.ignoreExtentChange = false; 
+                    }, 500); 
+                });
+
         }, 500); // Delay to allow the current modal to fully hide
     });
 
