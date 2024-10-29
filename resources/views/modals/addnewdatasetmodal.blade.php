@@ -33,9 +33,16 @@
                 <div class="scrollable">
                     <div class="message-banner"></div>
 
-                    *Layer name
+                    Layer name <label class="text-danger">*</label>
                     <input type="text" class="mb-2 w3-white form-control" id="layername" required />
 
+                    <div class="mb-4">
+                        Description <label class="text-danger">*</label>
+                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+                            title="A short paragraph summarising the layer. Anything not covered by other fields can be added here."></span>
+                        <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control wysiwyg-editor" id="description"></textarea>
+                    </div>
+                    
                     Subject (keywords)
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="Type and press enter to create keywords describing this layer."></span>
@@ -136,13 +143,6 @@
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="The date that the information in this layer was created."></span>
                     <input type="date" class="mb-2 w3-white form-control" id="created" />
-
-                    <div class="mb-4">
-                        *Description
-                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-                            title="A short paragraph summarising the layer. Anything not covered by other fields can be added here."></span>
-                        <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control wysiwyg-editor" id="description"></textarea>
-                    </div>
 
                     <div class="mb-4">
                         Citation <!-- help hover button -->

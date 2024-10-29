@@ -231,6 +231,7 @@ $(document).ready(function () {
 
                     const new_layer_id = result.dataset_id;
                     const new_layer_name = $("#layername").val();
+                    const isPublic = result.is_public; 
 
                     const new_layer_option = new Option(
                         new_layer_name,
@@ -238,6 +239,7 @@ $(document).ready(function () {
                         true,
                         true
                     );
+                    $(new_layer_option).attr("data-public", isPublic);
                     $("#chooseLayer").append(new_layer_option).trigger("change");
 
                     removeExistingSelections();
