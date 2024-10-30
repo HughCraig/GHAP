@@ -96,7 +96,7 @@ $(document).ready(function () {
         formData.append("dsn", `${userName}'s places`);
         formData.append("description", `${userName}'s first layer`);
         formData.append("recordtype", "Other");
-        formData.append("public", 0); // Private layer
+        formData.append("public", 1); // Public layer
         formData.append("allowanps", 0);
         formData.append("redirect", false);
 
