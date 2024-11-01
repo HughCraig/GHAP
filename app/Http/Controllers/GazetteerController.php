@@ -179,9 +179,6 @@ class GazetteerController extends Controller
             return redirect()->to($redirectUrl);
         }
 
-        $starttime = microtime(true);
-
-        $that = $this;
 
         /* ENV VARS */
         $MAX_PAGING = config('app.maxpaging');     //should move the rest of the direct env calls to be config calls but this will take forever
@@ -196,7 +193,19 @@ class GazetteerController extends Controller
             $parameters['format'] = $format;
         }
 
-        //app('log')->debug('Time after Parameter Get: ' . (microtime(true) - $starttime)); //DEBUG LOGGING TEST
+        // Set redirect URL for new home page
+        if (empty($parameters['format'])) {
+
+            if($uid){
+                $redirectUrl = '/?gotoid=' . $uid; 
+            } else {
+                $queryString = http_build_query($request->query());
+                $redirectUrl = '/' . ($queryString ? '?' . $queryString : '');
+            }
+    
+            return redirect($redirectUrl);
+        }
+
 
         if ($parameters['names']) $parameters['names'] = array_map('trim', explode(',', $parameters['names']));
         if ($parameters['fuzzynames']) $parameters['fuzzynames'] = array_map('trim', explode(',', $parameters['fuzzynames']));
@@ -208,7 +217,7 @@ class GazetteerController extends Controller
         if (!$paging || $paging > $MAX_PAGING) $paging = $MAX_PAGING; //limit to MAX if over max
 
         // Search dataitems.
-        $results = $this->searchDataitems($parameters);
+        $results = $this->searchDataitems($parameters)['dataitems'];
         /* MAX SIZE CHECK */
         if ($this->maxSizeCheck($results, $parameters['format'], $MAX_PAGING)) return redirect()->route('maxPagingMessage'); //if results > $MAX_PAGING show warning msg
 
@@ -230,9 +239,9 @@ class GazetteerController extends Controller
     /* SEARCH FUNCTIONS */
     /********************/
 
-    private function searchDataitems($parameters)
+    public static function searchDataitems($parameters)
     {
-        $that = $this; //self reference to use the functions in this controller
+        $gazetteerController = new GazetteerController();
 
         // Get datasource IDs to search.
         $datasourceIDs = [];
@@ -259,9 +268,8 @@ class GazetteerController extends Controller
             ->whereIn('datasource_id', $datasourceIDs);
 
         /* GET BBOX PARAMS */
-        $bbox = ($parameters['bbox']) ? $this->getBbox($parameters['bbox']) : null;
-        $polygon = ($parameters['polygon']) ? $this->getPolygon($parameters['polygon']) : null;
-        $circle = ($parameters['circle']) ? $this->getCircle($parameters['circle']) : null;
+        $bbox = isset($parameters['bbox']) ? $gazetteerController->getBbox($parameters['bbox']) : null;
+        $polygon = isset($parameters['polygon']) ? $gazetteerController->getPolygon($parameters['polygon']) : null;
 
         // Search UID.
         if (isset($parameters['id'])) {
@@ -281,12 +289,12 @@ class GazetteerController extends Controller
             }
         }
 
-        if ($parameters['names']) {
-            $names = array_filter(array_map('trim', $parameters['names']));
-        } elseif ($parameters['fuzzynames']) {
-            $names = array_filter(array_map('trim', $parameters['fuzzynames']));
-        } elseif ($parameters['containsnames']) {
-            $names = array_filter(array_map('trim', $parameters['containsnames']));
+        if (isset($parameters['names']) && $parameters['names']) {
+            $names = array_filter(array_map('trim', explode(',', $parameters['names'])));
+        } elseif (isset($parameters['fuzzynames']) && $parameters['fuzzynames']) {
+            $names = array_filter(array_map('trim', explode(',', $parameters['fuzzynames'])));
+        } elseif (isset($parameters['containsnames']) && $parameters['containsnames']) {
+            $names = array_filter(array_map('trim', explode(',' , $parameters['containsnames'])));
         } else {
             $names = null;
         }
@@ -294,7 +302,7 @@ class GazetteerController extends Controller
         if ($names) { //if we are bulk searching from file
             if (!empty($names)) { //if we dont have an empty array
                 //If we are bulk searching from file, skip name and fuzzyname search and search from file instead
-                if ($parameters['names']) {
+                if ( isset($parameters['names']) && $parameters['names']) {
                     $dataitems->where(function ($query) use ($names , $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', $firstcase)->orWhere('placename', 'ILIKE', $firstcase);
@@ -305,7 +313,7 @@ class GazetteerController extends Controller
                             $query->orWhere('description', 'ILIKE', '%' . $parameters['name'] . '%');
                         }
                     });
-                } else if ($parameters['fuzzynames']) {
+                } else if ( isset($parameters['fuzzynames']) && $parameters['fuzzynames']) {
                     $dataitems->where(function ($query) use ($names , $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', '%' . $firstcase . '%')->orWhereRaw('placename % ?', $firstcase);
@@ -317,7 +325,7 @@ class GazetteerController extends Controller
                             $query->orWhere('description', 'ILIKE', '%' . $parameters['fuzzyname'] . '%');
                         }
                     });
-                } else if ($parameters['containsnames']) {
+                } else if ( isset($parameters['containsnames']) && $parameters['containsnames']) {
                     $dataitems->where(function ($query) use ($names , $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', '%' . $firstcase . '%')->orWhere('placename', 'ILIKE', '%' . $firstcase . '%');
@@ -331,14 +339,14 @@ class GazetteerController extends Controller
                 }
             } else $dataitems->where('title', '=', null); //we did a bulk search but all of the names equated to empty strings! Show no results
         } else {
-            if ($parameters['name']){
+            if ( isset($parameters['name']) && $parameters['name']) {
                 $dataitems->where(function ($query) use ($parameters) {
                     $query->where('title', 'ILIKE', $parameters['name']);
                     if ($parameters['searchdescription'] === 'on') {
                         $query->orWhere('description', 'ILIKE', '%' . $parameters['name'] . '%');
                     }
                 });
-            } else if ($parameters['fuzzyname']) {
+            } else if (isset($parameters['fuzzyname']) && $parameters['fuzzyname']) {
                 $dataitems->where(function ($query) use ($parameters) {
                     $query->where('title', 'ILIKE', '%' . $parameters['fuzzyname'] . '%')->orWhereRaw('title % ?', $parameters['fuzzyname'])
                         ->orWhere('placename', 'ILIKE', '%' . $parameters['fuzzyname'] . '%')->orWhereRaw('placename % ?', $parameters['fuzzyname']);
@@ -347,7 +355,7 @@ class GazetteerController extends Controller
                         $query->orWhere('description', 'ILIKE', '%' . $parameters['fuzzyname'] . '%');
                     }
                 });
-            } else if ($parameters['containsname']) {
+            } else if (isset($parameters['containsname']) && $parameters['containsname']) {
                 $dataitems->where(function ($query) use ($parameters) {
                     $query->where('title', 'ILIKE', '%' . $parameters['containsname'] . '%')->orWhere('placename', 'ILIKE', '%' . $parameters['containsname'] . '%');
                     if ($parameters['searchdescription'] === 'on') {
@@ -480,12 +488,12 @@ class GazetteerController extends Controller
                 }
             }
         }
-        if ($parameters['lga']) $dataitems->where('lga', '=', $parameters['lga']);
-        if ($parameters['dataitemid']) $dataitems->where('id', '=', $parameters['dataitemid']);
-        if ($parameters['from']) $dataitems->where('id', '>=', $parameters['from']);
-        if ($parameters['to']) $dataitems->where('id', '<=', $parameters['to']);
-        if ($parameters['state']) $dataitems->where('state', '=', $parameters['state']);
-        if ($parameters['feature_term']){
+        if (isset($parameters['lga'])) $dataitems->where('lga', '=', $parameters['lga']);
+        if (isset($parameters['dataitemid'])) $dataitems->where('id', '=', $parameters['dataitemid']);
+        if (isset($parameters['from'])) $dataitems->where('id', '>=', $parameters['from']);
+        if (isset($parameters['to'])) $dataitems->where('id', '<=', $parameters['to']);
+        if (isset($parameters['state'])) $dataitems->where('state', '=', $parameters['state']);
+        if (isset($parameters['feature_term'])){
             $searchTerms = explode(';', $parameters['feature_term']);
             $dataitems->wherein('feature_term', $searchTerms);
         }
@@ -503,6 +511,8 @@ class GazetteerController extends Controller
                 });
             }
         }
+
+    
         if ($polygon) { //sql: WHERE ST_CONTAINS(ST_GEOMFROMTEXT('POLYGON((lng1 lat1, lng2 lat2, lngn latn, lng1 lat1))'), POINT(longitude,latitude) )
             $polygonsql = "ST_GEOMFROMTEXT('POLYGON((";
             for ($i = 0; $i < count($polygon); $i += 2) { //for each point
@@ -516,20 +526,8 @@ class GazetteerController extends Controller
                     ->orWhereRaw("ST_CONTAINS(" . $polygonsql . ", ST_POINT(longitude-360,latitude) )");
             });
         }
-        if ($circle) {
-            $dataitems->whereRaw("ST_DISTANCE( ST_POINT(" . $circle['long'] . "," . $circle['lat'] . "), ST_POINT(longitude,latitude) ) <= " . $circle['rad']); //NOTE: ST_DISTANCE for mariaDB, ST_DISTANCE_SPHERE for mysql
-        }
-        if ($circle) {
-            //NOTE: in mysql use  whereRaw( "ST_DISTANCE_SPHERE( POINT(" . $circle['long'] . "," . $circle['lat'] . "), POINT(TLCM_Longitude,TLCM_Latitude) ) <= " . $circle['rad'] );
-            //for mariadb: http://sqlfiddle.com/#!2/abcc8/4/0
-            $that = $this; //access private class functions from inside functions
-            $dataitems->where(function ($query) use ($circle, $that) {
-                $query->whereRaw($that->circleWrapString($circle, "latitude", "longitude"))->OrWhereRaw($that->circleWrapString($circle, "latitude", "longitude+360"))
-                    ->orWhereRaw($that->circleWrapString($circle, "latitude", "longitude-360"));
-            });
-        }
-        if ($parameters['subquery']) {
-            $dataitems = $this->diSubquery($dataitems, $parameters);
+        if (isset($parameters['subquery'])) {
+            $dataitems = $gazetteerController->diSubquery($dataitems, $parameters);
         }
 
         if (isset($parameters['sort'])  ||  (isset($parameters['line']) && $parameters['line'] === 'time')   ) {
@@ -544,17 +542,50 @@ class GazetteerController extends Controller
             }
         }
 
+        $totalCount = $dataitems->count();
+
+        $viewBbox = isset($parameters['viewBbox']) ? $gazetteerController->getBbox($parameters['viewBbox']) : null;
+        if ($viewBbox) {
+            $dataitems->where('latitude', '>=', $viewBbox['min_lat']);
+            $dataitems->where('latitude', '<=', $viewBbox['max_lat']);
+
+            if ($viewBbox['min_long'] <= $viewBbox['max_long']) { //if min is lower than max we have not crossed the 180th meridian
+                $dataitems->where('longitude', '>=', $viewBbox['min_long']);
+                $dataitems->where('longitude', '<=', $viewBbox['max_long']);
+            } else { //else we have crossed the 180th meridian
+                $dataitems->where(function ($query) use ($viewBbox) {
+                    $query->where('longitude', '>=', $viewBbox['min_long'])->orWhere('longitude', '<=', $viewBbox['max_long']);
+                });
+            }
+        }
+
         $collection = $dataitems->get(); //needs to be applied a second time for some reason (maybe because of the subquery?)
 
         //Modifying the collection directly, as datestart and dateend fields are TEXT fields not dates, simpler this way (might be a little slower)
-        if ($parameters['dateto'] || $parameters['datefrom']) {
-            $collection = $collection->filter(function ($v) use ($parameters, $that) {
-                return $that::dateSearch($parameters['datefrom'], $parameters['dateto'], $v->datestart, $v->dateend);
+        if (isset($parameters['dateto']) || isset($parameters['datefrom'])) {
+            $collection = $collection->filter(function ($v) use ($parameters, $gazetteerController) {
+                return $gazetteerController->dateSearch(
+                    $parameters['datefrom'] ?? null,
+                    $parameters['dateto'] ?? null,
+                    $v->datestart,
+                    $v->dateend
+                );
             });
         }
+    
+        // Limit the results
+        if (isset($parameters['limit'])) {
+            $limit = filter_var($parameters['limit'], FILTER_VALIDATE_INT);
 
-        return $collection;
+            if ($limit !== false && $limit > 0 && $collection->count() > $limit) {
+                $collection = $collection->shuffle()->take($limit);
+            }
+        }
 
+        return [
+            'dataitems' => $collection,
+            'count' => $totalCount
+        ];
     }
 
     /********************/
@@ -797,22 +828,34 @@ class GazetteerController extends Controller
      * INPUT: "149.38879,-32.020594,149.454753,-31.946045"
      * OUTPUT: ["min_long" => 149.38879, "min_lat" => -32.020594, "max_long" => 149.454753, "max_lat" => -31.946045]
      */
-    function getBbox(string $bbstr)
+    function getBbox(string $bbstr = null)
     {
-        if (!$bbstr) return null;
+        if ($bbstr) {
+            // Use the commented-out solution if $bbstr is provided
+            $values = explode(",", $bbstr);
+            if (count($values) !== 4) return null; // Validate that there are exactly 4 values
+            return [
+                'min_long' => (float)$values[0],
+                'min_lat' => (float)$values[1],
+                'max_long' => (float)$values[2],
+                'max_lat' => (float)$values[3]
+            ];
+        } else {
+            // Fallback to the current solution if $bbstr is not provided
+            $url = request()->fullUrl();
+            $pattern = '/bbox=(-?\d{1,3}(\.\d{0,20})?)%2C(-?\d{1,3}(\.\d{0,20})?)%2C(-?\d{1,3}(\.\d{0,20})?)%2C(-?\d{1,3}(\.\d{0,20})?)/'; //regex to match bbox=12,13,14,15  can have negatives and 20 dec pl
+            $bbox = preg_match($pattern, $url, $reg_out); //results are in indexes 1 3 5 and 7 of the $reg_out array
 
-        // $values = explode(",", $bbstr);
-        // return ['min_long' => (float)$values[0], 'min_lat' => (float)$values[1], 'max_long' => (float)$values[2], 'max_lat' => (float)$values[3]];
+            if (sizeof($reg_out) != 8 && sizeof($reg_out) != 9) return null;  //8 if final float has no decimals, 9 if it does
 
-        $url = request()->fullUrl();
-        $pattern = '/bbox=(-?\d{1,3}(\.\d{0,20})?)%2C(-?\d{1,3}(\.\d{0,20})?)%2C(-?\d{1,3}(\.\d{0,20})?)%2C(-?\d{1,3}(\.\d{0,20})?)/'; //regex to match bbox=12,13,14,15  can have negatives and 20 dec pl
-        $bbox = preg_match($pattern, $url, $reg_out); //results are in indexes 1 3 5 and 7 of the $reg_out array
-
-        if (sizeOf($reg_out) != 8 && sizeOf($reg_out) != 9) return null;  //8 if final float has no decimals, 9 if it does
-
-        return ['min_long' => (float)$reg_out[1], 'min_lat' => (float)$reg_out[3], 'max_long' => (float)$reg_out[5], 'max_lat' => (float)$reg_out[7]];
-
-    }
+            return [
+                'min_long' => (float)$reg_out[1],
+                'min_lat' => (float)$reg_out[3],
+                'max_long' => (float)$reg_out[5],
+                'max_lat' => (float)$reg_out[7]
+            ];
+        }
+}
 
     /**
      *    INPUT: "149.751587 -33.002617, 149.377796 -32.707289, 150.378237 -32.624051, 149.751587 -33.002617"
@@ -821,27 +864,27 @@ class GazetteerController extends Controller
     function getPolygon(string $polystr)
     { //returns an array of numbers representing lat/long, however each odd number is a space or a comma
 
-        if (!$polystr) return null;
+        if ($polystr) {
+            $values = explode(",", $polystr);
+            $output = [];
 
-        // $values = explode(",", $polystr);
-        // $output = [];
-
-        // foreach($values as $v) {
-        //     $lnglat = explode(" ", trim($v));
-        //     array_push($output, $lnglat[0]);
-        //     array_push($output, $lnglat[1]);
-        // }
-
-        // return $output;
-
-        $url = request()->fullUrl();
-        if (preg_match('/polygon=([^&]*)/', $url, $polymatch)) {
-            $stripped = str_replace(['%20', '+'], '', $polymatch[1]); //strip spaces
-            if (preg_match_all('/(-?\d{1,3}(\.\d{0,20})?)(%2C)?/', $stripped, $matches)) {
-                return $matches[1];
+            foreach ($values as $v) {
+                $lnglat = explode(" ", trim($v));
+                array_push($output, $lnglat[0]);
+                array_push($output, $lnglat[1]);
             }
+
+            return $output;
+        } else {
+            $url = request()->fullUrl();
+            if (preg_match('/polygon=([^&]*)/', $url, $polymatch)) {
+                $stripped = str_replace(['%20', '+'], '', $polymatch[1]); //strip spaces
+                if (preg_match_all('/(-?\d{1,3}(\.\d{0,20})?)(%2C)?/', $stripped, $matches)) {
+                    return $matches[1];
+                }
+            }
+            return null;
         }
-        return null;
     }
 
     function getCircle(string $circlestr)
@@ -870,7 +913,7 @@ class GazetteerController extends Controller
      *
      * we can assume at least one of datefrom or dateto is NOT null if this function is called, but
      */
-    function dateSearch($datefrom, $dateto, $start, $end)
+    public static function dateSearch($datefrom, $dateto, $start, $end)
     {
         //if start AND end are both null, return false - This entry has no date values and should not be filtered in to a date search
         if (!$start && !$end) return false;

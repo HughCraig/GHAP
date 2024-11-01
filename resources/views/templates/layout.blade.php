@@ -113,11 +113,11 @@
     <!-- TLCMap js-->
     <script type="text/javascript" src="{{ asset('/js/tablesort.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/tooltips.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('/js/form.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/autocomplete.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/urltools.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/help-video.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/wysiwyg-editor.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/form.js') }}"></script>
 
 </head>
 
@@ -135,71 +135,117 @@
 
         <div id="mainnav" class="main-nav">
             <div class="main-site-logo">
-                <a href="{{ url('/') }}">
-                    @include('templates/misc/ghap_logo')
+                <a href="/">
+                    @include('templates/misc/tlcmap_logo')
                 </a>
             </div>
 
             <div class="main-nav-content">
                 <div class="site-name">
-                    Gazetteer of Historical Australian Places
+                    Mapping Australian history and culture
                 </div>
-                <div class="main-menu">
-                    <div class="w3-dropdown-hover" style="display:none;"></div>
-                    <div class="main-menu-item">
-                        <a href="{{ url('/') }}">Search</a>
-                    </div>
-                    <div class="main-menu-item w3-dropdown-hover w3-mobile">
-                        <a href="#">Layers <i class="fa fa-caret-down"></i></a>
-                        <div class="navb w3-dropdown-content w3-bar-block w3-card-4">
-                            <a href="{{ url('publicdatasets') }}" class="w3-bar-item w3-button">Layers</a>
-                            <a href="{{ url('publiccollections') }}" class="w3-bar-item w3-button">Multilayers</a>
-                        </div>
-                    </div>
-                    <div class="main-menu-item w3-dropdown-hover w3-mobile">
-                        <a href="#">Help <i class="fa fa-caret-down"></i></a>
-                        <div class="navb w3-dropdown-content w3-bar-block w3-card-4">
-                            @if (!empty(config('app.help_video_url')))
-                                <a href="#" data-toggle="modal" data-target="#helpVideoModal" class="w3-bar-item w3-button">Quick start</a>
-                            @endif
-                            <a href="https://hughcraignewcastleeduau.wpcomstaging.com/help/guides/ghap-guide/" class="w3-bar-item w3-button">Guide</a>
-                            <a href="{{ url('about') }}" class="w3-bar-item w3-button">About</a>
-                        </div>
-                    </div>
+                <div class="site-sub-name">
+                    We acknowledge the Traditional Owners of country and pay our respects to Elders past, present and emerging. <a href="{{ config('app.tlcmap_doc_url') }}/first-australians/" target="_blank" style="text-decoration: underline !important;">First Australians...</a>
                 </div>
             </div>
-            <div class="secondary-site-logo">
-                <a href="https://tlcmap.org/">
-                    @include('templates/misc/tlcmap_logo')
-                </a>
-            </div>
-        </div>
-    </div>
 
-    <!-- Start Navbar -->
-    <div class="secondary-nav w3-bar">
-        @guest
-            <div class=" w3-mobile w3-right">
-                <a class="w3-bar-item w3-button w3-mobile" href="{{ url('login') }}">Log in</a>
-            </div>
-        @else
-            <a class="w3-bar-item w3-button w3-mobile" href="{{ url('myprofile') }}">My profile ({{ Auth::user()->name }})</a>
-            <a class="w3-bar-item w3-button w3-mobile" href="{{ url('myprofile/mydatasets') }}">My layers</a>
-            <a class="w3-bar-item w3-button w3-mobile" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
-            <a class="w3-bar-item w3-button w3-mobile" href="{{ url('myprofile/mysearches') }}">My searches</a>
-            {{-- Custom directive 'admin' to check wether the user has the admin role. --}}
-            @admin
-                <a class="w3-bar-item w3-button w3-mobile" href="{{ url('admin') }}">Admin</a>
-            @endadmin
-            <div class=" w3-mobile w3-right">
-                <a class="w3-bar-item w3-button w3-mobile" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
+        </div>
+
+            <nav class="menu-nav">
+                <div class="menu-nav-close">
+                    <span class="icon icon-close-dark"></span>
+                </div>
+                <ul>
+                    <li>
+                        <div style="display:flex; font-weight:bold"><a href="{{ url('/') }}" style="color:black">HOME</a></div>
+                    </li>
+                    <li>
+                        <div style="display:flex; font-weight:bold"><a href="{{ config('app.tlcmap_doc_url') }}/tools/" style="color:black">TOOLS</a><span id="menu-item-58" class="icon icon-arrow-down-dark u-pull-right submenu-toggle"></span></div>
+                        <ul class="submenu" style="display: block;">
+                            <li><a href="https://quicktools.tlcmap.org/">Quick Tools</a></li>
+                            <li><a href="https://www.researchobject.org/ro-crate/">RO-Crate</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/core-data/">Core Data</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <div style="display:flex; font-weight:bold"><a href="{{ config('app.tlcmap_doc_url') }}/help/" style="color:black">HELP</a><span id="menu-item-60" class="icon icon-arrow-down-dark u-pull-right submenu-toggle"></span></div>
+                        <ul class="submenu" style="display: block;">
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/">Get started</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/guides/">Guides</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/faqs/">FAQs</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Developers</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <div style="display:flex; font-weight:bold"><a href="{{ config('app.tlcmap_doc_url') }}/about/" style="color:black">ABOUT</a><span id="menu-item-59" class="icon icon-arrow-down-dark u-pull-right submenu-toggle"></span></div>
+                        <ul class="submenu" style="display: block;">
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/first-australians/">First Australians</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/about/updates/">Updates</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/about/lead-researchers/">Lead researchers</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/about/partners/">Partners</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/examples/">Examples</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/contact/">Contact</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Start Navbar -->
+        <div class="secondary-nav w3-bar" style="padding-left: 1%; padding-right: 1%;">    
+            <div>
+                <div class="w3-mobile w3-left">
+                        <a class="w3-bar-item w3-button w3-mobile" href="{{ url('layers') }}">Layers</a>
+                    </div>
+                <div class="w3-mobile w3-left">
+                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('multilayers') }}">Multilayers</a>
+                </div>  
+            </div> 
+
+            <div style="display: flex; align-items:center;float:right">
+                
+                @guest
+                <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
+                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('login') }}">Log in</a>
+                </div>
+                <div class="w3-mobile w3-right">
+                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('register') }}">Register</a>
+                </div>
+                @else
+                <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
+                    <a class="w3-bar-item w3-button" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
+                </div>
+
+                <div class="w3-dropdown-hover w3-mobile w3-right">
+                    <button class="w3-button" style=" background-color: #17331C;color: white;">
+                        {{ Auth::user()->name }} <i class="fa fa-caret-down"></i>
+                    </button>
+                    <div class="w3-dropdown-content w3-bar-block w3-card-4">
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile') }}">My profile</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mydatasets') }}">My layers</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mysearches') }}">My searches</a>
+                        @admin
+                        <a class="w3-bar-item w3-button" href="{{ url('admin') }}">Admin</a>
+                        @endadmin
+                    </div>
+                </div>
+
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                     @csrf
                 </form>
+                @endguest
+
+                <div class="w3-mobile w3-right menu-nav-button">
+                    <span class="menu-nav-button-icon">
+                        <span class="icon icon-menu-light">
+                        </span>
+                    </span>
+                </div>
             </div>
-        @endguest
-    </div>
-    <!-- End Navbar -->
+        </div>
+
+        <!-- End Navbar -->
 
     <!-- Main content area -->
     <main class="w3-container tlcmapcontainer">
@@ -252,8 +298,8 @@
     <!-- GHAP help video modal -->
     <div id="helpVideoModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content position-relative"> 
-                    <!-- Close button -->
+            <div class="modal-content position-relative">
+                <!-- Close button -->
                     <button type="button" 
                             class="btn btn-close" 
                             data-dismiss="modal" 
@@ -273,6 +319,7 @@
 
 <!-- ArcGIS Maps SDK for JavaScript -->
 <!-- This must be included at the last position as it has conflicts with jQuery UI and widgets -->
+<script type="module" src="https://js.arcgis.com/calcite-components/2.5.1/calcite.esm.js"></script>
 <script src="https://js.arcgis.com/4.26/"></script>
 </body>
 </html>

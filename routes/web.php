@@ -159,6 +159,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 /**
  * AJAX functions
  */
+Route::post('bboxscan', 'AjaxController@bboxscan');
+Route::post('ajaxsearchdataitems', 'AjaxController@search');
 Route::post('ajaxbbox', 'AjaxController@ajaxbbox'); //Does not need to be logged in
 Route::post('ajaxdbscan', 'AjaxController@ajaxdbscan');
 Route::post('ajaxkmeans', 'AjaxController@ajaxkmeans');

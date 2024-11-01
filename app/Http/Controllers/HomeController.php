@@ -2,12 +2,11 @@
 
 namespace TLCMap\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use TLCMap\Models\Dataitem;
 use TLCMap\Models\Dataset;
 use TLCMap\Models\Datasource;
 use TLCMap\Models\RecordType;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -34,21 +33,43 @@ class HomeController extends Controller
         //record types from DB (place type)
         $recordtypes = RecordType::all();
 
+        $recordTypeMap = RecordType::getIdTypeMap();
+
         $states = Dataitem::getAllStates();
 
         $count = Dataitem::count(); //count of all register entries
 
         $datasources = Datasource::all();
 
+        $userLayers = [];
+        if (Auth::check()) {
+            $userDatasets = Auth::user()->datasets()->get();
+            if ($userDatasets->count() > 0) {
+                foreach ($userDatasets as $dataset) {
+                    $userLayers[] = [
+                        'id' => $dataset->id,
+                        'name' => $dataset->name,
+                        'is_public' => $dataset->public
+                    ];
+                }
+                // Sort by name.
+                usort($userLayers, function ($a, $b) {
+                    return strcmp($a['name'], $b['name']);
+                });
+            }
+        }
+
         return view('ws.ghap.places.index', [
             'lgas' => $lgas,
             'feature_terms' => $feature_terms,
             'parishes' => $parishes,
-            'recordtypes' => $recordtypes, 
+            'recordtypes' => $recordtypes,
             'states' => $states,
             'count' => $count,
             'datasources' => $datasources,
-            'layers' => $layers
+            'layers' => $layers,
+            'userLayers' => $userLayers,
+            'recordTypeMap' => $recordTypeMap
         ]);
     }
 

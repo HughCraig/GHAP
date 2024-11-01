@@ -39,7 +39,8 @@ $(document).ready(function () {
     $("#tags_tagsinput").addClass("form-control").addClass("mb-2");
 
     function getAddSavedSearchFormValues() {
-        const searchquery = $("#save_search_query").val();
+        updateParameter('view' , null);
+        const searchquery = window.location.href;
         const count = $("#save_search_count").val();
 
         const name = $("#save_search_name").val();

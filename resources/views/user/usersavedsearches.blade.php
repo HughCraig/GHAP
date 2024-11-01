@@ -26,7 +26,7 @@
         @foreach($searches as $search)
             <td><a href="#" class="openMetaDataModal" data-id="{{$search->id}}">{{$search->name}}</a></td>
             <td>{{$search->count}}</td>
-            <td class="wordwrap"><a href="{{url('/search')}}{{$search->query}}"> {{url('/search')}}{{$search->query}}</a></td>
+            <td class="wordwrap"><a href="{{$search->query}}"> {{$search->query}}</a></td>
             <td>{{$search->updated_at}}</td>
             <input type="hidden" name="delete_id" id="delete_id" value="{{$search->id}}" />
             <td><button class="openEditMetaDataModal" data-id="{{$search->id}}">Edit</button></td>

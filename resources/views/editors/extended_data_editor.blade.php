@@ -1,7 +1,7 @@
 <div class="extended-data-editor">
     <label>Extended Data</label>
     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-          title="Do no edit unless you understand what you are doing. Small errors may stop this layer working.">
+          title="For advanced use, you can add any kind of data to places as key-value pairs. When importing and exporting this data is in columns under headings.">
     </span>
     <table class="table table-striped">
         <thead>

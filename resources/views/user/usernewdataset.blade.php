@@ -13,7 +13,6 @@
     </script>
     <script src="{{ asset('js/usernewdataset.js') }}"></script>
     <script src="{{ asset('/js/dataitem.js') }}"></script> <!-- So we can quickly reuse the URL validation code -->
-    <script src="{{ asset('/js/form.js') }}"></script> <!-- So we can quickly reuse the date regex check code -->
 @endpush
 
 @section('content')

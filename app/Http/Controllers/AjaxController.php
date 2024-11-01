@@ -60,6 +60,96 @@ class AjaxController extends Controller
     }
 
     /**
+     * Scan the bounding box for data items.
+     *
+     * This function retrieves data items within the specified bounding box.
+     * If the number of data items exceeds the specified limit, it selects a random subset.
+     * Extended data is added to each data item before returning the result.
+     *
+     * @param Request $request - The request object containing places and bounding box coordinates.
+     * @return \Illuminate\Http\JsonResponse - JSON response with data items.
+     */
+    public function bboxscan(Request $request)
+    {
+
+        $places = $request->places;
+        $minLat = $request->bbox['minLat'];
+        $minLng = $request->bbox['minLng'];
+        $maxLat = $request->bbox['maxLat'];
+        $maxLng = $request->bbox['maxLng'];
+
+        $datasourceIDs = $request->datasourceIDs;
+
+        if( !isset($datasourceIDs)){
+            return response()->json([
+                'dataitems' => []
+            ]);
+        }
+
+        $dataitems = Dataitem::searchScope()
+            ->with(['dataset' => function ($q) {
+                $q->select('id', 'name', 'warning');
+            }])
+            ->with(['datasource' => function ($q) {
+                $q->select('id', 'name', 'description', 'link');
+            }])
+            ->where('latitude', '>=', $minLat)
+            ->where('latitude', '<=', $maxLat)
+            ->where('longitude', '>=', $minLng)
+            ->where('longitude', '<=', $maxLng)
+            ->whereIn('datasource_id', $datasourceIDs);
+
+        $count = $dataitems->count();
+
+        if ($count > $places) {
+            $dataitems = $dataitems->inRandomOrder()->take($places)->get();
+        } else {
+            $dataitems = $dataitems->get();
+        }
+        foreach ($dataitems as $dataitem) {
+            $dataitem->extended_data = $dataitem->extDataAsHTML();
+            if($dataitem->image_path){
+                $dataitem->image_path = url('storage/images/' . $dataitem->image_path);
+            }
+        }
+
+        // Return the data items as a JSON response
+        return response()->json([
+            'dataitems' => $dataitems,
+            'count' => $count
+        ]);
+    }
+
+    /**
+     * Search for data items based on provided parameters.
+     *
+     * This function uses the searchDataitems method of GazetteerController to find data items
+     *
+     * @param Request $request - The request object containing search parameters.
+     * @return \Illuminate\Http\JsonResponse - JSON response with data items.
+    */
+    public function search(Request $request)
+    {
+        $parameters = $request->all();
+
+        $res = GazetteerController::searchDataitems($parameters);
+        $dataitems = $res['dataitems'];
+        $count = $res['count'];
+
+        foreach ($dataitems as $dataitem) {
+            $dataitem->extended_data = $dataitem->extDataAsHTML();
+            if($dataitem->image_path){
+                $dataitem->image_path = url('storage/images/' . $dataitem->image_path);
+            }
+        }
+
+        return response()->json([
+            'dataitems' => $dataitems,
+            'count' => $count
+        ]);
+    }
+    
+    /**
      * Get values from form and save to the users searches
      */
     public function ajaxsavesearch(Request $request)
