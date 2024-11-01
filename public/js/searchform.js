@@ -134,4 +134,17 @@ $(document).ready(function () {
             $('#helpVideoModal').modal('show');
         }
     }
+
+    var validValues = ["100", "200", "500", "2000", "ALL"];
+        
+    if (typeof home_page_places_shown === 'string') {
+        home_page_places_shown = home_page_places_shown.toUpperCase();
+    }
+
+    if (!validValues.includes(home_page_places_shown)) {
+        home_page_places_shown = "200"; // Default value
+    }
+
+    $('#num-places').val(home_page_places_shown.toString());
+
 });

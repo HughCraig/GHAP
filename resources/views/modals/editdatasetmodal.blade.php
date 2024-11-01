@@ -7,7 +7,6 @@
     <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
     <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
     <!-- So we can quickly reuse the date regex check code -->
-    <script src="{{ asset('/js/form.js') }}"></script>
     <script>
         const currentKeywords = {!! $ds->subjectKeywords !!};
     </script>

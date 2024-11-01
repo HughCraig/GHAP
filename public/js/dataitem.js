@@ -91,6 +91,55 @@ const msgBanner = new MessageBanner($('#addModal .message-banner'));
 msgBanner.hide();
 
 
+/**
+ * Validate the input for adding a data item.
+ * 
+ * @param {MessageBanner} msgBanner
+ *  The message banner to display errors.
+ * 
+ */
+const validateAddDataRequestData = function (msgBanner) {
+     // Validate the input.
+    let isValid = true;
+    msgBanner.clear();
+    if ($('#addtitle').val() === '') {
+        isValid = false;
+        msgBanner.error('Title must be filled');
+    }
+    if ($('#addlatitude').val() === '') {
+        isValid = false;
+        msgBanner.error('Latitude must be filled');
+    } else if (!Validation.latitude($('#addlatitude').val())) {
+        isValid = false;
+        msgBanner.error('Latitude must be valid from -90 to 90');
+    }
+    if ($('#addlongitude').val() === '') {
+        isValid = false;
+        msgBanner.error('Longitude must be filled');
+    } else if (!Validation.longitude($('#addlongitude').val())) {
+        isValid = false;
+        msgBanner.error('Longitude must be valid from -180 to 180');
+    }
+    if ($('#adddatestart').val() !== '' && !Validation.date($('#adddatestart').val())) {
+        isValid = false;
+        msgBanner.error('Date Start must be in valid format');
+    }
+    if ($('#adddateend').val() !== '' && !Validation.date($('#adddateend').val())) {
+        isValid = false;
+        msgBanner.error('Date End must be in valid format');
+    }
+    if ($('#addexternalurl').val() !== '' && !Validation.url($('#addexternalurl').val())) {
+        isValid = false;
+        msgBanner.error('Linkback must be in valid URL format');
+    }
+    var file = $('#addImage')[0].files[0];
+    if (file && file.size > max_upload_image_size) { 
+        isValid = false;
+        msgBanner.error('The image size should be less than ' + Math.floor(max_upload_image_size / (1024 * 1024)) + ' MB');
+    }
+     return isValid;
+}
+
  /**
  * Get the data to send to the dataitem add service.
  *
@@ -134,43 +183,8 @@ msgBanner.hide();
 /* Add data item was clicked */
 $("main").on('click', '#add_dataitem_button_submit', function () {
     // Validate the input.
-    let isValid = true;
-    msgBanner.clear();
-    if ($('#addtitle').val() === '') {
-        isValid = false;
-        msgBanner.error('Title must be filled');
-    }
-    if ($('#addlatitude').val() === '') {
-        isValid = false;
-        msgBanner.error('Latitude must be filled');
-    } else if (!Validation.latitude($('#addlatitude').val())) {
-        isValid = false;
-        msgBanner.error('Latitude must be valid from -90 to 90');
-    }
-    if ($('#addlongitude').val() === '') {
-        isValid = false;
-        msgBanner.error('Longitude must be filled');
-    } else if (!Validation.longitude($('#addlongitude').val())) {
-        isValid = false;
-        msgBanner.error('Longitude must be valid from -180 to 180');
-    }
-    if ($('#adddatestart').val() !== '' && !Validation.date($('#adddatestart').val())) {
-        isValid = false;
-        msgBanner.error('Date Start must be in valid format');
-    }
-    if ($('#adddateend').val() !== '' && !Validation.date($('#adddateend').val())) {
-        isValid = false;
-        msgBanner.error('Date End must be in valid format');
-    }
-    if ($('#addexternalurl').val() !== '' && !Validation.url($('#addexternalurl').val())) {
-        isValid = false;
-        msgBanner.error('Linkback must be in valid URL format');
-    }
-    var file = $('#addImage')[0].files[0];
-    if (file && file.size > max_upload_image_size) { 
-        isValid = false;
-        msgBanner.error('The image size should be less than ' + Math.floor(max_upload_image_size / (1024 * 1024)) + ' MB');
-    }
+    let isValid = validateAddDataRequestData(msgBanner);
+
     if (isValid) {
         $.ajax({
             type: 'POST',
