@@ -200,6 +200,8 @@ $(document).ready(function () {
                 hideLoadingWheel();
             },
             error: function (xhr, textStatus, errorThrown) {
+                console.log(xhr.responseText);
+                
                 alert(xhr.responseText);
                 hideLoadingWheel();
             },

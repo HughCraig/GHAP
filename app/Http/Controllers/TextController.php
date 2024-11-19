@@ -198,7 +198,7 @@ class TextController extends Controller
         }
 
         $client = new \GuzzleHttp\Client();
-        $apiUrl = 'http://localhost:8002/api/geoparse';
+        $apiUrl = 'https://geoparsing.textmap.tlcmap.org/api/geoparse';
         $data = [
             'api_key' => 'GSAP-APNR-MxroY7QYIANG8YLDidq9MLEqknsI1oui',
             'text' => $text->content,
@@ -239,6 +239,7 @@ class TextController extends Controller
             $response = $client->post($apiUrl, [
                 'headers' => ['Content-Type' => 'application/json'],
                 'json' => $data,
+                'verify' => false,
             ]);
 
             $response = json_decode($response->getBody(), true);
@@ -285,7 +286,7 @@ class TextController extends Controller
 
     private function geocodePlace($client, $placeName, $geocoding_method, $bias)
     {
-        $apiUrl = 'http://localhost:8001/api/geocode';
+        $apiUrl = 'https://geocoding.textmap.tlcmap.org/api/geocode';
         $data = [
             'api_key' => 'GSAP-APNR-MxroY7QYIANG8YLDidq9MLEqknsI1oui',
             'place_name' => $placeName,
@@ -297,7 +298,8 @@ class TextController extends Controller
         try {
             $response = $client->post($apiUrl, [
                 'headers' => ['Content-Type' => 'application/json'],
-                'json' => $data
+                'json' => $data,
+                'verify' => false,
             ]);
 
             $body = json_decode($response->getBody(), true);
