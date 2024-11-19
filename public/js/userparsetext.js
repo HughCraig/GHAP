@@ -237,6 +237,10 @@ $(document).ready(function () {
 
                     //After layer is created, add the selected places to the layer
                     selectPlaces.forEach((place) => {
+                        if( place["temp_lat"] == '' ||  place["temp_lon"] == ''){
+                            return;
+                        }
+
                         let placeFormData = getAddPlaceFormData(
                             place,
                             new_layer_id,
