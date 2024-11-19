@@ -2,7 +2,7 @@
 
 @push('scripts')
 <script>
-    const deletetexturl = "{{url('ajaxdeletecollection')}}";
+    const deletetexturl = "{{url('ajaxdeletetext')}}";
 </script>
 <script src="{{ asset('/js/texts.js') }}"></script>
 @endpush

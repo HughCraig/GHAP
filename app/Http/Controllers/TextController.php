@@ -150,6 +150,20 @@ class TextController extends Controller
         return redirect('myprofile/mytexts/' . $text->id);
     }
 
+    public function getTextContent(Request $request)
+    {
+        $user = Auth::user();
+        $textID = $request->id;
+
+        // Retrieve the text associated with the user
+        $text = $user->texts()->find($textID);
+        if (!$text) {
+            return response()->json(['error' => 'Text not found'], 404);
+        }
+
+        return response()->json(['content' => $text->content]);
+    }
+
 
     /**
      * Page of creating new collection.
@@ -294,5 +308,20 @@ class TextController extends Controller
                 'error' => 'Request failed: ' . $e->getMessage()
             ];
         }
+    }
+
+    public function deleteText(Request $request)
+    {
+        $this->middleware('auth'); //Throw error if not logged in?
+        $user = Auth::user();
+
+        $text = $user->texts()->find($request->id);
+        if (!$text) {
+            return response()->json(['error' => 'Text not found'], 404);
+        }
+
+        $text->users()->detach();
+        $text->delete();
+        return redirect('myprofile/mytexts');
     }
 }

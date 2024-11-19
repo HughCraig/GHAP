@@ -188,8 +188,6 @@ $(document).ready(function () {
             formData.append("geocoding_bias", $("#geocoding_bias").val());
         }
 
-        const startTime = Date.now();
-
         $.ajax({
             type: "POST",
             url: parsetexturl,
@@ -197,15 +195,6 @@ $(document).ready(function () {
             processData: false,
             contentType: false,
             success: function (result) {
-                const endTime = Date.now();
-
-                // Calculate the elapsed time in seconds
-                const timeElapsed = (endTime - startTime) / 1000; // in seconds
-
-                console.log(
-                    "Time used for success: " + timeElapsed + " seconds"
-                );
-
                 places = result.data.place_names;
                 renderDataItems(result.data.place_names);
                 hideLoadingWheel();
@@ -217,7 +206,6 @@ $(document).ready(function () {
         });
     });
 
-    //MUFENG.. ADD LOADING WHILE FOR PARSING. VALID TYPE FOR BOTH PLACE AND LAYER. ADD VALUE TO TEXT_CONTENT_TABLE
     $("#add_layer_button_submit").on("click", function () {
         showLoadingWheel("Adding places to layer...");
         const selectPlaces = getSelectedPlaces();

@@ -16,9 +16,6 @@ class TextContext extends Model
         'line_word_start_index', 'line_word_end_index'
     ];
 
-    //MUFENG TO DO ADD LAYER_ID.. make datasource_id
-
-
     /**
      * Define relationship to the Text model.
      * Each TextContext belongs to a Text.
@@ -26,5 +23,15 @@ class TextContext extends Model
     public function text()
     {
         return $this->belongsTo(Text::class, 'text_id');
+    }
+
+    public static function getContentByDataitemUid($dataitem_uid)
+    {
+        return self::where('dataitem_uid', $dataitem_uid)->get();
+    }
+
+    public static function getAllByDataitemUid($dataitem_uid)
+    {
+        return self::where('dataitem_uid', $dataitem_uid)->get();
     }
 }

@@ -6,6 +6,11 @@
 
 @push('scripts')
 
+<script>
+    const ajaxgettextcontent = "{{url('ajaxgettextcontent')}}";
+    const textID = {{$text->id}};
+</script>
+
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script src="{{ asset('js/map-picker.js') }}"></script>
 <script src="{{ asset('js/message-banner.js') }}"></script>
@@ -19,7 +24,7 @@
 <h2>Text</h2>
 <a href="{{url('myprofile/mytexts')}}" class="btn btn-primary">Back</a>
 <a href="{{url()->full()}}/parse" class="btn btn-primary">Parse Text</a>
-<a href="{{url('myprofile/mytexts')}}" class="btn btn-primary">Download</a>
+<a href="#" id="downloadtextcontent" class="btn btn-primary">Download</a>
 
 <!-- Quick Info -->
 <div class="row mt-3">

@@ -48,7 +48,6 @@
         <h4 class="font-weight-bold">Geocoding Method</h4>
         <select id="geocoding_method" class="mb-4 w3-white form-control">
             <option value="google_geocoding">Google Geocoding</option>
-            <option value="mordecai_geonames">Mordecai</option>
         </select>
     </div>
 

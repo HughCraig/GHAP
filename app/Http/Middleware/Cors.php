@@ -17,9 +17,10 @@ class Cors
     {
         $response = $next($request);
         if (method_exists($response, 'header')) {
-            return $response
-                ->header('Access-Control-Allow-Origin', '*')
-                ->header('Access-Control-Allow-Methods', 'GET');
+            $response->header('Access-Control-Allow-Origin', '*')
+                     ->header('Access-Control-Allow-Methods', 'GET, POST')
+                     ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+                     ->header('Access-Control-Allow-Credentials', 'true');
         }
         return $response;
     }

@@ -19,11 +19,11 @@ class CreateTextContextsTable extends Migration
             $table->unsignedBigInteger('text_id'); 
             $table->unsignedBigInteger('start_index'); 
             $table->unsignedBigInteger('end_index'); 
-            $table->unsignedBigInteger('sentence_start_index');
-            $table->unsignedBigInteger('sentence_end_index'); 
-            $table->unsignedBigInteger('line_index'); 
-            $table->unsignedBigInteger('line_word_start_index'); 
-            $table->unsignedBigInteger('line_word_end_index'); 
+            $table->unsignedBigInteger('sentence_start_index')->nullable();
+            $table->unsignedBigInteger('sentence_end_index')->nullable();
+            $table->unsignedBigInteger('line_index')->nullable();
+            $table->unsignedBigInteger('line_word_start_index')->nullable();
+            $table->unsignedBigInteger('line_word_end_index')->nullable();
         });
     }
 

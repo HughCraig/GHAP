@@ -8,6 +8,7 @@ use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
 use TLCMap\Models\RecordType;
+use TLCMap\Models\TextContext;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -501,17 +502,22 @@ class Dataset extends Model
             'display' => $featureCollectionConfig->toArray(),
         );
 
-        if (isset($_GET["textmap"])) {
+        if (isset($_GET["textmap"])) {        
            $text = $this->text;
            $allfeatures['textcontent'] = ($text->content);
 
-           $textContexts = $text->textContexts()->get();
-           $allfeatures['textcontexts'] = [];
-           foreach ($textContexts as $textContext) {
-              $allfeatures['textcontexts'][] = $textContext->toArray();
+           foreach($dataitems as $dataitem){
+              if($dataitem->recordtype_id == '4'){
+                $textContext = TextContext::getContentByDataitemUid($dataitem->uid);
+                if($textContext->count() > 0){
+                    $allfeatures['textcontexts'][] = $textContext->first();
+                }
+              }
            }
-          
+           $allfeatures['textID'] = $text->id;
         }
+
+        $allfeatures['dataset_id'] = $dataset->id;
       
         if( count($features) == 0){
             $allfeatures['metadata']['warning'] .=  "<p>0 results found</p>";

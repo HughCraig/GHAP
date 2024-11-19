@@ -154,6 +154,10 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
 
     Route::post('ajaxparsetext', 'TextController@parseTextContent');
     Route::post('ajaxaddtextcontent', 'TextController@addTextContext');
+
+    Route::post('ajaxdeletetext', 'TextController@deleteText');
+
+    Route::post('ajaxgettextcontent', 'TextController@getTextContent');
     // Route::post('myprofile/mycollections/{id}/edit', 'CollectionController@editCollection');
     // Route::get('myprofile/mycollections/{id}/ro-crate', 'CollectionController@downloadPrivateROCrate');
 });
@@ -186,6 +190,12 @@ Route::post('ajaxtemporalclustering', 'AjaxController@ajaxtemporalclustering');
 Route::post('ajaxclosenessanalysis', 'AjaxController@ajaxclosenessanalysis');
 
 Route::post('ajaxgetdataitemmaps', 'AjaxController@ajaxgetdataitemmaps');
+
+//MUFENG add authorisation,, why get work but post dont 
+Route::get('ajaxedittextplacecoordinates', 'AjaxController@ajaxedittextplacecoordinates')->middleware('cors');
+Route::get('ajaxdeletedataitem2', 'AjaxController@ajaxdeletedataitem')->middleware('cors');
+Route::get('ajaxadddataitem2', 'AjaxController@ajaxadddataitem')->middleware('cors');
+Route::get('ajaxaddtextcontent2', 'TextController@addTextContext')->middleware('cors');
 
 Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in for these
     Route::post('ajaxsavesearch', 'AjaxController@ajaxsavesearch');

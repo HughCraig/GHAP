@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
 class CreateTextTypeTable extends Migration
 {
@@ -18,6 +19,13 @@ class CreateTextTypeTable extends Migration
             $table->string('type', 100);
             $table->text('description')->nullable();
         });
+
+        // Insert predefined types
+        DB::table('tlcmap.texttype')->insert([
+            ['type' => 'Novel', 'description' => ''],
+            ['type' => 'Essay', 'description' => ''],
+            ['type' => 'Report','description' => ''],
+        ]);
     }
 
     /**

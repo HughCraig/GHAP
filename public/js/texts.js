@@ -28,7 +28,7 @@ $(document).ready(function () {
         bInfo: false,
         bSortable: true,
         bRetrieve: true,
-        aaSorting: [[ 0, "asc" ]],
+        aaSorting: [[0, "asc"]],
         aoColumnDefs: [{ aTargets: [4], bSortable: false, bSearchable: false }],
         pageLength: 25,
     });
@@ -47,11 +47,7 @@ $(document).ready(function () {
                 success: function (result) {
                     $(row_id).remove();
                     //jQuery datatable updating
-                    $("#textsTable")
-                        .DataTable()
-                        .row(row_id)
-                        .remove()
-                        .draw();
+                    $("#textsTable").DataTable().row(row_id).remove().draw();
                 },
                 error: function (xhr, textStatus, errorThrown) {
                     alert(xhr.responseText); //error message with error info
@@ -60,4 +56,34 @@ $(document).ready(function () {
         }
     });
 
+    $("#downloadtextcontent").on("click", function () {
+        $.ajax({
+            type: "POST",
+            url: ajaxgettextcontent,
+            data: {
+                id: textID,
+            },
+            success: function (result) {
+                const contentWithLineBreaks = result.content.replace(
+                    /<br\s*\/?>/gi,
+                    "\n"
+                );
+
+                const blob = new Blob([contentWithLineBreaks], {
+                    type: "text/plain",
+                });
+
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "textcontent.txt";
+
+                link.click();
+
+                URL.revokeObjectURL(link.href);
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                alert(xhr.responseText); //error message with error info
+            },
+        });
+    });
 });
