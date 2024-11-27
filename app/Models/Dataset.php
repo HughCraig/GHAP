@@ -502,7 +502,7 @@ class Dataset extends Model
             'display' => $featureCollectionConfig->toArray(),
         );
 
-        if (isset($_GET["textmap"])) {        
+        if (isset($_GET["textmap"]) && $this->text ) {        
            $text = $this->text;
            $allfeatures['textcontent'] = ($text->content);
 

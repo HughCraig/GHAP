@@ -36,7 +36,7 @@
 
 <div class="row pt-4">
     <div class="col-lg-4">
-        <h4 class="font-weight-bold">Parsing Method</h4>
+        <h4 class="font-weight-bold">Geoparsing Method</h4>
         <select id="parsing_method" class="mb-4 w3-white form-control">
             <option value="bert">BERT</option>
             <option value="dictionary">Dictionary</option>
@@ -64,6 +64,7 @@
     <div class="col">
         <h4 class="font-weight-bold">Dictionary</h4>
         <input type="file" id="dictionary" />
+        <p id="dictionary_file_instructions" style="color: grey; font-size: 14px; margin-top: 5px; display: none;"></p>
     </div>
 </div>
 

@@ -53,7 +53,6 @@ $(document).ready(function () {
             return false;
         }
         if (upload_text_file.size > text_max_upload_file_size) {
-          
             alert(
                 "The upload_text_file size should be less than " +
                     Math.floor(text_max_upload_file_size / (1024 * 1024)) +

@@ -51,6 +51,13 @@
                 @if (!empty(config('app.views_temporal_earth_url')))
                     <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url()->full()}}/kml')">Temporal Earth</a>
                 @endif
+
+                @if ($ds->recordtype->type == 'Text' && $ds->text)
+                    <a class="dropdown-item grab-hover" 
+                    onclick="window.open('{{ config('app.views_root_url') }}/fulltext.html?load=' + encodeURIComponent('{{url()->full()}}/json?textmap=true'))">
+                        Full Text
+                    </a>
+                @endif
             </div>
         </div>
     @endif

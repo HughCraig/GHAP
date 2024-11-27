@@ -154,7 +154,7 @@
 
 <!-- Displaying the text content in a scrollable div  MUFENG: make this class-->
 <div class="p-4" style="border: 1px solid #ddd;width: 100%; height: 300px; overflow-y: scroll; white-space: pre-line;">
-    {!! nl2br(htmlspecialchars_decode($text->content)) !!}
+    {!! $text->content !!}
 </div>
 
 <h2>Layers created from this text</h2>

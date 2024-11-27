@@ -10,8 +10,7 @@ use TLCMap\Models\Text;
 use TLCMap\Models\TextType;
 use TLCMap\Models\SubjectKeyword;
 use Illuminate\Support\Facades\Storage;
-use GuzzleHttp;
-use Response;
+use Config;
 use TLCMap\Models\RecordType;
 use TLCMap\Models\TextContext;
 
@@ -44,7 +43,7 @@ class TextController extends Controller
         $text = $user->texts()->find($textID);
         if (!$textID) {
             return redirect('myprofile/mytexts/');
-        }  
+        }
         return view('user.userviewtext', ['text' => $text]);
     }
 
@@ -108,8 +107,6 @@ class TextController extends Controller
             $textfile = $request->file('textfile');
 
             $filecontent = GeneralFunctions::validateUserUploadText($textfile);
-
-            $filecontent = preg_replace('/\n/', '<br> ', json_decode($filecontent) );
 
             //Validate text file.
             if (!$filecontent) {
@@ -185,8 +182,6 @@ class TextController extends Controller
 
     public function parseTextContent(Request $request)
     {
-        ini_set('max_execution_time', 3000);
-        set_time_limit(3000);
         $user = Auth::user();
         $textID = $request->id;
         $parseMethod = $request->method;
@@ -198,9 +193,9 @@ class TextController extends Controller
         }
 
         $client = new \GuzzleHttp\Client();
-        $apiUrl = 'https://geoparsing.textmap.tlcmap.org/api/geoparse';
+        $apiUrl = config('app.geoparsing_api_url');
         $data = [
-            'api_key' => 'GSAP-APNR-MxroY7QYIANG8YLDidq9MLEqknsI1oui',
+            'api_key' => config('app.geoparsing_api_key'),
             'text' => $text->content,
             'method' =>  $parseMethod,
         ];
@@ -209,6 +204,14 @@ class TextController extends Controller
 
             if ($request->hasFile('dictionary')) {
                 $file = $request->file('dictionary');
+
+                // Validate the file extension
+                $allowedExtensions = ['csv'];
+                $extension = strtolower($file->getClientOriginalExtension());
+                if (!in_array($extension, $allowedExtensions)) {
+                    return response()->json(['error' => 'The uploaded file must be a CSV file.'], 422);
+                }
+
                 $csvData = array_map('str_getcsv', file($file->getRealPath()));
 
                 // If dictionary_with_coords, check for lat/lon values
@@ -261,7 +264,7 @@ class TextController extends Controller
 
             return response()->json($response);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to send request', 'details' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Failed to parse text content', 'details' => $e->getMessage()], 500);
         }
     }
 
@@ -286,9 +289,9 @@ class TextController extends Controller
 
     private function geocodePlace($client, $placeName, $geocoding_method, $bias)
     {
-        $apiUrl = 'https://geocoding.textmap.tlcmap.org/api/geocode';
+        $apiUrl = config('app.geocoding_api_url');
         $data = [
-            'api_key' => 'GSAP-APNR-MxroY7QYIANG8YLDidq9MLEqknsI1oui',
+            'api_key' => config('app.geoparsing_api_key'),
             'place_name' => $placeName,
             'context' => ' ',
             'method' => $geocoding_method,
@@ -307,7 +310,7 @@ class TextController extends Controller
             return $body;
         } catch (\Exception $e) {
             return [
-                'error' => 'Request failed: ' . $e->getMessage()
+                'error' => 'Geocode Request failed: ' . $e->getMessage()
             ];
         }
     }

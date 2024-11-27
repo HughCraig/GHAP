@@ -24,11 +24,25 @@ $(document).ready(function () {
             $("#dictionary_file_input").show();
             $("#geocoding_method").prop("disabled", true);
             $("#geocoding_bias").prop("disabled", true);
+
+            // Update instruction text
+            $("#dictionary_file_instructions")
+                .text(
+                    "Please upload a CSV file with the following columns: First column - Place Name, Second column - Latitude, Third column - Longitude."
+                )
+                .show();
         } else if (selectedMethod === "dictionary") {
             // Show dictionary file input and enable the other selects
             $("#dictionary_file_input").show();
             $("#geocoding_method").prop("disabled", false);
             $("#geocoding_bias").prop("disabled", false);
+
+            // Update instruction text
+            $("#dictionary_file_instructions")
+                .text(
+                    "Please upload a CSV file with the following columns: First column - Place Name."
+                )
+                .show();
         } else {
             // Hide dictionary file input and enable the other selects
             $("#dictionary_file_input").hide();
@@ -177,6 +191,15 @@ $(document).ready(function () {
 
             if (!dictionaryFile) {
                 alert("Please upload a CSV file for the dictionary method.");
+                hideLoadingWheel();
+                return false;
+            }
+
+            // Check file extension
+            var fileName = dictionaryFile.name.toLowerCase();
+            if (!fileName.endsWith(".csv")) {
+                alert("The uploaded file must be a csv file.");
+                hideLoadingWheel();
                 return false;
             }
 
@@ -201,7 +224,7 @@ $(document).ready(function () {
             },
             error: function (xhr, textStatus, errorThrown) {
                 console.log(xhr.responseText);
-                
+
                 alert(xhr.responseText);
                 hideLoadingWheel();
             },
@@ -237,7 +260,10 @@ $(document).ready(function () {
 
                     //After layer is created, add the selected places to the layer
                     selectPlaces.forEach((place) => {
-                        if( place["temp_lat"] == '' ||  place["temp_lon"] == ''){
+                        if (
+                            place["temp_lat"] == "" ||
+                            place["temp_lon"] == ""
+                        ) {
                             return;
                         }
 
