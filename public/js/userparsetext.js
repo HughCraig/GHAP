@@ -176,6 +176,10 @@ $(document).ready(function () {
     });
 
     $("#parse_text_submit").on("click", function () {
+
+        // Start the timer Mufeng Remove this
+        let startTime = performance.now();
+
         showLoadingWheel("Geoparsing places...");
         var selectedMethod = $("#parsing_method").val();
         var formData = new FormData();
@@ -221,6 +225,14 @@ $(document).ready(function () {
                 places = result.data.place_names;
                 renderDataItems(result.data.place_names);
                 hideLoadingWheel();
+
+                // End the timer and calculate the elapsed time in seconds
+                let endTime = performance.now();
+                let durationInSeconds = (endTime - startTime) / 1000;
+
+                console.log(`Execution Time: ${durationInSeconds} seconds`);
+                console.log((places).length + " places found");
+
             },
             error: function (xhr, textStatus, errorThrown) {
                 console.log(xhr.responseText);
