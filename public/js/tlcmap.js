@@ -255,6 +255,14 @@ class TLCMap {
                                 },
                             },
                             {
+                                value: "Geocoder",
+                                symbol: {
+                                    type: "simple-marker",
+                                    color: "#FFD580",
+                                    outline: { color: "white", width: 1 },
+                                },
+                            },
+                            {
                                 value: "Unknown",
                                 symbol: {
                                     type: "simple-marker",
@@ -1029,6 +1037,11 @@ class TLCMap {
                     dataitem.datasource_id == "NCG"
                 ) {
                     dataitem.datasource_id = "NCG";
+                } else if (
+                    dataitem.datasource_id == "4" ||
+                    dataitem.datasource_id == "Geocoder"
+                ) {
+                    dataitem.datasource_id = "Geocoder";
                 } else {
                     dataitem.datasource_id = "Unknown";
                 }
