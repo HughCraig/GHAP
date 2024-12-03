@@ -26,8 +26,8 @@ return [
     # The max upload image size allowed in bytes. Default is 4MB.
     'max_upload_image_size' => env('MAX_UPLOAD_IMAGE_SIZE', 4194304),
 
-    # The max upload file size for text allowed in bytes. Default is 64MB.
-    'text_max_upload_file_size' => env('MAX_UPLOAD_IMAGE_SIZE', 67108864),
+    # The max upload file size for text allowed in bytes. Default is 10MB.
+    'text_max_upload_file_size' => env('MAX_UPLOAD_IMAGE_SIZE', 10485760),
 
     // Define allowed text file types
     'allowed_text_file_types' => explode(',', env('ALLOWED_TEXT_FILE_TYPES', 'txt,docx')),

@@ -295,8 +295,11 @@ class TextController extends Controller
             'place_name' => $placeName,
             'context' => ' ',
             'method' => $geocoding_method,
-            'bias' => $bias
         ];
+
+        if(isset($bias) && $bias !== 'null') {
+            $data['bias'] = $bias;
+        }
 
         try {
             $response = $client->post($apiUrl, [

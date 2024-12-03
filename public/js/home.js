@@ -102,7 +102,8 @@ function getDatasources() {
         datasources.push("3");
     }
     if ($("#searchpublicdatasets").is(":checked")) {
-        datasources.push("1");
+        datasources.push("1"); //Mufeng push geocode into databvase in migration
+        datasources.push("4");
     }
     return datasources;
 }
@@ -297,6 +298,9 @@ function getSearchFormData(names, tlcMap, viewBbox) {
         extended_data: $("#extended_data").val() || null,
         source: $("#source").val() || null,
         searchpublicdatasets: $("#searchpublicdatasets").is(":checked")
+            ? "on"
+            : null,
+        searchgeocoder : $("#searchpublicdatasets").is(":checked")
             ? "on"
             : null,
         searchausgaz: $("#searchausgaz").is(":checked") ? "on" : null,

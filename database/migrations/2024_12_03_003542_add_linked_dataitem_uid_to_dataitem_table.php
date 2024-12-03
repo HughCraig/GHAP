@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddLinkedDataitemIdToDataitemTable extends Migration
+class AddLinkedDataitemUidToDataitemTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +14,7 @@ class AddLinkedDataitemIdToDataitemTable extends Migration
     public function up()
     {
         Schema::table('tlcmap.dataitem', function (Blueprint $table) {
-            $table->bigInteger('linked_dataitem_id')->nullable();
+            $table->string('linked_dataitem_uid')->nullable();
         });
     }
 
@@ -26,7 +26,7 @@ class AddLinkedDataitemIdToDataitemTable extends Migration
     public function down()
     {
         Schema::table('tlcmap.dataitem', function (Blueprint $table) {
-            $table->dropColumn('linked_dataitem_id');
+            $table->dropColumn('linked_dataitem_uid');
         });
     }
 }

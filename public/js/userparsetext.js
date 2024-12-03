@@ -7,6 +7,31 @@ function hideLoadingWheel() {
     document.getElementById("loadingWheel").style.display = "none";
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    const select = document.getElementById("geocoding_bias");
+    const options = Array.from(select.options);
+
+    // Find "Australia" and "Global" options
+    const australiaOption = options.find(option => option.value === "Australia");
+    const globalOption = options.find(option => option.value === "null");
+    const otherOptions = options.filter(option => option.value !== "Australia" && option.value !== "null");
+
+    // Sort other options alphabetically
+    otherOptions.sort((a, b) => a.text.localeCompare(b.text));
+
+    // Clear the existing options
+    select.innerHTML = "";
+
+    // Rebuild the dropdown
+    if (australiaOption) {
+        select.add(australiaOption);
+        australiaOption.selected = true; // Ensure Australia is selected by default
+    }
+    if (globalOption) select.add(globalOption); // Add Global second
+    otherOptions.forEach(option => select.add(option)); // Add the rest alphabetically
+});
+
+
 $(document).ready(function () {
     $.ajaxSetup({
         headers: {
@@ -52,6 +77,7 @@ $(document).ready(function () {
     });
 
     function renderDataItems(places) {
+        console.log(places); // Mufeng remove in production
         const listView = $(".place-list");
         listView.empty();
 
@@ -105,13 +131,7 @@ $(document).ready(function () {
                         <h4>Description</h4>
                         <div>
                             <dl>
-                                ${
-                                    place.text_position
-                                        ? `<dd>${JSON.stringify(
-                                              place.text_position
-                                          )}</dd>`
-                                        : ""
-                                }
+                                ${'"' + place.context + '"'}
                               
                             </dl>
                         </div>
@@ -147,10 +167,11 @@ $(document).ready(function () {
         formData.append("latitude", place["temp_lat"]);
         formData.append("longitude", place["temp_lon"]);
 
+        formData.append("description", '"' + context + '"');
         formData.append("datasource_id", 4);
 
         let extendedData = {
-            context: context.replace(/<br>/g, "").trim(),
+            ...place["text_position"],
         };
 
         formData.append("extendedData", JSON.stringify(extendedData));
@@ -176,7 +197,6 @@ $(document).ready(function () {
     });
 
     $("#parse_text_submit").on("click", function () {
-
         // Start the timer Mufeng Remove this
         let startTime = performance.now();
 
@@ -231,12 +251,21 @@ $(document).ready(function () {
                 let durationInSeconds = (endTime - startTime) / 1000;
 
                 console.log(`Execution Time: ${durationInSeconds} seconds`);
-                console.log((places).length + " places found");
+                console.log(places.length + " places found");
 
+                if (document.getElementById("saveautomatically").checked) {
+                    showLoadingWheel("Adding places to layer...");
+                    const selectPlaces = getSelectedPlaces();
+                    if (selectPlaces.length === 0) {
+                        alert("No place find");
+                        return false;
+                    }
+
+                    let layerFormData = getDefaultLayerRequestData();
+                    addLayersAndPlacesInfo(selectPlaces, layerFormData);
+                }
             },
             error: function (xhr, textStatus, errorThrown) {
-                console.log(xhr.responseText);
-
                 alert(xhr.responseText);
                 hideLoadingWheel();
             },
@@ -254,110 +283,11 @@ $(document).ready(function () {
         let isValid = validateAddLayerRequestData(msgBanner);
 
         if (isValid) {
-            let formData = getAddLayerRequestData();
+            let layerFormData = getAddLayerRequestData();
 
-            formData.append("from_text_id", textId);
+            layerFormData.append("from_text_id", textId);
 
-            $.ajax({
-                type: "POST",
-                url: "/myprofile/mydatasets/newdataset/create", //'User\UserController@createNewDataset'
-                data: formData,
-                contentType: false,
-                processData: false,
-                headers: {
-                    Accept: "application/json",
-                },
-                success: function (result) {
-                    const new_layer_id = result.dataset_id;
-
-                    //After layer is created, add the selected places to the layer
-                    selectPlaces.forEach((place) => {
-                        if (
-                            place["temp_lat"] == "" ||
-                            place["temp_lon"] == ""
-                        ) {
-                            return;
-                        }
-
-                        let placeFormData = getAddPlaceFormData(
-                            place,
-                            new_layer_id,
-                            place.context
-                        );
-
-                        $.ajax({
-                            type: "POST",
-                            url: ajaxadddataitem,
-                            data: placeFormData,
-                            contentType: false,
-                            processData: false,
-                            success: function (result) {
-                                var new_dataitem_uid = result.dataitem.uid;
-
-                                const textConextFormData = new FormData();
-                                textConextFormData.append(
-                                    "dataitem_uid",
-                                    new_dataitem_uid
-                                );
-                                textConextFormData.append("text_id", textId);
-                                textConextFormData.append(
-                                    "start_index",
-                                    place.text_position.offset
-                                );
-                                textConextFormData.append(
-                                    "end_index",
-                                    parseInt(place.text_position.offset, 10) +
-                                        place.name.length
-                                );
-
-                                textConextFormData.append(
-                                    "sentence_start_index",
-                                    place.text_position.sentence_start_index
-                                );
-                                textConextFormData.append(
-                                    "sentence_end_index",
-                                    place.text_position.sentence_end_index
-                                );
-                                textConextFormData.append(
-                                    "line_index",
-                                    place.text_position.line
-                                );
-                                textConextFormData.append(
-                                    "line_word_start_index",
-                                    place.text_position.word
-                                );
-                                textConextFormData.append(
-                                    "line_word_end_index",
-                                    -1
-                                );
-                                $.ajax({
-                                    type: "POST",
-                                    url: ajaxaddtextcontent,
-                                    data: textConextFormData,
-                                    contentType: false,
-                                    processData: false,
-                                    success: function (result) {
-                                        // Redirect to the new layer page
-                                        window.location.href =
-                                            "/myprofile/mydatasets/" +
-                                            new_layer_id;
-                                    },
-                                    error: function (xhr) {
-                                        alert(xhr.responseText); //error message with error info
-                                    },
-                                });
-                            },
-                            error: function (xhr) {
-                                alert(xhr.responseText); //error message with error info
-                            },
-                        });
-                    });
-                },
-                error: function (xhr) {
-                    alert("Create layer failed");
-                    hideLoadingWheel();
-                },
-            });
+            addLayersAndPlacesInfo(selectPlaces, layerFormData);
         } else {
             // Display and scroll to the message banner.
             msgBanner.show();
@@ -365,4 +295,124 @@ $(document).ready(function () {
             hideLoadingWheel();
         }
     });
+
+    function addLayersAndPlacesInfo(selectPlaces, layerFormData) {
+        console.log(selectPlaces); // Mufeng remove in production
+        //create dataset
+        $.ajax({
+            type: "POST",
+            url: "/myprofile/mydatasets/newdataset/create", //'User\UserController@createNewDataset'
+            data: layerFormData,
+            contentType: false,
+            processData: false,
+            headers: {
+                Accept: "application/json",
+            },
+            success: function (result) {
+                const new_layer_id = result.dataset_id;
+
+                //After layer is created, add the selected places to the layer
+                selectPlaces.forEach((place) => {
+                    if (place["temp_lat"] == "" || place["temp_lon"] == "") {
+                        return;
+                    }
+
+                    let placeFormData = getAddPlaceFormData(
+                        place,
+                        new_layer_id,
+                        place.context
+                    );
+
+                    //Create dataitem
+                    $.ajax({
+                        type: "POST",
+                        url: ajaxadddataitem,
+                        data: placeFormData,
+                        contentType: false,
+                        processData: false,
+                        success: function (result) {
+                            var new_dataitem_uid = result.dataitem.uid;
+                            const textConextFormData = new FormData();
+                            textConextFormData.append(
+                                "dataitem_uid",
+                                new_dataitem_uid
+                            );
+                            textConextFormData.append("text_id", textId);
+                            textConextFormData.append(
+                                "start_index",
+                                place.text_position.offset
+                            );
+                            textConextFormData.append(
+                                "end_index",
+                                parseInt(place.text_position.offset, 10) +
+                                    place.name.length
+                            );
+
+                            textConextFormData.append(
+                                "sentence_start_index",
+                                place.text_position.sentence_start_index
+                            );
+                            textConextFormData.append(
+                                "sentence_end_index",
+                                place.text_position.sentence_end_index
+                            );
+                            textConextFormData.append(
+                                "line_index",
+                                place.text_position.line
+                            );
+                            textConextFormData.append(
+                                "line_word_start_index",
+                                place.text_position.word
+                            );
+                            textConextFormData.append(
+                                "line_word_end_index",
+                                -1
+                            );
+
+                            //create text content
+                            $.ajax({
+                                type: "POST",
+                                url: ajaxaddtextcontent,
+                                data: textConextFormData,
+                                contentType: false,
+                                processData: false,
+                                success: function (result) {
+                                    // Redirect to the new layer page
+                                    window.location.href =
+                                        "/myprofile/mydatasets/" + new_layer_id;
+                                },
+                                error: function (xhr) {
+                                    alert(xhr.responseText); //error message with error info
+                                },
+                            });
+                        },
+                        error: function (xhr) {
+                            alert(xhr.responseText); //error message with error info
+                        },
+                    });
+                });
+            },
+            error: function (xhr) {
+                alert("Create layer failed");
+                hideLoadingWheel();
+            },
+        });
+    }
+
+    function getDefaultLayerRequestData() {
+        const formData = new FormData();
+
+        formData.append("dsn", textTitle);
+        formData.append("recordtype", "Text");
+        formData.append("allowanps", 0);
+
+        formData.append("public", 1); //public by default
+        formData.append("description", "Layer created from text: " + textTitle);
+
+        formData.append("from_text_id", textId);
+
+        formData.append("redirect", 'false');
+
+        return formData;
+    }
 });

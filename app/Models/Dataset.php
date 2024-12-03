@@ -510,7 +510,9 @@ class Dataset extends Model
               if($dataitem->recordtype_id == '4'){
                 $textContext = TextContext::getContentByDataitemUid($dataitem->uid);
                 if($textContext->count() > 0){
-                    $allfeatures['textcontexts'][] = $textContext->first();
+                    $textContextArray = $textContext->first()->toArray(); 
+                    $textContextArray['linked_dataitem_uid'] = $dataitem->linked_dataitem_uid ? $dataitem->linked_dataitem_uid : null;            
+                    $allfeatures['textcontexts'][] = $textContextArray; 
                 }
               }
            }

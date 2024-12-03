@@ -384,7 +384,7 @@ class AjaxController extends Controller
      */
     public function ajaxdeletedataitem(Request $request)
     {
-    
+
         //MUfeng change
         // $this->middleware('auth'); //Throw error if not logged in?
         // $user = auth()->user();
@@ -470,14 +470,14 @@ class AjaxController extends Controller
 
         if (!isset($latitude) || !isset($longitude)) return response()->json('Requires Latitude and Longitude.', 422);
 
-        $linkedDataitemID = $this->getRelatedPlaceIdForText($dataitem->title, $latitude, $longitude);
+        $linkedDataitemUID = $this->getRelatedPlaceUIDForText($dataitem->title, $latitude, $longitude);
 
         $dataitem->latitude = $latitude;
         $dataitem->longitude = $longitude;
-        $dataitem->linked_dataitem_id = $linkedDataitemID;
+        $dataitem->linked_dataitem_uid = $linkedDataitemUID;
         $dataitem->save();
 
-        return response()->json(['message' => 'Coordinates updated successfully'], 200);
+        return response()->json(['linked_dataitem_uid' =>  $linkedDataitemUID,  'message' => 'Coordinates updated successfully'], 200);
     }
 
     /**
@@ -634,9 +634,9 @@ class AjaxController extends Controller
         $dataset_order = $maxOrder !== null ? $maxOrder + 1 : 0;
 
         //Linked place for text
-        $linkedDataitemID = null;
+        $linkedDataitemUID = null;
         if ($recordtype_id == '4') {
-            $linkedDataitemID = $this->getRelatedPlaceIdForText($title, $latitude, $longitude);
+            $linkedDataitemUID = $this->getRelatedPlaceUIDForText($title, $latitude, $longitude);
         }
 
         $dataitem = Dataitem::create([
@@ -656,7 +656,7 @@ class AjaxController extends Controller
             'placename' => $placename,
             'image_path' => $filename,
             'dataset_order' => $dataset_order,
-            'linked_dataitem_id' => $linkedDataitemID
+            'linked_dataitem_uid' => $linkedDataitemUID
         ]);
         $isDirty = false;
         // Generate UID.
@@ -687,7 +687,7 @@ class AjaxController extends Controller
         return response()->json(['dataitem' => $dataitem, 'time' => $dataset->updated_at->toDateTimeString(), 'count' => count($dataset->dataitems)]);
     }
 
-    private function getRelatedPlaceIdForText($title, $latitude, $longitude)
+    private function getRelatedPlaceUIDForText($title, $latitude, $longitude)
     {
         // Round coordinates to 4 decimal places
         $latitude = round($latitude, 4);
@@ -707,7 +707,7 @@ class AjaxController extends Controller
             ->first();
 
         if ($place) {
-            return $place->id;
+            return $place->uid;
         }
 
         // Tier 2: Search in ANPS (datasource_id = $anpsId)
@@ -719,7 +719,7 @@ class AjaxController extends Controller
             ->first();
 
         if ($place) {
-            return $place->id;
+            return $place->uid;
         }
 
         // Tier 3: Search in GeoCoder (datasource_id = $geocoderId)
@@ -731,7 +731,7 @@ class AjaxController extends Controller
             ->first();
 
         // Return the place ID if found in GeoCoder, or null if no match is found
-        return $place ? $place->id : null;
+        return $place ? $place->uid : null;
     }
     /*
      *  BULK file add will be done in the usercontroller, as using AJAX for such a hefty task is not ideal
