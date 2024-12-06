@@ -31,12 +31,23 @@ $(document).ready(function () {
     $("#addfeatureterm").autocomplete("option", "appendTo", ".eventInsForm");
 
     $("#addNewLayer").on("click", function () {
+
+        tlcMap.ignoreExtentChange = true;
         const currentModal = document.querySelector("#addModal");
         $(currentModal).modal("hide");
 
         setTimeout(() => {
             const newModal = document.querySelector("#newLayerModal");
-            $(newModal).modal("show");
+            $(newModal).modal("show")
+                .on('hide.bs.modal', () => {
+                    tlcMap.ignoreExtentChange = true;
+                })
+                .on('hidden.bs.modal', () => {
+                    setTimeout(() => {
+                        tlcMap.ignoreExtentChange = false; 
+                    }, 500); 
+                });
+
         }, 500); // Delay to allow the current modal to fully hide
     });
 
@@ -56,6 +67,9 @@ $(document).ready(function () {
                         false,
                         false
                     );
+                    
+                    // Set the data attribute for public status
+                    $(option).attr("data-public", userLayers[i].is_public);
                     $("#chooseLayer").append(option).trigger("change");
                 }
             }
@@ -82,7 +96,7 @@ $(document).ready(function () {
         formData.append("dsn", `${userName}'s places`);
         formData.append("description", `${userName}'s first layer`);
         formData.append("recordtype", "Other");
-        formData.append("public", 0); // Private layer
+        formData.append("public", 1); // Public layer
         formData.append("allowanps", 0);
         formData.append("redirect", false);
 
@@ -94,7 +108,7 @@ $(document).ready(function () {
      *
      * @param {FormData} addPlaceFormData - FormData object with place details.
      */
-    function addPlaceToLayer(addPlaceFormData) {
+    function addPlaceToLayer(addPlaceFormData , is_public = true) {
         $.ajax({
             type: "POST",
             url: ajaxadddataitem,
@@ -108,12 +122,15 @@ $(document).ready(function () {
                 $("#addModal").modal("hide");
 
                 // Zoom to the new place.
-                tlcMap.isSearchOn = false;
-                tlcMap.ignoreExtentChange = false;
-                tlcMap.dataitems = null;
+                $("#customPlaceDiv").remove();
+                if(is_public){
+                    tlcMap.isSearchOn = false;
+                    tlcMap.ignoreExtentChange = false;
+                    tlcMap.dataitems = null;
+                    updateUrlParameters(null);
+                    tlcMap.zoomTo(parseFloat(lng), parseFloat(lat), 20);
+                }
                 tlcMap.graphicsLayer.removeAll();
-                updateUrlParameters(null);
-                window.tlcMap.zoomTo(parseFloat(lng), parseFloat(lat), 13);
             },
             error: function (xhr) {
                 var result = xhr.responseJSON;
@@ -154,6 +171,8 @@ $(document).ready(function () {
             msgBanner.error("A layer must be selected");
         }
 
+        let is_dataset_public = $("#chooseLayer option:selected").data("public");
+
         let addPlaceFormData = getAddDataitemRequestData();
         addPlaceFormData.append("ds_id", $("#chooseLayer").val());
 
@@ -171,16 +190,15 @@ $(document).ready(function () {
                         Accept: "application/json",
                     },
                     success: function (result) {
-                        console.log("Create layer success:", result.dataset_id);
                         addPlaceFormData.append("ds_id", result.dataset_id);
-                        addPlaceToLayer(addPlaceFormData);
+                        addPlaceToLayer(addPlaceFormData , result.is_public);
                     },
                     error: function (xhr) {
                         alert("Create layer failed");
                     },
                 });
             } else {
-                addPlaceToLayer(addPlaceFormData);
+                addPlaceToLayer(addPlaceFormData , is_dataset_public);
             }
         } else {
             // Display and scroll to the message banner.

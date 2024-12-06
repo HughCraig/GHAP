@@ -691,7 +691,22 @@ class TLCMap {
                 this.addModalMapPicker.clearMarkers();
             }
 
-            $("#addModal").modal("show");
+            this.ignoreExtentChange = true;
+
+            $("#addModal").modal("show")
+                .on('shown.bs.modal', () => {
+                    this.ignoreExtentChange = false; // Reset after modal fully shown
+                })
+                .on('hide.bs.modal', () => {
+
+                    this.ignoreExtentChange = true; // Set to true when modal starts hiding
+                })
+                .on('hidden.bs.modal', () => {
+                    setTimeout(() => {
+                        this.ignoreExtentChange = false; // Reset to false after modal is fully hidden
+                    }, 500); 
+                });
+
         });
         return addPlace;
     }

@@ -34,6 +34,7 @@
 
                     <div class="mb-2" style="font-weight: bold;">
                         Layer<label class="text-danger">*</label>
+                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="A place must be part of a 'Layer'. A Layer might be places about a certain topic, or simply 'My Places'. You must create a Layer to add places to it. You can change Layer details later after you create it. You will return to this screen after creating a new layer."></span>
                         <button id="addNewLayer" style="float: right;" type="button" data-bs-toggle="modal" data-bs-target="#newLayerModal">New layer</button>
                     </div>
 
@@ -42,7 +43,6 @@
                             <option value=""></option>
                         </select>
                     </div>
-
 
                     <label for="addtitle">Title</label><label class="text-danger">*</label>
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="A short title for the information you are adding about this place."></span>

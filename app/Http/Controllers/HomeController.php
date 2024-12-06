@@ -49,6 +49,7 @@ class HomeController extends Controller
                     $userLayers[] = [
                         'id' => $dataset->id,
                         'name' => $dataset->name,
+                        'is_public' => $dataset->public
                     ];
                 }
                 // Sort by name.

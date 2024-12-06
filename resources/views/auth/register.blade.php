@@ -63,7 +63,7 @@
 
                         <div class="form-group row">
                             <div class="col-md-6 offset-md-4">
-                                I accept the <a href="https://tlcmap.org/cou/" target="_blank">TLCMap Conditions of Use</a> <input type="checkbox" id="cou" name="cou" required>
+                                I accept the <a href="{{ config('app.tlcmap_doc_url') }}/about/conditionsofuse/" target="_blank">TLCMap Conditions of Use</a> <input type="checkbox" id="cou" name="cou" required>
                             </div>
                         </div>
 

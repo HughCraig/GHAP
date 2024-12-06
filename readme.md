@@ -2,17 +2,17 @@
 
 ## About
 
-Search and contribute to placenames in Australia with the Gazetteer of Historical Australian Placenames (GHAP, 'The 
-Gazetteer' or 'The Gazza'). The Gazza, for the first time, makes easily available aggregated data on 'all' placenames in
+Search and contribute to placenames in Australia with the Gazetteer of Historical Australian Places (GHAP, 'The 
+Gazetteer'). GHAP, for the first time, makes easily available aggregated data on 'all' placenames in
 Australia, based on ANPS data, including historical names. We have cleaned up coordinates for more than two thirds of 
 334,208 ANPS placenames and provided a user friendly search and filter interface and web service.
 
 Search by exact or fuzzy match, for all places within a region, and apply filters to narrow results. Save results in 
 standard formats. Because people come here to search for places, it's also a great place to contribute your place 
-related research so that other can find it. Whether placenames are new to the Gazza or already there, add them in 
+related research so that other can find it. Whether placenames are new to the GHAP or already there, add them in 
 (multiple instances are 'attestations' for people to find out about through links to your research).
 
-The Gazza can help answer that simple question - "What's here?"
+The GHAP can help answer that simple question - "What's here?"
 
 It has two main aspects:
 
