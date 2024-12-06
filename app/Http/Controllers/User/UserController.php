@@ -342,6 +342,13 @@ class UserController extends Controller
 
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
 
+        if ($request->has('dataset_delete_image') && $dataset->image_path) {
+            if (Storage::disk('public')->exists('images/' . $dataset->image_path)) {
+                Storage::disk('public')->delete('images/' . $dataset->image_path);
+            }
+            $dataset->image_path = null;
+        }
+        
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             //Validate image file.
