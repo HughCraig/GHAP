@@ -702,6 +702,9 @@ class GazetteerController extends Controller
 
         // The 'id' parameter actually means 'uid'.
         $parameters['id'] = (isset($parameters['id'])) ? $parameters['id'] : null;
+        if(!isset($parameters['id']) && (isset($parameters['gotoid'])) ){
+            $parameters['id'] = $parameters['gotoid'];
+        }
         $parameters['paging'] = (isset($parameters['paging'])) ? $parameters['paging'] : null;
         $parameters['recordtype'] = (isset($parameters['recordtype'])) ? $parameters['recordtype'] : null;
         $parameters['searchlayers'] = (isset($parameters['searchlayers'])) ? $parameters['searchlayers'] : null;
