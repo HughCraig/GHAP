@@ -126,13 +126,6 @@
                         </label>
                     </div>
 
-                    <select class="w3-white form-control num-places" style="height: 100%;" id="num-places">
-                        <option value="100">100 places</option>
-                        <option value="200">200 places</option>
-                        <option value="500">500 places</option>
-                        <option value="2000">2000 places</option>
-                        <option value="5000">5000 places</option>
-                    </select>
                 </div>
             </div>
         </div>
@@ -293,13 +286,23 @@
                             <div class="col-lg-5" style="margin-top:6%">
 
                                 <div class="row align-items-center my-auto mb-1">
-                                    <div class="col-sm-8" data-toggle="tooltip">
+                                    <div class="col-sm-8 pl-0" data-toggle="tooltip">
                                         Search Description
                                         <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Also search Description field"></span>
                                     </div>
                                     <div class="col-sm-4">
                                         <input type="checkbox" id="searchdescription" name="searchdescription">
                                     </div>
+                                </div>
+
+                                <div class="row align-items-center my-auto mb-1 pt-4">
+                                    <select class="w3-white form-control num-places pl-0" style="width:auto" id="num-places">
+                                        <option value="100">100 places</option>
+                                        <option value="200">200 places</option>
+                                        <option value="500">500 places</option>
+                                        <option value="2000">2000 places</option>
+                                        <option value="5000">5000 places</option>
+                                    </select>          
                                 </div>
                             </div>
                         </div>
