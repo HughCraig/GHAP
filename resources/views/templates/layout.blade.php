@@ -212,8 +212,16 @@
                     <a class="w3-bar-item w3-button w3-mobile" href="{{ url('register') }}">Register</a>
                 </div>
                 @else
-                <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
-                    <a class="w3-bar-item w3-button" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
+                <div class="w3-dropdown-hover w3-mobile w3-right">
+                    <button class="w3-button" style=" background-color: #17331C;color: white;">
+                        My Maps <i class="fa fa-caret-down"></i>
+                    </button>
+                    <div class="w3-dropdown-content w3-bar-block w3-card-4">
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mydatasets') }}">My layers</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mytexts') }}">My texts</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mysearches') }}">My searches</a>
+                    </div>
                 </div>
 
                 <div class="w3-dropdown-hover w3-mobile w3-right">
@@ -222,13 +230,10 @@
                     </button>
                     <div class="w3-dropdown-content w3-bar-block w3-card-4">
                         <a class="w3-bar-item w3-button" href="{{ url('myprofile') }}">My profile</a>
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mydatasets') }}">My layers</a>
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mytexts') }}">My texts</a>
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mysearches') }}">My searches</a>
                         @admin
                         <a class="w3-bar-item w3-button" href="{{ url('admin') }}">Admin</a>
                         @endadmin
+                        <a class="w3-bar-item w3-button" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
                     </div>
                 </div>
 
