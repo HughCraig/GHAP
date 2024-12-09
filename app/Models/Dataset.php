@@ -461,12 +461,24 @@ class Dataset extends Model
             $featureConfig->addLink("TLCMap Record: {$i->uid}", $proppairs["TLCMapLinkBack"]);
             $featureConfig->addLink('TLCMap Layer', $proppairs["TLCMapDataset"]);
 
+            $featureConfig = $featureConfig->toArray();
+            $featureConfig['source'] = [
+                'TLCMapID' => [
+                    'id' => $i->uid,
+                    'url' => $proppairs["TLCMapLinkBack"]
+                ],
+                'Layer' => [
+                    'name' => $this->name . ' (community contributed)',
+                    'url' => $metadata['ghap_url']
+                ]
+            ];
+
             if (isset($proppairs["longitude"]) && isset($proppairs["latitude"])) {
                 $features[] = array(
                     'type' => 'Feature',
                     'geometry' => array('type' => 'Point', 'coordinates' => array((float)$proppairs["longitude"], (float)$proppairs["latitude"])),
                     'properties' => $proppairs,
-                    'display' => $featureConfig->toArray(),
+                    'display' => $featureConfig,
                 );
             }
         }

@@ -452,6 +452,51 @@ class TLCMap {
             content: function (feature) {
                 const attributes = feature.graphic.attributes;
                 let content = "<table class='esri-widget__table'>";
+
+                // Add the extra highlighted row as the first row
+                content += `
+                    <tr style="background-color: #FFD580; font-weight: bold;">
+                        <td colspan="2">
+                            <a href="${
+                                isLoggedIn
+                                    ? `${baseUrl}myprofile/mydatasets`
+                                    : `${baseUrl}login`
+                            }" target="_blank" style="font-weight: 900">
+                                Know more about this place or other places? Contribute to TLCMap.org here…
+                            </a>
+                        </td> 
+                    </tr>
+                `;
+
+                if (attributes.dataset_id) {
+                    content += `
+                    <tr>
+                        <td>Layer</td>
+                        <td>
+                            <a href="${baseUrl}layers/${
+                        attributes.dataset_id
+                    }" target="_blank" style="color:#0000EE;">
+                                ${
+                                    attributes.dataset_name +
+                                    " (community contributed)"
+                                }
+                            </a>
+                        </td>
+                    </tr>
+                `;
+                } else {
+                    content += `
+                    <tr>
+                        <td>Layer</td>
+                        <td>
+                            <a href="${attributes.datasource_link}" target="_blank" style="color:#0000EE;">
+                                ${attributes.datasource_description}
+                            </a>
+                        </td>
+                    </tr>
+                `;
+                }
+
                 fields.forEach((field) => {
                     const key = field.name;
                     const alias = field.alias;
@@ -479,14 +524,18 @@ class TLCMap {
                     content += `<tr><th>Image</th><td><img src="${attributes.image_path}" alt="Place Image" style="max-width: 100%; height: auto;"></td></tr>`;
                 }
 
-                content += "</table>";
+                content += `
+                    <tr>
+                        <td>TLCMap ID</td>
+                        <td>
+                            <a href="${baseUrl}?gotoid=${attributes.uid}&view=list" target="_blank" style="color:#0000EE">
+                                ${attributes.uid}
+                            </a>
+                        </td>
+                    </tr>
+                `;
 
-                content += `<div style="margin-top: 1rem"><a style="color: #0000EE" href="${baseUrl}?gotoid=${attributes.uid}&view=list" target="_blank">TLCMap Record: tce9ac</a> `;
-                if (attributes.dataset_id) {
-                    content += `| <a style="color: #0000EE" href="${baseUrl}layers/${attributes.dataset_id}" target="_blank">Layer: ${attributes.dataset_name}</a></div>`;
-                } else {
-                    content += `| <a style="color: #0000EE" href="${attributes.datasource_link}" target="_blank">${attributes.datasource_description}</a></div>`;
-                }
+                content += "</table>";
 
                 return content;
             },
@@ -693,20 +742,19 @@ class TLCMap {
 
             this.ignoreExtentChange = true;
 
-            $("#addModal").modal("show")
-                .on('shown.bs.modal', () => {
+            $("#addModal")
+                .modal("show")
+                .on("shown.bs.modal", () => {
                     this.ignoreExtentChange = false; // Reset after modal fully shown
                 })
-                .on('hide.bs.modal', () => {
-
+                .on("hide.bs.modal", () => {
                     this.ignoreExtentChange = true; // Set to true when modal starts hiding
                 })
-                .on('hidden.bs.modal', () => {
+                .on("hidden.bs.modal", () => {
                     setTimeout(() => {
                         this.ignoreExtentChange = false; // Reset to false after modal is fully hidden
-                    }, 500); 
+                    }, 500);
                 });
-
         });
         return addPlace;
     }
@@ -995,9 +1043,9 @@ class TLCMap {
     /**
      * Remove all Point from feature layer
      * Remove all data in the list view
-     * 
+     *
      */
-    removeAllPlacesFromFeatureLayer(){
+    removeAllPlacesFromFeatureLayer() {
         this.featureLayer.queryFeatures().then((results) => {
             // edits object tells apply edits that you want to delete the features
             const deleteEdits = {
@@ -1020,12 +1068,10 @@ class TLCMap {
      */
     addPointsToMap(dataitems, bbox = null) {
         require(["esri/Graphic", "esri/geometry/Extent"], (Graphic, Extent) => {
-
             let coordinates = [];
 
             // Add new points
             dataitems.forEach((dataitem) => {
-            
                 if (this.currentPointIDS.has(dataitem.id)) {
                     return;
                 }
@@ -1064,9 +1110,14 @@ class TLCMap {
                 dataitem["datasource_description"] =
                     dataitem.datasource.description;
                 dataitem["datasource_link"] = dataitem.datasource.link;
-               
+
                 if (dataitem["external_url"]) {
-                    dataitem["external_url"] = '<a href="' + dataitem.external_url + '" style="color:#0000EE;" target="_blank">' + dataitem.external_url + '</a>';
+                    dataitem["external_url"] =
+                        '<a href="' +
+                        dataitem.external_url +
+                        '" style="color:#0000EE;" target="_blank">' +
+                        dataitem.external_url +
+                        "</a>";
                 }
 
                 if (dataitem["dataset"]) {
@@ -1116,7 +1167,11 @@ class TLCMap {
                 var totalPoints = this.totalBboxScanDataitems;
             }
 
-            setListViewDisplayInfo(this.currentPointIDS.size, totalPoints, this);
+            setListViewDisplayInfo(
+                this.currentPointIDS.size,
+                totalPoints,
+                this
+            );
         });
     }
 
@@ -1220,7 +1275,7 @@ class TLCMap {
      * @param {Object} data - Data to send in the AJAX request.
      */
     updateMapByBbox(data) {
-        showLoadingWheel('Loading random places...');
+        showLoadingWheel("Loading random places...");
         $.ajax({
             type: "POST",
             url: bboxscan,

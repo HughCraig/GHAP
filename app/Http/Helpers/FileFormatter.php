@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
 use TLCMap\Models\Dataset;
+use TLCMap\Models\Datasource;
 use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
@@ -292,10 +293,19 @@ class FileFormatter
             }
 
             $dataset_url = config('app.url');
+
             if (isset($r->dataset_id)) {
                 $proppairs["TLCMapDataset"] = url("publicdatasets/" . $r->dataset_id);
+                $placeLayerName = $r->dataset->name . ' (community contributed)';
+                $placeLayerUrl = url("publicdatasets/" . $r->dataset_id);
             } else {
                 $proppairs["TLCMapDataset"] = url("/");
+                $placeDatasourceID = $r->datasource_id;
+                if($placeDatasourceID){
+                    $placeDatasource = Datasource::find($placeDatasourceID);
+                    $placeLayerName = $placeDatasource->description;
+                    $placeLayerUrl = $placeDatasource->link;
+                }
             }
             // Set footer link.
             $featureConfig->addLink('TLCMap Layer', $proppairs["TLCMapDataset"]);
@@ -305,13 +315,26 @@ class FileFormatter
             }
 
             $metadata = array('name' => 'TLCMap Gazetteer Query', 'url' => URL::full());
+            $featureConfig = $featureConfig->toArray();
+
+
+            $featureConfig['source'] = [
+                'TLCMapID' => [
+                    'id' => $r->uid,
+                    'url' => $proppairs["TLCMapLinkBack"]
+                ],
+                'Layer' => [
+                    'name' => $placeLayerName,
+                    'url' => $placeLayerUrl
+                ]
+            ];
 
 
             $features[] = array(
                 'type' => 'Feature',
                 'geometry' => array('type' => 'Point', 'coordinates' => array((float)$r->longitude, (float)$r->latitude)),
                 'properties' => $proppairs,
-                'display' => $featureConfig->toArray(),
+                'display' => $featureConfig,
             );
 
         }
