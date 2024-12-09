@@ -114,7 +114,7 @@
                     <div class="d-flex view-button pl-5" style="align-items: baseline;">
                         <label class="radio" id="radio-map">
                             <input type="radio" name="typeFilter" class="typeFilter-map">
-                            <span class="label-body pl-1">Map</span>
+                            <span class="label-body pl-1">Points</span>
                         </label>
                         <label class="radio" id="radio-map" style="padding-left: 3rem;">
                             <input type="radio" name="typeFilter" class="typeFilter-cluster">
