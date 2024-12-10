@@ -464,6 +464,12 @@ function updateViewMapLink(type, format) {
  * Binds the download links to the respective click events, updating the href attribute dynamically.
  */
 function bindDownloadLinks(tlcMap) {
+    // Unbind all click events first
+    $("#downloadKml").off("click");
+    $("#downloadCsv").off("click");
+    $("#downloadGeoJson").off("click");
+    $("#downloadRoCrate").off("click");
+
     if (tlcMap.isSearchOn) {
         $("#downloadKml").click(function () {
             $(this).attr("href", updateDownloadLink("kml"));
@@ -620,6 +626,7 @@ function continueSearchForm(
                 }
             }
             hideLoadingWheel();
+            bindDownloadLinks(tlcMap);
         },
         error: function (xhr, textStatus, errorThrown) {
             alert(
@@ -965,6 +972,7 @@ $(document).ready(async function () {
         if (isSearchOn()) {
             presetSearchForm();
             continueSearchForm(tlcMap, null, defaultLocation, true, null);
+            tlcMap.isSearchOn = true;
         } else {
             tlcMap.ignoreExtentChange = false;
 
@@ -1179,6 +1187,7 @@ $(document).ready(async function () {
         $("#maxlong").val("");
         $("#maxlat").val("");
         $("#polygoninput").val("");
+        bindDownloadLinks(tlcMap);
 
         tlcMap.gotoUserLocation();
     });
