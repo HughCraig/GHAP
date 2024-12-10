@@ -300,9 +300,7 @@ function getSearchFormData(names, tlcMap, viewBbox) {
         searchpublicdatasets: $("#searchpublicdatasets").is(":checked")
             ? "on"
             : null,
-        searchgeocoder : $("#searchpublicdatasets").is(":checked")
-            ? "on"
-            : null,
+        searchgeocoder: $("#searchpublicdatasets").is(":checked") ? "on" : null,
         searchausgaz: $("#searchausgaz").is(":checked") ? "on" : null,
         searchncg: $("#searchncg").is(":checked") ? "on" : null,
 
@@ -468,6 +466,12 @@ function updateViewMapLink(type, format) {
  * Binds the download links to the respective click events, updating the href attribute dynamically.
  */
 function bindDownloadLinks(tlcMap) {
+    // Unbind all click events first
+    $("#downloadKml").off("click");
+    $("#downloadCsv").off("click");
+    $("#downloadGeoJson").off("click");
+    $("#downloadRoCrate").off("click");
+
     if (tlcMap.isSearchOn) {
         $("#downloadKml").click(function () {
             $(this).attr("href", updateDownloadLink("kml"));
@@ -575,7 +579,7 @@ function continueSearchForm(
 ) {
     const data = getSearchFormData(names, tlcMap, viewBbox);
     updateUrlParameters(data);
-    showLoadingWheel('loading places...');
+    showLoadingWheel("loading places...");
 
     $.ajax({
         type: "POST",
@@ -624,6 +628,7 @@ function continueSearchForm(
                 }
             }
             hideLoadingWheel();
+            bindDownloadLinks(tlcMap);
         },
         error: function (xhr, textStatus, errorThrown) {
             alert(
@@ -969,6 +974,7 @@ $(document).ready(async function () {
         if (isSearchOn()) {
             presetSearchForm();
             continueSearchForm(tlcMap, null, defaultLocation, true, null);
+            tlcMap.isSearchOn = true;
         } else {
             tlcMap.ignoreExtentChange = false;
 
@@ -1065,6 +1071,17 @@ $(document).ready(async function () {
             tlcMap.drawPolygon(rings);
         }
     });
+
+    if (tlcMap.isSearchOn && $("#polygoninput").val()) {
+        var pointstrarr = $("#polygoninput").val().split(","); //["0 0", "0 100", "100 100", "100 0", "0 0"]
+        var rings = [];
+
+        for (var i = 0; i < pointstrarr.length; i++) {
+            var point = pointstrarr[i].trim().split(" ");
+            rings.push([parseFloat(point[0]), parseFloat(point[1])]);
+        }
+        tlcMap.drawPolygon(rings);
+    }
 
     var viewParam = getQueryParam("view");
     if (viewParam == "map") {
@@ -1183,8 +1200,79 @@ $(document).ready(async function () {
         $("#maxlong").val("");
         $("#maxlat").val("");
         $("#polygoninput").val("");
+        bindDownloadLinks(tlcMap);
 
         tlcMap.gotoUserLocation();
+    });
+
+    //Upload kml search behaviour
+    $("#polygonkml_search").click(async function (e) {
+        e.preventDefault();
+        console.log("polygonkml_search");
+
+        const fileInput = document.getElementById("polygonkml");
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Please upload a KML file.");
+            return;
+        } else if (!file.name.endsWith(".kml")) {
+            alert("File must be a kml file.");
+            return;
+        }
+
+        try {
+            // Read the file content
+            const text = await file.text();
+
+            // Parse the KML
+            const parser = new DOMParser();
+            const kmlDoc = parser.parseFromString(text, "application/xml");
+
+            // Check for parsing errors
+            if (kmlDoc.getElementsByTagName("parsererror").length > 0) {
+                alert("The uploaded file is not a valid KML.");
+                return;
+            }
+
+            // Find the Polygon tag
+            const polygons = kmlDoc.getElementsByTagName("Polygon");
+            if (polygons.length === 0) {
+                alert("The KML file must contain at least one Polygon.");
+                return;
+            }
+
+            // Extract coordinates from the first Polygon
+            const coordinatesTag =
+                polygons[0].getElementsByTagName("coordinates")[0];
+            if (!coordinatesTag) {
+                alert("The Polygon tag does not contain coordinates.");
+                return;
+            }
+
+            const coordinates = coordinatesTag.textContent.trim();
+            const latLongCoords = coordinates
+                .split(" ")
+                .map((coord) => coord.split(",").slice(0, 2))
+                .filter((coord) => coord.length === 2);
+
+            let kmlout = "";
+            for (let i = 0; i < latLongCoords.length; i++) {
+                kmlout += latLongCoords[i][0] + " " + latLongCoords[i][1];
+                if (i < latLongCoords.length - 1) {
+                    kmlout += ", ";
+                }
+            }
+
+            const input = {
+                limit: 5000,
+                polygon: kmlout,
+            };
+            updateUrlParameters(input);
+            window.location.reload();
+        } catch (error) {
+            alert("An error occurred while processing the KML file.");
+        }
     });
 
     $("#searchbutton").click(function (e) {
@@ -1205,7 +1293,6 @@ $(document).ready(async function () {
                     Accept: "application/json",
                 },
                 success: function (result) {
-
                     const new_layer_id = result.dataset_id;
                     const new_layer_name = $("#layername").val();
 
@@ -1215,16 +1302,19 @@ $(document).ready(async function () {
                         true,
                         true
                     );
-                    $("#chooseLayer").append(new_layer_option).trigger("change");
+                    $("#chooseLayer")
+                        .append(new_layer_option)
+                        .trigger("change");
 
                     removeExistingSelections();
-                    const currentModal = document.querySelector("#newLayerModal");
+                    const currentModal =
+                        document.querySelector("#newLayerModal");
                     $(currentModal).modal("hide");
-            
+
                     setTimeout(() => {
                         const newModal = document.querySelector("#addModal");
                         $(newModal).modal("show");
-                    }, 500); 
+                    }, 500);
                 },
                 error: function (xhr) {
                     alert("Create layer failed");

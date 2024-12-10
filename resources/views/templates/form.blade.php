@@ -529,16 +529,12 @@
                 </div>
                 <div class="modal-body">
                     <div id="kmlPolygonFileUploadForm">
-                        <?php
-                        echo Form::open(array('url' => '/kmlpolygonsearch', 'files' => 'true'));
-                        echo 'File must be valid kml format and contain at least 1 Polygon tag.';
-                        echo Form::file('polygonkml', ['accept' => '.kml']);
-                        ?>
+                        <div>File must be valid kml format and contain at least 1 Polygon tag</div>
+                        <input type="file" id="polygonkml" name="polygonkml" accept=".kml">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <?php echo Form::submit('Search');
-                    echo Form::close(); ?>
+                    <input type="submit" value="Search" id="polygonkml_search">
                 </div>
             </div>
         </div>
