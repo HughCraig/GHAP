@@ -521,6 +521,13 @@ class AjaxController extends Controller
         if (isset($dateend)) $dateend = GeneralFunctions::dateMatchesRegexAndConvertString($dateend);
         if ($datestart === false || $dateend === false) return response()->json(['error' => 'Your date values are in the incorrect format.', 'e1' => $e1, 'e2' => $e2], 422); //if either didnt match, send error
 
+        if($request->delete_image && $dataitem->image_path) {
+            if (Storage::disk('public')->exists('images/' . $dataitem->image_path)) {
+                Storage::disk('public')->delete('images/' . $dataitem->image_path);
+            }
+            $dataitem->image_path = null;
+        }
+
         if ($request->hasFile('image')) {
             $image = $request->file('image');
 
