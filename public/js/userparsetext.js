@@ -4,6 +4,7 @@ function showLoadingWheel(loadText) {
 }
 
 function hideLoadingWheel() {
+    window.onbeforeunload = null;
     document.getElementById("loadingWheel").style.display = "none";
 }
 
@@ -12,9 +13,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const options = Array.from(select.options);
 
     // Find "Australia" and "Global" options
-    const australiaOption = options.find(option => option.value === "Australia");
-    const globalOption = options.find(option => option.value === "null");
-    const otherOptions = options.filter(option => option.value !== "Australia" && option.value !== "null");
+    const australiaOption = options.find(
+        (option) => option.value === "Australia"
+    );
+    const globalOption = options.find((option) => option.value === "null");
+    const otherOptions = options.filter(
+        (option) => option.value !== "Australia" && option.value !== "null"
+    );
 
     // Sort other options alphabetically
     otherOptions.sort((a, b) => a.text.localeCompare(b.text));
@@ -28,9 +33,8 @@ document.addEventListener("DOMContentLoaded", function () {
         australiaOption.selected = true; // Ensure Australia is selected by default
     }
     if (globalOption) select.add(globalOption); // Add Global second
-    otherOptions.forEach(option => select.add(option)); // Add the rest alphabetically
+    otherOptions.forEach((option) => select.add(option)); // Add the rest alphabetically
 });
-
 
 $(document).ready(function () {
     $.ajaxSetup({
@@ -200,6 +204,10 @@ $(document).ready(function () {
         // Start the timer Mufeng Remove this
         let startTime = performance.now();
 
+        window.onbeforeunload = function () {
+            return "Your results will not be saved if you close or navigate away.";
+        };
+
         showLoadingWheel("Geoparsing places...");
         var selectedMethod = $("#parsing_method").val();
         var formData = new FormData();
@@ -297,7 +305,6 @@ $(document).ready(function () {
     });
 
     function addLayersAndPlacesInfo(selectPlaces, layerFormData) {
-        console.log(selectPlaces); // Mufeng remove in production
         //create dataset
         $.ajax({
             type: "POST",
@@ -311,7 +318,9 @@ $(document).ready(function () {
             success: function (result) {
                 const new_layer_id = result.dataset_id;
 
-                //After layer is created, add the selected places to the layer
+                const ajaxPromises = []; // Array to hold all AJAX promises
+
+                // After layer is created, add the selected places to the layer
                 selectPlaces.forEach((place) => {
                     if (place["temp_lat"] == "" || place["temp_lon"] == "") {
                         return;
@@ -323,74 +332,75 @@ $(document).ready(function () {
                         place.context
                     );
 
-                    //Create dataitem
-                    $.ajax({
+                    // Create dataitem
+                    const placePromise = $.ajax({
                         type: "POST",
                         url: ajaxadddataitem,
                         data: placeFormData,
                         contentType: false,
                         processData: false,
-                        success: function (result) {
-                            var new_dataitem_uid = result.dataitem.uid;
-                            const textConextFormData = new FormData();
-                            textConextFormData.append(
-                                "dataitem_uid",
-                                new_dataitem_uid
-                            );
-                            textConextFormData.append("text_id", textId);
-                            textConextFormData.append(
-                                "start_index",
-                                place.text_position.offset
-                            );
-                            textConextFormData.append(
-                                "end_index",
-                                parseInt(place.text_position.offset, 10) +
-                                    place.name.length
-                            );
+                    }).then((result) => {
+                        var new_dataitem_uid = result.dataitem.uid;
+                        const textConextFormData = new FormData();
+                        textConextFormData.append(
+                            "dataitem_uid",
+                            new_dataitem_uid
+                        );
+                        textConextFormData.append("text_id", textId);
+                        textConextFormData.append(
+                            "start_index",
+                            place.text_position.offset
+                        );
+                        textConextFormData.append(
+                            "end_index",
+                            parseInt(place.text_position.offset, 10) +
+                                place.name.length
+                        );
+                        textConextFormData.append(
+                            "sentence_start_index",
+                            place.text_position.sentence_start_index
+                        );
+                        textConextFormData.append(
+                            "sentence_end_index",
+                            place.text_position.sentence_end_index
+                        );
+                        textConextFormData.append(
+                            "line_index",
+                            place.text_position.line
+                        );
+                        textConextFormData.append(
+                            "line_word_start_index",
+                            place.text_position.word
+                        );
+                        textConextFormData.append("line_word_end_index", -1);
 
-                            textConextFormData.append(
-                                "sentence_start_index",
-                                place.text_position.sentence_start_index
-                            );
-                            textConextFormData.append(
-                                "sentence_end_index",
-                                place.text_position.sentence_end_index
-                            );
-                            textConextFormData.append(
-                                "line_index",
-                                place.text_position.line
-                            );
-                            textConextFormData.append(
-                                "line_word_start_index",
-                                place.text_position.word
-                            );
-                            textConextFormData.append(
-                                "line_word_end_index",
-                                -1
-                            );
-
-                            //create text content
-                            $.ajax({
-                                type: "POST",
-                                url: ajaxaddtextcontent,
-                                data: textConextFormData,
-                                contentType: false,
-                                processData: false,
-                                success: function (result) {
-                                    // Redirect to the new layer page
-                                    window.location.href =
-                                        "/myprofile/mydatasets/" + new_layer_id;
-                                },
-                                error: function (xhr) {
-                                    alert(xhr.responseText); //error message with error info
-                                },
-                            });
-                        },
-                        error: function (xhr) {
-                            alert(xhr.responseText); //error message with error info
-                        },
+                        // Create text content
+                        return $.ajax({
+                            type: "POST",
+                            url: ajaxaddtextcontent,
+                            data: textConextFormData,
+                            contentType: false,
+                            processData: false,
+                        });
                     });
+
+                    // Add this promise to the list
+                    ajaxPromises.push(placePromise);
                 });
+
+                // Wait for all AJAX requests to finish before redirecting
+                $.when
+                    .apply($, ajaxPromises)
+                    .done(() => {
+                        window.onbeforeunload = null;
+
+                        // Redirect to the new layer page
+                        window.location.href =
+                            "/myprofile/mydatasets/" + new_layer_id;
+                    })
+                    .fail((xhr) => {
+                        alert("An error occurred: " + xhr.responseText);
+                    });
             },
             error: function (xhr) {
                 alert("Create layer failed");

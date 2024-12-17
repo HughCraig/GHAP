@@ -229,7 +229,6 @@ class GeneralFunctions
 
     public static function validateUserUploadText($file)
     {
-
         $maxSize = config('app.text_max_upload_file_size');
         $allowedExtensions = config('app.allowed_text_file_types');
 
@@ -244,10 +243,34 @@ class GeneralFunctions
             return false; 
         }
 
-        // Get the file content as an array of lines
-        $fileContent = file_get_contents($file->getRealPath());
-        
-        return $fileContent; 
+        // Read file line-by-line into an array (includes actual newlines)
+        $fileLines = file($file->getRealPath());
+
+        // Process each line: Trim leading/trailing spaces and preserve newlines
+        $normalizedContent = '';
+        foreach ($fileLines as $line) {
+
+            // Add a space after the LAST stop sign in a sequence
+            $line = preg_replace('/(\.{2,})(?=[^\.\s])/', '$1 ', $line);
+
+            // Ensure a space after a single stop sign if the next character isn't a space or stop sign
+            $line = preg_replace('/\.(?!\s|\.)(\S)/', '. $1', $line);
+
+            // Add a space after a comma if the next character isn't a space
+            $line = preg_replace('/,(?!\s)(\S)/', ', $1', $line);
+
+            // Add a space before a comma if it's after a non-alphanumeric character
+            $line = preg_replace('/([^a-zA-Z0-9])\,/', '$1 ,', $line);
+
+            // Remove extra spaces but preserve newlines
+            $line = preg_replace('/[^\S\r\n]+/', ' ', $line);
+
+            $line = rtrim($line);
+
+            $normalizedContent .= $line . "\n";
+        }
+
+        return $normalizedContent;
     }
 
 
