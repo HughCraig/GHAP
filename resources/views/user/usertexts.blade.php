@@ -31,7 +31,7 @@
         @foreach($user->texts as $text)
         <tr id="row_id_{{$text->id}}">
             <td><a href="{{url()->full()}}/{{$text->id}}">{{$text->name}}</a></td>
-            <td>{{$text->texttype->type}}</td>
+            <td>{{ $text->texttype->type ?? 'N/A' }}</td>
             <td>{{$text->warning}}</td>
             <td>{{$text->created_at}}</td>
             <td>{{$text->updated_at}}</td>

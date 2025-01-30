@@ -15,6 +15,8 @@
     const ajaxadddataitem = "{{url('ajaxadddataitem')}}";
     const ajaxaddtextcontent = "{{url('ajaxaddtextcontent')}}";
     const ajaxgetdataitemmaps = "{{url('ajaxgetdataitemmaps')}}";
+    const viewsrooturl = "{{ config('app.views_root_url') }}";
+    const appurl = "{{ config('app.url') }}";
 </script>
 
 <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
@@ -37,7 +39,12 @@
 
 <div class="row pt-4">
     <div class="col-lg-4">
-        <h4 class="font-weight-bold">Geoparsing Method</h4>
+        <div class="d-flex" style="align-items: center;">
+            <h4 class="font-weight-bold">Geoparsing Method</h4>
+            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign pl-2"
+                data-toggle="tooltip" data-placement="right"
+                title="This step detects words that seem to be place names. BERT detects any placename. Dictionary allows you to detect only the place names you specify."></span>
+        </div>
         <select id="parsing_method" class="mb-4 w3-white form-control">
             <option value="bert">BERT</option>
             <option value="dictionary">Dictionary</option>
@@ -46,14 +53,26 @@
     </div>
 
     <div class="col-lg-4">
-        <h4 class="font-weight-bold">Geocoding Method</h4>
+        <div class="d-flex" style="align-items: center;">
+            <h4 class="font-weight-bold">Geocoding Method</h4>
+            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign pl-2"
+                data-toggle="tooltip" data-placement="right"
+                title="Having identified placenames, this step finds coordinates for them. The Google method sends the text but not your details to Google."></span>
+        </div>
         <select id="geocoding_method" class="mb-4 w3-white form-control">
             <option value="google_geocoding">Google Geocoding</option>
         </select>
     </div>
 
     <div class="col-lg-4">
-        <h4 class="font-weight-bold">Geocoding Bias</h4>
+
+        <div class="d-flex" style="align-items: center;">
+            <h4 class="font-weight-bold">Geocoding Bias</h4>
+            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign pl-2"
+                data-toggle="tooltip" data-placement="right"
+                title="Many Australian placenames occur in other countries. Bias to Australia for texts set in Australia, or choose Global or another country as needed."></span>
+        </div>
+
         <select id="geocoding_bias" class="mb-4 w3-white form-control">
             <option value="Australia">Australia</option>
             <option value="null">Global</option>
@@ -189,7 +208,9 @@
 </div>
 
 <label data-toggle="tooltip" class="d-flex datasource-filter btn pl-0">
-    Save to new layer automatically. Novel length texts may take an hour or so. You can close the browser and return if results are saved
+    <p style="white-space: normal; word-wrap: break-word;text-align:left">Save all results to a new layer automatically 
+    (Recommended for book-length texts which may take up to an hour or so to be ready to review and save. 
+    You can continue browsing in other windows, but do not close this window. You can edit results after saving.)</p>
     <input type="checkbox" id="saveautomatically" class="ml-2" style="margin-top: 1px; cursor:pointer">
 </label>
 

@@ -976,7 +976,7 @@ select:disabled {
 
 #loadingWheel {
     position: fixed;
-    left: 55%;
+    left: 50%;
     top: 60%;
     transform: translate(-50%, -50%);
     text-align: center;

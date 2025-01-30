@@ -208,7 +208,7 @@ $(document).ready(function () {
             return "Your results will not be saved if you close or navigate away.";
         };
 
-        showLoadingWheel("Geoparsing places...");
+        showLoadingWheel("Geoparsing places. Do not close this browser window.");
         var selectedMethod = $("#parsing_method").val();
         var formData = new FormData();
 
@@ -394,9 +394,10 @@ $(document).ready(function () {
                     .done(() => {
                         window.onbeforeunload = null;
 
-                        // Redirect to the new layer page
-                        window.location.href =
-                            "/myprofile/mydatasets/" + new_layer_id;
+                        // Redirect to the text map view page
+                        window.location.href = viewsrooturl + "/textmap.html?load=" + 
+                            encodeURIComponent(appurl + "/layers/" + new_layer_id + "/json") + 
+                            "&textmap=true";
                     })
                     .fail((xhr) => {
                         alert("An error occurred: " + xhr.responseText);

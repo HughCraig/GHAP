@@ -162,9 +162,13 @@
                     <li>
                         <div style="display:flex; font-weight:bold"><a href="{{ config('app.tlcmap_doc_url') }}/tools/" style="color:black">TOOLS</a><span id="menu-item-58" class="icon icon-arrow-down-dark u-pull-right submenu-toggle"></span></div>
                         <ul class="submenu" style="display: block;">
+
+                            <li><a href="/">Search Maps</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Make Maps</a></li>
                             <li><a href="https://quicktools.tlcmap.org/">Quick Tools</a></li>
                             <li><a href="https://www.researchobject.org/ro-crate/">RO-Crate</a></li>
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/core-data/">Core Data</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Web Services</a></li>
                         </ul>
                     </li>
                     <li>
@@ -183,8 +187,10 @@
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/about/updates/">Updates</a></li>
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/about/lead-researchers/">Lead researchers</a></li>
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/about/partners/">Partners</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/research-outputs/">Research Outputs</a></li>
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/examples/">Examples</a></li>
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/contact/">Contact</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/about/conditionsofuse/">Conditions of Use</a></li>
                         </ul>
                     </li>
                 </ul>

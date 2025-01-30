@@ -44,7 +44,8 @@ class TextController extends Controller
         if (!$textID) {
             return redirect('myprofile/mytexts/');
         }
-        return view('user.userviewtext', ['text' => $text]);
+        $texttypes = TextType::types();
+        return view('user.userviewtext', ['text' => $text, 'texttypes' => $texttypes]);
     }
 
     /**
@@ -59,6 +60,100 @@ class TextController extends Controller
         return view('user.usernewtext', ['texttypes' => $texttypes]);
     }
 
+    public function editText(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $text = $user->texts()->find($id);
+        if (!$text) {
+            return redirect('myprofile/mytexts/');
+        }
+       
+        //Mandatory Fields
+        $textname = $request->textname;
+        $description = $request->description;
+        if (!$textname || !$description) return redirect('myprofile/mytexts'); //Missing required fields
+
+        //Check temporalfrom and temporalto is valid, continue if it is or reject if it is not
+        $temporalfrom = $request->temporalfrom;
+        if (isset($temporalfrom)) {
+            $temporalfrom = GeneralFunctions::dateMatchesRegexAndConvertString($temporalfrom);
+            if (!$temporalfrom) return redirect('myprofile/mytexts'); //The user bypassed the frontend js date check and submitted an incorrect date anyways, send them back to the datasets page
+        }
+
+        $temporalto = $request->temporalto;
+        if (isset($temporalto)) {
+            $temporalto = GeneralFunctions::dateMatchesRegexAndConvertString($temporalto);
+            if (!$temporalto) return redirect('myprofile/mytexts'); //The user bypassed the frontend js date check and submitted an incorrect date anyways, send them back to the datasets page
+        }
+
+        $keywords = [];
+        $tags = explode(",,;", $request->tags);
+        //for each tag in the subjects array(?), get or create a new subjectkeyword
+        foreach ($tags as $tag) {
+            $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
+            array_push($keywords, $subjectkeyword);
+        }
+
+        if ($request->has('text_delete_image') && $text->image_path) {
+            if (Storage::disk('public')->exists('images/' . $text->image_path)) {
+                Storage::disk('public')->delete('images/' . $text->image_path);
+            }
+            $text->image_path = null;
+        }
+        
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            //Validate image file.
+            if(!GeneralFunctions::validateUserUploadImage($image)){
+                return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
+            }
+            // Delete old image.
+            if ($text->image_path && Storage::disk('public')->exists('images/' . $text->image_path)) {
+                Storage::disk('public')->delete('images/' . $text->image_path);
+            } 
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->putFileAs('images', $image, $filename);
+            $text->image_path = $filename;
+        }
+
+        $texttype_id = null;
+        if ($request->has('texttype') && $request->texttype) {
+            $texttype = TextType::where('type', $request->texttype)->first();
+            $texttype_id = $texttype ? $texttype->id : null;
+        }
+
+        $text->fill([
+            'name' => $textname,
+            'description' => $description,
+            'texttype_id' => $texttype_id,
+            'creator' => $request->creator,
+            'publisher' => $request->publisher,
+            'contact' => $request->contact,
+            'citation' => $request->citation,
+            'doi' => $request->doi,
+            'source_url' => $request->source_url,
+            'linkback' => $request->linkback,
+            'language' => $request->language,
+            'license' => $request->license,
+            'rights' => $request->rights,
+            'temporal_from' => $temporalfrom,
+            'temporal_to' => $temporalto,
+            'created' => $request->created,
+            'warning' => $request->warning,
+            'image_path' => $text->image_path
+        ]);
+
+        $text->save();
+
+        $text->subjectKeywords()->detach(); //detach all keywords
+        //Attach the new ones
+        foreach ($keywords as $keyword) {
+            $text->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
+        }
+
+        return redirect('myprofile/mytexts/' . $id);
+    }
+
 
     public function createNewText(Request $request)
     {
@@ -67,8 +162,7 @@ class TextController extends Controller
         $textname = $request->textname;
         $description = $request->description;
 
-        $tags = explode(",,;", $request->tags);
-        if (!$textname || !$description || !$tags) return redirect('myprofile/mytexts');
+        if (!$textname || !$description) return redirect('myprofile/mytexts');
 
         //Check temporalfrom and temporalto is valid, continue if it is or reject if it is not (do this in editDataset too)
         $temporalfrom = $request->temporalfrom;
@@ -84,14 +178,19 @@ class TextController extends Controller
         }
 
         $keywords = [];
+        $tags = explode(",,;", $request->tags);
         //for each tag in the subjects array(?), get or create a new subjectkeyword
         foreach ($tags as $tag) {
             $subjectkeyword = SubjectKeyword::firstOrCreate(['keyword' => $tag]);
             array_push($keywords, $subjectkeyword);
         }
 
-        $texttype_id = TextType::where('type', $request->texttype)->first()->id;
-
+        $texttype_id = null;
+        if ($request->has('texttype') && $request->texttype) {
+            $texttype = TextType::where('type', $request->texttype)->first();
+            $texttype_id = $texttype ? $texttype->id : null;
+        }
+            
         $imageFilename = null;
         if ($request->hasFile('image')) {
             $image = $request->file('image');

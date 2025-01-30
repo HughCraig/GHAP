@@ -23,6 +23,8 @@
 
 <h2>Text</h2>
 <a href="{{url('myprofile/mytexts')}}" class="btn btn-primary">Back</a>
+<!-- Edit Text Modal Button-->
+@include('modals.edittextmodal')
 <a href="{{url()->full()}}/parse" class="btn btn-primary">Parse Text</a>
 <a href="#" id="downloadtextcontent" class="btn btn-primary">Download</a>
 
@@ -37,7 +39,7 @@
                 </tr>
                 <tr style="height: 50px; overflow: auto">
                     <th>Type</th>
-                    <td>{{$text->texttype->type}}</td>
+                    <td>{{ $text->texttype ? $text->texttype->type : 'N/A' }}</td>
                 </tr>
                 <tr style="height: 50px; overflow: auto">
                     <th>Description</th>
@@ -153,11 +155,12 @@
 </div>
 
 <!-- Displaying the text content in a scrollable div  MUFENG: make this class-->
+<h2>Text Preview</h2>
 <div class="p-4" style="border: 1px solid #ddd;width: 100%; height: 300px; overflow-y: scroll; white-space: pre-line;">
     {!! $text->content !!}
 </div>
 
-<h2>Layers created from this text</h2>
+<h2 class="pt-4">Layers created from this text</h2>
 <a href="{{url()->full()}}/parse" class="btn btn-primary mb-4">Create Layer From Text</a>
 
 <table id="datasettable" class="display" style="width:100%">

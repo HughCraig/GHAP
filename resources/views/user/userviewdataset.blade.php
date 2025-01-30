@@ -35,7 +35,7 @@
     @if($ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'OWNER') 
 
         <!-- Edit Collaborators Button-->
-        <a href="{{url()->full()}}/collaborators" class="btn btn-primary">Edit Collaborators</a>
+        <!-- <a href="{{url()->full()}}/collaborators" class="btn btn-primary">Edit Collaborators</a> -->
 
         <button id="toggle-drag" class="btn btn-primary">Change Order</button>
 
@@ -103,7 +103,15 @@
                 @endif
             </div>
         </div>
+
+        @if ($ds->recordtype->type == 'Text' && $ds->text)
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ config('app.views_root_url') }}/textmap.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{$ds->id}}/json?textmap=true'))">
+                Edit Text Map
+            </button>
+        @endif
     @endif
+
+
 
     <!-- Basic Statistics Feed -->
     <div class="dropdown">

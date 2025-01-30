@@ -152,6 +152,8 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mytexts/{id}', 'TextController@viewMyText');
     Route::get('myprofile/mytexts/{id}/parse', 'TextController@parseText');
 
+    Route::post('myprofile/mytexts/{id}/edit', 'TextController@editText');
+
     Route::post('ajaxparsetext', 'TextController@parseTextContent');
     Route::post('ajaxaddtextcontent', 'TextController@addTextContext');
 

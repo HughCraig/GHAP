@@ -609,7 +609,11 @@ class Dataset extends Model
         // !!!!!!!!!! actually also go through the headers and only put them in if at least one is not null.....
 
         // Fudge to convert object with properties to key value pairs
-        $arr = json_decode(json_encode($dataitems[0]), true);
+        if (!empty($dataitems) && isset($dataitems[0])) {
+            $arr = json_decode(json_encode($dataitems[0]), true);
+        } else {
+            $arr = []; 
+        }
 
         foreach ($dataitems as $i) {
 

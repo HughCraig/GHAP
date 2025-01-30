@@ -194,7 +194,7 @@
                                     </div>
                                     <div class="row align-items-center my-auto" id="filter-Extended-Data" style="display: none;">
                                         <div class="col-sm-6">
-                                            <a href="https://tlcmap.org/help/guides/ghap-guide/" style="color: #000000; text-decoration: none;" target="_blank" data-toggle="tooltip" title="This enables nuanced search and map creation within layers and needs special syntax, see under 'Search' in the GHAP Guide.">Extended Data?</a>
+                                            <a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/" style="color: #000000; text-decoration: none;" target="_blank" data-toggle="tooltip" title="This enables nuanced search and map creation within layers and needs special syntax, see under 'Search' in the Guide.">Extended Data?</a>
                                         </div>
                                         <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" name="extended_data" id="extended_data" autocomplete="off">

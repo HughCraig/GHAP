@@ -85,7 +85,8 @@ class GhapConfig
         if (!empty($dataset->warning)) {
             $content .= '<div class="warning-message"><strong>Warning</strong><br>' . HtmlFilter::simple($dataset->warning) . '</div>';
         }
-        $content .= '<p><a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Help</a> | <a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Share</a></p>';
+
+        $content .= '<p><a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Help</a> | <a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Share</a></p>';
         return $content;
     }
 
@@ -98,8 +99,8 @@ class GhapConfig
     public static function createRestrictedDatasetInfoBlockContent()
     {
         $content = '';
-        $content .= '<div class="warning-message"><strong>Warning</strong><br>This map either does not exist or has been set to "private" and therefore cannot be displayed.</div>';    
-        $content .= '<p><a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Help</a> | <a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Share</a></p>';
+        $content .= '<div class="warning-message"><strong>Warning</strong><br>This map either does not exist or has been set to "private" and therefore cannot be displayed.</div>';  
+        $content .= '<p><a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Help</a> | <a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Share</a></p>';  
         return $content;
     }
 
@@ -127,7 +128,7 @@ class GhapConfig
         if (!empty($collection->warning)) {
             $content .= '<div class="warning-message"><strong>Warning</strong><br>' . HtmlFilter::simple($collection->warning) . '</div>';
         }
-        $content .= '<p><a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Help</a> | <a href="https://tlcmap.org/help/guides/ghap-guide/" target="_blank">Share</a></p>';
+        $content .= '<p><a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Help</a> | <a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Share</a></p>';
         return $content;
     }
 

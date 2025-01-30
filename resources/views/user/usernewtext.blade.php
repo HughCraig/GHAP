@@ -29,11 +29,18 @@
         <div class="row">
             <div class="col-lg p-5">
 
+                *Upload
+                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign"
+                    data-toggle="tooltip" data-placement="right"
+                    title="Upload a plain text file. If the text is in MS Word, or PDF, either save as 'text only' or copy and paste into a plain text editor. If there is a character encoding option, choose UTF-8. Short texts will run quickly. Novel length uploads may take 5 to 30 minutes to process."></span>
                 <div class="d-flex">
-                    *<input type="file" name="textfile" id="textAddFile" class="mb-4" />
+                    <input type="file" name="textfile" id="textAddFile" class="mb-4" />
                 </div>
 
-                *Text name
+                *Text Name
+                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign"
+                    data-toggle="tooltip" data-placement="right"
+                    title="The name you want to use to refer to the text. This will be the title on resulting map."></span>
                 <input type="text" class="mb-2 w3-white form-control" name="textname" required />
 
                 Subject (keywords)
@@ -43,7 +50,11 @@
                 <input id="tags" name="tags" type="text" class="smallerinputs mb-2 w3-white form-control" />
 
                 Text Type
+                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign"
+                    data-toggle="tooltip" data-placement="right"
+                    title="Indicating if this is fiction or non fiction may help map users."></span>
                 <select class="w3-white form-control mb-2" id="texttype" name="texttype">
+                   <option value="" selected disabled>Select Type</option> <!-- Blank option as default -->
                     @foreach($texttypes as $type)
                     <option label="{{$type}}">{{$type}}</option>
                     @endforeach
@@ -60,6 +71,9 @@
             <div class="col-lg p-5">
 
                 Publisher
+                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign"
+                    data-toggle="tooltip" data-placement="right"
+                    title="Optionally name the publisher which may be different to the creator. You can also add a citation below."></span>
                 <input type="text" class="mb-2 w3-white form-control" name="publisher" />
 
                 Contact
