@@ -38,7 +38,7 @@
                     @csrf
                     <div class="row">
                         <div class="col-lg-6">
-                            Text name<label class="text-danger">*</label>
+                            Text Name<label class="text-danger">*</label>
                             <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign"
                             data-toggle="tooltip" data-placement="right"
                             title="The name you want to use to refer to the text. This will be the title on resulting map."></span>

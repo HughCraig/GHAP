@@ -73,7 +73,7 @@
                 title="Many Australian placenames occur in other countries. Bias to Australia for texts set in Australia, or choose Global or another country as needed."></span>
         </div>
 
-        <select id="geocoding_bias" class="mb-4 w3-white form-control">
+        <select id="geocoding_bias" class="mb-4 w3-white form-control" autocomplete="off">
             <option value="Australia">Australia</option>
             <option value="null">Global</option>
             <option value="Algeria">Algeria</option>

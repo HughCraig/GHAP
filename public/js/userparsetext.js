@@ -27,13 +27,38 @@ document.addEventListener("DOMContentLoaded", function () {
     // Clear the existing options
     select.innerHTML = "";
 
-    // Rebuild the dropdown
-    if (australiaOption) {
-        select.add(australiaOption);
-        australiaOption.selected = true; // Ensure Australia is selected by default
+    // Create optgroup for Global
+    const globalGroup = document.createElement("optgroup");
+    globalGroup.label = "Global";
+
+    if (globalOption) {
+        globalGroup.appendChild(globalOption); // Add Global
     }
-    if (globalOption) select.add(globalOption); // Add Global second
-    otherOptions.forEach((option) => select.add(option)); // Add the rest alphabetically
+
+    // Create optgroup for other options
+    const otherGroup = document.createElement("optgroup");
+    otherGroup.label = "Other";
+
+    // Add Australia to the other options group
+    if (australiaOption) {
+        otherOptions.unshift(australiaOption); // Add Australia at the beginning of the sorted list
+    }
+
+    otherOptions.forEach((option) => {
+        otherGroup.appendChild(option); // Add remaining options alphabetically
+    });
+
+    // Add the optgroups to the select
+    select.appendChild(globalGroup);
+    select.appendChild(otherGroup);
+
+    // Set Australia as selected by default
+    if (australiaOption) {
+        australiaOption.selected = true;
+    }
+
+    // Trigger change event to ensure the selected option is reflected across browsers
+    select.dispatchEvent(new Event("change"));
 });
 
 $(document).ready(function () {
