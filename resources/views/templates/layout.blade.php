@@ -67,7 +67,9 @@
 
     <!-- Scripts -->
 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-144578859-1"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XDYZQTNPQP"></script> 
+    <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-XDYZQTNPQP'); </script>
+
     <script>
         window.dataLayer = window.dataLayer || [];
 

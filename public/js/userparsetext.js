@@ -397,7 +397,7 @@ $(document).ready(function () {
                         // Redirect to the text map view page
                         window.location.href = viewsrooturl + "/textmap.html?load=" + 
                             encodeURIComponent(appurl + "/layers/" + new_layer_id + "/json") + 
-                            "&textmap=true";
+                            "?textmap=true";
                     })
                     .fail((xhr) => {
                         alert("An error occurred: " + xhr.responseText);
