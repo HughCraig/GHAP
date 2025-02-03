@@ -486,9 +486,9 @@ class UserController extends Controller
             }
             LOG::error("Import error. " . date(DATE_ATOM, mktime(0, 0, 0, 7, 1, 2000)) . " " . $e->getMessage() . " extra info " . $extrainfo);
             return redirect('myprofile/mydatasets/' . $ds_id)
-                ->with('error', 'Error processing file. Please check it is in the right format and is less than 10Mb. If CSV, it must have
-                a title or placename column. Check that lat, long and any dates are correct. ' .
-                    date(DATE_ATOM, mktime(0, 0, 0, 7, 1, 2000)) . " " . $extrainfo)
+                // ->with('error', 'Error processing file. Please check it is in the right format and is less than 10Mb. If CSV, it must have
+                // a title or placename column. Check that lat, long and any dates are correct. ' .
+                //     date(DATE_ATOM, mktime(0, 0, 0, 7, 1, 2000)) . " " . $extrainfo)
                 ->with('exception', $e->getMessage()); //file parsing threw an exception, reload page with error msg
         }  //catch any exception
 

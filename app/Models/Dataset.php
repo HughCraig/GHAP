@@ -419,7 +419,7 @@ class Dataset extends Model
                 $proppairs["udatestart"] = strtotime($unixepochdates) * 1000;
             }
             if (!empty($i->dateend)) {
-                $proppairs["udateend"] = strtotime($unixepochdates) * 1000;
+                $proppairs["udateend"] = strtotime($unixepochdatee) * 1000;
             }
 
             // if we are sorting by date, we are in a context like timeline where we can't have null dates.
