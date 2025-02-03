@@ -58,7 +58,7 @@ div.header {
     cursor: pointer;
 }
 
-@media (max-width: 650px) {
+@media (max-width: 1130px) {
 
     .scroll-to-top {
         display: flex;
@@ -66,6 +66,7 @@ div.header {
 
     #mainsearchdiv {
         height:100%;
+        max-height: fit-content;
     }
 
     #radio-map{
@@ -100,6 +101,12 @@ div.header {
     #num-places {
         width: 100%;
         margin-top: 10px;
+    }
+
+    #home-description-numplaces{
+        display: flex;
+        flex-direction: column;
+        align-items: center !important;
     }
 
     .datasource-filter{
@@ -138,4 +145,12 @@ div.header {
 
 #input{
     width: 110%;
+}
+
+.popup-text{
+    color: #337ab7;
+}
+
+.popup-text:hover{
+    cursor: pointer;
 }

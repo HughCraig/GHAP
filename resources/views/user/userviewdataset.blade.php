@@ -115,7 +115,7 @@
 
     <!-- Basic Statistics Feed -->
     <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Analyse
         </button>
         <div class="dropdown-menu" aria-labelledby="analyseDropdown">

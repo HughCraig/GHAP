@@ -283,7 +283,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-lg-5" style="margin-top:6%">
+                            <div class="col-lg-5" style="margin-top:6%" id="home-description-numplaces">
 
                                 <div class="row align-items-center my-auto mb-1">
                                     <div class="col-sm-8 pl-0" data-toggle="tooltip">
@@ -407,6 +407,9 @@
         <input type="hidden" id="names" name="names">
         <input type="hidden" id="fuzzynames" name="fuzzynames">
         <input type="hidden" id="containsnames" name="containsnames">
+
+        <input type="hidden" id="dataitemid" name="dataitemid">
+        <input type="hidden" id="dataitemuid" name="dataitemuid">
     </div>
 
     <!-- Map Area Display -->

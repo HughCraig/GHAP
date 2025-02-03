@@ -27,6 +27,8 @@ class TLCMap {
         this.ignoreExtentChange = true; // Stop refreshing pins when the map extent changes.
         this.placeMarkers = []; // User placed marker for add place.
 
+        this.selectedFeature = null; // The selected feature on the map.
+
         this.addModalMapPicker = addModalMapPicker;
 
         this.currentMapType = "3d";
@@ -395,6 +397,8 @@ class TLCMap {
                         this.graphicsLayer.add(pointGraphic);
                     }
                 });
+
+                this.bindClickEvent();
             });
         });
     }
@@ -457,13 +461,8 @@ class TLCMap {
                 content += `
                     <tr style="background-color: #FFD580; font-weight: bold;">
                         <td colspan="2">
-                            Know more about this or other places? 
-                            <a href="${
-                                isLoggedIn
-                                    ? `${baseUrl}myprofile/mydatasets`
-                                    : `${baseUrl}login`
-                            }" target="_blank" style="font-weight: 900">
-                                Contribute…
+                                <div class="popup-text new-place-current">Know more about this place?</div>
+                                <div class="popup-text new-place-new">Know a place not on the map?</div>
                             </a>
                         </td> 
                     </tr>
@@ -545,6 +544,19 @@ class TLCMap {
 
         return popupTemplate;
     }
+
+
+    bindClickEvent() {
+        this.view.popup.watch("selectedFeature", (selectedFeature) => {
+            if (selectedFeature && selectedFeature.attributes) {
+                const attributes = selectedFeature.attributes;
+                if(attributes.uid && attributes.latitude && attributes.longitude) {
+                    this.selectedFeature = attributes;
+                }
+            }
+        });
+    }
+
 
     /**
      * Function to check if the drawn shape is a rectangle.

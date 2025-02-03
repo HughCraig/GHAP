@@ -642,10 +642,11 @@ class AjaxController extends Controller
 
         //Linked place for text
         $linkedDataitemUID = null;
-        if ($recordtype_id == '4') {
+        if(isset($request->related_place_uid) && $request->related_place_uid != 'null') {
+            $linkedDataitemUID = $request->related_place_uid;
+        }else if ($recordtype_id == '4') {
             $linkedDataitemUID = $this->getRelatedPlaceUIDForText($title, $latitude, $longitude);
         }
-
         $dataitem = Dataitem::create([
             'dataset_id' => $ds_id,
             'title' => $title,

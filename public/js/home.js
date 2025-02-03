@@ -294,6 +294,7 @@ function getSearchFormData(names, tlcMap, viewBbox) {
         polygon: $("#polygon").val() || null,
         chunks: $("#chunks").val() || null,
         dataitemid: $("#dataitemid").val() || null,
+        id: $("#dataitemuid").val() || null, // uid
         feature_term: $("#feature_term").val() || null,
         extended_data: $("#extended_data").val() || null,
         source: $("#source").val() || null,
@@ -704,7 +705,8 @@ function isSearchOn() {
         getQueryParam("polygon") ||
         getQueryParam("extended_data") ||
         getQueryParam("uid") ||
-        getQueryParam("id")
+        getQueryParam("id") ||
+        getQueryParam("gotoid")
     ) {
         return true;
     }
@@ -757,8 +759,9 @@ function presetSearchForm() {
         );
     }
 
-    //TODO programatically show the used filter sections
-    //TODO programatically remove the options
+    if (urlParams.has("gotoid")) {
+        $("#dataitemuid").val(urlParams.get("gotoid"));
+    }
 
     if (urlParams.get("recordtype")) {
         $("#recordtype").val(urlParams.get("recordtype") || "");
@@ -936,54 +939,26 @@ $(document).ready(async function () {
     // Expose tlcMap to global scope
     window.tlcMap = tlcMap;
 
-    //Single place search.. redirect from /places/id
-    if (getQueryParam("gotoid")) {
-        const input = {
-            id: getQueryParam("gotoid"),
-        };
-        $.ajax({
-            type: "POST",
-            url: ajaxsearchdataitems,
-            data: input,
-            success: function (response) {
-                if (response.dataitems.length > 0) {
-                    tlcMap.ignoreExtentChange = true;
-                    tlcMap.isSearchOn = true;
-
-                    tlcMap.dataitems = response.dataitems;
-
-                    tlcMap.addPointsToMap(tlcMap.dataitems);
-                    tlcMap.renderDataItems(tlcMap.dataitems);
-                } else {
-                    alert("No Places found");
-                }
-            },
-            error: function (xhr) {
-                console.log(xhr.responseText);
-            },
-        });
-    } else {
-        var defaultLocation = null;
-        if (getQueryParam("goto")) {
-            let coordinates = getQueryParam("goto").split(",");
-            if (coordinates.length == 2) {
-                defaultLocation = coordinates;
-            }
+    var defaultLocation = null;
+    if (getQueryParam("goto")) {
+        let coordinates = getQueryParam("goto").split(",");
+        if (coordinates.length == 2) {
+            defaultLocation = coordinates;
         }
+    }
 
-        if (isSearchOn()) {
-            presetSearchForm();
-            continueSearchForm(tlcMap, null, defaultLocation, true, null);
-            tlcMap.isSearchOn = true;
+    if (isSearchOn()) {
+        presetSearchForm();
+        continueSearchForm(tlcMap, null, defaultLocation, true, null);
+        tlcMap.isSearchOn = true;
+    } else {
+        tlcMap.ignoreExtentChange = false;
+
+        if (defaultLocation) {
+            tlcMap.zoomTo(defaultLocation[1], defaultLocation[0]);
+            updateParameter("goto", defaultLocation.join(","));
         } else {
-            tlcMap.ignoreExtentChange = false;
-
-            if (defaultLocation) {
-                tlcMap.zoomTo(defaultLocation[1], defaultLocation[0]);
-                updateParameter("goto", defaultLocation.join(","));
-            } else {
-                tlcMap.gotoUserLocation();
-            }
+            tlcMap.gotoUserLocation();
         }
     }
 
@@ -1164,6 +1139,7 @@ $(document).ready(async function () {
         $("#polygon").val("");
         $("#chunks").val("");
         $("#dataitemid").val("");
+        $("#dataitemuid").val("");
         $("#feature_term").val("");
 
         $("#source").val("");
@@ -1276,7 +1252,83 @@ $(document).ready(async function () {
     });
 
     $("#searchbutton").click(function (e) {
+        updateUrlParameters(null);
+        $("#dataitemuid").val("");
+        $("#dataitemid").val("");
         searchActions(tlcMap, true, null);
+    });
+
+    $(document).on("click", ".popup-text.new-place-new", function (e) {
+        if (!isLoggedIn) {
+            window.location.href = baseUrl + "login";
+            return;
+        }
+
+        $("#addlatitude").val("");
+        $("#addlongitude").val("");
+        addModalMapPicker.clearMarkers();
+
+        this.ignoreExtentChange = true;
+
+        $("#addModal")
+            .modal("show")
+            .on("shown.bs.modal", () => {
+                this.ignoreExtentChange = false; // Reset after modal fully shown
+            })
+            .on("hide.bs.modal", () => {
+                this.ignoreExtentChange = true; // Set to true when modal starts hiding
+            })
+            .on("hidden.bs.modal", () => {
+                setTimeout(() => {
+                    this.ignoreExtentChange = false; // Reset to false after modal is fully hidden
+                }, 500);
+            });
+    });
+
+    $(document).on("click", ".popup-text.new-place-current", function (e) {
+        if (!isLoggedIn) {
+            window.location.href = baseUrl + "login";
+            return;
+        }
+
+        if (
+            tlcMap.selectedFeature &&
+            tlcMap.selectedFeature.uid &&
+            tlcMap.selectedFeature.latitude &&
+            tlcMap.selectedFeature.longitude
+        ) {
+            $("#addlatitude").val(tlcMap.selectedFeature.latitude);
+            $("#addlongitude").val(tlcMap.selectedFeature.longitude);
+            $("#related_place_uid").val(tlcMap.selectedFeature.uid);
+            addModalMapPicker.createMarkerAt(
+                [
+                    parseFloat(tlcMap.selectedFeature.longitude),
+                    parseFloat(tlcMap.selectedFeature.latitude),
+                ],
+                true,
+                true
+            );
+        } else {
+            $("#addlatitude").val("");
+            $("#addlongitude").val("");
+            this.addModalMapPicker.clearMarkers();
+        }
+
+        this.ignoreExtentChange = true;
+
+        $("#addModal")
+            .modal("show")
+            .on("shown.bs.modal", () => {
+                this.ignoreExtentChange = false; // Reset after modal fully shown
+            })
+            .on("hide.bs.modal", () => {
+                this.ignoreExtentChange = true; // Set to true when modal starts hiding
+            })
+            .on("hidden.bs.modal", () => {
+                setTimeout(() => {
+                    this.ignoreExtentChange = false; // Reset to false after modal is fully hidden
+                }, 500);
+            });
     });
 
     $("#add_layer_button_submit").on("click", function () {

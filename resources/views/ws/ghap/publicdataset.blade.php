@@ -3,6 +3,7 @@
 @push('scripts')
     <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/publicdataset.js') }}"></script>
+    <script src="{{ asset('/js/dataitem.js') }}"></script>
 @endpush
 
 @section('content')
@@ -65,7 +66,7 @@
     @if ($ds->public)
     <!-- Basic Statistics Feed -->
     <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Analyse
         </button>
         <div class="dropdown-menu" aria-labelledby="analyseDropdown">
