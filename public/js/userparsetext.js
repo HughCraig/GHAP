@@ -1,5 +1,47 @@
-function showLoadingWheel(loadText) {
+let progressInterval = null; // Declare a variable for the interval
+
+function showLoadingWheel(loadText, estimatedTimeInSeconds = null) {
+
+    // Hide the progress container if no estimated time is given
+    if (estimatedTimeInSeconds === null) {
+        document.querySelector(".progress-container").style.display = "none";
+    } else {
+        // Reset progress bar to 0% if it is not null
+        document.querySelector(".progress-bar").style.width = "0%";
+        document.querySelector(".progress-container").style.display = "block"; // Show the progress bar
+
+        // Calculate the interval time in milliseconds
+        const updateInterval = 100;
+        const intervalTime = estimatedTimeInSeconds * 1000;
+        const totalSteps = intervalTime / updateInterval;
+
+        let currentProgress = 0;
+
+        // If there's an ongoing progress interval, clear it first
+        if (progressInterval !== null) {
+            clearInterval(progressInterval);
+        }
+
+        // Start the progress
+        progressInterval = setInterval(() => {
+            currentProgress += 1;
+
+            // Update the progress bar width
+            document.querySelector(".progress-bar").style.width =
+                (currentProgress / totalSteps) * 100 + "%";
+
+            // Stop the progress when it reaches 100%
+            if (currentProgress >= totalSteps) {
+                document.querySelector(".progress-bar").style.width = "100%";
+                clearInterval(progressInterval); // Stop the interval when done
+            }
+        }, updateInterval); // Execute every 100ms
+    }
+
+    // Show the loading text
     document.getElementsByClassName("loading-text")[0].innerText = loadText;
+
+    // Display the loading wheel container
     document.getElementById("loadingWheel").style.display = "block";
 }
 
@@ -106,7 +148,6 @@ $(document).ready(function () {
     });
 
     function renderDataItems(places) {
-        console.log(places); // Mufeng remove in production
         const listView = $(".place-list");
         listView.empty();
 
@@ -208,6 +249,43 @@ $(document).ready(function () {
         return formData;
     }
 
+    function getParseTimeEstimate() {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                type: "GET",
+                url: ajaxgetparsetimeestimate,
+                data: {
+                    text_size: textContentSize,
+                },
+                success: function (result) {
+                    resolve(result); // Resolve the promise with the result
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    console.error("Error:", xhr.responseText);
+                    reject(xhr.responseText); // Reject the promise with the error message
+                },
+            });
+        });
+    }
+
+    function storeTimeUsed(timeUsed) {
+        console.log(textContentSize);
+        $.ajax({
+            type: "POST",
+            url: ajaxstoreparsetime,
+            data: {
+                text_size: textContentSize,
+                parse_time: timeUsed,
+            },
+            success: function (result) {
+                console.log(`Execution Time: ${timeUsed} seconds`);
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                console.error("Error:", xhr.responseText);
+            },
+        });
+    }
+
     // Select All button
     $("#select_all").on("click", function () {
         $(".place-checkbox").prop("checked", true); // Check all checkboxes
@@ -225,7 +303,9 @@ $(document).ready(function () {
         $("#layerrecordtype").html('<option label="Text">Text</option>');
     });
 
-    $("#parse_text_submit").on("click", function () {
+    $("#parse_text_submit").on("click", async function () {
+        const parseTime = await getParseTimeEstimate();
+
         // Start the timer Mufeng Remove this
         let startTime = performance.now();
 
@@ -233,7 +313,10 @@ $(document).ready(function () {
             return "Your results will not be saved if you close or navigate away.";
         };
 
-        showLoadingWheel("Geoparsing places. Do not close this browser window.");
+        showLoadingWheel(
+            "Geoparsing places. Do not close this browser window.",
+            parseTime.estimated_time
+        );
         var selectedMethod = $("#parsing_method").val();
         var formData = new FormData();
 
@@ -282,12 +365,10 @@ $(document).ready(function () {
                 // End the timer and calculate the elapsed time in seconds
                 let endTime = performance.now();
                 let durationInSeconds = (endTime - startTime) / 1000;
-
-                console.log(`Execution Time: ${durationInSeconds} seconds`);
-                console.log(places.length + " places found");
+                storeTimeUsed(durationInSeconds);
 
                 if (document.getElementById("saveautomatically").checked) {
-                    showLoadingWheel("Adding places to layer...");
+                    showLoadingWheel("Adding places to layer...", null);
                     const selectPlaces = getSelectedPlaces();
                     if (selectPlaces.length === 0) {
                         alert("No place find");
@@ -306,7 +387,7 @@ $(document).ready(function () {
     });
 
     $("#add_layer_button_submit").on("click", function () {
-        showLoadingWheel("Adding places to layer...");
+        showLoadingWheel("Adding places to layer...", null);
         const selectPlaces = getSelectedPlaces();
         if (selectPlaces.length === 0) {
             alert("Please select at least one place to add to the layer.");
@@ -420,8 +501,12 @@ $(document).ready(function () {
                         window.onbeforeunload = null;
 
                         // Redirect to the text map view page
-                        window.location.href = viewsrooturl + "/textmap.html?load=" + 
-                            encodeURIComponent(appurl + "/layers/" + new_layer_id + "/json") + 
+                        window.location.href =
+                            viewsrooturl +
+                            "/textmap.html?load=" +
+                            encodeURIComponent(
+                                appurl + "/layers/" + new_layer_id + "/json"
+                            ) +
                             "?textmap=true";
                     })
                     .fail((xhr) => {
@@ -447,7 +532,7 @@ $(document).ready(function () {
 
         formData.append("from_text_id", textId);
 
-        formData.append("redirect", 'false');
+        formData.append("redirect", "false");
 
         return formData;
     }

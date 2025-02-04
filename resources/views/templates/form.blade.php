@@ -36,7 +36,6 @@
 
     <script type="text/javascript" src="{{ asset('/js/stmetrics-csv-download.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/dataitem.js') }}"></script> 
-    <script type="text/javascript" src="{{ asset('js/addnewdatasetmodal.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/home.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/map-picker.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/tlcmap.js') }}"></script>

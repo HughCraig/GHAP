@@ -132,9 +132,6 @@ class HomeController extends Controller
         <Placemark>
             <name>Layers</name>
             <description>List all TLCMap layers as json. Change 'json' for 'csv' or 'kml'. Each layer includes many places.</description>
-            <Point>
-                <coordinates>127.0, -25.0, 0</coordinates>
-            </Point>
             <ExtendedData>
                 <Data name="URL">
                     <value>https://tlcmap.org/layers/json</value>
@@ -145,9 +142,6 @@ class HomeController extends Controller
         <Placemark>
             <name>Multilayers</name>
             <description>List all TLCMap multilayers as json. Change 'json' for 'csv' or 'kml'. The multilayer will list the layers it contains.</description>
-            <Point>
-                <coordinates>128.0, -24.0, 0</coordinates>
-            </Point>
             <ExtendedData>
                 <Data name="URL">
                     <value>https://tlcmap.org/multilayers/json</value>
@@ -158,9 +152,6 @@ class HomeController extends Controller
         <Placemark>
             <name>Search</name>
             <description>A sophisticated search of all places using GET parameters. This URL is an example of a search for 'Newcastle'.</description>
-            <Point>
-                <coordinates>130.0, -23.0, 0</coordinates>
-            </Point>
             <ExtendedData>
                 <Data name="URL">
                     <value>https://tlcmap.org/?searchpublicdatasets=on&searchausgaz=on&searchncg=on&containsname=Newcastle&format=json</value>

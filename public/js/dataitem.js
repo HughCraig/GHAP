@@ -87,8 +87,10 @@ $("main").on('click', '[name="delete_dataitem_button"]', function () {
 });
 
 // Create message banner for add dataitem modal.
-const msgBanner = new MessageBanner($('#addModal .message-banner'));
-msgBanner.hide();
+if (typeof msgBanner === 'undefined') {
+    const msgBanner = new MessageBanner($("#newLayerModal .message-banner"));
+    msgBanner.hide();
+}
 
 
 /**
@@ -146,7 +148,7 @@ function validateAddDataRequestData(msgBanner) {
  * @returns {*}
  *   The request data.
  */
- const getAddDataitemRequestData = function () {
+function getAddDataitemRequestData () {
 
     const formData = new FormData();
 

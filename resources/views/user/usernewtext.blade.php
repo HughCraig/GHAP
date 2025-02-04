@@ -32,7 +32,7 @@
                 *Upload
                 <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign"
                     data-toggle="tooltip" data-placement="right"
-                    title="Upload a plain text file. If the text is in MS Word, or PDF, either save as 'text only' or copy and paste into a plain text editor. If there is a character encoding option, choose UTF-8. Short texts will run quickly. Novel length uploads may take 5 to 30 minutes to process."></span>
+                    title="Upload a plain text file. If the text is in MS Word, or PDF, either save as 'text only' or copy and paste into a plain text editor. If there is a character encoding option, choose UTF-8. Short texts will run quickly. Novel length texts may take up to an hour to process."></span>
                 <div class="d-flex">
                     <input type="file" name="textfile" id="textAddFile" class="mb-4" />
                 </div>

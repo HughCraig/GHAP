@@ -17,6 +17,9 @@
     const ajaxgetdataitemmaps = "{{url('ajaxgetdataitemmaps')}}";
     const viewsrooturl = "{{ config('app.views_root_url') }}";
     const appurl = "{{ config('app.url') }}";
+    const ajaxgetparsetimeestimate = "{{url('ajaxgetparsetimeestimate')}}";
+    const ajaxstoreparsetime = "{{url('ajaxstoreparsetime')}}";
+    const textContentSize = new TextEncoder().encode(@json($text->content)).length / 1024;
 </script>
 
 <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
@@ -207,11 +210,11 @@
     </div>
 </div>
 
-<label data-toggle="tooltip" class="d-flex datasource-filter btn pl-0">
-    <p style="white-space: normal; word-wrap: break-word;text-align:left">Save all results to a new layer automatically 
+<label data-toggle="tooltip" class="d-flex datasource-filter btn pl-0" style="align-items: center;">
+    <input type="checkbox" id="saveautomatically" class="mr-2" style="margin-top: 1px; cursor:pointer">
+    <p style="white-space: normal; word-wrap: break-word;text-align:left; padding-bottom:0; margin-bottom:0">Save all results to a new layer automatically 
     (Recommended for book-length texts which may take up to an hour or so to be ready to review and save. 
     You can continue browsing in other windows, but do not close this window. You can edit results after saving.)</p>
-    <input type="checkbox" id="saveautomatically" class="ml-2" style="margin-top: 1px; cursor:pointer">
 </label>
 
 <div class="btn btn-primary mt-4" id="parse_text_submit">Parse</div>
@@ -232,6 +235,9 @@
 <div id="loadingWheel">
     <div class="spinner"></div>
     <div class="loading-text"></div>
+    <div class="progress-container">
+        <div class="progress-bar"></div>
+    </div>
 </div>
 
 @endsection

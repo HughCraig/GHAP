@@ -55,6 +55,159 @@ class CollectionController extends Controller
         ]);
     }
 
+
+    /**
+     * JSON view of the public collectiosn.
+     *
+     * @param Request $request
+     *   The collection ID.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function viewCollectionsJSON(){
+        $collections = Collection::where('public', 1)->get();
+        $data = [];
+        foreach ($collections as $collection) {
+            $data[] = array(
+                'id' => $collection->id,
+                'name' => $collection->name,
+                'description' => $collection->description,
+                'owner' => $collection->owner,
+                'creator' => $collection->creator,
+                'public' => $collection->public,
+                'publisher' => $collection->publisher,
+                'contact' => $collection->contact,
+                'citation' => $collection->citation,
+                'doi' => $collection->doi,
+                'source_url' => $collection->source_url,
+                'linkback' => $collection->linkback,
+                'latitude_from' => $collection->latitude_from,
+                'longitude_from' => $collection->longitude_from,
+                'latitude_to' => $collection->latitude_to,
+                'longitude_to' => $collection->longitude_to,
+                'language' => $collection->language,
+                'license' => $collection->license,
+                'rights' => $collection->rights,
+                'temporal_from' => $collection->temporal_from,
+                'temporal_to' => $collection->temporal_to,
+                'created' => $collection->created,
+                'warning' => $collection->warning,
+                'created_at' => $collection->created_at,
+                'updated_at' => $collection->updated_at,
+            );
+        }
+
+        return Response::make(json_encode($data, JSON_PRETTY_PRINT), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * KML view of the public collections.
+     *
+     * @param Request $request
+     *   The collection ID.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function viewCollectionsKML(){
+        $collections = Collection::where('public', 1)->get();
+
+        // Start the KML structure
+        $kml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $kml .= '<kml xmlns="http://www.opengis.net/kml/2.2">';
+        $kml .= '<Document>';
+
+        // Loop through each collection and create a KML entry
+        foreach ($collections as $collection) {
+            $kml .= '<Placemark>';
+            
+            $kml .= '<name>' . htmlspecialchars($collection->name) . '</name>';
+            $kml .= '<description>' . htmlspecialchars($collection->description) . '</description>';
+            $kml .= '<creator>' . htmlspecialchars($collection->creator) . '</creator>';
+            $kml .= '<publisher>' . htmlspecialchars($collection->publisher) . '</publisher>';
+            $kml .= '<contact>' . htmlspecialchars($collection->contact) . '</contact>';
+            $kml .= '<citation>' . htmlspecialchars($collection->citation) . '</citation>';
+            $kml .= '<doi>' . htmlspecialchars($collection->doi) . '</doi>';
+            $kml .= '<latitude_from>' . htmlspecialchars($collection->latitude_from) . '</latitude_from>';
+            $kml .= '<latitude_to>' . htmlspecialchars($collection->latitude_to) . '</latitude_to>';
+            $kml .= '<longitude_from>' . htmlspecialchars($collection->longitude_from) . '</longitude_from>';
+            $kml .= '<longitude_to>' . htmlspecialchars($collection->longitude_to) . '</longitude_to>';
+            $kml .= '<language>' . htmlspecialchars($collection->language) . '</language>';
+            $kml .= '<license>' . htmlspecialchars($collection->license) . '</license>';
+            $kml .= '<rights>' . htmlspecialchars($collection->rights) . '</rights>';
+            $kml .= '<temporal_from>' . htmlspecialchars($collection->temporal_from) . '</temporal_from>';
+            $kml .= '<temporal_to>' . htmlspecialchars($collection->temporal_to) . '</temporal_to>';
+            $kml .= '<created>' . htmlspecialchars($collection->created) . '</created>';
+            $kml .= '<warning>' . htmlspecialchars($collection->warning) . '</warning>';
+            $kml .= '<source_url>' . htmlspecialchars($collection->source_url) . '</source_url>';
+            $kml .= '<linkback>' . htmlspecialchars($collection->linkback) . '</linkback>';
+
+            $kml .= '</Placemark>';
+        }
+
+        // End the KML structure
+        $kml .= '</Document>';
+        $kml .= '</kml>';
+
+        // Return KML response
+        return response($kml, 200)
+            ->header('Content-Type', array('Content-Type' => 'text/xml')); // Set proper KML content type
+    }
+
+    /**
+     * CSV view of the public collections.
+     *
+     * @param Request $request
+     *   The collection ID.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function viewCollectionsCSV(){
+        $collections = Collection::where('public', 1)->get();
+
+        // Open output stream
+        $handle = fopen('php://output', 'w');
+
+        // Set the appropriate headers to download the file
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="multilayers.csv"');
+
+         // Add CSV header row (column names)
+         fputcsv($handle, [
+            'Multilayer ID', 'Name', 'Description', 'Creator', 'Publisher', 'Contact', 'Citation', 'DOI',
+            'Latitude From', 'Latitude To', 'Longitude From', 'Longitude To', 'Language', 'License', 
+            'Rights', 'Temporal From', 'Temporal To', 'Created', 'Warning', 'Source URL', 'Linkback'
+        ]);
+
+        // Loop through each dataset and write data to the CSV
+        foreach ($collections as $collection) {
+            fputcsv($handle, [
+                $collection->id,
+                $collection->name,
+                $collection->description,
+                $collection->creator,
+                $collection->publisher,
+                $collection->contact,
+                $collection->citation,
+                $collection->doi,
+                $collection->latitude_from,
+                $collection->latitude_to,
+                $collection->longitude_from,
+                $collection->longitude_to,
+                $collection->language,
+                $collection->license,
+                $collection->rights,
+                $collection->temporal_from,
+                $collection->temporal_to,
+                $collection->created,
+                $collection->warning,
+                $collection->source_url,
+                $collection->linkback
+            ]);
+        }
+
+        // Close the file handle
+        fclose($handle);
+        exit;
+    }
+
+
     /**
      * JSON view of the public collection.
      *

@@ -9,6 +9,7 @@ use TLCMap\Http\Helpers\GeneralFunctions;
 use TLCMap\Models\Text;
 use TLCMap\Models\TextType;
 use TLCMap\Models\SubjectKeyword;
+use TLCMap\Models\ParseTime;
 use Illuminate\Support\Facades\Storage;
 use Config;
 use TLCMap\Models\RecordType;
@@ -100,17 +101,17 @@ class TextController extends Controller
             }
             $text->image_path = null;
         }
-        
+
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             //Validate image file.
-            if(!GeneralFunctions::validateUserUploadImage($image)){
+            if (!GeneralFunctions::validateUserUploadImage($image)) {
                 return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
             }
             // Delete old image.
             if ($text->image_path && Storage::disk('public')->exists('images/' . $text->image_path)) {
                 Storage::disk('public')->delete('images/' . $text->image_path);
-            } 
+            }
             $filename = time() . '.' . $image->getClientOriginalExtension();
             Storage::disk('public')->putFileAs('images', $image, $filename);
             $text->image_path = $filename;
@@ -396,7 +397,7 @@ class TextController extends Controller
             'method' => $geocoding_method,
         ];
 
-        if(isset($bias) && $bias !== 'null') {
+        if (isset($bias) && $bias !== 'null') {
             $data['bias'] = $bias;
         }
 
@@ -430,5 +431,46 @@ class TextController extends Controller
         $text->users()->detach();
         $text->delete();
         return redirect('myprofile/mytexts');
+    }
+
+    public function getEstimateParseTime(Request $request)
+    {
+
+        $validated = $request->validate([
+            'text_size' => 'required|numeric',  // Size of the text
+        ]);
+
+
+        $textSize = $validated['text_size'];
+
+        $data = ParseTime::getAllData();
+
+        // Not enough data . return 60
+        if ($data->count() < 2) {
+            return response()->json(['estimated_time' => 60]);
+        }
+
+        // Calculate the regression parameters (slope and intercept)
+        $regression = ParseTime::calculateLinearRegression($data);
+
+        // Use the regression model to estimate parse time
+        $estimatedTime = ParseTime::predictTime($textSize, $regression['slope'], $regression['intercept']);
+
+        // Return the estimated time as a JSON response
+        return response()->json(['estimated_time' => $estimatedTime]);
+    }
+
+    public function storeParseTime(Request $request)
+    {
+        $validated = $request->validate([
+            'text_size' => 'required|numeric',  // Size of the text
+            'parse_time' => 'required|numeric', // Time taken to parse the text
+        ]);
+
+        // Store the new data in the database
+        ParseTime::storeParseTime($validated);
+
+        // Return a success response
+        return response()->json(['success' => true, 'data' => $validated], 201);
     }
 }

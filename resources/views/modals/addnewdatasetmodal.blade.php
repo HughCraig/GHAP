@@ -1,3 +1,7 @@
+@push('scripts')
+<script type="text/javascript" src="{{ asset('js/addnewdatasetmodal.js') }}"></script>
+@endpush
+
 <div class="modal fade" id="newLayerModal" tabindex="-1" role="dialog" aria-labelledby="newLayerModalLabel">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">

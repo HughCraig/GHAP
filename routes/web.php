@@ -48,6 +48,9 @@ Route::get('publicdatasets/{path?}', function ($path = null) {
     return redirect('layers/' . $path);
 });
 Route::get('layers', 'DatasetController@viewPublicDatasets')->name('layers');
+Route::get('layers/json', 'DatasetController@viewLayersJSON')->name('layersjson');
+Route::get('layers/kml', 'DatasetController@viewLayersKML')->name('layerscsv');
+Route::get('layers/csv', 'DatasetController@viewLayersCSV')->name('layerskml');
 Route::get('layers/{id}', 'DatasetController@viewPublicDataset')->name('layer');
 
 Route::get('layers/{id}/basicstatistics', 'DatasetController@viewPublicDatasetBasicStatistics');
@@ -80,6 +83,9 @@ Route::get('publiccollections/{path?}', function ($path = null) {
     return redirect('multilayers/' . $path);
 });
 Route::get('multilayers', 'CollectionController@viewPublicCollections')->name('multilayers');
+Route::get('multilayers/json', 'CollectionController@viewCollectionsJSON')->name('multilayersjson');
+Route::get('multilayers/kml', 'CollectionController@viewCollectionsKML')->name('multilayerscsv');
+Route::get('multilayers/csv', 'CollectionController@viewCollectionsCSV')->name('multilayerskml');
 Route::get('multilayers/{id}', 'CollectionController@viewPublicCollection')->name('multilayer');
 Route::get('multilayers/{id}/json', 'CollectionController@viewPublicJson')->middleware('cors')->name('viewmultilayerjson');
 Route::get('multilayers/{id}/ro-crate', 'CollectionController@downloadPublicROCrate')->name('downloadmultilayerrocate');
@@ -165,6 +171,12 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::post('ajaxdeletetext', 'TextController@deleteText');
 
     Route::post('ajaxgettextcontent', 'TextController@getTextContent');
+
+
+    Route::get('ajaxgetparsetimeestimate', 'TextController@getEstimateParseTime');
+    Route::post('ajaxstoreparsetime', 'TextController@storeParseTime');
+
+
     // Route::post('myprofile/mycollections/{id}/edit', 'CollectionController@editCollection');
     // Route::get('myprofile/mycollections/{id}/ro-crate', 'CollectionController@downloadPrivateROCrate');
 });
