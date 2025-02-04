@@ -21,10 +21,15 @@ if (config('auth.new_account_email_verification')) {
 /**
  * Home and search pages
  */
+Route::get('/json', 'HomeController@json')->name('homejson'); // Redirects to indexJson method
+Route::get('/csv', 'HomeController@csv')->name('homecsv'); // Redirects to indexCsv method
+Route::get('/kml', 'HomeController@kml')->name('homekml'); // Redirects to indexKml method
+
 Route::get('/home', function () {
     return redirect('');
 })->name('home');
 Route::get('', 'HomeController@index')->name('index');
+
 Route::get('about', 'HomeController@aboutPage')->name('about');
 Route::post('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->name('searchFromKmlPolygon'); //search from file
 Route::get('search/{path?}', function (Request $request, $path = null) {
