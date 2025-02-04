@@ -103,6 +103,7 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::post('myprofile/mydatasets/newdataset/create', 'User\UserController@createNewDataset');
 });
 Route::get('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
+Route::get('myprofile/mydatasets/{id}/textmap', 'User\UserController@userviewTextMap'); //Only let users view own dataset
 
 Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mydatasets/{id}/basicstatistics', 'DatasetController@viewPrivateDatasetBasicStatistics');
@@ -210,17 +211,14 @@ Route::post('ajaxclosenessanalysis', 'AjaxController@ajaxclosenessanalysis');
 
 Route::post('ajaxgetdataitemmaps', 'AjaxController@ajaxgetdataitemmaps');
 
-//MUFENG add authorisation,, why get work but post dont 
-Route::get('ajaxedittextplacecoordinates', 'AjaxController@ajaxedittextplacecoordinates')->middleware('cors');
-Route::get('ajaxdeletedataitem2', 'AjaxController@ajaxdeletedataitem')->middleware('cors');
-Route::get('ajaxadddataitem2', 'AjaxController@ajaxadddataitem')->middleware('cors');
-Route::get('ajaxaddtextcontent2', 'TextController@addTextContext')->middleware('cors');
 
 Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in for these
     Route::post('ajaxsavesearch', 'AjaxController@ajaxsavesearch');
     Route::post('ajaxsubsearch', 'AjaxController@ajaxsubsearch');
     Route::post('ajaxdeletesearch', 'AjaxController@ajaxdeletesearch');
     Route::post('ajaxeditsearch', 'AjaxController@ajaxeditsearch');
+
+    Route::post('ajaxedittextplacecoordinates', 'AjaxController@ajaxedittextplacecoordinates');
 
     Route::get('ajaxviewdataitem', 'AjaxController@ajaxviewdataitem');
     Route::post('ajaxeditdataitem', 'AjaxController@ajaxeditdataitem');

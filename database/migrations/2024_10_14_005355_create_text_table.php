@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
 class CreateTextTable extends Migration
 {
@@ -44,6 +45,16 @@ class CreateTextTable extends Migration
             $table->string('access_token', 255)->nullable();
             $table->timestamps(); 
         });
+
+        DB::table('tlcmap.datasource')->updateOrInsert(
+            ['name' => 'GEOCODER'], // condition
+            [
+                'name' => 'GEOCODER',
+                'search_param_name' => 'searchgeocoder',
+                'description' => null,
+                'link' => null,
+            ]
+        );
     }
 
     /**

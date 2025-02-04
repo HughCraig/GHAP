@@ -1,0 +1,178 @@
+body{
+    overflow: hidden;
+}
+
+#latitudeInput,
+#longitudeInput {
+    border: 1px solid #ccc;
+    outline: none;
+    width: 90%;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+#textcontent {
+    white-space: pre-line;
+    height: 100%;
+}
+
+#map {
+    width: 60%;
+    height: 100%;
+}
+
+#editPopup {
+    display: none;
+    position: fixed;
+    left: 1%;
+    width: 37%;
+    padding: 15px;
+    background-color: white;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    -webkit-box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+    outline: 0;
+    z-index: 200;
+}
+
+#editPopup::before,
+#editPopup::after {
+    content: "";
+    position: absolute;
+    left: var(--arrow-left, 50%);
+    transform: translateX(-50%);
+    border-width: 10px;
+    border-style: solid;
+}
+
+/* Arrow pointing up (above the popup) */
+#editPopup::before {
+    bottom: -10px; /* Arrow is positioned below the popup */
+    border-color: black transparent transparent transparent; /* Points down */
+    display: none; /* Default to hidden unless explicitly enabled */
+}
+
+/* Arrow pointing down (below the popup) */
+#editPopup::after {
+    top: -10px; /* Arrow is positioned above the popup */
+    border-color: transparent transparent black transparent; /* Points up */
+}
+
+#editPopup.arrow-up::before {
+    display: block;
+}
+
+#editPopup.arrow-up::after {
+    display: none;
+}
+
+#editPopup.arrow-down::before {
+    display: none;
+}
+
+#editPopup.arrow-down::after {
+    display: block;
+}
+
+button {
+    cursor: pointer;
+}
+
+
+#closePopupButton {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.btn {
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    background-image: none;
+    border: 1px solid transparent;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    border-radius: 4px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.btn-default {
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+}
+
+.btn-highlight {
+    color: #fff;
+    background-color: red;
+    border-color: red;
+}
+
+.btn-primary:hover {
+    color: #fff;
+    background-color: #286090;
+    border-color: #204d74;
+}
+
+.btn-secondary {
+    color: #fff;
+    background-color: #17331C;
+    border-color: #17331C;
+}
+
+
+
+#text {
+    width: 40%;
+    height: 100%;
+    padding: 1%;
+    overflow: scroll;
+    line-height: 2;
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+}
+
+/* The text content area that takes the remaining space */
+#textcontent {
+    white-space: pre-line;
+    flex-grow: 1; /* Take all remaining vertical space */
+    overflow-y: auto; /* Allow vertical scrolling */
+}
+
+/* The control buttons bar */
+#control-buttons {
+    height: 50px;
+    display: flex;
+    align-items: flex-start;
+    z-index: 1000;
+}

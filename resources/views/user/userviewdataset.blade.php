@@ -97,7 +97,7 @@
 
                 @if ($ds->recordtype->type == 'Text' && $ds->text)
                     <a class="dropdown-item grab-hover" 
-                    onclick="window.open('{{ config('app.views_root_url') }}/textmap.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{$ds->id}}/json?textmap=true'))">
+                    onclick="window.open('{{ url()->current() }}/textmap?load=' + encodeURIComponent('{{ url('') }}/layers/{{$ds->id}}/json?textmap=true'))">
                         Text Map
                     </a>
                 @endif
@@ -105,7 +105,7 @@
         </div>
 
         @if ($ds->recordtype->type == 'Text' && $ds->text)
-            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ config('app.views_root_url') }}/textmap.html?load=' + encodeURIComponent('{{ url('') }}/layers/{{$ds->id}}/json?textmap=true'))">
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ url()->current() }}/textmap?load=' + encodeURIComponent('{{ url('') }}/layers/{{$ds->id}}/json?textmap=true'))">
                 Edit Text Map
             </button>
         @endif

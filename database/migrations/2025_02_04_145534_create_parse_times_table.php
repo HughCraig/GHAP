@@ -21,13 +21,13 @@ class CreateParseTimesTable extends Migration
         DB::table('tlcmap.parse_times')->insert([
             [
                 'text_size' => 6.9189453125,
-                'parse_time' => 42.499,           
+                'parse_time' => 25,           
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
-                'text_size' => 22.3564453125, 
-                'parse_time' => 136.52260000000894, 
+                'text_size' => 20.58, 
+                'parse_time' => 85.45, 
                 'created_at' => now(),
                 'updated_at' => now()
             ]

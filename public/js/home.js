@@ -102,7 +102,7 @@ function getDatasources() {
         datasources.push("3");
     }
     if ($("#searchpublicdatasets").is(":checked")) {
-        datasources.push("1"); //Mufeng push geocode into databvase in migration
+        datasources.push("1"); 
         datasources.push("4");
     }
     return datasources;

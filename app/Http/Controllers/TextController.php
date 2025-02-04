@@ -371,6 +371,16 @@ class TextController extends Controller
     public function addTextContext(Request $request)
     {
         $this->middleware('auth');
+        if (!auth()->check()) {
+            return response()->json(['error' => 'User is not authenticated'], 401);
+        }
+
+        //User is the owner of the text
+        $user = Auth::user();
+        $text = $user->texts()->find($request->text_id);
+        if (!$user || !$text) {
+            return response()->json(['error' => 'Text not found'], 404);
+        }
 
         TextContext::create([
             'dataitem_uid' => $request->dataitem_uid,

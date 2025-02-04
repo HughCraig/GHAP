@@ -18,6 +18,7 @@ use TLCMap\Models\Role;
 use TLCMap\Models\SavedSearch;
 use TLCMap\Models\Dataset;
 use TLCMap\Models\Dataitem;
+use TLCMap\Models\Text;
 use TLCMap\Models\SubjectKeyword;
 use TLCMap\Models\RecordType;
 
@@ -194,6 +195,33 @@ class UserController extends Controller
         }
 
         return view('user.userviewdataset', ['lgas' => $lgas, 'feature_terms' => $feature_terms, 'parishes' => $parishes, 'states' => $states, 'recordtypes' => $recordtypes, 'ds' => $dataset, 'user' => auth()->user()]);
+    }
+
+    public function userviewTextMap($ds_id){
+
+        //Check login status
+        if (!auth()->check()) {
+            return redirect('login');
+        }
+
+        //User must be owner of the dataset to view the text map
+        $user = auth()->user();
+        $dataset = $user->datasets()->find($ds_id);
+        if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN')) {
+            return redirect('layers/' . $ds_id);
+        }
+
+        //A text must be related to the dataset
+        $textID = $dataset->from_text_id;
+        if (!$textID) {
+            return redirect('myprofile/mydatasets/');
+        }
+        $text = Text::find($textID);
+        if (!$text) {
+            return redirect('myprofile/mydatasets/');
+        }
+
+        return view('user.userviewtextmap');
     }
 
     public function userSavedSearches(Request $request)

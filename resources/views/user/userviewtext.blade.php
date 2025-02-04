@@ -154,7 +154,7 @@
     </div>
 </div>
 
-<!-- Displaying the text content in a scrollable div  MUFENG: make this class-->
+<!-- Displaying the text content in a scrollable div -->
 <h2>Text Preview</h2>
 <div class="p-4" style="border: 1px solid #ddd;width: 100%; height: 300px; overflow-y: scroll; white-space: pre-line;">
     {!! $text->content !!}

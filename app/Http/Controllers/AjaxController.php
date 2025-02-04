@@ -380,22 +380,21 @@ class AjaxController extends Controller
     }
 
     /**
-     * Delete this dataitem MUFENG  . ADD AUTHORISATION
+     * Delete this dataitem
      */
     public function ajaxdeletedataitem(Request $request)
     {
 
-        //MUfeng change
-        // $this->middleware('auth'); //Throw error if not logged in?
-        // $user = auth()->user();
+        $this->middleware('auth'); //Throw error if not logged in?
+        $user = auth()->user();
         $id = $request->id; //id of dataitem to be deleted
         $ds_id = $request->ds_id;
 
-        // $dataset = $user->datasets()->find($ds_id);
-        // if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN')) return redirect('myprofile/mydatasets'); //if dataset not found for this user OR not ADMIN, go back
+        $dataset = $user->datasets()->find($ds_id);
+        if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN')) return redirect('myprofile/mydatasets'); //if dataset not found for this user OR not ADMIN, go back
 
         if ($id) {
-            $dataset = Dataset::find($ds_id); // MUFENG DELETE THIS
+            $dataset = Dataset::find($ds_id); 
             $dataitem = $dataset->dataitems()->find($id);
             if (!$dataitem) return redirect('myprofile/mydatasets'); //if dataitem not found for this dataset, go back
         } else if ($request->uid) {
@@ -405,7 +404,6 @@ class AjaxController extends Controller
             return response()->json('Dataitem id not provided.', 404);
         }
 
-        //MUFENG change
         if ($dataitem->recordtype_id == '4') {
             $textContexts = TextContext::getAllByDataitemUid($dataitem->uid);
 
@@ -416,12 +414,14 @@ class AjaxController extends Controller
 
         $dataitem->delete();
 
-        // $dataset->updated_at = Carbon::now();
-        // $dataset->save();
+        $dataset->updated_at = Carbon::now();
+        $dataset->save();
 
-        return response()->json(['message' => 'Dataitem deleted successfully'], 200);
-
-        // return response()->json(['time' => $dataset->updated_at->toDateTimeString(), 'count' => count($dataset->dataitems)]);;
+        return response()->json([
+            'message' => 'Dataitem deleted successfully',
+            'time' => $dataset->updated_at->toDateTimeString(),
+            'count' => count($dataset->dataitems)
+        ], 200);
     }
 
     /**
@@ -453,7 +453,6 @@ class AjaxController extends Controller
         return response()->json(['message' => 'Order updated successfully']);
     }
 
-    //MUFENG add authorisation
     public function ajaxedittextplacecoordinates(Request $request)
     {
 
@@ -581,22 +580,21 @@ class AjaxController extends Controller
      */
     public function ajaxadddataitem(Request $request)
     {
-        // // Check if user is authenticated
-        // if (!auth()->check()) {
-        //     Log::info('No user is currently logged in');
-        //     return response()->json(['error' => 'User is not authenticated'], 401);
-        // }
+        // Check if user is authenticated
+        if (!auth()->check()) {
+            return response()->json(['error' => 'User is not authenticated'], 401);
+        }
 
-        // $this->middleware('auth'); //Throw error if not logged in?
+        $this->middleware('auth'); //Throw error if not logged in?
 
-        // $user = auth()->user(); //currently logged in user
+        $user = auth()->user(); //currently logged in user
 
         $ds_id = $request->ds_id;
         $dataset = Dataset::find($ds_id);
-        // $dataset = $user->datasets()->find($ds_id);
+        $dataset = $user->datasets()->find($ds_id);
 
-        // if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN' && $dataset->pivot->dsrole != 'COLLABORATOR'))
-        //     return redirect('myprofile/mydatasets'); //if dataset not found for this user or not ADMIN/COLLABORATOR, go back
+        if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN' && $dataset->pivot->dsrole != 'COLLABORATOR'))
+            return redirect('myprofile/mydatasets'); //if dataset not found for this user or not ADMIN/COLLABORATOR, go back
         $title = $request->title;
         $latitude = $request->latitude;
         $longitude = $request->longitude;

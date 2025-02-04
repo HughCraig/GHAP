@@ -306,7 +306,7 @@ $(document).ready(function () {
     $("#parse_text_submit").on("click", async function () {
         const parseTime = await getParseTimeEstimate();
 
-        // Start the timer Mufeng Remove this
+        // Start the timer 
         let startTime = performance.now();
 
         window.onbeforeunload = function () {
@@ -411,6 +411,7 @@ $(document).ready(function () {
     });
 
     function addLayersAndPlacesInfo(selectPlaces, layerFormData) {
+        var new_layer_id;
         //create dataset
         $.ajax({
             type: "POST",
@@ -422,7 +423,7 @@ $(document).ready(function () {
                 Accept: "application/json",
             },
             success: function (result) {
-                const new_layer_id = result.dataset_id;
+                new_layer_id = result.dataset_id;
 
                 const ajaxPromises = []; // Array to hold all AJAX promises
 
@@ -502,8 +503,7 @@ $(document).ready(function () {
 
                         // Redirect to the text map view page
                         window.location.href =
-                            viewsrooturl +
-                            "/textmap.html?load=" +
+                            "/myprofile/mydatasets/" + new_layer_id + "/textmap?load=" +
                             encodeURIComponent(
                                 appurl + "/layers/" + new_layer_id + "/json"
                             ) +
