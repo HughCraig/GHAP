@@ -32,6 +32,10 @@
                 <div id="editImageContainer" class="mb-3" style="display: none;">
                     <img id="editImagePreview" src="#" alt="Place Image" style="max-height: 150px;">
                 </div>
+                <div id="deleteImageContainer" style="display: none;">
+                    <input type="checkbox" id="deletePlaceImage">
+                    <label class="pr-4" for="deletePlaceImage">Delete current image</label>
+                </div>
                 <input type="file" class="form-control" id="editImage" name="image" accept="image/*">
 
                 <div class="map-picker">

@@ -8,6 +8,7 @@ use TLCMap\ViewConfig\FeatureCollectionConfig;
 use TLCMap\ViewConfig\FeatureConfig;
 use TLCMap\ViewConfig\GhapConfig;
 use TLCMap\Models\RecordType;
+use TLCMap\Models\TextContext;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,7 @@ class Dataset extends Model
     protected $fillable = [
         'id', 'name', 'description', 'creator', 'public', 'allowanps', 'publisher', 'contact', 'citation', 'doi',
         'source_url', 'linkback', 'latitude_from', 'longitude_from', 'latitude_to', 'longitude_to', 'language', 'license', 'rights',
-        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning' , 'image_path'
+        'temporal_from', 'temporal_to', 'created', 'kml_style', 'kml_journey', 'recordtype_id', 'warning' , 'image_path' , 'from_text_id', 'access_token'
     ];
 
     /**
@@ -97,6 +98,15 @@ class Dataset extends Model
     public function collections()
     {
         return $this->belongsToMany('TLCMap\Models\Collection', 'tlcmap.collection_dataset', 'dataset_id', 'collection_id');
+    }
+
+    /**
+     * Define the relationship to the Text model.
+     * One Dataset belongs to one Text (linked by `from_text_id`).
+     */
+    public function text()
+    {
+        return $this->belongsTo(Text::class, 'from_text_id');
     }
 
     public function addData($data)
@@ -396,20 +406,11 @@ class Dataset extends Model
             }
 
             // geojson layers in arcgis. this was marked as for testing only to be removed, but I think it turned out to be necessary, so keep
-            $unixepochdates = $i->datestart . "";
-            $unixepochdatee = $i->dateend . "";
-            if (strpos($unixepochdates, '-') === false) {
-                $unixepochdates = $unixepochdates . "-01-01";
-            }
-            if (strpos($unixepochdatee, '-') === false) {
-                $unixepochdatee = $unixepochdatee . "-01-01";
-            }
-
             if (!empty($i->datestart)) {
-                $proppairs["udatestart"] = strtotime($unixepochdates) * 1000;
+                $proppairs["udatestart"] = GeneralFunctions::dataToUnixtimestamp($i->datestart);
             }
             if (!empty($i->dateend)) {
-                $proppairs["udateend"] = strtotime($unixepochdates) * 1000;
+                $proppairs["udateend"] = GeneralFunctions::dataToUnixtimestamp($i->dateend);
             }
 
             // if we are sorting by date, we are in a context like timeline where we can't have null dates.
@@ -451,12 +452,24 @@ class Dataset extends Model
             $featureConfig->addLink("TLCMap Record: {$i->uid}", $proppairs["TLCMapLinkBack"]);
             $featureConfig->addLink('TLCMap Layer', $proppairs["TLCMapDataset"]);
 
+            $featureConfig = $featureConfig->toArray();
+            $featureConfig['source'] = [
+                'TLCMapID' => [
+                    'id' => $i->uid,
+                    'url' => $proppairs["TLCMapLinkBack"]
+                ],
+                'Layer' => [
+                    'name' => $this->name . ' (community contributed)',
+                    'url' => $metadata['ghap_url']
+                ]
+            ];
+
             if (isset($proppairs["longitude"]) && isset($proppairs["latitude"])) {
                 $features[] = array(
                     'type' => 'Feature',
                     'geometry' => array('type' => 'Point', 'coordinates' => array((float)$proppairs["longitude"], (float)$proppairs["latitude"])),
                     'properties' => $proppairs,
-                    'display' => $featureConfig->toArray(),
+                    'display' => $featureConfig,
                 );
             }
         }
@@ -491,6 +504,25 @@ class Dataset extends Model
             'features' => $features,
             'display' => $featureCollectionConfig->toArray(),
         );
+
+        if (isset($_GET["textmap"]) && $this->text ) {        
+           $text = $this->text;
+           $allfeatures['textcontent'] = ($text->content);
+
+           foreach($dataitems as $dataitem){
+              if($dataitem->recordtype_id == '4'){
+                $textContext = TextContext::getContentByDataitemUid($dataitem->uid);
+                if($textContext->count() > 0){
+                    $textContextArray = $textContext->first()->toArray(); 
+                    $textContextArray['linked_dataitem_uid'] = $dataitem->linked_dataitem_uid ? $dataitem->linked_dataitem_uid : null;            
+                    $allfeatures['textcontexts'][] = $textContextArray; 
+                }
+              }
+           }
+           $allfeatures['textID'] = $text->id;
+        }
+
+        $allfeatures['dataset_id'] = $dataset->id;
       
         if( count($features) == 0){
             $allfeatures['metadata']['warning'] .=  "<p>0 results found</p>";
@@ -568,7 +600,11 @@ class Dataset extends Model
         // !!!!!!!!!! actually also go through the headers and only put them in if at least one is not null.....
 
         // Fudge to convert object with properties to key value pairs
-        $arr = json_decode(json_encode($dataitems[0]), true);
+        if (!empty($dataitems) && isset($dataitems[0])) {
+            $arr = json_decode(json_encode($dataitems[0]), true);
+        } else {
+            $arr = []; 
+        }
 
         foreach ($dataitems as $i) {
 

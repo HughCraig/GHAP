@@ -17,7 +17,7 @@
         Download CSV
     </button>
 
-    <p class="pt-4">To understand this analysis, check the <a href="https://tlcmap.org/help/guides/ghap-guide/">GHAP Guide</a></p>
+    <p class="pt-4">To understand this analysis, check the <a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Guide</a></p>
 
     <table class="table table-bordered" style="margin-top: 20px;">
         <thead>

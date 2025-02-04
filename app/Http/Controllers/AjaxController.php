@@ -7,9 +7,11 @@ use TLCMap\Http\Helpers\UID;
 use TLCMap\Models\SavedSearch;
 use TLCMap\Models\Dataitem;
 use TLCMap\Models\Dataset;
+use TLCMap\Models\Datasource;
 use TLCMap\Models\CollabLink;
 use TLCMap\Models\RecordType;
 use TLCMap\Models\User;
+use TLCMap\Models\TextContext;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +19,7 @@ use Illuminate\Support\Facades\Mail;
 use TLCMap\Mail\CollaboratorEmail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Util\Json;
 use TLCMap\Models\SubjectKeyword;
 
 use TLCMap\Http\Helpers\GeneralFunctions;
@@ -80,7 +83,7 @@ class AjaxController extends Controller
 
         $datasourceIDs = $request->datasourceIDs;
 
-        if( !isset($datasourceIDs)){
+        if (!isset($datasourceIDs)) {
             return response()->json([
                 'dataitems' => []
             ]);
@@ -108,7 +111,7 @@ class AjaxController extends Controller
         }
         foreach ($dataitems as $dataitem) {
             $dataitem->extended_data = $dataitem->extDataAsHTML();
-            if($dataitem->image_path){
+            if ($dataitem->image_path) {
                 $dataitem->image_path = url('storage/images/' . $dataitem->image_path);
             }
         }
@@ -127,7 +130,7 @@ class AjaxController extends Controller
      *
      * @param Request $request - The request object containing search parameters.
      * @return \Illuminate\Http\JsonResponse - JSON response with data items.
-    */
+     */
     public function search(Request $request)
     {
         $parameters = $request->all();
@@ -138,7 +141,7 @@ class AjaxController extends Controller
 
         foreach ($dataitems as $dataitem) {
             $dataitem->extended_data = $dataitem->extDataAsHTML();
-            if($dataitem->image_path){
+            if ($dataitem->image_path) {
                 $dataitem->image_path = url('storage/images/' . $dataitem->image_path);
             }
         }
@@ -148,7 +151,7 @@ class AjaxController extends Controller
             'count' => $count
         ]);
     }
-    
+
     /**
      * Get values from form and save to the users searches
      */
@@ -186,15 +189,15 @@ class AjaxController extends Controller
         if (!isset($description)) {
             $msg .= "Search description not set. ";
         }
-        if( isset($temporalfrom) ){
+        if (isset($temporalfrom)) {
             $temporalfrom = GeneralFunctions::dateMatchesRegexAndConvertString($temporalfrom);
-            if( !$temporalfrom ){
+            if (!$temporalfrom) {
                 $msg .= "Temporal from date is in incorrect format. ";
             }
         }
-        if( isset($temporalto) ){
+        if (isset($temporalto)) {
             $temporalto = GeneralFunctions::dateMatchesRegexAndConvertString($temporalto);
-            if( !$temporalto ){
+            if (!$temporalto) {
                 $msg .= "Temporal to date is in incorrect format. ";
             }
         }
@@ -253,7 +256,7 @@ class AjaxController extends Controller
 
         if ($msg === "") {
             $savedSearch = SavedSearch::where([['user_id', $user_id], ['id', $delete_id]])->first();
-            if($savedSearch){
+            if ($savedSearch) {
                 $savedSearch->subjectKeywords()->detach();
                 $savedSearch->collections()->detach();
                 $savedSearch->delete();
@@ -275,8 +278,8 @@ class AjaxController extends Controller
         $searchID = $request->id;
 
         $savedSearch = SavedSearch::where([['user_id', $user_id], ['id', $searchID]])->first();
-        if(!$savedSearch){
-            return redirect('myprofile/mysearches'); 
+        if (!$savedSearch) {
+            return redirect('myprofile/mysearches');
         }
 
         $name = $request->name;
@@ -304,15 +307,15 @@ class AjaxController extends Controller
         if (!isset($description)) {
             $msg .= "Search description not set. ";
         }
-        if( isset($temporalfrom) ){
+        if (isset($temporalfrom)) {
             $temporalfrom = GeneralFunctions::dateMatchesRegexAndConvertString($temporalfrom);
-            if( !$temporalfrom ){
+            if (!$temporalfrom) {
                 $msg .= "Temporal from date is in incorrect format. ";
             }
         }
-        if( isset($temporalto) ){
+        if (isset($temporalto)) {
             $temporalto = GeneralFunctions::dateMatchesRegexAndConvertString($temporalto);
-            if( !$temporalto ){
+            if (!$temporalto) {
                 $msg .= "Temporal to date is in incorrect format. ";
             }
         }
@@ -329,7 +332,7 @@ class AjaxController extends Controller
                 'longitude_to' => $longitudeto,
                 'temporal_from' => $temporalfrom,
                 'temporal_to' => $temporalto
-            ]); 
+            ]);
 
             $savedSearch->save();
 
@@ -381,6 +384,7 @@ class AjaxController extends Controller
      */
     public function ajaxdeletedataitem(Request $request)
     {
+
         $this->middleware('auth'); //Throw error if not logged in?
         $user = auth()->user();
         $id = $request->id; //id of dataitem to be deleted
@@ -389,20 +393,40 @@ class AjaxController extends Controller
         $dataset = $user->datasets()->find($ds_id);
         if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN')) return redirect('myprofile/mydatasets'); //if dataset not found for this user OR not ADMIN, go back
 
-        $dataitem = $dataset->dataitems()->find($id);
-        if (!$dataitem) return redirect('myprofile/mydatasets'); //if dataitem not found for this dataset, go back
+        if ($id) {
+            $dataset = Dataset::find($ds_id); 
+            $dataitem = $dataset->dataitems()->find($id);
+            if (!$dataitem) return redirect('myprofile/mydatasets'); //if dataitem not found for this dataset, go back
+        } else if ($request->uid) {
+            $dataitem = Dataitem::where('uid', $request->uid)->first();
+            if (!$dataitem) return redirect('myprofile/mydatasets');
+        } else {
+            return response()->json('Dataitem id not provided.', 404);
+        }
+
+        if ($dataitem->recordtype_id == '4') {
+            $textContexts = TextContext::getAllByDataitemUid($dataitem->uid);
+
+            foreach ($textContexts as $textContext) {
+                $textContext->delete();
+            }
+        }
 
         $dataitem->delete();
 
         $dataset->updated_at = Carbon::now();
         $dataset->save();
 
-        return response()->json(['time' => $dataset->updated_at->toDateTimeString(), 'count' => count($dataset->dataitems)]);;
+        return response()->json([
+            'message' => 'Dataitem deleted successfully',
+            'time' => $dataset->updated_at->toDateTimeString(),
+            'count' => count($dataset->dataitems)
+        ], 200);
     }
 
     /**
-    * Change the order of dataitems in one dataset
-    */
+     * Change the order of dataitems in one dataset
+     */
     public function ajaxchangedataitemorder(Request $request)
     {
         $this->middleware('auth'); // Ensure the user is logged in
@@ -410,12 +434,12 @@ class AjaxController extends Controller
 
         $ds_id = $request->ds_id; //id of dataset
         $dataset = $user->datasets()->find($ds_id);
-        if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN')) 
+        if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN'))
             return redirect('myprofile/mydatasets'); //if dataset not found for this user OR not ADMIN, go back
 
         $newOrder = $request->input('newOrder'); // The new order of the dataitems
         if (is_null($newOrder)) {
-            return response()->json(['error' => 'Invalid order data'], 400); 
+            return response()->json(['error' => 'Invalid order data'], 400);
         }
 
         foreach ($newOrder as $order => $dataitemID) {
@@ -425,8 +449,34 @@ class AjaxController extends Controller
                 $dataitem->save();
             }
         }
-    
+
         return response()->json(['message' => 'Order updated successfully']);
+    }
+
+    public function ajaxedittextplacecoordinates(Request $request)
+    {
+
+        $uid = $request->uid; //id of dataitem to be edited
+        $latitude = $request->latitude;
+        $longitude = $request->longitude;
+
+        $dataitem = Dataitem::where('uid', $uid)->first();
+        if (!$dataitem) return response()->json('place not found.', 404);
+
+        if (!$dataitem->recordtype_id == '4') { //MUFENG modify this
+            return response()->json('This dataitem is not a text place.', 404);
+        }
+
+        if (!isset($latitude) || !isset($longitude)) return response()->json('Requires Latitude and Longitude.', 422);
+
+        $linkedDataitemUID = $this->getRelatedPlaceUIDForText($dataitem->title, $latitude, $longitude);
+
+        $dataitem->latitude = $latitude;
+        $dataitem->longitude = $longitude;
+        $dataitem->linked_dataitem_uid = $linkedDataitemUID;
+        $dataitem->save();
+
+        return response()->json(['linked_dataitem_uid' =>  $linkedDataitemUID,  'message' => 'Coordinates updated successfully'], 200);
     }
 
     /**
@@ -470,19 +520,26 @@ class AjaxController extends Controller
         if (isset($dateend)) $dateend = GeneralFunctions::dateMatchesRegexAndConvertString($dateend);
         if ($datestart === false || $dateend === false) return response()->json(['error' => 'Your date values are in the incorrect format.', 'e1' => $e1, 'e2' => $e2], 422); //if either didnt match, send error
 
+        if($request->delete_image && $dataitem->image_path) {
+            if (Storage::disk('public')->exists('images/' . $dataitem->image_path)) {
+                Storage::disk('public')->delete('images/' . $dataitem->image_path);
+            }
+            $dataitem->image_path = null;
+        }
+
         if ($request->hasFile('image')) {
             $image = $request->file('image');
 
             // Validate image file.
-            if(!GeneralFunctions::validateUserUploadImage($image)){
+            if (!GeneralFunctions::validateUserUploadImage($image)) {
                 return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
             }
 
             // Delete old image.
             if ($dataitem->image_path && Storage::disk('public')->exists('images/' . $dataitem->image_path)) {
                 Storage::disk('public')->delete('images/' . $dataitem->image_path);
-            } 
-    
+            }
+
             // Save new image.
             $filename = time() . '.' . $image->getClientOriginalExtension();
             Storage::disk('public')->putFileAs('images', $image, $filename);
@@ -497,6 +554,8 @@ class AjaxController extends Controller
             'longitude' => $longitude,
             'datestart' => $datestart,
             'dateend' => $dateend,
+            'udatestart' => GeneralFunctions::dataToUnixtimestamp($datestart),
+            'udateend' => GeneralFunctions::dataToUnixtimestamp($dateend),
             'state' => $request->state,
             'feature_term' => $request->featureterm,
             'lga' => $request->lga,
@@ -514,6 +573,8 @@ class AjaxController extends Controller
         return response()->json(['time' => $dataitem->updated_at->toDateTimeString(), 'datestart' => $datestart, 'dateend' => $dateend]);
     }
 
+    public function ajaxgetdataitemmaps() {}
+
 
     /**
      * Add a dataitem to this dataset
@@ -521,14 +582,21 @@ class AjaxController extends Controller
      */
     public function ajaxadddataitem(Request $request)
     {
+        // Check if user is authenticated
+        if (!auth()->check()) {
+            return response()->json(['error' => 'User is not authenticated'], 401);
+        }
+
         $this->middleware('auth'); //Throw error if not logged in?
+
         $user = auth()->user(); //currently logged in user
+
         $ds_id = $request->ds_id;
+        $dataset = Dataset::find($ds_id);
         $dataset = $user->datasets()->find($ds_id);
 
         if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN' && $dataset->pivot->dsrole != 'COLLABORATOR'))
             return redirect('myprofile/mydatasets'); //if dataset not found for this user or not ADMIN/COLLABORATOR, go back
-
         $title = $request->title;
         $latitude = $request->latitude;
         $longitude = $request->longitude;
@@ -563,7 +631,7 @@ class AjaxController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             //Validate image file.
-            if(!GeneralFunctions::validateUserUploadImage($image)){
+            if (!GeneralFunctions::validateUserUploadImage($image)) {
                 return response()->json(['error' => 'Image must be a valid image file type and size.'], 422);
             }
             $filename = time() . '.' . $image->getClientOriginalExtension();
@@ -572,6 +640,13 @@ class AjaxController extends Controller
         $maxOrder = $dataset->dataitems()->max('dataset_order');
         $dataset_order = $maxOrder !== null ? $maxOrder + 1 : 0;
 
+        //Linked place for text
+        $linkedDataitemUID = null;
+        if(isset($request->related_place_uid) && $request->related_place_uid != 'null') {
+            $linkedDataitemUID = $request->related_place_uid;
+        }else if ($recordtype_id == '4') {
+            $linkedDataitemUID = $this->getRelatedPlaceUIDForText($title, $latitude, $longitude);
+        }
         $dataitem = Dataitem::create([
             'dataset_id' => $ds_id,
             'title' => $title,
@@ -581,6 +656,8 @@ class AjaxController extends Controller
             'description' => $description,
             'datestart' => $datestart,
             'dateend' => $dateend,
+            'udatestart' => GeneralFunctions::dataToUnixtimestamp($datestart),
+            'udateend' => GeneralFunctions::dataToUnixtimestamp($dateend),
             'state' => $state,
             'feature_term' => $feature_term,
             'lga' => $lga,
@@ -588,7 +665,8 @@ class AjaxController extends Controller
             'external_url' => $external_url,
             'placename' => $placename,
             'image_path' => $filename,
-            'dataset_order' => $dataset_order
+            'dataset_order' => $dataset_order,
+            'linked_dataitem_uid' => $linkedDataitemUID
         ]);
         $isDirty = false;
         // Generate UID.
@@ -596,9 +674,18 @@ class AjaxController extends Controller
             $dataitem->uid = UID::create($dataitem->id, 't');
             $isDirty = true;
         }
+
+        if ($request->datasource_id) {
+            $datasourceExists = Datasource::where('id', $request->datasource_id)->exists();
+
+            if ($datasourceExists) {
+                $dataitem->datasource_id = $request->datasource_id;
+            }
+        }
+
         // Set extended data.
         if (!empty($extendedData)) {
-            $dataitem->setExtendedData(json_decode($extendedData,true));
+            $dataitem->setExtendedData(json_decode($extendedData, true));
             $isDirty = true;
         }
         if ($isDirty) {
@@ -610,6 +697,52 @@ class AjaxController extends Controller
         return response()->json(['dataitem' => $dataitem, 'time' => $dataset->updated_at->toDateTimeString(), 'count' => count($dataset->dataitems)]);
     }
 
+    private function getRelatedPlaceUIDForText($title, $latitude, $longitude)
+    {
+        // Round coordinates to 4 decimal places
+        $latitude = round($latitude, 4);
+        $longitude = round($longitude, 4);
+
+        // Get datasource IDs
+        $ncgId = Datasource::ncg()->id;
+        $anpsId = Datasource::anps()->id;
+        $geocoderId = Datasource::geocoder()->id;
+
+        // Tier 1: Search in NCG (datasource_id = $ncgId)
+        $place = Dataitem::where('title', $title)
+            ->whereRaw('ROUND(latitude::numeric, 4) = ?', [$latitude])
+            ->whereRaw('ROUND(longitude::numeric, 4) = ?', [$longitude])
+            ->where('datasource_id', $ncgId)
+            ->orderBy('id', 'asc')
+            ->first();
+
+        if ($place) {
+            return $place->uid;
+        }
+
+        // Tier 2: Search in ANPS (datasource_id = $anpsId)
+        $place = Dataitem::where('title', $title)
+            ->whereRaw('ROUND(latitude::numeric, 4) = ?', [$latitude])
+            ->whereRaw('ROUND(longitude::numeric, 4) = ?', [$longitude])
+            ->where('datasource_id', $anpsId)
+            ->orderBy('id', 'asc')
+            ->first();
+
+        if ($place) {
+            return $place->uid;
+        }
+
+        // Tier 3: Search in GeoCoder (datasource_id = $geocoderId)
+        $place = Dataitem::where('title', $title)
+            ->whereRaw('ROUND(latitude::numeric, 4) = ?', [$latitude])
+            ->whereRaw('ROUND(longitude::numeric, 4) = ?', [$longitude])
+            ->where('datasource_id', $geocoderId)
+            ->orderBy('id', 'asc')
+            ->first();
+
+        // Return the place ID if found in GeoCoder, or null if no match is found
+        return $place ? $place->uid : null;
+    }
     /*
      *  BULK file add will be done in the usercontroller, as using AJAX for such a hefty task is not ideal
      */
@@ -807,20 +940,20 @@ class AjaxController extends Controller
      */
     public function ajaxdbscan(Request $request)
     {
-        $id = $request->id; 
+        $id = $request->id;
 
         //get datset
         $ds = Dataset::with(['dataitems' => function ($query) {
             $query->orderBy('dataset_order');
         }])->where(['public' => 1, 'id' => $id])->first();
-        if (!$ds) return redirect()->route('layers'); 
+        if (!$ds) return redirect()->route('layers');
 
-        if($request->distance == null || $request->distance < 0 || !is_numeric($request->distance) ){
+        if ($request->distance == null || $request->distance < 0 || !is_numeric($request->distance)) {
             return response()->json(['error' => 'Invalid distance'], 400);
         }
 
         $clusterAnalysisResults = $ds->getClusterAnalysisDBScan($request->distance, $request->minPoints);
-    
+
         return response()->json($clusterAnalysisResults);
     }
 
@@ -834,16 +967,16 @@ class AjaxController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function ajaxkmeans(Request $request)
-    {   
-        $id = $request->id; 
+    {
+        $id = $request->id;
 
         $ds = Dataset::with(['dataitems' => function ($query) {
             $query->orderBy('dataset_order');
         }])->where(['public' => 1, 'id' => $id])->first();
-        if (!$ds) return redirect()->route('layers'); 
+        if (!$ds) return redirect()->route('layers');
 
         $clusterAnalysisResults = $ds->getClusterAnalysisKmeans($request->numClusters, $request->withinRadius);
-    
+
         return response()->json($clusterAnalysisResults);
     }
 
@@ -864,10 +997,10 @@ class AjaxController extends Controller
         $ds = Dataset::with(['dataitems' => function ($query) {
             $query->orderBy('dataset_order');
         }])->where(['public' => 1, 'id' => $id])->first();
-        if (!$ds) return redirect()->route('layers'); 
+        if (!$ds) return redirect()->route('layers');
 
         $res = $ds->getTemporalClustering($request->totalInterval);
-    
+
         return response()->json($res);
     }
 
@@ -881,7 +1014,7 @@ class AjaxController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function ajaxclosenessanalysis(Request $request)
-    {    
+    {
         $id = $request->dataset_id; //id of dataset 
 
         //get datset
@@ -889,11 +1022,10 @@ class AjaxController extends Controller
             $query->orderBy('dataset_order');
         }])->where(['public' => 1, 'id' => $id])->first();
 
-        if (!$ds) return redirect()->route('layers'); 
-        
+        if (!$ds) return redirect()->route('layers');
+
         $res = $ds->getClosenessAnalysis($request->targetDatasetId);
-    
+
         return response()->json($res);
     }
-
 }

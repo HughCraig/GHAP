@@ -87,8 +87,10 @@ $("main").on('click', '[name="delete_dataitem_button"]', function () {
 });
 
 // Create message banner for add dataitem modal.
-const msgBanner = new MessageBanner($('#addModal .message-banner'));
-msgBanner.hide();
+if (typeof msgBanner === 'undefined') {
+    const msgBanner = new MessageBanner($("#newLayerModal .message-banner"));
+    msgBanner.hide();
+}
 
 
 /**
@@ -98,7 +100,7 @@ msgBanner.hide();
  *  The message banner to display errors.
  * 
  */
-const validateAddDataRequestData = function (msgBanner) {
+function validateAddDataRequestData(msgBanner) {
      // Validate the input.
     let isValid = true;
     msgBanner.clear();
@@ -146,7 +148,7 @@ const validateAddDataRequestData = function (msgBanner) {
  * @returns {*}
  *   The request data.
  */
- const getAddDataitemRequestData = function () {
+function getAddDataitemRequestData () {
 
     const formData = new FormData();
 
@@ -166,6 +168,8 @@ const validateAddDataRequestData = function (msgBanner) {
     formData.append('source', tinymce.get('addsource').getContent());
     formData.append('url', $('#addexternalurl').val());
     formData.append('extendedData', JSON.stringify(new ExtendedDataEditor('#addModal .extended-data-editor').getData()));
+
+    formData.append('related_place_uid', $('#related_place_uid').val() || null);
     // image file upload
     if ($('#addImage').length && $('#addImage')[0].files[0]) {
         formData.append('image', $('#addImage')[0].files[0]);
@@ -392,3 +396,31 @@ $("main").on('click', '[name="edit_dataitem_button"]', function () {
         }
     });
 });
+
+
+function copyLink(id, button, param) {
+    if (param === undefined) param = 'anps_id'
+    var body = document.getElementsByTagName('body')[0];
+    var text = location.protocol + '//' + location.host + '/search?' + param + "=" + id; //ideally should update with the page???
+
+    var tempInput = document.createElement('INPUT');
+    body.appendChild(tempInput);
+    tempInput.setAttribute('value', text);
+    tempInput.select();
+    document.execCommand('copy');
+    body.removeChild(tempInput);
+
+    var oldcolor = $(button).addClass("green-background");
+    setTimeout(function () {
+        $(button).removeClass("green-background", 1000);
+    }, 800);
+
+    //Show some kind of success message
+    $("#notification_box").addClass("notification-success");
+    $("#notification_message").text('Copied link: ' + text);
+    setTimeout(function(){
+        $("#notification_box").removeClass("notification-success");
+    },4000);
+
+    document.execCommand("copy");
+}

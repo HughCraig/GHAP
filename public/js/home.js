@@ -102,7 +102,8 @@ function getDatasources() {
         datasources.push("3");
     }
     if ($("#searchpublicdatasets").is(":checked")) {
-        datasources.push("1");
+        datasources.push("1"); 
+        datasources.push("4");
     }
     return datasources;
 }
@@ -293,12 +294,14 @@ function getSearchFormData(names, tlcMap, viewBbox) {
         polygon: $("#polygon").val() || null,
         chunks: $("#chunks").val() || null,
         dataitemid: $("#dataitemid").val() || null,
+        id: $("#dataitemuid").val() || null, // uid
         feature_term: $("#feature_term").val() || null,
         extended_data: $("#extended_data").val() || null,
         source: $("#source").val() || null,
         searchpublicdatasets: $("#searchpublicdatasets").is(":checked")
             ? "on"
             : null,
+        searchgeocoder: $("#searchpublicdatasets").is(":checked") ? "on" : null,
         searchausgaz: $("#searchausgaz").is(":checked") ? "on" : null,
         searchncg: $("#searchncg").is(":checked") ? "on" : null,
 
@@ -432,7 +435,7 @@ function updateParameter(param, value) {
  */
 function updateDownloadLink(format) {
     const urlParams = getUrlParameters();
-    return `${baseUrl}places?${urlParams}&download=on&format=${format}`;
+    return `${baseUrl}?${urlParams}&download=on&format=${format}`;
 }
 
 /**
@@ -443,7 +446,7 @@ function updateDownloadLink(format) {
  */
 function updateWsFeedLink(format) {
     const urlParams = getUrlParameters();
-    return `${baseUrl}places?${urlParams}&format=${format}`;
+    return `${baseUrl}?${urlParams}&format=${format}`;
 }
 
 /**
@@ -464,6 +467,12 @@ function updateViewMapLink(type, format) {
  * Binds the download links to the respective click events, updating the href attribute dynamically.
  */
 function bindDownloadLinks(tlcMap) {
+    // Unbind all click events first
+    $("#downloadKml").off("click");
+    $("#downloadCsv").off("click");
+    $("#downloadGeoJson").off("click");
+    // $("#downloadRoCrate").off("click");
+
     if (tlcMap.isSearchOn) {
         $("#downloadKml").click(function () {
             $(this).attr("href", updateDownloadLink("kml"));
@@ -477,9 +486,9 @@ function bindDownloadLinks(tlcMap) {
             $(this).attr("href", updateDownloadLink("json"));
         });
 
-        $("#downloadRoCrate").click(function () {
-            $(this).attr("href", updateDownloadLink("rocrate"));
-        });
+        // $("#downloadRoCrate").click(function () {
+        //     $(this).attr("href", updateDownloadLink("rocrate"));
+        // });
     } else {
         $("#downloadCsv").click(function () {
             downloadCsv(tlcMap.bboxDataitems);
@@ -571,7 +580,7 @@ function continueSearchForm(
 ) {
     const data = getSearchFormData(names, tlcMap, viewBbox);
     updateUrlParameters(data);
-    showLoadingWheel('loading places...');
+    showLoadingWheel("loading places...");
 
     $.ajax({
         type: "POST",
@@ -620,6 +629,7 @@ function continueSearchForm(
                 }
             }
             hideLoadingWheel();
+            bindDownloadLinks(tlcMap);
         },
         error: function (xhr, textStatus, errorThrown) {
             alert(
@@ -695,7 +705,8 @@ function isSearchOn() {
         getQueryParam("polygon") ||
         getQueryParam("extended_data") ||
         getQueryParam("uid") ||
-        getQueryParam("id")
+        getQueryParam("id") ||
+        getQueryParam("gotoid")
     ) {
         return true;
     }
@@ -748,8 +759,9 @@ function presetSearchForm() {
         );
     }
 
-    //TODO programatically show the used filter sections
-    //TODO programatically remove the options
+    if (urlParams.has("gotoid")) {
+        $("#dataitemuid").val(urlParams.get("gotoid"));
+    }
 
     if (urlParams.get("recordtype")) {
         $("#recordtype").val(urlParams.get("recordtype") || "");
@@ -927,53 +939,26 @@ $(document).ready(async function () {
     // Expose tlcMap to global scope
     window.tlcMap = tlcMap;
 
-    //Single place search.. redirect from /places/id
-    if (getQueryParam("gotoid")) {
-        const input = {
-            id: getQueryParam("gotoid"),
-        };
-        $.ajax({
-            type: "POST",
-            url: ajaxsearchdataitems,
-            data: input,
-            success: function (response) {
-                if (response.dataitems.length > 0) {
-                    tlcMap.ignoreExtentChange = true;
-                    tlcMap.isSearchOn = true;
-
-                    tlcMap.dataitems = response.dataitems;
-
-                    tlcMap.addPointsToMap(tlcMap.dataitems);
-                    tlcMap.renderDataItems(tlcMap.dataitems);
-                } else {
-                    alert("No Places found");
-                }
-            },
-            error: function (xhr) {
-                console.log(xhr.responseText);
-            },
-        });
-    } else {
-        var defaultLocation = null;
-        if (getQueryParam("goto")) {
-            let coordinates = getQueryParam("goto").split(",");
-            if (coordinates.length == 2) {
-                defaultLocation = coordinates;
-            }
+    var defaultLocation = null;
+    if (getQueryParam("goto")) {
+        let coordinates = getQueryParam("goto").split(",");
+        if (coordinates.length == 2) {
+            defaultLocation = coordinates;
         }
+    }
 
-        if (isSearchOn()) {
-            presetSearchForm();
-            continueSearchForm(tlcMap, null, defaultLocation, true, null);
+    if (isSearchOn()) {
+        presetSearchForm();
+        continueSearchForm(tlcMap, null, defaultLocation, true, null);
+        tlcMap.isSearchOn = true;
+    } else {
+        tlcMap.ignoreExtentChange = false;
+
+        if (defaultLocation) {
+            tlcMap.zoomTo(defaultLocation[1], defaultLocation[0]);
+            updateParameter("goto", defaultLocation.join(","));
         } else {
-            tlcMap.ignoreExtentChange = false;
-
-            if (defaultLocation) {
-                tlcMap.zoomTo(defaultLocation[1], defaultLocation[0]);
-                updateParameter("goto", defaultLocation.join(","));
-            } else {
-                tlcMap.gotoUserLocation();
-            }
+            tlcMap.gotoUserLocation();
         }
     }
 
@@ -1062,6 +1047,17 @@ $(document).ready(async function () {
         }
     });
 
+    if (tlcMap.isSearchOn && $("#polygoninput").val()) {
+        var pointstrarr = $("#polygoninput").val().split(","); //["0 0", "0 100", "100 100", "100 0", "0 0"]
+        var rings = [];
+
+        for (var i = 0; i < pointstrarr.length; i++) {
+            var point = pointstrarr[i].trim().split(" ");
+            rings.push([parseFloat(point[0]), parseFloat(point[1])]);
+        }
+        tlcMap.drawPolygon(rings);
+    }
+
     var viewParam = getQueryParam("view");
     if (viewParam == "map") {
         $(".typeFilter-map").prop("checked", true);
@@ -1143,6 +1139,7 @@ $(document).ready(async function () {
         $("#polygon").val("");
         $("#chunks").val("");
         $("#dataitemid").val("");
+        $("#dataitemuid").val("");
         $("#feature_term").val("");
 
         $("#source").val("");
@@ -1179,11 +1176,206 @@ $(document).ready(async function () {
         $("#maxlong").val("");
         $("#maxlat").val("");
         $("#polygoninput").val("");
+        bindDownloadLinks(tlcMap);
 
         tlcMap.gotoUserLocation();
     });
 
+    //Upload kml search behaviour
+    $("#polygonkml_search").click(async function (e) {
+        e.preventDefault();
+        console.log("polygonkml_search");
+
+        const fileInput = document.getElementById("polygonkml");
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Please upload a KML file.");
+            return;
+        } else if (!file.name.endsWith(".kml")) {
+            alert("File must be a kml file.");
+            return;
+        }
+
+        try {
+            // Read the file content
+            const text = await file.text();
+
+            // Parse the KML
+            const parser = new DOMParser();
+            const kmlDoc = parser.parseFromString(text, "application/xml");
+
+            // Check for parsing errors
+            if (kmlDoc.getElementsByTagName("parsererror").length > 0) {
+                alert("The uploaded file is not a valid KML.");
+                return;
+            }
+
+            // Find the Polygon tag
+            const polygons = kmlDoc.getElementsByTagName("Polygon");
+            if (polygons.length === 0) {
+                alert("The KML file must contain at least one Polygon.");
+                return;
+            }
+
+            // Extract coordinates from the first Polygon
+            const coordinatesTag =
+                polygons[0].getElementsByTagName("coordinates")[0];
+            if (!coordinatesTag) {
+                alert("The Polygon tag does not contain coordinates.");
+                return;
+            }
+
+            const coordinates = coordinatesTag.textContent.trim();
+            const latLongCoords = coordinates
+                .split(" ")
+                .map((coord) => coord.split(",").slice(0, 2))
+                .filter((coord) => coord.length === 2);
+
+            let kmlout = "";
+            for (let i = 0; i < latLongCoords.length; i++) {
+                kmlout += latLongCoords[i][0] + " " + latLongCoords[i][1];
+                if (i < latLongCoords.length - 1) {
+                    kmlout += ", ";
+                }
+            }
+
+            const input = {
+                limit: 5000,
+                polygon: kmlout,
+            };
+            updateUrlParameters(input);
+            window.location.reload();
+        } catch (error) {
+            alert("An error occurred while processing the KML file.");
+        }
+    });
+
     $("#searchbutton").click(function (e) {
+        updateUrlParameters(null);
+        $("#dataitemuid").val("");
+        $("#dataitemid").val("");
         searchActions(tlcMap, true, null);
+    });
+
+    $(document).on("click", ".popup-text.new-place-new", function (e) {
+        if (!isLoggedIn) {
+            window.location.href = baseUrl + "login";
+            return;
+        }
+
+        $("#addlatitude").val("");
+        $("#addlongitude").val("");
+        addModalMapPicker.clearMarkers();
+
+        this.ignoreExtentChange = true;
+
+        $("#addModal")
+            .modal("show")
+            .on("shown.bs.modal", () => {
+                this.ignoreExtentChange = false; // Reset after modal fully shown
+            })
+            .on("hide.bs.modal", () => {
+                this.ignoreExtentChange = true; // Set to true when modal starts hiding
+            })
+            .on("hidden.bs.modal", () => {
+                setTimeout(() => {
+                    this.ignoreExtentChange = false; // Reset to false after modal is fully hidden
+                }, 500);
+            });
+    });
+
+    $(document).on("click", ".popup-text.new-place-current", function (e) {
+        if (!isLoggedIn) {
+            window.location.href = baseUrl + "login";
+            return;
+        }
+
+        if (
+            tlcMap.selectedFeature &&
+            tlcMap.selectedFeature.uid &&
+            tlcMap.selectedFeature.latitude &&
+            tlcMap.selectedFeature.longitude
+        ) {
+            $("#addlatitude").val(tlcMap.selectedFeature.latitude);
+            $("#addlongitude").val(tlcMap.selectedFeature.longitude);
+            $("#related_place_uid").val(tlcMap.selectedFeature.uid);
+            addModalMapPicker.createMarkerAt(
+                [
+                    parseFloat(tlcMap.selectedFeature.longitude),
+                    parseFloat(tlcMap.selectedFeature.latitude),
+                ],
+                true,
+                true
+            );
+        } else {
+            $("#addlatitude").val("");
+            $("#addlongitude").val("");
+            this.addModalMapPicker.clearMarkers();
+        }
+
+        this.ignoreExtentChange = true;
+
+        $("#addModal")
+            .modal("show")
+            .on("shown.bs.modal", () => {
+                this.ignoreExtentChange = false; // Reset after modal fully shown
+            })
+            .on("hide.bs.modal", () => {
+                this.ignoreExtentChange = true; // Set to true when modal starts hiding
+            })
+            .on("hidden.bs.modal", () => {
+                setTimeout(() => {
+                    this.ignoreExtentChange = false; // Reset to false after modal is fully hidden
+                }, 500);
+            });
+    });
+
+    $("#add_layer_button_submit").on("click", function () {
+        let isValid = validateAddLayerRequestData(msgBanner);
+
+        if (isValid) {
+            $.ajax({
+                type: "POST",
+                url: "/myprofile/mydatasets/newdataset/create", //'User\UserController@createNewDataset'
+                data: getAddLayerRequestData(),
+                contentType: false,
+                processData: false,
+                headers: {
+                    Accept: "application/json",
+                },
+                success: function (result) {
+                    const new_layer_id = result.dataset_id;
+                    const new_layer_name = $("#layername").val();
+
+                    const new_layer_option = new Option(
+                        new_layer_name,
+                        new_layer_id,
+                        true,
+                        true
+                    );
+                    $("#chooseLayer")
+                        .append(new_layer_option)
+                        .trigger("change");
+
+                    removeExistingSelections();
+                    const currentModal =
+                        document.querySelector("#newLayerModal");
+                    $(currentModal).modal("hide");
+
+                    setTimeout(() => {
+                        const newModal = document.querySelector("#addModal");
+                        $(newModal).modal("show");
+                    }, 500);
+                },
+                error: function (xhr) {
+                    alert("Create layer failed");
+                },
+            });
+        } else {
+            // Display and scroll to the message banner.
+            msgBanner.show();
+            $("#newLayerModal .scrollable").scrollTop(0);
+        }
     });
 });

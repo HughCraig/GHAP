@@ -21,10 +21,15 @@ if (config('auth.new_account_email_verification')) {
 /**
  * Home and search pages
  */
+Route::get('/json', 'HomeController@json')->name('homejson'); // Redirects to indexJson method
+Route::get('/csv', 'HomeController@csv')->name('homecsv'); // Redirects to indexCsv method
+Route::get('/kml', 'HomeController@kml')->name('homekml'); // Redirects to indexKml method
+
 Route::get('/home', function () {
     return redirect('');
 })->name('home');
 Route::get('', 'HomeController@index')->name('index');
+
 Route::get('about', 'HomeController@aboutPage')->name('about');
 Route::post('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->name('searchFromKmlPolygon'); //search from file
 Route::get('search/{path?}', function (Request $request, $path = null) {
@@ -43,6 +48,9 @@ Route::get('publicdatasets/{path?}', function ($path = null) {
     return redirect('layers/' . $path);
 });
 Route::get('layers', 'DatasetController@viewPublicDatasets')->name('layers');
+Route::get('layers/json', 'DatasetController@viewLayersJSON')->name('layersjson');
+Route::get('layers/kml', 'DatasetController@viewLayersKML')->name('layerscsv');
+Route::get('layers/csv', 'DatasetController@viewLayersCSV')->name('layerskml');
 Route::get('layers/{id}', 'DatasetController@viewPublicDataset')->name('layer');
 
 Route::get('layers/{id}/basicstatistics', 'DatasetController@viewPublicDatasetBasicStatistics');
@@ -75,6 +83,9 @@ Route::get('publiccollections/{path?}', function ($path = null) {
     return redirect('multilayers/' . $path);
 });
 Route::get('multilayers', 'CollectionController@viewPublicCollections')->name('multilayers');
+Route::get('multilayers/json', 'CollectionController@viewCollectionsJSON')->name('multilayersjson');
+Route::get('multilayers/kml', 'CollectionController@viewCollectionsKML')->name('multilayerscsv');
+Route::get('multilayers/csv', 'CollectionController@viewCollectionsCSV')->name('multilayerskml');
 Route::get('multilayers/{id}', 'CollectionController@viewPublicCollection')->name('multilayer');
 Route::get('multilayers/{id}/json', 'CollectionController@viewPublicJson')->middleware('cors')->name('viewmultilayerjson');
 Route::get('multilayers/{id}/ro-crate', 'CollectionController@downloadPublicROCrate')->name('downloadmultilayerrocate');
@@ -92,6 +103,7 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::post('myprofile/mydatasets/newdataset/create', 'User\UserController@createNewDataset');
 });
 Route::get('myprofile/mydatasets/{id}', 'User\UserController@userViewDataset'); //Only let users view own dataset
+Route::get('myprofile/mydatasets/{id}/textmap', 'User\UserController@userviewTextMap'); //Only let users view own dataset
 
 Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mydatasets/{id}/basicstatistics', 'DatasetController@viewPrivateDatasetBasicStatistics');
@@ -140,6 +152,36 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mycollections/{id}/ro-crate', 'CollectionController@downloadPrivateROCrate');
 });
 
+/** 
+ * User text CRUD pages
+ */
+Route::middleware($baseAuthMiddlewares)->group(function () {
+    Route::get('myprofile/mytexts', 'TextController@viewMyTexts');
+    Route::get('myprofile/mytexts/newtext', 'TextController@newText');
+
+    Route::post('myprofile/mytexts/newtext/create', 'TextController@createNewText');
+   
+    Route::get('myprofile/mytexts/{id}', 'TextController@viewMyText');
+    Route::get('myprofile/mytexts/{id}/parse', 'TextController@parseText');
+
+    Route::post('myprofile/mytexts/{id}/edit', 'TextController@editText');
+
+    Route::post('ajaxparsetext', 'TextController@parseTextContent');
+    Route::post('ajaxaddtextcontent', 'TextController@addTextContext');
+
+    Route::post('ajaxdeletetext', 'TextController@deleteText');
+
+    Route::post('ajaxgettextcontent', 'TextController@getTextContent');
+
+
+    Route::get('ajaxgetparsetimeestimate', 'TextController@getEstimateParseTime');
+    Route::post('ajaxstoreparsetime', 'TextController@storeParseTime');
+
+
+    // Route::post('myprofile/mycollections/{id}/edit', 'CollectionController@editCollection');
+    // Route::get('myprofile/mycollections/{id}/ro-crate', 'CollectionController@downloadPrivateROCrate');
+});
+
 /**
  * Admin pages
  * The Admin Controller passes through 'auth' and 'verified' middleware for all functions AND checks user is admin
@@ -167,11 +209,16 @@ Route::post('ajaxkmeans', 'AjaxController@ajaxkmeans');
 Route::post('ajaxtemporalclustering', 'AjaxController@ajaxtemporalclustering');
 Route::post('ajaxclosenessanalysis', 'AjaxController@ajaxclosenessanalysis');
 
+Route::post('ajaxgetdataitemmaps', 'AjaxController@ajaxgetdataitemmaps');
+
+
 Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in for these
     Route::post('ajaxsavesearch', 'AjaxController@ajaxsavesearch');
     Route::post('ajaxsubsearch', 'AjaxController@ajaxsubsearch');
     Route::post('ajaxdeletesearch', 'AjaxController@ajaxdeletesearch');
     Route::post('ajaxeditsearch', 'AjaxController@ajaxeditsearch');
+
+    Route::post('ajaxedittextplacecoordinates', 'AjaxController@ajaxedittextplacecoordinates');
 
     Route::get('ajaxviewdataitem', 'AjaxController@ajaxviewdataitem');
     Route::post('ajaxeditdataitem', 'AjaxController@ajaxeditdataitem');

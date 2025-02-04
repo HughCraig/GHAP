@@ -18,6 +18,7 @@ use TLCMap\Models\Role;
 use TLCMap\Models\SavedSearch;
 use TLCMap\Models\Dataset;
 use TLCMap\Models\Dataitem;
+use TLCMap\Models\Text;
 use TLCMap\Models\SubjectKeyword;
 use TLCMap\Models\RecordType;
 
@@ -196,6 +197,33 @@ class UserController extends Controller
         return view('user.userviewdataset', ['lgas' => $lgas, 'feature_terms' => $feature_terms, 'parishes' => $parishes, 'states' => $states, 'recordtypes' => $recordtypes, 'ds' => $dataset, 'user' => auth()->user()]);
     }
 
+    public function userviewTextMap($ds_id){
+
+        //Check login status
+        if (!auth()->check()) {
+            return redirect('login');
+        }
+
+        //User must be owner of the dataset to view the text map
+        $user = auth()->user();
+        $dataset = $user->datasets()->find($ds_id);
+        if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN')) {
+            return redirect('layers/' . $ds_id);
+        }
+
+        //A text must be related to the dataset
+        $textID = $dataset->from_text_id;
+        if (!$textID) {
+            return redirect('myprofile/mydatasets/');
+        }
+        $text = Text::find($textID);
+        if (!$text) {
+            return redirect('myprofile/mydatasets/');
+        }
+
+        return view('user.userviewtextmap');
+    }
+
     public function userSavedSearches(Request $request)
     {
         $user = auth()->user();
@@ -262,6 +290,8 @@ class UserController extends Controller
             Storage::disk('public')->putFileAs('images', $image, $filename);
         }
 
+        $from_text_id = $request->from_text_id ?? null;
+
         $dataset = Dataset::create([
             'name' => $datasetname,
             'description' => $description,
@@ -286,7 +316,8 @@ class UserController extends Controller
             'temporal_to' => $temporalto,
             'created' => $request->created,
             'warning' => $request->warning,
-            'image_path' => $filename
+            'image_path' => $filename,
+            'from_text_id' => $from_text_id
         ]);
 
         $user->datasets()->attach($dataset, ['dsrole' => 'OWNER']); //attach creator to pivot table as OWNER
@@ -339,6 +370,13 @@ class UserController extends Controller
 
         $recordtype_id = RecordType::where('type', $request->recordtype)->first()->id;
 
+        if ($request->has('dataset_delete_image') && $dataset->image_path) {
+            if (Storage::disk('public')->exists('images/' . $dataset->image_path)) {
+                Storage::disk('public')->delete('images/' . $dataset->image_path);
+            }
+            $dataset->image_path = null;
+        }
+        
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             //Validate image file.
@@ -476,9 +514,9 @@ class UserController extends Controller
             }
             LOG::error("Import error. " . date(DATE_ATOM, mktime(0, 0, 0, 7, 1, 2000)) . " " . $e->getMessage() . " extra info " . $extrainfo);
             return redirect('myprofile/mydatasets/' . $ds_id)
-                ->with('error', 'Error processing file. Please check it is in the right format and is less than 10Mb. If CSV, it must have
-                a title or placename column. Check that lat, long and any dates are correct. ' .
-                    date(DATE_ATOM, mktime(0, 0, 0, 7, 1, 2000)) . " " . $extrainfo)
+                // ->with('error', 'Error processing file. Please check it is in the right format and is less than 10Mb. If CSV, it must have
+                // a title or placename column. Check that lat, long and any dates are correct. ' .
+                //     date(DATE_ATOM, mktime(0, 0, 0, 7, 1, 2000)) . " " . $extrainfo)
                 ->with('exception', $e->getMessage()); //file parsing threw an exception, reload page with error msg
         }  //catch any exception
 

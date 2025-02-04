@@ -462,6 +462,151 @@ class DatasetController extends Controller
     }
 
     /**
+     * View all public datasets as a GeoJSON
+     */
+    public function viewLayersJSON(){
+        $datasets = Dataset::where('public', 1)->get();
+        $layers = [];
+        foreach ($datasets as $dataset) {
+            $layers[] = array(
+                'layerid' => $dataset->id,
+                'name' => $dataset->name,
+                'description' => $dataset->description,
+                'creator' => $dataset->creator,
+                'publisher' => $dataset->publisher,
+                'contact' => $dataset->contact,
+                'citation' => $dataset->citation,
+                'doi' => $dataset->doi,
+                'latitude_from' => $dataset->latitude_from,
+                'latitude_to' => $dataset->latitude_to,
+                'longitude_from' => $dataset->longitude_from, 
+                'longitude_to' => $dataset->longitude_to, 
+                'language' => $dataset->language, 
+                'license' => $dataset->license, 
+                'rights' => $dataset->rights, 
+                'temporal_from' => $dataset->temporal_from,
+                'temporal_to' => $dataset->temporal_to, 
+                'created' => $dataset->created, 
+                'warning' => $dataset->warning,
+                'allowanps' => $dataset->allowanps, // Added allowanps from $fillable
+                'source_url' => $dataset->source_url, // Added source_url from $fillable
+                'ghap_url' => url("publicdatasets/{$dataset->id}"),
+                'linkback' => $dataset->linkback
+            );
+        }
+
+        return Response::make(json_encode($layers, JSON_PRETTY_PRINT), '200', array('Content-Type' => 'application/json')); //generate the json response
+     
+    }
+
+    /**
+     * View all public datasets as a KML
+     */
+    public function viewLayersKML() {
+        // Get all public datasets
+        $datasets = Dataset::where('public', 1)->get();
+
+        // Start the KML structure
+        $kml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $kml .= '<kml xmlns="http://www.opengis.net/kml/2.2">';
+        $kml .= '<Document>';
+
+        // Loop through each dataset and create a KML entry
+        foreach ($datasets as $dataset) {
+            $kml .= '<Placemark>';
+            
+            $kml .= '<name>' . htmlspecialchars($dataset->name) . '</name>';
+            $kml .= '<description>' . htmlspecialchars($dataset->description) . '</description>';
+            $kml .= '<creator>' . htmlspecialchars($dataset->creator) . '</creator>';
+            $kml .= '<publisher>' . htmlspecialchars($dataset->publisher) . '</publisher>';
+            $kml .= '<contact>' . htmlspecialchars($dataset->contact) . '</contact>';
+            $kml .= '<citation>' . htmlspecialchars($dataset->citation) . '</citation>';
+            $kml .= '<doi>' . htmlspecialchars($dataset->doi) . '</doi>';
+            $kml .= '<latitude_from>' . htmlspecialchars($dataset->latitude_from) . '</latitude_from>';
+            $kml .= '<latitude_to>' . htmlspecialchars($dataset->latitude_to) . '</latitude_to>';
+            $kml .= '<longitude_from>' . htmlspecialchars($dataset->longitude_from) . '</longitude_from>';
+            $kml .= '<longitude_to>' . htmlspecialchars($dataset->longitude_to) . '</longitude_to>';
+            $kml .= '<language>' . htmlspecialchars($dataset->language) . '</language>';
+            $kml .= '<license>' . htmlspecialchars($dataset->license) . '</license>';
+            $kml .= '<rights>' . htmlspecialchars($dataset->rights) . '</rights>';
+            $kml .= '<temporal_from>' . htmlspecialchars($dataset->temporal_from) . '</temporal_from>';
+            $kml .= '<temporal_to>' . htmlspecialchars($dataset->temporal_to) . '</temporal_to>';
+            $kml .= '<created>' . htmlspecialchars($dataset->created) . '</created>';
+            $kml .= '<warning>' . htmlspecialchars($dataset->warning) . '</warning>';
+            $kml .= '<allowanps>' . htmlspecialchars($dataset->allowanps) . '</allowanps>';
+            $kml .= '<source_url>' . htmlspecialchars($dataset->source_url) . '</source_url>';
+            $kml .= '<ghap_url>' . url("publicdatasets/{$dataset->id}") . '</ghap_url>';
+            $kml .= '<linkback>' . htmlspecialchars($dataset->linkback) . '</linkback>';
+
+            $kml .= '</Placemark>';
+        }
+
+        // End the KML structure
+        $kml .= '</Document>';
+        $kml .= '</kml>';
+
+        // Return KML response
+        return response($kml, 200)
+            ->header('Content-Type', array('Content-Type' => 'text/xml')); // Set proper KML content type
+    }
+
+    /**
+     * View all public datasets as a CSV
+     */
+    public function viewLayersCSV() {
+        // Get all public datasets
+        $datasets = Dataset::where('public', 1)->get();
+
+        // Open output stream
+        $handle = fopen('php://output', 'w');
+
+        // Set the appropriate headers to download the file
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="layers.csv"');
+
+        // Add CSV header row (column names)
+        fputcsv($handle, [
+            'Layer ID', 'Name', 'Description', 'Creator', 'Publisher', 'Contact', 'Citation', 'DOI',
+            'Latitude From', 'Latitude To', 'Longitude From', 'Longitude To', 'Language', 'License', 
+            'Rights', 'Temporal From', 'Temporal To', 'Created', 'Warning', 'Allow ANPS', 'Source URL', 
+            'GHAP URL', 'Linkback'
+        ]);
+
+        // Loop through each dataset and write data to the CSV
+        foreach ($datasets as $dataset) {
+            fputcsv($handle, [
+                $dataset->id,
+                $dataset->name,
+                $dataset->description,
+                $dataset->creator,
+                $dataset->publisher,
+                $dataset->contact,
+                $dataset->citation,
+                $dataset->doi,
+                $dataset->latitude_from,
+                $dataset->latitude_to,
+                $dataset->longitude_from,
+                $dataset->longitude_to,
+                $dataset->language,
+                $dataset->license,
+                $dataset->rights,
+                $dataset->temporal_from,
+                $dataset->temporal_to,
+                $dataset->created,
+                $dataset->warning,
+                $dataset->allowanps,
+                $dataset->source_url,
+                url("publicdatasets/{$dataset->id}"), // Generate the URL dynamically
+                $dataset->linkback
+            ]);
+        }
+
+        // Close the file handle
+        fclose($handle);
+        exit;
+    }
+
+    /**
      * Download a public dataset as a GeoJSON
      * Calls private function to generate GeoJSON for a dataset
      * @return Response with GeoJSON datatype AND download header, or redirect to public datasets page if not found

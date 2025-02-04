@@ -133,6 +133,8 @@
                         <textarea rows="3" class="mb-3 form-control w-100 wysiwyg-editor" id="addsource" placeholder="Source"></textarea>
                     </div>
 
+                    <input type="hidden" id="related_place_uid">
+
                     <!-- Extended data editor -->
                     @include('editors.extended_data_editor')
 

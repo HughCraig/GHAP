@@ -3,6 +3,7 @@
 @push('scripts')
     <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/publicdataset.js') }}"></script>
+    <script src="{{ asset('/js/dataitem.js') }}"></script>
 @endpush
 
 @section('content')
@@ -51,6 +52,13 @@
                 @if (!empty(config('app.views_temporal_earth_url')))
                     <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url()->full()}}/kml')">Temporal Earth</a>
                 @endif
+
+                @if ($ds->recordtype->type == 'Text' && $ds->text)
+                    <a class="dropdown-item grab-hover" 
+                    onclick="window.open('{{ config('app.views_root_url') }}/fulltext.html?load=' + encodeURIComponent('{{url()->full()}}/json?textmap=true'))">
+                        Full Text
+                    </a>
+                @endif
             </div>
         </div>
     @endif
@@ -58,7 +66,7 @@
     @if ($ds->public)
     <!-- Basic Statistics Feed -->
     <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Analyse
         </button>
         <div class="dropdown-menu" aria-labelledby="analyseDropdown">

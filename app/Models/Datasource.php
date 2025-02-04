@@ -30,4 +30,16 @@ class Datasource extends Model
     {
         return self::where('search_param_name', 'searchausgaz')->first();
     }
+
+    public static function ncg(){
+        return self::where('search_param_name', 'searchncg')->first();
+    }
+
+    public static function ausgaz(){
+        return self::where('search_param_name', 'searchausgaz')->first();
+    }
+
+    public static function geocoder(){
+        return self::where('search_param_name', 'searchgeocoder')->first();
+    }
 }

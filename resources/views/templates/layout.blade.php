@@ -67,7 +67,9 @@
 
     <!-- Scripts -->
 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-144578859-1"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XDYZQTNPQP"></script> 
+    <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-XDYZQTNPQP'); </script>
+
     <script>
         window.dataLayer = window.dataLayer || [];
 
@@ -162,9 +164,13 @@
                     <li>
                         <div style="display:flex; font-weight:bold"><a href="{{ config('app.tlcmap_doc_url') }}/tools/" style="color:black">TOOLS</a><span id="menu-item-58" class="icon icon-arrow-down-dark u-pull-right submenu-toggle"></span></div>
                         <ul class="submenu" style="display: block;">
+
+                            <li><a href="/">Search Maps</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Make Maps</a></li>
                             <li><a href="https://quicktools.tlcmap.org/">Quick Tools</a></li>
                             <li><a href="https://www.researchobject.org/ro-crate/">RO-Crate</a></li>
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/core-data/">Core Data</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Web Services</a></li>
                         </ul>
                     </li>
                     <li>
@@ -183,8 +189,10 @@
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/about/updates/">Updates</a></li>
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/about/lead-researchers/">Lead researchers</a></li>
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/about/partners/">Partners</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/research-outputs/">Research Outputs</a></li>
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/examples/">Examples</a></li>
                             <li><a href="{{ config('app.tlcmap_doc_url') }}/contact/">Contact</a></li>
+                            <li><a href="{{ config('app.tlcmap_doc_url') }}/about/conditionsofuse/">Conditions of Use</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -202,32 +210,47 @@
                 </div>  
             </div> 
 
-            <div style="display: flex; align-items:center;float:right">
+            <div class="w3-mobile w3-right">
+
+                <div class="w3-mobile w3-right menu-nav-button">
+                    <span class="menu-nav-button-icon">
+                        <span class="icon icon-menu-light">
+                        </span>
+                    </span>
+                </div>
                 
                 @guest
-                <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
-                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('login') }}">Log in</a>
-                </div>
                 <div class="w3-mobile w3-right">
                     <a class="w3-bar-item w3-button w3-mobile" href="{{ url('register') }}">Register</a>
                 </div>
-                @else
+
                 <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
-                    <a class="w3-bar-item w3-button" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
+                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('login') }}">Log in</a>
                 </div>
 
+                @else
                 <div class="w3-dropdown-hover w3-mobile w3-right">
                     <button class="w3-button" style=" background-color: #17331C;color: white;">
                         {{ Auth::user()->name }} <i class="fa fa-caret-down"></i>
                     </button>
                     <div class="w3-dropdown-content w3-bar-block w3-card-4">
                         <a class="w3-bar-item w3-button" href="{{ url('myprofile') }}">My profile</a>
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mydatasets') }}">My layers</a>
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mysearches') }}">My searches</a>
                         @admin
                         <a class="w3-bar-item w3-button" href="{{ url('admin') }}">Admin</a>
                         @endadmin
+                        <a class="w3-bar-item w3-button" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
+                    </div>
+                </div>
+                
+                <div class="w3-dropdown-hover w3-mobile w3-right">
+                    <button class="w3-button" style=" background-color: #17331C;color: white;">
+                        My Maps <i class="fa fa-caret-down"></i>
+                    </button>
+                    <div class="w3-dropdown-content w3-bar-block w3-card-4">
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mydatasets') }}">My layers</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mytexts') }}">My texts</a>
+                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mysearches') }}">My searches</a>
                     </div>
                 </div>
 
@@ -236,12 +259,7 @@
                 </form>
                 @endguest
 
-                <div class="w3-mobile w3-right menu-nav-button">
-                    <span class="menu-nav-button-icon">
-                        <span class="icon icon-menu-light">
-                        </span>
-                    </span>
-                </div>
+               
             </div>
         </div>
 

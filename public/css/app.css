@@ -2010,14 +2010,14 @@ a.btn.disabled, fieldset:disabled a.btn {
 
 .btn-primary {
     color: #fff;
-    background-color: #3490dc;
-    border-color: #3490dc
+    background-color: #17331C !important;
+    border-color: #17331C !important
 }
 
 .btn-primary:hover {
     color: #fff;
-    background-color: #227dc7;
-    border-color: #2176bd
+    background-color: #17331C !important;
+    border-color: #17331C !important
 }
 
 .btn-primary.focus, .btn-primary:focus {
@@ -2042,14 +2042,14 @@ a.btn.disabled, fieldset:disabled a.btn {
 
 .btn-secondary {
     color: #fff;
-    background-color: #6c757d;
-    border-color: #6c757d
+    background-color: #F29469 !important;
+    border-color: #F29469 !important
 }
 
 .btn-secondary:hover {
     color: #fff;
-    background-color: #5a6268;
-    border-color: #545b62
+    background-color: #F29469 !important;
+    border-color: #F29469 !important
 }
 
 .btn-secondary.focus, .btn-secondary:focus {

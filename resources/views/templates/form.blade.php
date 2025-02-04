@@ -2,6 +2,7 @@
     <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/map-picker.css') }}">
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
+    <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
 @endpush
 
 @push('scripts')
@@ -31,8 +32,10 @@
     <script src="{{ asset('js/searchform.js') }}"></script>
     <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/validation.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
 
     <script type="text/javascript" src="{{ asset('/js/stmetrics-csv-download.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/dataitem.js') }}"></script> 
     <script type="text/javascript" src="{{ asset('/js/home.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/map-picker.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/tlcmap.js') }}"></script>
@@ -110,7 +113,7 @@
                     <div class="d-flex view-button pl-5" style="align-items: baseline;">
                         <label class="radio" id="radio-map">
                             <input type="radio" name="typeFilter" class="typeFilter-map">
-                            <span class="label-body pl-1">Map</span>
+                            <span class="label-body pl-1">Points</span>
                         </label>
                         <label class="radio" id="radio-map" style="padding-left: 3rem;">
                             <input type="radio" name="typeFilter" class="typeFilter-cluster">
@@ -122,13 +125,6 @@
                         </label>
                     </div>
 
-                    <select class="w3-white form-control num-places" style="height: 100%;" id="num-places">
-                        <option value="100">100 places</option>
-                        <option value="200">200 places</option>
-                        <option value="500">500 places</option>
-                        <option value="2000">2000 places</option>
-                        <option value="5000">5000 places</option>
-                    </select>
                 </div>
             </div>
         </div>
@@ -161,8 +157,8 @@
                                             <option label="Feature">Feature</option>
                                             <option label="From ID">From-ID</option>
                                             <option label="To ID">To-ID</option>
-                                            <!-- <option label="Date From">Date-From</option>
-                                            <option label="Date To">Date-To</option> -->
+                                            <option label="Date From">Date-From</option>
+                                            <option label="Date To">Date-To</option>
                                         </select>
                                     </div>
                                     <div class="col-sm-6">
@@ -197,7 +193,7 @@
                                     </div>
                                     <div class="row align-items-center my-auto" id="filter-Extended-Data" style="display: none;">
                                         <div class="col-sm-6">
-                                            <a href="https://tlcmap.org/help/guides/ghap-guide/" style="color: #000000; text-decoration: none;" target="_blank" data-toggle="tooltip" title="This enables nuanced search and map creation within layers and needs special syntax, see under 'Search' in the GHAP Guide.">Extended Data?</a>
+                                            <a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/" style="color: #000000; text-decoration: none;" target="_blank" data-toggle="tooltip" title="This enables nuanced search and map creation within layers and needs special syntax, see under 'Search' in the Guide.">Extended Data?</a>
                                         </div>
                                         <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" name="extended_data" id="extended_data" autocomplete="off">
@@ -286,16 +282,26 @@
                                 </div>
                             </div>
 
-                            <div class="col-lg-5" style="margin-top:6%">
+                            <div class="col-lg-5" style="margin-top:6%" id="home-description-numplaces">
 
                                 <div class="row align-items-center my-auto mb-1">
-                                    <div class="col-sm-8" data-toggle="tooltip">
+                                    <div class="col-sm-8 pl-0" data-toggle="tooltip">
                                         Search Description
                                         <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Also search Description field"></span>
                                     </div>
                                     <div class="col-sm-4">
                                         <input type="checkbox" id="searchdescription" name="searchdescription">
                                     </div>
+                                </div>
+
+                                <div class="row align-items-center my-auto mb-1 pt-4">
+                                    <select class="w3-white form-control num-places pl-0" style="width:auto" id="num-places">
+                                        <option value="100">100 places</option>
+                                        <option value="200">200 places</option>
+                                        <option value="500">500 places</option>
+                                        <option value="2000">2000 places</option>
+                                        <option value="5000">5000 places</option>
+                                    </select>          
                                 </div>
                             </div>
                         </div>
@@ -400,6 +406,9 @@
         <input type="hidden" id="names" name="names">
         <input type="hidden" id="fuzzynames" name="fuzzynames">
         <input type="hidden" id="containsnames" name="containsnames">
+
+        <input type="hidden" id="dataitemid" name="dataitemid">
+        <input type="hidden" id="dataitemuid" name="dataitemuid">
     </div>
 
     <!-- Map Area Display -->
@@ -428,7 +437,7 @@
                         <a class="dropdown-item grab-hover" id="downloadKml" href="#">KML</a>
                         <a class="dropdown-item grab-hover" id="downloadCsv" href="#">CSV</a>
                         <a class="dropdown-item grab-hover shown_in_search" id="downloadGeoJson" href="#">GeoJSON</a>
-                        <a class="dropdown-item grab-hover shown_in_search" id="downloadRoCrate" href="#">RO-Crate</a>
+                        <!-- <a class="dropdown-item grab-hover shown_in_search" id="downloadRoCrate" href="#">RO-Crate</a> -->
                     </div>
                 </div>
 
@@ -522,16 +531,12 @@
                 </div>
                 <div class="modal-body">
                     <div id="kmlPolygonFileUploadForm">
-                        <?php
-                        echo Form::open(array('url' => '/kmlpolygonsearch', 'files' => 'true'));
-                        echo 'File must be valid kml format and contain at least 1 Polygon tag.';
-                        echo Form::file('polygonkml', ['accept' => '.kml']);
-                        ?>
+                        <div>File must be valid kml format and contain at least 1 Polygon tag</div>
+                        <input type="file" id="polygonkml" name="polygonkml" accept=".kml">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <?php echo Form::submit('Search');
-                    echo Form::close(); ?>
+                    <input type="submit" value="Search" id="polygonkml_search">
                 </div>
             </div>
         </div>
