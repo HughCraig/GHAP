@@ -406,20 +406,11 @@ class Dataset extends Model
             }
 
             // geojson layers in arcgis. this was marked as for testing only to be removed, but I think it turned out to be necessary, so keep
-            $unixepochdates = $i->datestart . "";
-            $unixepochdatee = $i->dateend . "";
-            if (strpos($unixepochdates, '-') === false) {
-                $unixepochdates = $unixepochdates . "-01-01";
-            }
-            if (strpos($unixepochdatee, '-') === false) {
-                $unixepochdatee = $unixepochdatee . "-01-01";
-            }
-
             if (!empty($i->datestart)) {
-                $proppairs["udatestart"] = strtotime($unixepochdates) * 1000;
+                $proppairs["udatestart"] = GeneralFunctions::dataToUnixtimestamp($i->datestart);
             }
             if (!empty($i->dateend)) {
-                $proppairs["udateend"] = strtotime($unixepochdatee) * 1000;
+                $proppairs["udateend"] = GeneralFunctions::dataToUnixtimestamp($i->dateend);
             }
 
             // if we are sorting by date, we are in a context like timeline where we can't have null dates.

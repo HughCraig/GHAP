@@ -157,8 +157,8 @@
                                             <option label="Feature">Feature</option>
                                             <option label="From ID">From-ID</option>
                                             <option label="To ID">To-ID</option>
-                                            <!-- <option label="Date From">Date-From</option>
-                                            <option label="Date To">Date-To</option> -->
+                                            <option label="Date From">Date-From</option>
+                                            <option label="Date To">Date-To</option>
                                         </select>
                                     </div>
                                     <div class="col-sm-6">

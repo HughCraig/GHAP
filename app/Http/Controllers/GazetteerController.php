@@ -563,12 +563,24 @@ class GazetteerController extends Controller
 
         //Modifying the collection directly, as datestart and dateend fields are TEXT fields not dates, simpler this way (might be a little slower)
         if (isset($parameters['dateto']) || isset($parameters['datefrom'])) {
+
+            $collection = $dataitems->where(function ($query) {
+                // Keep records where either udatestart or udateend is not null
+                $query->where(function ($query) {
+                    $query->whereNotNull('udatestart');
+                })
+                ->orWhere(function ($query) {
+                    $query->whereNotNull('udateend');
+                });
+            })
+            ->get();
+
             $collection = $collection->filter(function ($v) use ($parameters, $gazetteerController) {
                 return $gazetteerController->dateSearch(
-                    $parameters['datefrom'] ?? null,
-                    $parameters['dateto'] ?? null,
-                    $v->datestart,
-                    $v->dateend
+                    GeneralFunctions::dataToUnixtimestamp($parameters['datefrom']) ?? null,
+                    GeneralFunctions::dataToUnixtimestamp($parameters['dateto']) ?? null,
+                    $v->udatestart,
+                    $v->udateend
                 );
             });
         }
@@ -922,10 +934,10 @@ class GazetteerController extends Controller
         if (!$start && !$end) return false;
 
         //Grab the comparison values between parameters and values - will be null if a or b is null
-        $start_from = GeneralFunctions::dateCompare($start, $datefrom); // 1 if start > datefrom, -1 if start < datefrom, 0 if start == datefrom, null if either a or b is null
-        $end_from = GeneralFunctions::dateCompare($end, $datefrom); // 1 if end > datefrom, -1 if end < datefrom, 0 if end == datefrom, null if either a or b is null
-        $start_to = GeneralFunctions::dateCompare($start, $dateto); // 1 if start > dateto, -1 if start < dateto, 0 if start == dateto, null if either a or b is null
-        $end_to = GeneralFunctions::dateCompare($end, $dateto); // 1 if end > dateto, -1 if end < dateto, 0 if end == dateto, null if either a or b is null
+        $start_from = GeneralFunctions::udateCompare($start, $datefrom); // 1 if start > datefrom, -1 if start < datefrom, 0 if start == datefrom, null if either a or b is null
+        $end_from = GeneralFunctions::udateCompare($end, $datefrom); // 1 if end > datefrom, -1 if end < datefrom, 0 if end == datefrom, null if either a or b is null
+        $start_to = GeneralFunctions::udateCompare($start, $dateto); // 1 if start > dateto, -1 if start < dateto, 0 if start == dateto, null if either a or b is null
+        $end_to = GeneralFunctions::udateCompare($end, $dateto); // 1 if end > dateto, -1 if end < dateto, 0 if end == dateto, null if either a or b is null
 
         if (!$dateto) return ($start_from >= 0 || $end_from >= 0) ? true : false; //if no dateto search parameter, check item start >= datefrom parameter OR item end >= datefrom parameter
 

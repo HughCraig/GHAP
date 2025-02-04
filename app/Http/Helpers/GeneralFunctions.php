@@ -74,6 +74,26 @@ class GeneralFunctions
     }
 
     /**
+     * Convert date to Unix timestamp in milliseconds.
+     *
+     * @param string $dateString
+     * @return int|null
+     */
+    public static function dataToUnixtimestamp($dateString)
+    {
+        $dateString = (string) $dateString;
+
+        if (strpos($dateString, '-') === false) {
+            $dateString = $dateString . "-01-01";
+        }
+
+        $timestamp = strtotime($dateString);
+
+        return $timestamp ? $timestamp * 1000 : null; // Return in milliseconds
+    }
+
+
+    /**
      * $a is the date from/to sent via $parameters   (the date we inputted into the search form)
      * $b is the date in the database that we are checking
      *
@@ -127,6 +147,26 @@ class GeneralFunctions
 
         }
         return 0; //they must be equal
+    }
+
+    // Compare Unix timestamps
+    public static function udateCompare($a, $b, $fail_value = null)
+    {
+        Log::info("Comparing dates: " . $a . " and " . $b);
+        // If either value is null, return the fail value
+        if ($a === null || $b === null) {
+            return $fail_value;
+        }
+
+        // Compare Unix timestamps directly
+        if ($a < $b) {
+            return -1;  // $a is earlier than $b
+        } elseif ($a > $b) {
+            return 1;   // $a is later than $b
+        }
+
+        // If both are equal
+        return 0;
     }
 
     //assumes array of at least len 4
