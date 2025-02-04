@@ -438,7 +438,7 @@
                         <a class="dropdown-item grab-hover" id="downloadKml" href="#">KML</a>
                         <a class="dropdown-item grab-hover" id="downloadCsv" href="#">CSV</a>
                         <a class="dropdown-item grab-hover shown_in_search" id="downloadGeoJson" href="#">GeoJSON</a>
-                        <a class="dropdown-item grab-hover shown_in_search" id="downloadRoCrate" href="#">RO-Crate</a>
+                        <!-- <a class="dropdown-item grab-hover shown_in_search" id="downloadRoCrate" href="#">RO-Crate</a> -->
                     </div>
                 </div>
 

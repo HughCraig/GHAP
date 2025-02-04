@@ -435,7 +435,7 @@ function updateParameter(param, value) {
  */
 function updateDownloadLink(format) {
     const urlParams = getUrlParameters();
-    return `${baseUrl}places?${urlParams}&download=on&format=${format}`;
+    return `${baseUrl}?${urlParams}&download=on&format=${format}`;
 }
 
 /**
@@ -446,7 +446,7 @@ function updateDownloadLink(format) {
  */
 function updateWsFeedLink(format) {
     const urlParams = getUrlParameters();
-    return `${baseUrl}places?${urlParams}&format=${format}`;
+    return `${baseUrl}?${urlParams}&format=${format}`;
 }
 
 /**
@@ -471,7 +471,7 @@ function bindDownloadLinks(tlcMap) {
     $("#downloadKml").off("click");
     $("#downloadCsv").off("click");
     $("#downloadGeoJson").off("click");
-    $("#downloadRoCrate").off("click");
+    // $("#downloadRoCrate").off("click");
 
     if (tlcMap.isSearchOn) {
         $("#downloadKml").click(function () {
@@ -486,9 +486,9 @@ function bindDownloadLinks(tlcMap) {
             $(this).attr("href", updateDownloadLink("json"));
         });
 
-        $("#downloadRoCrate").click(function () {
-            $(this).attr("href", updateDownloadLink("rocrate"));
-        });
+        // $("#downloadRoCrate").click(function () {
+        //     $(this).attr("href", updateDownloadLink("rocrate"));
+        // });
     } else {
         $("#downloadCsv").click(function () {
             downloadCsv(tlcMap.bboxDataitems);
