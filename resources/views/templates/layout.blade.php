@@ -79,7 +79,7 @@
 
         gtag('js', new Date());
 
-        gtag('config', 'UA-144578859-1');
+        gtag('config', 'G-XDYZQTNPQP');
     </script>
 
     <!-- jQuery 3.4.1 -->
