@@ -10,8 +10,7 @@
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script>
     const parsetexturl = "{{url('ajaxparsetext')}}";
-    const textId = "{{ $text->id }}";
-    const textTitle = "{{ $text->name }}";
+    const text = @json($text);
     const ajaxadddataitem = "{{url('ajaxadddataitem')}}";
     const ajaxaddtextcontent = "{{url('ajaxaddtextcontent')}}";
     const ajaxgetdataitemmaps = "{{url('ajaxgetdataitemmaps')}}";
@@ -37,7 +36,7 @@
 <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
 
 @auth
-@include('modals.addnewdatasetmodal')
+@include('modals.addnewdatasetfromtextmodal', ['text' => $text])
 @endauth
 
 <div class="row pt-4">
