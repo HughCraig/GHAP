@@ -775,14 +775,14 @@ $.ajaxSetup({
                 });
 
                 view.popup.watch("selectedFeature", (selectedFeature) => {
-                    if (currentViewMode == "view"){
+                    // if (currentViewMode == "view"){
                         if (selectedFeature && selectedFeature.attributes) {
                             const attributes = selectedFeature.attributes;
                             if (attributes.id) {
                                 highlightPlaceInText(attributes.id);
                             }
                         }
-                    }
+                    //}
                 });
 
                 //Add place behaviour// Mufeng, after something need to rebind again.
