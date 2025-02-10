@@ -801,9 +801,14 @@ class GazetteerController extends Controller
             if ($parameters['chunks']) { //if we have sent the chunks parameter through
                 return FileFormatter::jsonChunk($results, $parameters['chunks']); //download a zip containing the json files in chunks
             }
-            $headers['Content-Type'] = 'application/json'; //set header content type
+            $corsheaders = [
+                'Content-Type' => 'application/json', // Set header content type
+                'Access-Control-Allow-Origin' => '*', // Allow CORS from any origin
+                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS', // Allowed methods
+                'Access-Control-Allow-Headers' => 'Content-Type, Authorization', // Allowed headers
+            ];
             if ($parameters['download']) $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.json"'; //if we are downloading, add a 'download attachment' header
-            return Response::make(FileFormatter::toGeoJSON($results, $parameters), '200', $headers); //serve the file to browser (or download)
+            return Response::make(FileFormatter::toGeoJSON($results, $parameters), '200', $corsheaders); //serve the file to browser (or download)
         }
         if ($parameters['format'] == "csv") {
             $headers["Content-Type"] = "text/csv"; //set header content type
