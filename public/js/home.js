@@ -251,15 +251,6 @@ function getSearchFormData(names, tlcMap, viewBbox) {
         return alert('"Date To" field is NOT in a valid format!');
     }
 
-    // Validate ANPS ID.
-    if (
-        $("#input-select-box").val() === "anps_id" &&
-        !/^\d+$/.test($("#input").val())
-    ) {
-        $("#input").addClass("is-invalid");
-        return alert("ANPS ID should be a number");
-    }
-
     tlcMap.getSketchCoordinates();
 
     //put the lat/long limits into the bbox parameter
@@ -332,8 +323,8 @@ function getSearchFormData(names, tlcMap, viewBbox) {
     }
 
     //change the input depending on form settings
-    var selectBox = document.getElementById("input-select-box"); //the select box to choose between name/anps_id
-    var inputName = selectBox.options[selectBox.selectedIndex].value; //the value selected for search type (containsname fuzzyname name anps_id)
+    var selectBox = document.getElementById("input-select-box"); //the select box to choose between name/id
+    var inputName = selectBox.options[selectBox.selectedIndex].value; //the value selected for search type (containsname fuzzyname name id)
     if (!names) {
         //if we did NOT bulk file search
         document.getElementById("input").setAttribute("name", inputName); //change input name to the selectbox type
@@ -345,12 +336,12 @@ function getSearchFormData(names, tlcMap, viewBbox) {
 
     //if we were redirected from the AJAX success with a bulk file of names to search
     else {
-        //if no errors, choose between fuzzynames, containsnames or names but skip for anps_id
+        //if no errors, choose between fuzzynames, containsnames or names but skip for id
         if (names.length > 1500)
             return alert(
                 "File length was too long! Try using a shorter file (<1500 characters)"
             );
-        if (inputName == "anps_id") inputName = "containsname";
+        if (inputName == "id") inputName = "containsname";
         //containsname fuzzyname or name, turned into a plural to make the bulk search parameter active
         document.getElementById(inputName + "s").hidden = false;
         document.getElementById(inputName + "s").value = names;
@@ -731,9 +722,9 @@ function presetSearchForm() {
     } else if (urlParams.has("name")) {
         $("#input").val(urlParams.get("name"));
         $("#input-select-box").val("name");
-    } else if (urlParams.has("anps_id")) {
-        $("#input").val(urlParams.get("anps_id"));
-        $("#input-select-box").val("anps_id");
+    } else if (urlParams.has("id")) {
+        $("#input").val(urlParams.get("id"));
+        $("#input-select-box").val("id");
     }
 
     //Check box
