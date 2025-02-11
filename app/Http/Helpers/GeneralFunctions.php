@@ -74,6 +74,26 @@ class GeneralFunctions
     }
 
     /**
+     * Convert date to Unix timestamp in milliseconds.
+     *
+     * @param string $dateString
+     * @return int|null
+     */
+    public static function dataToUnixtimestamp($dateString)
+    {
+        $dateString = (string) $dateString;
+
+        if (strpos($dateString, '-') === false) {
+            $dateString = $dateString . "-01-01";
+        }
+
+        $timestamp = strtotime($dateString);
+
+        return $timestamp ? $timestamp * 1000 : null; // Return in milliseconds
+    }
+
+
+    /**
      * $a is the date from/to sent via $parameters   (the date we inputted into the search form)
      * $b is the date in the database that we are checking
      *
@@ -127,6 +147,25 @@ class GeneralFunctions
 
         }
         return 0; //they must be equal
+    }
+
+    // Compare Unix timestamps
+    public static function udateCompare($a, $b, $fail_value = null)
+    {
+        // If either value is null, return the fail value
+        if ($a === null || $b === null) {
+            return $fail_value;
+        }
+
+        // Compare Unix timestamps directly
+        if ($a < $b) {
+            return -1;  // $a is earlier than $b
+        } elseif ($a > $b) {
+            return 1;   // $a is later than $b
+        }
+
+        // If both are equal
+        return 0;
     }
 
     //assumes array of at least len 4
@@ -226,6 +265,53 @@ class GeneralFunctions
 
         return true;
     }
+
+    public static function validateUserUploadText($file)
+    {
+        $maxSize = config('app.text_max_upload_file_size');
+        $allowedExtensions = config('app.allowed_text_file_types');
+
+        // Check the file size
+        if ($file->getSize() > $maxSize) {
+            return false; 
+        }
+
+        // Check the file extension
+        $extension = $file->getClientOriginalExtension();
+        if (!in_array(strtolower($extension), $allowedExtensions)) {
+            return false; 
+        }
+
+        // Read file line-by-line into an array (includes actual newlines)
+        $fileLines = file($file->getRealPath());
+
+        // Process each line: Trim leading/trailing spaces and preserve newlines
+        $normalizedContent = '';
+        foreach ($fileLines as $line) {
+
+            // Add a space after the LAST stop sign in a sequence
+            $line = preg_replace('/(\.{2,})(?=[^\.\s])/', '$1 ', $line);
+
+            // Ensure a space after a single stop sign if the next character isn't a space or stop sign
+            $line = preg_replace('/\.(?!\s|\.)(\S)/', '. $1', $line);
+
+            // Add a space after a comma if the next character isn't a space
+            $line = preg_replace('/,(?!\s)(\S)/', ', $1', $line);
+
+            // Add a space before a comma if it's after a non-alphanumeric character
+            $line = preg_replace('/([^a-zA-Z0-9])\,/', '$1 ,', $line);
+
+            // Remove extra spaces but preserve newlines
+            $line = preg_replace('/[^\S\r\n]+/', ' ', $line);
+
+            $line = rtrim($line);
+
+            $normalizedContent .= $line . "\n";
+        }
+
+        return $normalizedContent;
+    }
+
 
     /**
      * Calulates the distance between two points by coordinates

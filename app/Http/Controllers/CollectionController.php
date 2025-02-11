@@ -55,6 +55,159 @@ class CollectionController extends Controller
         ]);
     }
 
+
+    /**
+     * JSON view of the public collectiosn.
+     *
+     * @param Request $request
+     *   The collection ID.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function viewCollectionsJSON(){
+        $collections = Collection::where('public', 1)->get();
+        $data = [];
+        foreach ($collections as $collection) {
+            $data[] = array(
+                'id' => $collection->id,
+                'name' => $collection->name,
+                'description' => $collection->description,
+                'owner' => $collection->owner,
+                'creator' => $collection->creator,
+                'public' => $collection->public,
+                'publisher' => $collection->publisher,
+                'contact' => $collection->contact,
+                'citation' => $collection->citation,
+                'doi' => $collection->doi,
+                'source_url' => $collection->source_url,
+                'linkback' => $collection->linkback,
+                'latitude_from' => $collection->latitude_from,
+                'longitude_from' => $collection->longitude_from,
+                'latitude_to' => $collection->latitude_to,
+                'longitude_to' => $collection->longitude_to,
+                'language' => $collection->language,
+                'license' => $collection->license,
+                'rights' => $collection->rights,
+                'temporal_from' => $collection->temporal_from,
+                'temporal_to' => $collection->temporal_to,
+                'created' => $collection->created,
+                'warning' => $collection->warning,
+                'created_at' => $collection->created_at,
+                'updated_at' => $collection->updated_at,
+            );
+        }
+
+        return Response::make(json_encode($data, JSON_PRETTY_PRINT), '200', array('Content-Type' => 'application/json')); //generate the json response
+    }
+
+    /**
+     * KML view of the public collections.
+     *
+     * @param Request $request
+     *   The collection ID.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function viewCollectionsKML(){
+        $collections = Collection::where('public', 1)->get();
+
+        // Start the KML structure
+        $kml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $kml .= '<kml xmlns="http://www.opengis.net/kml/2.2">';
+        $kml .= '<Document>';
+
+        // Loop through each collection and create a KML entry
+        foreach ($collections as $collection) {
+            $kml .= '<Placemark>';
+            
+            $kml .= '<name>' . htmlspecialchars($collection->name) . '</name>';
+            $kml .= '<description>' . htmlspecialchars($collection->description) . '</description>';
+            $kml .= '<creator>' . htmlspecialchars($collection->creator) . '</creator>';
+            $kml .= '<publisher>' . htmlspecialchars($collection->publisher) . '</publisher>';
+            $kml .= '<contact>' . htmlspecialchars($collection->contact) . '</contact>';
+            $kml .= '<citation>' . htmlspecialchars($collection->citation) . '</citation>';
+            $kml .= '<doi>' . htmlspecialchars($collection->doi) . '</doi>';
+            $kml .= '<latitude_from>' . htmlspecialchars($collection->latitude_from) . '</latitude_from>';
+            $kml .= '<latitude_to>' . htmlspecialchars($collection->latitude_to) . '</latitude_to>';
+            $kml .= '<longitude_from>' . htmlspecialchars($collection->longitude_from) . '</longitude_from>';
+            $kml .= '<longitude_to>' . htmlspecialchars($collection->longitude_to) . '</longitude_to>';
+            $kml .= '<language>' . htmlspecialchars($collection->language) . '</language>';
+            $kml .= '<license>' . htmlspecialchars($collection->license) . '</license>';
+            $kml .= '<rights>' . htmlspecialchars($collection->rights) . '</rights>';
+            $kml .= '<temporal_from>' . htmlspecialchars($collection->temporal_from) . '</temporal_from>';
+            $kml .= '<temporal_to>' . htmlspecialchars($collection->temporal_to) . '</temporal_to>';
+            $kml .= '<created>' . htmlspecialchars($collection->created) . '</created>';
+            $kml .= '<warning>' . htmlspecialchars($collection->warning) . '</warning>';
+            $kml .= '<source_url>' . htmlspecialchars($collection->source_url) . '</source_url>';
+            $kml .= '<linkback>' . htmlspecialchars($collection->linkback) . '</linkback>';
+
+            $kml .= '</Placemark>';
+        }
+
+        // End the KML structure
+        $kml .= '</Document>';
+        $kml .= '</kml>';
+
+        // Return KML response
+        return response($kml, 200)
+            ->header('Content-Type', array('Content-Type' => 'text/xml')); // Set proper KML content type
+    }
+
+    /**
+     * CSV view of the public collections.
+     *
+     * @param Request $request
+     *   The collection ID.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function viewCollectionsCSV(){
+        $collections = Collection::where('public', 1)->get();
+
+        // Open output stream
+        $handle = fopen('php://output', 'w');
+
+        // Set the appropriate headers to download the file
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="multilayers.csv"');
+
+         // Add CSV header row (column names)
+         fputcsv($handle, [
+            'Multilayer ID', 'Name', 'Description', 'Creator', 'Publisher', 'Contact', 'Citation', 'DOI',
+            'Latitude From', 'Latitude To', 'Longitude From', 'Longitude To', 'Language', 'License', 
+            'Rights', 'Temporal From', 'Temporal To', 'Created', 'Warning', 'Source URL', 'Linkback'
+        ]);
+
+        // Loop through each dataset and write data to the CSV
+        foreach ($collections as $collection) {
+            fputcsv($handle, [
+                $collection->id,
+                $collection->name,
+                $collection->description,
+                $collection->creator,
+                $collection->publisher,
+                $collection->contact,
+                $collection->citation,
+                $collection->doi,
+                $collection->latitude_from,
+                $collection->latitude_to,
+                $collection->longitude_from,
+                $collection->longitude_to,
+                $collection->language,
+                $collection->license,
+                $collection->rights,
+                $collection->temporal_from,
+                $collection->temporal_to,
+                $collection->created,
+                $collection->warning,
+                $collection->source_url,
+                $collection->linkback
+            ]);
+        }
+
+        // Close the file handle
+        fclose($handle);
+        exit;
+    }
+
+
     /**
      * JSON view of the public collection.
      *
@@ -118,7 +271,7 @@ class CollectionController extends Controller
             foreach ($savedSearches as $savedSearch) {
                 $data['datasets'][] = [
                     'name' => $savedSearch->name,
-                    'jsonURL' => url("/places" . $savedSearch->query . '&format=json' . '&' . substr($queryString, 1)),
+                    'jsonURL' => url($savedSearch->query . '&format=json' . '&' . substr($queryString, 1)),
                 ];
             }
         }
@@ -129,6 +282,192 @@ class CollectionController extends Controller
         }
 
         return response()->json($data);
+    }
+
+    public function viewPublicKML(Request $request, $collectionID)
+    {
+        /**
+         * @var Collection $collection
+         */
+        $collection = Collection::where([
+            'id' => $collectionID,
+            'public' => true,
+        ])->first();
+
+        if (!$collection) {
+            // If the collection is not found or not public, return the restricted response
+            return Response::make(Collection::getRestrictedCollectionGeoJSON(), 200, ['Content-Type' => 'application/json']);
+        }
+
+        // Start the KML structure for the single collection
+        $kml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $kml .= '<kml xmlns="http://www.opengis.net/kml/2.2">';
+        $kml .= '<Document>';
+
+        // Create a KML entry for the collection
+        $kml .= '<Placemark>';
+        $kml .= '<name>' . htmlspecialchars($collection->name) . '</name>';
+        $kml .= '<description>' . htmlspecialchars($collection->description) . '</description>';
+        $kml .= '<creator>' . htmlspecialchars($collection->creator) . '</creator>';
+        $kml .= '<publisher>' . htmlspecialchars($collection->publisher) . '</publisher>';
+        $kml .= '<contact>' . htmlspecialchars($collection->contact) . '</contact>';
+        $kml .= '<citation>' . htmlspecialchars($collection->citation) . '</citation>';
+        $kml .= '<doi>' . htmlspecialchars($collection->doi) . '</doi>';
+        $kml .= '<latitude_from>' . htmlspecialchars($collection->latitude_from) . '</latitude_from>';
+        $kml .= '<latitude_to>' . htmlspecialchars($collection->latitude_to) . '</latitude_to>';
+        $kml .= '<longitude_from>' . htmlspecialchars($collection->longitude_from) . '</longitude_from>';
+        $kml .= '<longitude_to>' . htmlspecialchars($collection->longitude_to) . '</longitude_to>';
+        $kml .= '<language>' . htmlspecialchars($collection->language) . '</language>';
+        $kml .= '<license>' . htmlspecialchars($collection->license) . '</license>';
+        $kml .= '<rights>' . htmlspecialchars($collection->rights) . '</rights>';
+        $kml .= '<temporal_from>' . htmlspecialchars($collection->temporal_from) . '</temporal_from>';
+        $kml .= '<temporal_to>' . htmlspecialchars($collection->temporal_to) . '</temporal_to>';
+        $kml .= '<created>' . htmlspecialchars($collection->created) . '</created>';
+        $kml .= '<warning>' . htmlspecialchars($collection->warning) . '</warning>';
+        $kml .= '<source_url>' . htmlspecialchars($collection->source_url) . '</source_url>';
+        $kml .= '<linkback>' . htmlspecialchars($collection->linkback) . '</linkback>';
+        $kml .= '</Placemark>';
+
+        // Adding Datasets
+        $datasets = $collection->datasets()->where('public', true)->get();
+        if ($datasets->isNotEmpty()) {
+            foreach ($datasets as $dataset) {
+                $kml .= '<Placemark>';
+                $kml .= '<name>' . htmlspecialchars($dataset->name) . '</name>';
+                $kml .= '<description>' . htmlspecialchars($dataset->description) . '</description>';
+                $kml .= '<dataset_url>' . htmlspecialchars(url("layers/{$dataset->id}/kml"), ENT_QUOTES, 'UTF-8') . '</dataset_url>';
+                $kml .= '</Placemark>';
+            }
+        }
+
+        // Adding Saved Searches
+        $savedSearches = $collection->savedSearches;
+        if ($savedSearches && $savedSearches->isNotEmpty()) {
+            foreach ($savedSearches as $savedSearch) {
+                $kml .= '<Placemark>';
+                $kml .= '<name>' . htmlspecialchars($savedSearch->name) . '</name>';
+                $kml .= '<description>' . htmlspecialchars($savedSearch->description) . '</description>';
+                $kml .= '<saved_search_url>' . htmlspecialchars(  $savedSearch->query . '&format=kml', ENT_QUOTES, 'UTF-8') . '</saved_search_url>';
+                $kml .= '</Placemark>';
+            }
+        }
+
+        // End the KML structure
+        $kml .= '</Document>';
+        $kml .= '</kml>';
+
+        // Return KML response
+        return response($kml, 200)
+            ->header('Content-Type', 'text/xml'); // Set proper KML content type
+    }
+
+    public function viewPublicCSV(Request $request, $collectionID)
+    {
+        /**
+         * @var Collection $collection
+         */
+        $collection = Collection::where([
+            'id' => $collectionID,
+            'public' => true,
+        ])->first();
+
+        if (!$collection) {
+            // If the collection is not found or not public, return the restricted response
+            return response('Collection not found or restricted', 404);
+        }
+
+        // Start the CSV output
+        $csvHeader = [
+            'Name', 'Description', 'Creator', 'Publisher', 'Contact', 'Citation', 
+            'DOI', 'Latitude From', 'Latitude To', 'Longitude From', 'Longitude To', 
+            'Language', 'License', 'Rights', 'Temporal From', 'Temporal To', 'Created',
+            'Warning', 'Source URL', 'Linkback'
+        ];
+
+        // Fetch datasets and saved searches
+        $datasets = $collection->datasets()->where('public', true)->get();
+        $savedSearches = $collection->savedSearches;
+
+        // Prepare the data to be written to CSV
+        $csvData = [];
+        $csvData[] = $csvHeader;  // Add header row
+
+        // Add the collection details as the first row
+        $csvData[] = [
+            $collection->name,
+            $collection->description,
+            $collection->creator,
+            $collection->publisher,
+            $collection->contact,
+            $collection->citation,
+            $collection->doi,
+            $collection->latitude_from,
+            $collection->latitude_to,
+            $collection->longitude_from,
+            $collection->longitude_to,
+            $collection->language,
+            $collection->license,
+            $collection->rights,
+            $collection->temporal_from,
+            $collection->temporal_to,
+            $collection->created,
+            $collection->warning,
+            $collection->source_url,
+            $collection->linkback
+        ];
+
+        // Add datasets
+        if ($datasets->isNotEmpty()) {
+            foreach ($datasets as $dataset) {
+                $csvData[] = [
+                    $dataset->name,
+                    $dataset->description,
+                    $dataset->creator ?? 'N/A',
+                    $dataset->publisher ?? 'N/A',
+                    $dataset->contact ?? 'N/A',
+                    $dataset->citation ?? 'N/A',
+                    $dataset->doi ?? 'N/A',
+                    $dataset->latitude_from ?? 'N/A',
+                    $dataset->latitude_to ?? 'N/A',
+                    $dataset->longitude_from ?? 'N/A',
+                    $dataset->longitude_to ?? 'N/A',
+                    $dataset->language ?? 'N/A',
+                    $dataset->license ?? 'N/A',
+                    $dataset->rights ?? 'N/A',
+                    $dataset->temporal_from ?? 'N/A',
+                    $dataset->temporal_to ?? 'N/A',
+                    $dataset->created ?? 'N/A',
+                    $dataset->warning ?? 'N/A',
+                    $dataset->source_url ?? 'N/A',
+                    $dataset->linkback ?? 'N/A'
+                ];
+            }
+        }
+
+        // Add saved searches
+        if ($savedSearches && $savedSearches->isNotEmpty()) {
+            foreach ($savedSearches as $savedSearch) {
+                $csvData[] = [
+                    $savedSearch->name,
+                    $savedSearch->description ?? 'N/A',
+                    'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 
+                    'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', $savedSearch->query ?? 'N/A', 
+                    $savedSearch->linkback ?? 'N/A'
+                ];
+            }
+        }
+
+        // Convert the data into CSV format
+        $handle = fopen('php://memory', 'w');
+        foreach ($csvData as $row) {
+            fputcsv($handle, $row);
+        }
+        fseek($handle, 0);
+
+        // Return CSV as a download
+        return response(stream_get_contents($handle), 200)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', 'attachment; filename="collection_' . $collectionID . '_data.csv"');
     }
 
     /**

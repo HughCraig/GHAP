@@ -1,6 +1,7 @@
-php_value upload_max_filesize 10M
-php_value post_max_size 10M
+php_value upload_max_filesize 1000M
+php_value post_max_size 1000M
 php_value memory_limit 2048M
+php_value max_execution_time 6000
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

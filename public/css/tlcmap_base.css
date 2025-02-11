@@ -76,8 +76,7 @@ div.footnotes {
 
 div.header {
     background-color: #f4f6f4;
-    height: 160px;
-
+    height: auto;
 }
 
 div#mainnav {
@@ -268,5 +267,12 @@ tr:first-child {
 
     div#mainnav {
         margin: 0 10% 0 10%;
+    }
+}
+
+@media (max-width: 650px) {
+    .menu-nav-button{
+        display: flex;
+        justify-content: center;
     }
 }

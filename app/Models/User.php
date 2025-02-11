@@ -51,6 +51,15 @@ class User extends \Eloquent implements Authenticatable, CanResetPasswordContrac
         return $this->hasMany('TLCMap\Models\Collection', 'owner');
     }
 
+     /**
+     * Define a text relationship
+     * 1 user has many texts, many texts have many users
+     */
+    public function texts()
+    {
+        return $this->belongsToMany(Text::class, 'tlcmap.user_text')->withPivot('id', 'user_id', 'dsrole', 'text_id', 'created_at', 'updated_at');
+    }
+
     /**
      * Define this user's datasetrole in the dataset
      * Hard coded datasetroles are: OWNER, COLLABORATOR, VIEWER

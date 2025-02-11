@@ -174,8 +174,10 @@ $(document).ready( function () {
         if (dataitem.image_path) {
             $('#editImagePreview').attr('src', '/storage/images/' + dataitem.image_path); 
             $('#editImageContainer').show();
+            $('#deleteImageContainer').show(); 
         } else {
             $('#editImageContainer').hide();
+            $('#deleteImageContainer').hide();
         }
     };
 
@@ -207,6 +209,10 @@ $(document).ready( function () {
         // Handle the image file upload
         if ($('#editImage').length && $('#editImage')[0].files[0]) {
             formData.append('image', $('#editImage')[0].files[0]);
+        }
+
+        if($('#deletePlaceImage').is(':checked')) {
+            formData.append('delete_image', true);
         }
     
         return formData;

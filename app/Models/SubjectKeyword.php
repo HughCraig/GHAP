@@ -38,4 +38,14 @@ class SubjectKeyword extends Model
     {
         return $this->belongsToMany('TLCMap\Models\SavedSearch', 'tlcmap.savedsearch_subjectkeyword', 'subject_keyword_id', 'saved_search_id');
     }
+
+    /**
+    * The texts which have the subject keywords.
+    *
+    * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    */
+    public function texts()
+    {
+        return $this->belongsToMany('TLCMap\Models\Text', 'tlcmap.text_subject_keyword', 'subject_keyword_id', 'text_id');
+    }
 }

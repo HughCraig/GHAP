@@ -47,8 +47,11 @@
                                 <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/timeline.html?load=' + encodeURIComponent('{{url()->full()}}/{{$ds->id}}/json?sort=start'))">Timeline</a>
                                 <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url()->full()}}/{{$ds->id}}/json'))">Werekata Flight by Route</a>
                                 <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?load=' + encodeURIComponent('{{url()->full()}}/{{$ds->id}}/json?sort=start'))">Werekata Flight by Time</a>
-                                @if (!empty(config('app.views_temporal_earth_url')))
-                                    <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url()->full()}}/{{$ds->id}}/kml')">Temporal Earth</a>
+                                @if ($ds->recordtype->type == 'Text' && $ds->text)
+                                    <a class="dropdown-item grab-hover" 
+                                    onclick="window.open('{{ config('app.views_root_url') }}/fulltext.html?load=' + encodeURIComponent('{{url()->full()}}/{{$ds->id}}/json?textmap=true'))">
+                                        Full Text
+                                    </a>
                                 @endif
                             </div>
                         </div>

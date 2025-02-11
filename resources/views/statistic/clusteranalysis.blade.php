@@ -17,7 +17,7 @@
     <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
     <input type="hidden" id="ds_id" value="{{ $ds->id }}" />
 
-    <p class="pt-4">To understand this analysis, check the <a href="https://tlcmap.org/help/guides/ghap-guide/">GHAP Guide</a></p>
+    <p class="pt-4">To understand this analysis, check the <a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Guide</a></p>
 
     <!-- Clustering Options Form -->
     <div class="user-input">

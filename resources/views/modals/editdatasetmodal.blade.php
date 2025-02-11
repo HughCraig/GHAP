@@ -110,8 +110,12 @@
                             <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                             title='Max upload size {{ floor(config("app.max_upload_image_size") / (1024 * 1024)) . " MB" }}'>
                             </span>
-                            @if( $ds->image_path )
+                            @if($ds->image_path)
                                 <img src="{{ asset('storage/images/' . $ds->image_path) }}" alt="Layer Image" style="max-height: 150px;">
+                                <div class="pt-4 pb-2">
+                                    <input type="checkbox" id="datasetDeleteImage" name="dataset_delete_image">
+                                    <label class="pr-4" for="datasetDeleteImage">Delete current image</label>
+                                </div>
                             @endif
                             <input type="file" name="image" id="datasetEditImage" accept="image/*"/>
 
@@ -170,7 +174,7 @@
                             <input type="date" class="mb-4 w3-white form-control" name="created" value="{{$ds->created}}"/>
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row pt-4">
                         <div class="col">
                             <div class="mb-4">
                                 Description<label class="text-danger">*</label>

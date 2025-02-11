@@ -12,6 +12,10 @@ $(document).ready(function () {
         keyboardNavigation: false,
     });
 
+    $('#addModal').on('hidden.bs.modal', function () {
+        $('#related_place_uid').val(null);
+    });
+
     //LGA autocomplete.
     $("#addlga").autocomplete({
         source: function (request, response) {

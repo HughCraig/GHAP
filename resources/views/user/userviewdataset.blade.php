@@ -35,7 +35,7 @@
     @if($ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'OWNER') 
 
         <!-- Edit Collaborators Button-->
-        <a href="{{url()->full()}}/collaborators" class="btn btn-primary">Edit Collaborators</a>
+        <!-- <a href="{{url()->full()}}/collaborators" class="btn btn-primary">Edit Collaborators</a> -->
 
         <button id="toggle-drag" class="btn btn-primary">Change Order</button>
 
@@ -94,13 +94,28 @@
                 @if (!empty(config('app.views_temporal_earth_url')))
                     <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file={{url('')}}/kml')">Temporal Earth</a>
                 @endif
+
+                @if ($ds->recordtype->type == 'Text' && $ds->text)
+                    <a class="dropdown-item grab-hover" 
+                    onclick="window.open('{{ url()->current() }}/textmap?load=' + encodeURIComponent('{{ url('') }}/layers/{{$ds->id}}/json?textmap=true'))">
+                        Text Map
+                    </a>
+                @endif
             </div>
         </div>
+
+        @if ($ds->recordtype->type == 'Text' && $ds->text)
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ url()->current() }}/textmap?load=' + encodeURIComponent('{{ url('') }}/layers/{{$ds->id}}/json?textmap=true'))">
+                Edit Text Map
+            </button>
+        @endif
     @endif
+
+
 
     <!-- Basic Statistics Feed -->
     <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Analyse
         </button>
         <div class="dropdown-menu" aria-labelledby="analyseDropdown">

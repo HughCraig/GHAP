@@ -13,6 +13,7 @@
         "chumper/zipper": "^1.0",
         "doctrine/dbal": "^2.13",
         "fideloper/proxy": "^4.0",
+        "guzzlehttp/guzzle": "^6.5",
         "kyslik/column-sortable": "^5.8",
         "laravel/framework": "5.8.*",
         "laravel/scout": "^7.2",
@@ -32,7 +33,10 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "kylekatarnls/update-helper": true
+        }
     },
     "extra": {
         "laravel": {
