@@ -54,9 +54,9 @@ $(document).ready(function () {
         }
         if (upload_text_file.size > text_max_upload_file_size) {
             alert(
-                "The upload_text_file size should be less than " +
+                "We are currently limiting individual uploads to " +
                     Math.floor(text_max_upload_file_size / (1024 * 1024)) +
-                    " MB"
+                    " MB , in order to conserve system resources and ensure availability. Please consider breaking you text into sections."
             );
             return false;
         }
