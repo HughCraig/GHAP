@@ -292,12 +292,6 @@ class Dataitem extends Model
      */
     private static function getColumnEnumeration($column)
     {
-        if (Cache::has("column_enumeration_lga")) {
-           Log::info("Cache hit, fetching from cache.");
-        } else {
-            Log::info("Cache miss, fetching from database.");
-        }
-
         return Cache::remember("column_enumeration_{$column}", 172800, function () use ($column) {
             return self::select($column)->distinct()->where($column, '<>', '')->pluck($column)->toArray();
         });
