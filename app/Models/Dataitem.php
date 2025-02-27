@@ -6,6 +6,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use function foo\func;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class Dataitem extends Model
 {
@@ -290,6 +292,14 @@ class Dataitem extends Model
      */
     private static function getColumnEnumeration($column)
     {
-        return self::select($column)->distinct()->where($column, '<>', '')->pluck($column)->toArray();
+        if (Cache::has("column_enumeration_lga")) {
+           Log::info("Cache hit, fetching from cache.");
+        } else {
+            Log::info("Cache miss, fetching from database.");
+        }
+
+        return Cache::remember("column_enumeration_{$column}", 172800, function () use ($column) {
+            return self::select($column)->distinct()->where($column, '<>', '')->pluck($column)->toArray();
+        });
     }
 }
