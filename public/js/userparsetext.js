@@ -49,6 +49,12 @@ function hideLoadingWheel() {
     document.getElementById("loadingWheel").style.display = "none";
 }
 
+function stripHtmlUsingDOM(html) {
+    let doc = new DOMParser().parseFromString(html, 'text/html');
+    return (doc.body.textContent || "").trim(); // ✅ Removes HTML + trims spaces
+}
+
+
 document.addEventListener("DOMContentLoaded", function () {
     const select = document.getElementById("geocoding_bias");
     const options = Array.from(select.options);
@@ -358,6 +364,9 @@ $(document).ready(function () {
             contentType: false,
             success: function (result) {
                 places = result.data.place_names;
+                places.forEach(places => {
+                    places.context = stripHtmlUsingDOM(places.context);
+                });
                 renderDataItems(result.data.place_names);
                 hideLoadingWheel();
 
