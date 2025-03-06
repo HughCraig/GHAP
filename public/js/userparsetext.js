@@ -375,14 +375,10 @@ $(document).ready(function () {
                 let durationInSeconds = (endTime - startTime) / 1000;
                 storeTimeUsed(durationInSeconds);
 
-                if (document.getElementById("saveautomatically").checked) {
+                if (document.getElementById("saveautomatically").checked || places.length === 0) {
                     showLoadingWheel("Adding places to layer...", null);
                     const selectPlaces = getSelectedPlaces();
-                    if (selectPlaces.length === 0) {
-                        alert("No place find");
-                        return false;
-                    }
-
+                  
                     let layerFormData = getDefaultLayerRequestData();
                     addLayersAndPlacesInfo(selectPlaces, layerFormData);
                 }

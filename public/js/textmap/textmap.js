@@ -314,8 +314,6 @@ $.ajaxSetup({
                     };
                 }
 
-                console.log(config);
-
                 if (config.textContent && config.textcontexts) {
                     let textContent = config.textContent;
                     let textContexts = config.textcontexts;
@@ -345,6 +343,8 @@ $.ajaxSetup({
                     markedText += textContent.slice(lastIndex);
                     document.getElementById("textcontent").innerHTML =
                         markedText;
+                }else if(config.textContent){
+                    document.getElementById("textcontent").innerHTML = config.textContent
                 }
 
                 // Pass the updated data with id for each feature to layer
