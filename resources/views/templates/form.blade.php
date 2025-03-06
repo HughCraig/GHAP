@@ -74,7 +74,7 @@
                             <option value="containsname" selected="selected">Contains</option>
                             <option value="fuzzyname">Similar Match</option>
                             <option value="name">Exact Match</option>
-                            <option value="anps_id">Place ID</option>
+                            <option value="id">Place ID</option>
                         </select>
                     </div>
 

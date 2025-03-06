@@ -1,7 +1,6 @@
 let progressInterval = null; // Declare a variable for the interval
 
 function showLoadingWheel(loadText, estimatedTimeInSeconds = null) {
-
     // Hide the progress container if no estimated time is given
     if (estimatedTimeInSeconds === null) {
         document.querySelector(".progress-container").style.display = "none";
@@ -306,7 +305,7 @@ $(document).ready(function () {
     $("#parse_text_submit").on("click", async function () {
         const parseTime = await getParseTimeEstimate();
 
-        // Start the timer 
+        // Start the timer
         let startTime = performance.now();
 
         window.onbeforeunload = function () {
@@ -320,7 +319,7 @@ $(document).ready(function () {
         var selectedMethod = $("#parsing_method").val();
         var formData = new FormData();
 
-        formData.append("id", textId);
+        formData.append("id", text["id"]);
         formData.append("method", selectedMethod);
 
         if (
@@ -399,7 +398,7 @@ $(document).ready(function () {
         if (isValid) {
             let layerFormData = getAddLayerRequestData();
 
-            layerFormData.append("from_text_id", textId);
+            layerFormData.append("from_text_id", text["id"]);
 
             addLayersAndPlacesInfo(selectPlaces, layerFormData);
         } else {
@@ -453,7 +452,7 @@ $(document).ready(function () {
                             "dataitem_uid",
                             new_dataitem_uid
                         );
-                        textConextFormData.append("text_id", textId);
+                        textConextFormData.append("text_id", text["id"]);
                         textConextFormData.append(
                             "start_index",
                             place.text_position.offset
@@ -503,7 +502,9 @@ $(document).ready(function () {
 
                         // Redirect to the text map view page
                         window.location.href =
-                            "/myprofile/mydatasets/" + new_layer_id + "/textmap?load=" +
+                            "/myprofile/mydatasets/" +
+                            new_layer_id +
+                            "/textmap?load=" +
                             encodeURIComponent(
                                 appurl + "/layers/" + new_layer_id + "/json"
                             ) +
@@ -523,17 +524,38 @@ $(document).ready(function () {
     function getDefaultLayerRequestData() {
         const formData = new FormData();
 
-        formData.append("dsn", textTitle);
-        formData.append("recordtype", "Text");
-        formData.append("allowanps", 0);
+        appendIfNotNull(formData, "dsn", text["name"]); // dataset name
+        appendIfNotNull(formData, "description", text["description"]); // dataset description
+        appendIfNotNull(formData, "tags", ""); // tags (empty string if null)
+        appendIfNotNull(formData, "recordtype", "Text");
+        appendIfNotNull(formData, "allowanps", 0);
+        appendIfNotNull(formData, "public", 1); // public by default
+        appendIfNotNull(formData, "from_text_id", text["id"]);
+        appendIfNotNull(formData, "redirect", "false");
 
-        formData.append("public", 1); //public by default
-        formData.append("description", "Layer created from text: " + textTitle);
-
-        formData.append("from_text_id", textId);
-
-        formData.append("redirect", "false");
+        appendIfNotNull(formData, "temporalfrom", text["temporal_from"]);
+        appendIfNotNull(formData, "temporalto", text["temporal_to"]);
+        appendIfNotNull(formData, "creator", text["creator"]);
+        appendIfNotNull(formData, "publisher", text["publisher"]);
+        appendIfNotNull(formData, "contact", text["contact"]);
+        appendIfNotNull(formData, "citation", text["citation"]);
+        appendIfNotNull(formData, "doi", text["doi"]);
+        appendIfNotNull(formData, "source_url", text["source_url"]);
+        appendIfNotNull(formData, "linkback", text["linkback"]);
+        appendIfNotNull(formData, "language", text["language"]);
+        appendIfNotNull(formData, "license", text["license"]);
+        appendIfNotNull(formData, "rights", text["rights"]);
+        appendIfNotNull(formData, "warning", text["warning"]);
+        appendIfNotNull(formData, "created", text["created"]);
 
         return formData;
+    }
+
+    function appendIfNotNull(formData, key, value) {
+        if (value != null) {
+            formData.append(key, value);
+        } else {
+            formData.append(key, ""); // Append empty string for null or undefined values
+        }
     }
 });

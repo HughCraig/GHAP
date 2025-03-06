@@ -180,19 +180,19 @@ class Dataset extends Model
         $ghap_url->setAttribute('name', "ghap_url");
         $ghap_url->appendChild($dom->createCDATASection(url("publicdatasets/" . $dataset->id)));
         //style
-        if (!empty($dataset->kml_style)) {
-            $f = $dom->createDocumentFragment();
-            $f->appendXML($dataset->kml_style); //styleUrl as raw XML (via document fragment)
-            $docNode->appendChild($f);
-        }
+        // if (!empty($dataset->kml_style)) {
+        //     $f = $dom->createDocumentFragment();
+        //     $f->appendXML($dataset->kml_style); //styleUrl as raw XML (via document fragment)
+        //     $docNode->appendChild($f);
+        // }
 
 
         // if there is no style create a TLCMap default style. (motivated by ugly icons in TE due to Cesium default icon)
 
 
-        if (!empty($dataset->kml_style)) {
-            $styling = $dataset->kml_style;
-        } else {
+        // if (!empty($dataset->kml_style)) {
+        //     $styling = $dataset->kml_style;
+        // } else {
             $styling = '<Style id="TLCMapStyle">
                 <IconStyle>
                 <scale>1</scale>
@@ -201,7 +201,7 @@ class Dataset extends Model
                 </Icon>
                 </IconStyle>
                 </Style>';
-        }
+        //}
         $f = $dom->createDocumentFragment();
         $f->appendXML($styling); //styleUrl as raw XML (via document fragment)
         $docNode->appendChild($f);

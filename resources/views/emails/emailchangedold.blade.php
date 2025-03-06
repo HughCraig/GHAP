@@ -3,7 +3,7 @@
         <tr>
             <td style="box-sizing:border-box;padding:25px 0;text-align:center">
                 <a href="{{ config('app.url') }}" style="box-sizing:border-box;color:#bbbfc3;font-size:19px;font-weight:bold;text-decoration:none" target="_blank">
-                    TLCMap Gazetteer of Historical Australian Places
+                    Time Layered Cultural Map
                 </a>
             </td>
         </tr>
@@ -24,7 +24,7 @@
                                 <br>
                                 <br>
                                 <br>
-                                This is an automated message from <a href="tlcmap.org">TLCMap</a>
+                                This is an automated message from <a href="https://tlcmap.org" target="_blank">TLCMap</a>
                             </td>
                         </tr>
                     </tbody>
@@ -38,7 +38,7 @@
                     <tbody>
                         <tr>
                             <td align="center" style="padding:35px">
-                                <p style="line-height:1.5em;margin-top:0;color:#aeaeae;font-size:12px;text-align:center">© 2023 TLCMap Gazetteer of Historical Australian Places. All rights reserved.</p>
+                                <p style="line-height:1.5em;margin-top:0;color:#aeaeae;font-size:12px;text-align:center">© {{ date('Y') }} TLCMap. All rights reserved.</p>
                             </td>
                         </tr>
                     </tbody>

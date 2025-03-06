@@ -166,7 +166,7 @@ $.ajaxSetup({
                     const feature = result.features[0];
                     view.goTo({
                         target: feature.geometry,
-                        zoom: 3,
+                        zoom: view.zoom,
                     }).then(() => {
                         if (currentViewMode === "view") {
                             view.popup.open({
@@ -775,14 +775,14 @@ $.ajaxSetup({
                 });
 
                 view.popup.watch("selectedFeature", (selectedFeature) => {
-                    if (currentViewMode == "view"){
+                    // if (currentViewMode == "view"){
                         if (selectedFeature && selectedFeature.attributes) {
                             const attributes = selectedFeature.attributes;
                             if (attributes.id) {
                                 highlightPlaceInText(attributes.id);
                             }
                         }
-                    }
+                    //}
                 });
 
                 //Add place behaviour// Mufeng, after something need to rebind again.
@@ -818,8 +818,8 @@ $.ajaxSetup({
                                     return;
                                 }
 
-                                // Ensure selection includes only whole words
-                                const wholeWordRegex = /^\b[\w\s]+\b$/;
+                                // Ensure selection includes only whole words, allowing full stops and hyphens
+                                const wholeWordRegex = /^\b[\w\s.-]+\b$/;
                                 if (!wholeWordRegex.test(selectedText)) {
                                     alert(
                                         "Your select should not include partial words."

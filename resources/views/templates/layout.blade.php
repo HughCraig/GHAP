@@ -79,7 +79,7 @@
 
         gtag('js', new Date());
 
-        gtag('config', 'UA-144578859-1');
+        gtag('config', 'G-XDYZQTNPQP');
     </script>
 
     <!-- jQuery 3.4.1 -->
@@ -204,7 +204,7 @@
             <div>
                 <div class="w3-mobile w3-left">
                         <a class="w3-bar-item w3-button w3-mobile" href="{{ url('layers') }}">Layers</a>
-                    </div>
+                </div>
                 <div class="w3-mobile w3-left">
                     <a class="w3-bar-item w3-button w3-mobile" href="{{ url('multilayers') }}">Multilayers</a>
                 </div>  
@@ -219,45 +219,47 @@
                     </span>
                 </div>
                 
-                @guest
                 <div class="w3-mobile w3-right">
-                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('register') }}">Register</a>
+                        <a class="w3-bar-item w3-button w3-mobile" href="{{ config('app.tlcmap_doc_url') }}/contact/">Contact</a>
                 </div>
+                @guest
+                    <div class="w3-mobile w3-right">
+                        <a class="w3-bar-item w3-button w3-mobile" href="{{ url('register') }}">Register</a>
+                    </div>
 
-                <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
-                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('login') }}">Log in</a>
-                </div>
-
+                    <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
+                        <a class="w3-bar-item w3-button w3-mobile" href="{{ url('login') }}">Log in</a>
+                    </div>
                 @else
-                <div class="w3-dropdown-hover w3-mobile w3-right">
-                    <button class="w3-button" style=" background-color: #17331C;color: white;">
-                        {{ Auth::user()->name }} <i class="fa fa-caret-down"></i>
-                    </button>
-                    <div class="w3-dropdown-content w3-bar-block w3-card-4">
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile') }}">My profile</a>
-                        @admin
-                        <a class="w3-bar-item w3-button" href="{{ url('admin') }}">Admin</a>
-                        @endadmin
-                        <a class="w3-bar-item w3-button" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
+                    <div class="w3-dropdown-hover w3-mobile w3-right">
+                        <button class="w3-button" style=" background-color: #17331C;color: white;">
+                            {{ Auth::user()->name }} <i class="fa fa-caret-down"></i>
+                        </button>
+                        <div class="w3-dropdown-content w3-bar-block w3-card-4">
+                            <a class="w3-bar-item w3-button" href="{{ url('myprofile') }}">My profile</a>
+                            @admin
+                            <a class="w3-bar-item w3-button" href="{{ url('admin') }}">Admin</a>
+                            @endadmin
+                            <a class="w3-bar-item w3-button" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="w3-dropdown-hover w3-mobile w3-right">
-                    <button class="w3-button" style=" background-color: #17331C;color: white;">
-                        My Maps <i class="fa fa-caret-down"></i>
-                    </button>
-                    <div class="w3-dropdown-content w3-bar-block w3-card-4">
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mydatasets') }}">My layers</a>
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mytexts') }}">My texts</a>
-                        <a class="w3-bar-item w3-button" href="{{ url('myprofile/mysearches') }}">My searches</a>
+                    
+                    <div class="w3-dropdown-hover w3-mobile w3-right">
+                        <button class="w3-button" style=" background-color: #17331C;color: white;">
+                            My Maps <i class="fa fa-caret-down"></i>
+                        </button>
+                        <div class="w3-dropdown-content w3-bar-block w3-card-4">
+                            <a class="w3-bar-item w3-button" href="{{ url('myprofile/mydatasets') }}">My layers</a>
+                            <a class="w3-bar-item w3-button" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
+                            <a class="w3-bar-item w3-button" href="{{ url('myprofile/mytexts') }}">My texts</a>
+                            <a class="w3-bar-item w3-button" href="{{ url('myprofile/mysearches') }}">My searches</a>
+                        </div>
                     </div>
-                </div>
 
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                    @csrf
-                </form>
-                @endguest
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
+                @endguest     
 
                
             </div>

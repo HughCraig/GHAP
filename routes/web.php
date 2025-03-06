@@ -88,6 +88,10 @@ Route::get('multilayers/kml', 'CollectionController@viewCollectionsKML')->name('
 Route::get('multilayers/csv', 'CollectionController@viewCollectionsCSV')->name('multilayerskml');
 Route::get('multilayers/{id}', 'CollectionController@viewPublicCollection')->name('multilayer');
 Route::get('multilayers/{id}/json', 'CollectionController@viewPublicJson')->middleware('cors')->name('viewmultilayerjson');
+
+Route::get('multilayers/{id}/kml', 'CollectionController@viewPublicKML')->middleware('cors')->name('viewmultilayerkml');
+Route::get('multilayers/{id}/csv', 'CollectionController@viewPublicCSV')->middleware('cors')->name('viewmultilayercsv');
+
 Route::get('multilayers/{id}/ro-crate', 'CollectionController@downloadPublicROCrate')->name('downloadmultilayerrocate');
 
 

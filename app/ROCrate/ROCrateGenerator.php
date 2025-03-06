@@ -230,7 +230,7 @@ class ROCrateGenerator
         $dataEntity = new DataEntity('Dataset', empty($directory) ? './' : $directory);
         $dataEntity->set('name', 'GHAP search results: ' . $savedSearch->name);
         $dataEntity->set('description' , "Export of search results data from GHAP");
-        $dataEntity->set('url', url("search?{$savedSearch->query}")); 
+        $dataEntity->set('url', url($savedSearch->query));
         $dataEntity->set('creator', $savedSearch->getOwnerName());
         
         if (!empty($savedSearch->created_at)) {
@@ -325,7 +325,7 @@ class ROCrateGenerator
                                      
                     //Csv
                     // &format=csvContent parameters returns the content of the csv as string by stream_get_contents()
-                    $url = url("/search" . $savedSearch->query . '&format=csvContent');
+                    $url = url($savedSearch->query . '&format=csvContent');
                     parse_str(parse_url($url, PHP_URL_QUERY), $queryParameters);
                     $fakeRequest = Request::create('/dummy-path', 'GET', $queryParameters);
                     $res = (new GazetteerController())->search($fakeRequest);
@@ -338,7 +338,7 @@ class ROCrateGenerator
                     $zip->addFromString($directory . '/' . self::getSavedSearchExportFileName($savedSearch, 'csv'), $content);
 
                     //kml
-                    $url = url("/search" . $savedSearch->query . '&format=kml');
+                    $url = url($savedSearch->query . '&format=kml');
                     parse_str(parse_url($url, PHP_URL_QUERY), $queryParameters);
                     $fakeRequest = Request::create('/dummy-path', 'GET', $queryParameters);
                     $res = (new GazetteerController())->search($fakeRequest);
@@ -351,7 +351,7 @@ class ROCrateGenerator
                     $zip->addFromString($directory . '/' . self::getSavedSearchExportFileName($savedSearch, 'kml'), $content);
 
                     //json
-                    $url = url("/search" . $savedSearch->query . '&format=json');
+                    $url = url($savedSearch->query . '&format=json');
                     parse_str(parse_url($url, PHP_URL_QUERY), $queryParameters);
                     $fakeRequest = Request::create('/dummy-path', 'GET', $queryParameters);
                     $res = (new GazetteerController())->search($fakeRequest);

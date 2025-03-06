@@ -152,7 +152,6 @@ class GeneralFunctions
     // Compare Unix timestamps
     public static function udateCompare($a, $b, $fail_value = null)
     {
-        Log::info("Comparing dates: " . $a . " and " . $b);
         // If either value is null, return the fail value
         if ($a === null || $b === null) {
             return $fail_value;
