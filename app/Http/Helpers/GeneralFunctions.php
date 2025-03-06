@@ -81,6 +81,9 @@ class GeneralFunctions
      */
     public static function dataToUnixtimestamp($dateString)
     {
+        if (empty($dateString)) {
+            return null;
+        }
         $dateString = (string) $dateString;
 
         if (strpos($dateString, '-') === false) {
