@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Http\Request;
+use Spatie\Honeypot\ProtectAgainstSpam;
+use Illuminate\Support\Facades\Auth;
+use TLCMap\Http\Controllers\Auth\RegisterController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -267,6 +270,12 @@ Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in 
  * Authentication routes? (unsure what this is specifically)
  */
 Auth::routes(['verify' => true]);
+
+// Apply Honeypot ONLY to the register route
+Route::post('/register', [RegisterController::class, 'register'])
+    ->middleware(ProtectAgainstSpam::class)
+    ->name('register');
+
 Route::get('verify', 'Auth\VerificationController@showPage');
 
 /**
