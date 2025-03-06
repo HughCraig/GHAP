@@ -592,7 +592,7 @@ class Dataset extends Model
         $enclosure = '"';
         $escape_char = "\\";
         // Exclude some columns.
-        $excludeColumns = ['uid', 'datasource_id', 'geom', 'geog' , 'image_path'];
+        $excludeColumns = ['uid', 'datasource_id', 'geom', 'geog' , 'image_path' , 'udatestart' , 'udateend'];
 
         $dataitems = $dataset->dataitems;
         $colheads = array();
