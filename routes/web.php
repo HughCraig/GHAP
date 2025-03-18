@@ -99,6 +99,13 @@ Route::get('multilayers/{id}/ro-crate', 'CollectionController@downloadPublicROCr
 
 
 /**
+ * Contribute Pages.
+ */
+Route::middleware($baseAuthMiddlewares)->group(function () {
+    Route::get('contribute', 'User\UserController@userContribute')->name('userContribute');
+});
+
+/**
  * User Pages.
  */
 Route::middleware($baseAuthMiddlewares)->group(function () {
@@ -131,6 +138,7 @@ Route::middleware($baseAuthMiddlewares)->group(function () {
 Route::middleware($baseAuthMiddlewares)->group(function () {
     Route::get('myprofile/mydatasets/{id}/collaborators', 'User\UserController@userEditCollaborators');
     Route::post('bulkadddataitem', 'User\UserController@bulkAddDataItem'); //not ajax as it is too much data
+    Route::post('usercontributeparsesource', 'User\UserController@userContributeParseSource');
     Route::post('myprofile/mydatasets/{id}/edit', 'User\UserController@userEditDataset');
     Route::get('myprofile/edit', 'User\UserController@editUserPage')->name('editUserPage');
     Route::post('myprofile/edit/info', 'User\UserController@editUserInfo')->name('editUserInfo');
@@ -243,6 +251,8 @@ Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in 
     Route::post('ajaxdeletecollaborator', 'AjaxController@ajaxdeletecollaborator');
 
     Route::post('ajaxemailsharelink', 'AjaxController@ajaxemailsharelink');
+
+    Route::post('ajaxcreatedataitemsfordataset', 'User\UserController@createDataitemsForDataset');
 
     /**
      * Services for collection operations.

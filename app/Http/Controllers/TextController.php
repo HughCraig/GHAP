@@ -212,6 +212,8 @@ class TextController extends Controller
             if (!$filecontent) {
                 return response()->json(['error' => 'Text file must be a valid text file type and size.'], 422);
             }
+        } else if ($request->has('textcontent')) {
+            $filecontent = $request->textcontent;
         } else {
             return response()->json(['error' => 'Text file is required.'], 422);
         }
@@ -242,6 +244,10 @@ class TextController extends Controller
 
         foreach ($keywords as $keyword) {
             $text->subjectKeywords()->attach(['subject_keyword_id' => $keyword->id]);
+        }
+
+        if($request->has('redirect') && $request->redirect == 'false') {
+            return response()->json(['id' => $text->id , 'name' => $text->name], 201);
         }
 
         return redirect('myprofile/mytexts/' . $text->id);
