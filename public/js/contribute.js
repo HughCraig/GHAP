@@ -65,7 +65,6 @@ $(document).ready(function () {
                                     window.fromTextID !== null &&
                                     response.dataitems.length > 0
                                 ) {
-                                    console.log("Adding text context");
                                     response.dataitems.forEach(function (
                                         dataitem
                                     ) {

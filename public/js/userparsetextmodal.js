@@ -178,8 +178,8 @@ $(document).ready(function () {
            
             let addPlace = {
                 title: place.name,
-                longitude: place.temp_lat,
-                latitude: place.temp_lon,
+                longitude: place.temp_lon,
+                latitude: place.temp_lat,
                 description: place.context,
                 type : "Text"
             };
