@@ -1,18 +1,4 @@
 $(document).ready(function () {
-    // Change the advance search button icon on expand/collapse.
-    $("#layerotherinfo").on("show.bs.collapse", function () {
-        $("#advancedSearchButton")
-            .find("i.fa")
-            .removeClass("fa-chevron-down")
-            .addClass("fa-chevron-up");
-    });
-    $("#layerotherinfo").on("hide.bs.collapse", function () {
-        $("#advancedSearchButton")
-            .find("i.fa")
-            .removeClass("fa-chevron-up")
-            .addClass("fa-chevron-down");
-    });
-
     if (typeof msgBanner === "undefined") {
         var msgBanner = new MessageBanner($("#newLayerModal .message-banner"));
         msgBanner.hide();
@@ -131,7 +117,8 @@ $(document).ready(function () {
                                     window.fromTextID = null;
                                 }
 
-                                window.location.href = "/myprofile/mydatasets/" + new_layer_id;
+                                window.location.href =
+                                    "/myprofile/mydatasets/" + new_layer_id;
                             },
                         });
                     } else {

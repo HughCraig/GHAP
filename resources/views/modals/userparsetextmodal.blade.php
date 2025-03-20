@@ -3,6 +3,7 @@
 <script>
     const parsetexturl = "{{url('ajaxparsetext')}}";
     const ajaxgetparsetimeestimate = "{{url('ajaxgetparsetimeestimate')}}";
+    const ajaxstoreparsetime = "{{url('ajaxstoreparsetime')}}";
 </script>
 
 <script type="text/javascript" src="{{ asset('js/userparsetextmodal.js') }}"></script>
@@ -11,8 +12,9 @@
 <div class="modal fade" id="userparsetextmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content p-3" style="max-height: 900px;">
-            <h2 id="parsetextheader"></h2>
+            <h2 id="parsetextheader">Add places to a layer</h2>
             <input type="hidden" id="parsetextID">
+            <input type="hidden" id="parsetextSize">
 
             <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
 
@@ -199,13 +201,16 @@
                     <div class="btn btn-primary mt-4 ml-4" id="select_none">Select None</div>
                 </div>
 
-                <div class="btn btn-primary mt-4" id="add_to_new_layer">Add to New Layer</div>
+                <div class="btn btn-primary mt-4" id="add_to_new_layer">Add to Layer</div>
             </div>
 
 
             <div id="loadingWheel">
                 <div class="spinner"></div>
                 <div class="loading-text"></div>
+                <div class="progress-container">
+                    <div class="progress-bar"></div>
+                </div>
             </div>
 
         </div>

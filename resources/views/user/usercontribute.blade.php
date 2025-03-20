@@ -1,7 +1,25 @@
 @extends('templates.layout')
+
 @push('styles')
     <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
     <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
+    <style>
+        .tox-tinymce {
+            max-height: 200px;
+        }
+
+        .ui-datepicker-inline.ui-datepicker.ui-widget.ui-widget-content.ui-helper-clearfix.ui-corner-all {
+            display: none !important;
+        }
+
+        .ui-datepicker-title{
+            display: none;
+        }
+
+        .ui-datepicker-calendar{
+            display: none;
+        }
+    </style>
 @endpush
 
 @push('scripts')
@@ -13,6 +31,7 @@
         const ajaxaddtextcontent = "{{url('ajaxaddtextcontent')}}";
     </script>
     <script src="{{ asset('/js/message-banner.js') }}"></script> 
+    <script src="{{ asset('js/validation.js') }}"></script>
     <script src="{{ asset('js/usernewdataset.js') }}"></script>
     <script src="{{ asset('/js/dataitem.js') }}"></script> 
     <script type="text/javascript" src="{{ asset('js/addnewdatasetmodal.js') }}"></script>
@@ -20,37 +39,71 @@
 
 @endpush
 
-<!DOCTYPE html>
-<!-- Modal Add to dataset button -->
-
-@include('modals.contributesourcemodal')
-
 @section('content')
+
+<!-- Modal Add to dataset button -->
+@include('modals.contributesourcemodal')
 
 <h2>
     Contribute
     @include('templates.misc.contentdisclaimer')
 </h2>
 
-*Layer name
-<input type="text" class="mb-2 w3-white form-control" id="layername" required />
+@csrf
+<div class="p-4 mt-4 mb-5" style="border: 1.5px solid black;">
 
-<div class="mb-4">
-    *Description
-    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
-        title="A short paragraph summarising the layer. Anything not covered by other fields can be added here."></span>
-    <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control wysiwyg-editor" id="description"></textarea>
+    <div class="mb-5" style="font-size: 1.5em; font-weight: 900;">
+        1. Layer details
+    </div>
+
+    <div class="mb-4">
+        *Layer name
+        <input type="text" class="mb-2 w3-white form-control" id="layername" required />
+    </div>
+
+    <div class="mb-4">
+        *Description
+        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+            title="A short paragraph summarising the layer. Anything not covered by other fields can be added here."></span>
+        <textarea rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control wysiwyg-editor" id="description"></textarea>
+    </div>
+
+
+    <button class="m-4 p-4 btn btn-secondary" href="#layersource" data-toggle="collapse">Next</button>
 </div>
 
-<button class="m-4 p-4 btn btn-primary" id="source">Source</button>
+
+<div class="p-4 mt-4 mb-5" style="border: 1.5px solid black;">
+
+    <a href="#layersource" data-toggle="collapse" style="color: black; text-decoration: none !important;">
+        <div style="font-size: 1.5em; font-weight: 900;">  
+            2. Source
+        </div>
+    </a>
+
+    <div id="layersource" class="collapse" class="container-fluid border">
+        <button class="m-4 p-4 btn btn-primary" id="source">Source</button>
+
+        <div class="ml-4" id="sourceadded" style="color: red; font-size:1.2em"></div>
+
+        <div>
+            <button class="m-4 p-4 btn btn-secondary" href="#layerotherinfo" data-toggle="collapse" style="margin-right: 0 !important;">Next</button>
+            <button class="m-4 p-4 btn btn-secondary" href="#layerotherinfo" data-toggle="collapse">Skip</button>
+        </div>
+    </div>
 
 
-<div class="p-4 mt-4 mb-5 border">
-    <a id="layerotherinfobutton" href="#layerotherinfo" data-toggle="collapse"><i class="fa fa-chevron-down"></i> Other information</a>
+</div>
+
+<div class="p-4 mt-4 mb-5" style="border: 1.5px solid black;">
+
+    <a href="#layerotherinfo" data-toggle="collapse" style="color: black; text-decoration: none !important;">
+        <div style="font-size: 1.5em; font-weight: 900;">  
+                3. Other information
+        </div>
+    </a>
 
     <div id="layerotherinfo" class="collapse" class="container-fluid border">
-
-        @csrf
         <div class="row">
             <div class="col-lg p-5">
                 Subject (keywords)
@@ -61,7 +114,7 @@
                 <label for="layerrecordtype">Record Type</label>
                 <select class="w3-white form-control mb-3" id="layerrecordtype" name="addrecordtype">
                     @foreach($recordtypes as $type)
-                         <option label="{{$type}}">{{$type}}</option>
+                    <option label="{{$type}}">{{$type}}</option>
                     @endforeach
                 </select>
 
@@ -152,7 +205,7 @@
                         From: <input type="text" class="mb-2 w3-white form-control input-group-addon" id="temporalfrom" autocomplete="off" />
                     </div>
                     <div class="input-group date" id="temporaltodiv">
-                        To: <input type="text" class="mb-2 w3-white form-control input-group-addon" id="temporalto" autocomplete="off">
+                        To: <input type="text" class="mb-2 w3-white form-control input-group-addon"  id="temporalto" autocomplete="off">
                     </div>
                 </div>
 
@@ -164,7 +217,7 @@
             </div>
         </div>
 
-        
+
         <div class="row">
             <div class="col-lg p-5">
                 <div class="mb-4">
@@ -192,10 +245,11 @@
             </div>
         </div>
 
+        <button class="m-4 p-4 btn btn-primary" type="Submit" id="contributesavebtn">Create Layer</button>
     </div>
 </div>
 
-<button class="m-4 p-4 btn btn-primary" type="Submit" id="contributesavebtn">Create Layer</button>
+
 
 
 @endsection

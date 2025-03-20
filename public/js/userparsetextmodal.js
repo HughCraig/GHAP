@@ -1,4 +1,42 @@
-function showLoadingWheel(loadText) {
+let progressInterval = null; // Declare a variable for the interval
+
+function showLoadingWheel(loadText, estimatedTimeInSeconds = null) {
+    // Hide the progress container if no estimated time is given
+    if (estimatedTimeInSeconds === null) {
+        document.querySelector(".progress-container").style.display = "none";
+    } else {
+        // Reset progress bar to 0% if it is not null
+        document.querySelector(".progress-bar").style.width = "0%";
+        document.querySelector(".progress-container").style.display = "block"; // Show the progress bar
+
+        // Calculate the interval time in milliseconds
+        const updateInterval = 100;
+        const intervalTime = estimatedTimeInSeconds * 1000;
+        const totalSteps = intervalTime / updateInterval;
+
+        let currentProgress = 0;
+
+        // If there's an ongoing progress interval, clear it first
+        if (progressInterval !== null) {
+            clearInterval(progressInterval);
+        }
+
+        // Start the progress
+        progressInterval = setInterval(() => {
+            currentProgress += 1;
+
+            // Update the progress bar width
+            document.querySelector(".progress-bar").style.width =
+                (currentProgress / totalSteps) * 100 + "%";
+
+            // Stop the progress when it reaches 100%
+            if (currentProgress >= totalSteps) {
+                document.querySelector(".progress-bar").style.width = "100%";
+                clearInterval(progressInterval); // Stop the interval when done
+            }
+        }, updateInterval); // Execute every 100ms
+    }
+
     // Show the loading text
     document.getElementsByClassName("loading-text")[0].innerText = loadText;
 
@@ -9,6 +47,41 @@ function showLoadingWheel(loadText) {
 function hideLoadingWheel() {
     window.onbeforeunload = null;
     document.getElementById("loadingWheel").style.display = "none";
+}
+
+function getParseTimeEstimate(textContentSize) {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: "GET",
+            url: ajaxgetparsetimeestimate,
+            data: {
+                text_size: textContentSize,
+            },
+            success: function (result) {
+                resolve(result); // Resolve the promise with the result
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                console.error("Error:", xhr.responseText);
+                reject(xhr.responseText); // Reject the promise with the error message
+            },
+        });
+    });
+}
+
+function storeTimeUsed(timeUsed , textContentSize) {
+    $.ajax({
+        type: "POST",
+        url: ajaxstoreparsetime,
+        data: {
+            text_size: textContentSize,
+            parse_time: timeUsed,
+        },
+        success: function (result) {
+        },
+        error: function (xhr, textStatus, errorThrown) {
+            console.error("Error:", xhr.responseText);
+        },
+    });
 }
 
 function stripHtmlUsingDOM(html) {
@@ -172,16 +245,21 @@ $(document).ready(function () {
         let res = [];
 
         selectedPlaces.forEach((place) => {
-            if(!place.temp_lat || !place.temp_lon || place.temp_lat === '' || place.temp_lon === '') {
+            if (
+                !place.temp_lat ||
+                !place.temp_lon ||
+                place.temp_lat === "" ||
+                place.temp_lon === ""
+            ) {
                 return;
             }
-           
+
             let addPlace = {
                 title: place.name,
                 longitude: place.temp_lon,
                 latitude: place.temp_lat,
                 description: place.context,
-                type : "Text"
+                type: "Text",
             };
 
             if (place.text_position) {
@@ -191,12 +269,12 @@ $(document).ready(function () {
             }
 
             res.push(addPlace);
-
         });
 
         window.contributesourcedata = res;
         window.fromTextID = $("#parsetextID").val();
 
+        $("#sourceadded").text(res.length + " places added to layer from source");
         $("#userparsetextmodal").modal("hide");
     });
 
@@ -236,12 +314,19 @@ $(document).ready(function () {
     });
 
     $("#parse_text_submit").on("click", async function () {
+        let textContentSize = document.getElementById("parsetextSize").value;
+        const parseTime = await getParseTimeEstimate(textContentSize);
+       
+        // Start the timer
+        let startTime = performance.now();
+
         window.onbeforeunload = function () {
             return "Your results will not be saved if you close or navigate away.";
         };
 
         showLoadingWheel(
-            "Geoparsing places. Do not close this browser window."
+            "Geoparsing places. Do not close this browser window.",
+            parseTime.estimated_time
         );
         var selectedMethod = $("#parsing_method").val();
         var formData = new FormData();
@@ -289,7 +374,15 @@ $(document).ready(function () {
                     places.context = stripHtmlUsingDOM(places.context);
                 });
                 renderDataItems(result.data.place_names);
+                $('#parse_text_submit').text('Resubmit for parsing');
+
                 hideLoadingWheel();
+
+                // End the timer and calculate the elapsed time in seconds
+                let endTime = performance.now();
+                let durationInSeconds = (endTime - startTime) / 1000;
+                storeTimeUsed(durationInSeconds , textContentSize);
+
             },
             error: function (xhr, textStatus, errorThrown) {
                 alert(xhr.responseText);

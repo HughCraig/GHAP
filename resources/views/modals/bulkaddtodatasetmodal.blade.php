@@ -1,4 +1,4 @@
-<button type="button" class="mt-3 mb-3 btn btn-primary" data-toggle="modal" data-target="#bulkaddModal">Import from file</button>
+<button type="button" class="mt-3 mb-3 btn btn-primary" data-toggle="modal" data-target="#bulkaddModal">Import source</button>
 <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
                         title="You can add points one by one, or upload a CSV, KML or GeoJSON file to import many points.">
 </span>
