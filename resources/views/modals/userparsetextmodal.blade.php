@@ -201,7 +201,7 @@
                     <div class="btn btn-primary mt-4 ml-4" id="select_none">Select None</div>
                 </div>
 
-                <div class="btn btn-primary mt-4" id="add_to_new_layer">Add to Layer</div>
+                <div class="btn btn-primary mt-4" id="add_to_new_layer" style="float: right;">Add to Layer</div>
             </div>
 
 

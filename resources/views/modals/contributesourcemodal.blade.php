@@ -1,5 +1,8 @@
 @push('scripts')
     <script>
+        $('[data-toggle="tooltip"]').tooltip({
+            html: true
+        });
         const text_max_upload_file_size = {{config('app.text_max_upload_file_size')}}
     </script>
     <script src="{{ asset('/js/contributesource.js') }}"></script> 

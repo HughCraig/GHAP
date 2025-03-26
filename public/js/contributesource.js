@@ -17,14 +17,13 @@ $(document).ready(function ($) {
         if (selectedValue === "text") {
             $("#sourceguide").hide();
             content = `
-                <label>Text name</label>
+                <label>Text name*</label>
                 <input type="text" class="form-control" name="text_name" />
-                <label>Description</label>
+                <label>Description*</label>
                 <input type="text" class="form-control" name="description" />
-                <label>Paste text file</label>
-                <input type="file" class="form-control" name="file" id="fileInput" />
+                <input type="file" class="form-control mt-4" name="file" id="fileInput" style="border:none" />
                 <label>Or</label>
-                <textarea id="textAreaInput"   class="form-control" name="sourceContent" style="width:100% ; height:200px"></textarea>
+                <textarea id="textAreaInput" class="form-control" name="sourceContent" style="width:100%; height:200px" placeholder="Paste some text"></textarea>
             `;
         } else if (selectedValue === "kml") {
             $("#sourceguide").show();
@@ -39,6 +38,8 @@ $(document).ready(function ($) {
             content = `
                 <label>Paste JSON file</label>
                 <input type="file" class="form-control" name="file" id="fileInput" />
+                <label>Or</label>
+                <textarea class="form-control" name="sourceContent" id="textAreaInput" style="width:100%; height:200px"></textarea>
             `;
         } else if (selectedValue === "csv") {
             $("#sourceguide").show();
@@ -76,6 +77,17 @@ $(document).ready(function ($) {
 
         if (selectedType === "text") {
             let formData = new FormData();
+
+            if($("input[name='text_name']").val().trim() === "") {
+                alert("Please provide a name for the text.");
+                return false;
+            }
+
+            if($("input[name='description']").val().trim() === "") {
+                alert("Please provide a description for the text.");
+                return false;
+            }
+
             formData.append("textname", $("input[name='text_name']").val());
             formData.append("redirect", "false");
             formData.append(
@@ -88,7 +100,13 @@ $(document).ready(function ($) {
             );
 
             let fileInput = $("#fileInput")[0].files[0];
-            if (fileInput.size > text_max_upload_file_size) {
+            let textContent = $("#textAreaInput").val().trim();
+
+            if (!fileInput && !textContent) {
+                alert("Please provide a text file or paste text content.");
+                return false;
+            }
+            if (fileInput && fileInput.size > text_max_upload_file_size) {
                 alert(
                     "We are currently limiting individual uploads to " +
                         Math.floor(text_max_upload_file_size / (1024 * 1024)) +
@@ -97,12 +115,14 @@ $(document).ready(function ($) {
                 return false;
             }
 
-            let textContent = $("#textAreaInput").val().trim();
+            let parsetextSize;
 
             if (fileInput) {
                 formData.append("textfile", fileInput);
+                parsetextSize = fileInput.size / 1024;
             } else if (textContent) {
                 formData.append("textcontent", textContent);
+                parsetextSize = new Blob([textContent]).size / 1024;
             }
 
             $.ajax({
@@ -114,7 +134,7 @@ $(document).ready(function ($) {
                 success: function (response) {
                     $("#contributesource").modal("hide");
                     $("#parsetextID").val(response.id);
-                    $("#parsetextSize").val(fileInput.size / 1024);
+                    $("#parsetextSize").val(parsetextSize);
                     $("#userparsetextmodal").modal("show");
                 },
             });
@@ -163,12 +183,14 @@ $(document).ready(function ($) {
                 contentType: false,
                 success: function (response) {
                     window.contributesourcedata = response;
-                    $("#sourceadded").text(response.length + " places added to layer from source");
+                    $("#sourceadded").text(
+                        response.length + " places added to layer from source"
+                    );
                     window.fromTextID = null;
                     $("#contributesource").modal("hide");
                 },
                 error: function (xhr) {
-                    console.error("Error:", xhr.responseText);
+                    alert("Not a valid KML/GEO-JSON/CSV file");
                 },
             });
         }

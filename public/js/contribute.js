@@ -4,6 +4,38 @@ $(document).ready(function () {
         msgBanner.hide();
     }
 
+    const layerNameInput = document.getElementById('layername');
+    const nextButton = document.getElementById('basicInfoNextButton');
+
+    let lastDescriptionContent = '';
+
+    function validateInputs() {
+        const nameFilled = layerNameInput.value.trim().length > 0;
+        const editor = tinymce.get('description');
+        const descText = editor ? editor.getContent({ format: 'text' }).trim() : '';
+        const descFilled = descText.length > 0;
+        nextButton.disabled = !(nameFilled && descFilled);
+    }
+
+    layerNameInput.addEventListener('input', validateInputs);
+
+    // Wait until TinyMCE is fully loaded
+    const waitForTinyMCE = setInterval(function () {
+        const editor = tinymce.get('description');
+        if (editor && editor.initialized) {
+            clearInterval(waitForTinyMCE);
+
+            // Start polling for changes every 300ms
+            setInterval(function () {
+                const currentContent = editor.getContent({ format: 'text' }).trim();
+                if (currentContent !== lastDescriptionContent) {
+                    lastDescriptionContent = currentContent;
+                    validateInputs();
+                }
+            }, 300);
+        }
+    }, 200);
+
     $("#source").on("click", function () {
         $("#contributesource").modal("show");
     });
