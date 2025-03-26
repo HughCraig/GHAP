@@ -28,18 +28,16 @@ $(document).ready(function ($) {
         } else if (selectedValue === "kml") {
             $("#sourceguide").show();
             content = `
-                <label>Paste KML file</label>
-                <input type="file" class="form-control" name="file" id="fileInput" />
+                <input type="file" class="form-control mt-4" name="file" id="fileInput" style="border:none" />
                 <label>Or</label>
-                <textarea class="form-control" name="sourceContent" id="textAreaInput" style="width:100%; height:200px"></textarea>
+                <textarea class="form-control" name="sourceContent" id="textAreaInput" style="width:100%; height:200px" placeholder="Paste KML file"></textarea>
             `;
         } else if (selectedValue === "json") {
             $("#sourceguide").show();
             content = `
-                <label>Paste JSON file</label>
-                <input type="file" class="form-control" name="file" id="fileInput" />
+                <input type="file" class="form-control mt-4" name="file" id="fileInput" style="border:none" />
                 <label>Or</label>
-                <textarea class="form-control" name="sourceContent" id="textAreaInput" style="width:100%; height:200px"></textarea>
+                <textarea class="form-control" name="sourceContent" id="textAreaInput" style="width:100%; height:200px" placeholder="Paste GeoJSON file"></textarea>
             `;
         } else if (selectedValue === "csv") {
             $("#sourceguide").show();
@@ -190,7 +188,15 @@ $(document).ready(function ($) {
                     $("#contributesource").modal("hide");
                 },
                 error: function (xhr) {
-                    alert("Not a valid KML/GEO-JSON/CSV file");
+
+                    if(selectedType === "csv") {
+                        alert("Not a valid CSV file");
+                    } else if(selectedType === "kml") {
+                        alert("Not a valid KML file");
+                    } else if(selectedType === "json") {
+                        alert("Not a valid GeoJSON file");
+                    }
+                   
                 },
             });
         }
