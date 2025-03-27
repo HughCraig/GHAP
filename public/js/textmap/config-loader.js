@@ -573,18 +573,6 @@ function buildPopupContentTable(
 
     let res = "<div><table class='esri-widget__table'>";
 
-    // Add the extra highlighted row as the first row
-    res += `
-        <tr style="background-color: #FFD580; font-weight: bold;">
-            <td colspan="2">
-                Know more about this or other places? 
-                <a href="https://tlcmap.org/login" target="_blank" style="font-weight: 900">
-                    Contribute…
-                </a>
-            </td> 
-        </tr>
-    `;
-
     if (feature.display && feature.display.source && feature.display.source.Layer) {
         res += `
             <tr>
