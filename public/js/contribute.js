@@ -4,30 +4,44 @@ $(document).ready(function () {
         msgBanner.hide();
     }
 
-    const layerNameInput = document.getElementById('layername');
-    const nextButton = document.getElementById('basicInfoNextButton');
+    const layerNameInput = document.getElementById("layername");
+    const nextButton = document.getElementById("basicInfoNextButton");
 
-    let lastDescriptionContent = '';
+    let lastDescriptionContent = "";
 
     function validateInputs() {
         const nameFilled = layerNameInput.value.trim().length > 0;
-        const editor = tinymce.get('description');
-        const descText = editor ? editor.getContent({ format: 'text' }).trim() : '';
+        const editor = tinymce.get("description");
+        const descText = editor
+            ? editor.getContent({ format: "text" }).trim()
+            : "";
         const descFilled = descText.length > 0;
         nextButton.disabled = !(nameFilled && descFilled);
     }
 
-    layerNameInput.addEventListener('input', validateInputs);
+    function showLoadingWheel() {
+        document.getElementById("loadingWheel-contribute").style.display =
+            "block";
+    }
+
+    function hideLoadingWheel() {
+        document.getElementById("loadingWheel-contribute").style.display =
+            "none";
+    }
+
+    layerNameInput.addEventListener("input", validateInputs);
 
     // Wait until TinyMCE is fully loaded
     const waitForTinyMCE = setInterval(function () {
-        const editor = tinymce.get('description');
+        const editor = tinymce.get("description");
         if (editor && editor.initialized) {
             clearInterval(waitForTinyMCE);
 
             // Start polling for changes every 300ms
             setInterval(function () {
-                const currentContent = editor.getContent({ format: 'text' }).trim();
+                const currentContent = editor
+                    .getContent({ format: "text" })
+                    .trim();
                 if (currentContent !== lastDescriptionContent) {
                     lastDescriptionContent = currentContent;
                     validateInputs();
@@ -46,6 +60,8 @@ $(document).ready(function () {
         if (isValid) {
             let layerFormData = getAddLayerRequestData();
             var new_layer_id;
+
+            showLoadingWheel();
 
             if (window.fromTextID !== null) {
                 layerFormData.append("from_text_id", window.fromTextID);
@@ -75,7 +91,14 @@ $(document).ready(function () {
                             url: ajaxcreatedataitemsfordataset,
                             data: {
                                 ds_id: new_layer_id,
-                                dataitems: window.contributesourcedata,
+                                dataitems: JSON.stringify(
+                                    window.contributesourcedata
+                                ),
+                            },
+                            headers: {
+                                "Content-Type":
+                                    "application/x-www-form-urlencoded; charset=UTF-8",
+                                Accept: "application/json",
                             },
                             success: function (response) {
                                 // Add text context for text layer
@@ -152,11 +175,19 @@ $(document).ready(function () {
                                 window.location.href =
                                     "/myprofile/mydatasets/" + new_layer_id;
                             },
+                            error: function (xhr) {
+                                console.error(xhr.status);
+                                console.error(xhr.responseText);
+                                hideLoadingWheel();
+                            },
                         });
                     } else {
                         window.location.href =
                             "/myprofile/mydatasets/" + new_layer_id;
                     }
+                },
+                error: function (xhr) {
+                    hideLoadingWheel();
                 },
             });
         }

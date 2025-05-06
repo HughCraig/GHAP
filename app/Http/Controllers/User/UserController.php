@@ -614,7 +614,7 @@ class UserController extends Controller
         if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN' && $dataset->pivot->dsrole != 'COLLABORATOR'))
             return response()->json(['error' => 'You do not have permission to add data items to this dataset.'], 403);
 
-        $dataitems = $request->dataitems;
+        $dataitems = json_decode($request->dataitems, true);
   
         $res = $this->createDataitems($dataitems, $ds_id);
 
