@@ -32,6 +32,7 @@ Route::get('/home', function () {
     return redirect('');
 })->name('home');
 Route::get('', 'HomeController@index')->name('index');
+Route::get('api', 'GazetteerController@apiDownload')->name('api'); 
 
 Route::get('about', 'HomeController@aboutPage')->name('about');
 Route::post('kmlpolygonsearch', 'GazetteerController@searchFromKmlPolygon')->name('searchFromKmlPolygon'); //search from file

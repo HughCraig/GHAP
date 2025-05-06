@@ -65,7 +65,7 @@ class GazetteerController extends Controller
 
     public function bulkFileParser(Request $request)
     {
-        $bulkfile = $request->file->get();//get contents of file
+        $bulkfile = $request->file->get(); //get contents of file
         $names = str_replace(PHP_EOL, ',', $bulkfile); //replace all NEWLINES with commas
 
         //trim edges and replace extra spaces with a single space
@@ -152,11 +152,60 @@ class GazetteerController extends Controller
         return view('ws.ghap.places.show', ['details' => $results, 'query' => $results]);
     }
 
+    // Disable access to user contributed data items
+    public function apiDownload(Request $request)
+    {
+        if (
+            $request->input('format') == 'json' ||
+            $request->input('format') == 'csv' ||
+            $request->input('format') == 'kml'
+        ) {
+
+            /* PARAMETERS */
+            $parameters = $this->getParameters($request->all());
+            if ($parameters['names']) $parameters['names'] = array_map('trim', explode(',', $parameters['names']));
+            if ($parameters['fuzzynames']) $parameters['fuzzynames'] = array_map('trim', explode(',', $parameters['fuzzynames']));
+            if ($parameters['containsnames']) $parameters['containsnames'] = array_map('trim', explode(',', $parameters['containsnames']));
+
+            // pagnination
+            $per_page = $request->input('per_page', null);
+            $page = $request->input('page', null);
+
+
+            // Search dataitems.
+            $results = $this->searchDataitems($parameters, true, $per_page, $page);
+
+            $resultDataitems = $results['dataitems'];
+            $totalCount = $results['count'];
+            $prev_page = $results['prev_page'];
+            $next_page = $results['next_page'];
+
+            $currentUrl = request()->fullUrl();
+            $prev_link = null;
+            $next_link = null;
+
+            parse_str(parse_url($currentUrl, PHP_URL_QUERY), $queryParams); // Get query parameters as array
+            if ($prev_page !== null) {
+                $queryParams['page'] = $prev_page;
+                $prev_link = url()->current() . '?' . http_build_query($queryParams);
+            }
+            if ($next_page !== null) {
+                $queryParams['page'] = $next_page;
+                $next_link = url()->current() . '?' . http_build_query($queryParams);
+            }
+
+            /* OUTPUT */
+            return $this->outputs($parameters, $resultDataitems , $totalCount , $prev_link, $next_link);
+        }
+
+        return redirect()->route('home');
+    }
+
     /**
      *  Gets search results from database relevant to search query
      *  Will serve a view or downloadable object to the user depending on parameters set
      */
-    public function search(Request $request, string $uid = null , string $format = null)
+    public function search(Request $request, $uid = null, $format = null)
     {
         if ($request->has('id')) {
             // Single place . Redirect to route places/{id}/{format?}'
@@ -170,7 +219,7 @@ class GazetteerController extends Controller
         if (isset($uid) && $request->has('format')) {
             //Redirect to route places/{uid}/{format?}
             $redirectUrl = '/places/' . $uid   . '/' . $request->input('format');
-           
+
             //Redirect to route places/{uid}/{format}?download=on
             if ($request->has('download') && $request->input('download') === 'on') {
                 $redirectUrl .= '?download=on';
@@ -186,23 +235,23 @@ class GazetteerController extends Controller
 
         /* PARAMETERS */
         $parameters = $this->getParameters($request->all());
-        if(isset($uid)){
+        if (isset($uid)) {
             $parameters['id'] = $uid;
         }
-        if(isset($format)){
+        if (isset($format)) {
             $parameters['format'] = $format;
         }
 
         // Set redirect URL for new home page
         if (empty($parameters['format'])) {
 
-            if($uid){
-                $redirectUrl = '/?gotoid=' . $uid; 
+            if ($uid) {
+                $redirectUrl = '/?gotoid=' . $uid;
             } else {
                 $queryString = http_build_query($request->query());
                 $redirectUrl = '/' . ($queryString ? '?' . $queryString : '');
             }
-    
+
             return redirect($redirectUrl);
         }
 
@@ -239,7 +288,7 @@ class GazetteerController extends Controller
     /* SEARCH FUNCTIONS */
     /********************/
 
-    public static function searchDataitems($parameters)
+    public static function searchDataitems($parameters, $blockContributed = false, $per_page = null, $page = null)
     {
         $gazetteerController = new GazetteerController();
 
@@ -257,6 +306,13 @@ class GazetteerController extends Controller
         if (empty($datasourceIDs)) {
             $datasourceIDs = $allDatasourceIDs;
         }
+
+        if ($blockContributed) {
+            $excludedIDs = array_map('strval', [Datasource::ghap()->id, Datasource::geocoder()->id]);
+            $datasourceIDs = array_diff($datasourceIDs, $excludedIDs);
+        }
+
+
         // Search dataitems.
         $dataitems = Dataitem::searchScope()
             ->with(['dataset' => function ($q) {
@@ -294,7 +350,7 @@ class GazetteerController extends Controller
         } elseif (isset($parameters['fuzzynames']) && $parameters['fuzzynames']) {
             $names = array_filter(array_map('trim', explode(',', $parameters['fuzzynames'])));
         } elseif (isset($parameters['containsnames']) && $parameters['containsnames']) {
-            $names = array_filter(array_map('trim', explode(',' , $parameters['containsnames'])));
+            $names = array_filter(array_map('trim', explode(',', $parameters['containsnames'])));
         } else {
             $names = null;
         }
@@ -302,8 +358,8 @@ class GazetteerController extends Controller
         if ($names) { //if we are bulk searching from file
             if (!empty($names)) { //if we dont have an empty array
                 //If we are bulk searching from file, skip name and fuzzyname search and search from file instead
-                if ( isset($parameters['names']) && $parameters['names']) {
-                    $dataitems->where(function ($query) use ($names , $parameters) {
+                if (isset($parameters['names']) && $parameters['names']) {
+                    $dataitems->where(function ($query) use ($names, $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', $firstcase)->orWhere('placename', 'ILIKE', $firstcase);
                         foreach ($names as $line) {
@@ -313,8 +369,8 @@ class GazetteerController extends Controller
                             $query->orWhere('description', 'ILIKE', '%' . $parameters['name'] . '%');
                         }
                     });
-                } else if ( isset($parameters['fuzzynames']) && $parameters['fuzzynames']) {
-                    $dataitems->where(function ($query) use ($names , $parameters) {
+                } else if (isset($parameters['fuzzynames']) && $parameters['fuzzynames']) {
+                    $dataitems->where(function ($query) use ($names, $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', '%' . $firstcase . '%')->orWhereRaw('placename % ?', $firstcase);
                         //$query->where('placename', 'ILIKE', '%'.$firstcase.'%')->orWhere('placename', 'SOUNDS LIKE', $firstcase);
@@ -325,8 +381,8 @@ class GazetteerController extends Controller
                             $query->orWhere('description', 'ILIKE', '%' . $parameters['fuzzyname'] . '%');
                         }
                     });
-                } else if ( isset($parameters['containsnames']) && $parameters['containsnames']) {
-                    $dataitems->where(function ($query) use ($names , $parameters) {
+                } else if (isset($parameters['containsnames']) && $parameters['containsnames']) {
+                    $dataitems->where(function ($query) use ($names, $parameters) {
                         $firstcase = array_shift($names); //have to do a where() with firstcase first or the orWhere() fails
                         $query->where('title', 'ILIKE', '%' . $firstcase . '%')->orWhere('placename', 'ILIKE', '%' . $firstcase . '%');
                         foreach ($names as $line) {
@@ -339,7 +395,7 @@ class GazetteerController extends Controller
                 }
             } else $dataitems->where('title', '=', null); //we did a bulk search but all of the names equated to empty strings! Show no results
         } else {
-            if ( isset($parameters['name']) && $parameters['name']) {
+            if (isset($parameters['name']) && $parameters['name']) {
                 $dataitems->where(function ($query) use ($parameters) {
                     $query->where('title', 'ILIKE', $parameters['name']);
                     if ($parameters['searchdescription'] === 'on') {
@@ -373,7 +429,7 @@ class GazetteerController extends Controller
         }
         if (isset($parameters['searchlayers'])) {
             $searchLayerIDs = explode(',', $parameters['searchlayers']);
-            
+
             $dataitems->whereHas('dataset', function ($query) use ($searchLayerIDs) {
                 $query->whereIn('dataset_id', $searchLayerIDs);
             });
@@ -381,7 +437,7 @@ class GazetteerController extends Controller
         if (isset($parameters['extended_data'])) {
             //Extended data
             $extendedDataQueries = explode('AND', $parameters['extended_data']);
-           
+
             // List of allowed conditions
             $allowed_conditions = ['textmatch', '>', '<', '=', 'before', 'after'];
             $pattern = '/\s(' . implode('|', array_map('preg_quote', $allowed_conditions)) . ')\s/';
@@ -397,7 +453,7 @@ class GazetteerController extends Controller
 
                     $parts = preg_split($pattern, $extendedDataQuery);
 
-                    if ( count($parts) === 2) {
+                    if (count($parts) === 2) {
                         // Trim and remove quotes 
                         $attribute = trim($parts[0], " '\"");
                         $value = trim($parts[1], " '\"");
@@ -446,8 +502,8 @@ class GazetteerController extends Controller
                     case '=':
                         //Parameterized Queries
                         $dataitems->whereNotNull('extended_data')
-                                ->whereRaw('LENGTH(extended_data) > 0')
-                                ->whereRaw("(xpath('string($xpath_query)', extended_data::xml))[1]::text = ?", [$value]);
+                            ->whereRaw('LENGTH(extended_data) > 0')
+                            ->whereRaw("(xpath('string($xpath_query)', extended_data::xml))[1]::text = ?", [$value]);
                         break;
                     case 'before':
                         //Supported date format : yyyy-mm-dd   yyyy-mm   yyyy
@@ -493,7 +549,7 @@ class GazetteerController extends Controller
         if (isset($parameters['from'])) $dataitems->where('id', '>=', $parameters['from']);
         if (isset($parameters['to'])) $dataitems->where('id', '<=', $parameters['to']);
         if (isset($parameters['state'])) $dataitems->where('state', '=', $parameters['state']);
-        if (isset($parameters['feature_term'])){
+        if (isset($parameters['feature_term'])) {
             $searchTerms = explode(';', $parameters['feature_term']);
             $dataitems->wherein('feature_term', $searchTerms);
         }
@@ -512,7 +568,7 @@ class GazetteerController extends Controller
             }
         }
 
-    
+
         if ($polygon) { //sql: WHERE ST_CONTAINS(ST_GEOMFROMTEXT('POLYGON((lng1 lat1, lng2 lat2, lngn latn, lng1 lat1))'), POINT(longitude,latitude) )
             $polygonsql = "ST_GEOMFROMTEXT('POLYGON((";
             for ($i = 0; $i < count($polygon); $i += 2) { //for each point
@@ -530,7 +586,7 @@ class GazetteerController extends Controller
             $dataitems = $gazetteerController->diSubquery($dataitems, $parameters);
         }
 
-        if (isset($parameters['sort'])  ||  (isset($parameters['line']) && $parameters['line'] === 'time')   ) {
+        if (isset($parameters['sort'])  ||  (isset($parameters['line']) && $parameters['line'] === 'time')) {
 
             $dataitems = Dataset::infillDataitemDates($dataitems);
             $dataitems = $dataitems->where('datestart', '!=', '')->where('dateend', '!=', '');
@@ -569,11 +625,11 @@ class GazetteerController extends Controller
                 $query->where(function ($query) {
                     $query->whereNotNull('udatestart');
                 })
-                ->orWhere(function ($query) {
-                    $query->whereNotNull('udateend');
-                });
+                    ->orWhere(function ($query) {
+                        $query->whereNotNull('udateend');
+                    });
             })
-            ->get();
+                ->get();
 
             $collection = $collection->filter(function ($v) use ($parameters, $gazetteerController) {
                 return $gazetteerController->dateSearch(
@@ -584,7 +640,30 @@ class GazetteerController extends Controller
                 );
             });
         }
-    
+
+        $prev_page = null;
+        $next_page = null;
+        if ($per_page && filter_var($per_page, FILTER_VALIDATE_INT) && $per_page > 0) {
+            $total = $collection->count();
+
+            $page = isset($page) && filter_var($page, FILTER_VALIDATE_INT) && $page > 0 ? (int) $page : null;
+
+            if ($page !== null) {
+                $maxPage = max(1, ceil($total / $per_page));
+                $page = min($page, $maxPage);
+
+                $start = ($page - 1) * $per_page;
+                $collection = $collection->slice($start, $per_page)->values();
+
+                // Determine previous and next page numbers
+                $prev_page = ($page > 1) ? $page - 1 : null;
+                $next_page = ($page < $maxPage) ? $page + 1 : null;
+            } else {
+                $collection = $collection->take($per_page);
+            }
+        }
+        
+        
         // Limit the results
         if (isset($parameters['limit'])) {
             $limit = filter_var($parameters['limit'], FILTER_VALIDATE_INT);
@@ -596,7 +675,9 @@ class GazetteerController extends Controller
 
         return [
             'dataitems' => $collection,
-            'count' => $totalCount
+            'count' => $totalCount,
+            'prev_page' => $prev_page,
+            'next_page' => $next_page,
         ];
     }
 
@@ -714,7 +795,7 @@ class GazetteerController extends Controller
 
         // The 'id' parameter actually means 'uid'.
         $parameters['id'] = (isset($parameters['id'])) ? $parameters['id'] : null;
-        if(!isset($parameters['id']) && (isset($parameters['gotoid'])) ){
+        if (!isset($parameters['id']) && (isset($parameters['gotoid']))) {
             $parameters['id'] = $parameters['gotoid'];
         }
         $parameters['paging'] = (isset($parameters['paging'])) ? $parameters['paging'] : null;
@@ -790,7 +871,7 @@ class GazetteerController extends Controller
     /**
      * Format and Redirect according to the return format type: kml, csv, json, html
      */
-    function outputs($parameters, $results)
+    function outputs($parameters, $results , $totalCount = null , $prev_link = null , $next_link = null)
     {
         /* Outputs */
         $headers = array(); //Create an array for headers
@@ -807,15 +888,15 @@ class GazetteerController extends Controller
                 'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS', // Allowed methods
                 'Access-Control-Allow-Headers' => 'Content-Type, Authorization', // Allowed headers
             ];
-            if ($parameters['download']) $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.json"'; //if we are downloading, add a 'download attachment' header
-            return Response::make(FileFormatter::toGeoJSON($results, $parameters), '200', $corsheaders); //serve the file to browser (or download)
+            if ($parameters['download']) $corsheaders['Content-Disposition'] = 'attachment; filename="' . $filename . '.json"'; //if we are downloading, add a 'download attachment' header
+            return Response::make(FileFormatter::toGeoJSON($results, $parameters , $totalCount , $prev_link , $next_link), '200', $corsheaders); //serve the file to browser (or download)
         }
         if ($parameters['format'] == "csv") {
             $headers["Content-Type"] = "text/csv"; //set header content type
             $headers['Content-Disposition'] = 'attachment; filename="' . $filename . '.csv"'; //always download csv
             return FileFormatter::toCSV($results, $headers); //Download
         }
-        if ($parameters['format'] == 'csvContent'){
+        if ($parameters['format'] == 'csvContent') {
             //Internal process only
             //Return the content of the csv report as string by stream_get_contents()
             //Used for ro-crate export of saved search results on multilayers
@@ -840,7 +921,7 @@ class GazetteerController extends Controller
 
         $recordtypes = RecordType::types();
         //else, format as html
-        return view('ws.ghap.places.show', ['details' => $results, 'query' => $results , 'recordtypes' => $recordtypes]);
+        return view('ws.ghap.places.show', ['details' => $results, 'query' => $results, 'recordtypes' => $recordtypes]);
     }
 
     /**
@@ -875,7 +956,7 @@ class GazetteerController extends Controller
                 'max_lat' => (float)$reg_out[7]
             ];
         }
-}
+    }
 
     /**
      *    INPUT: "149.751587 -33.002617, 149.377796 -32.707289, 150.378237 -32.624051, 149.751587 -33.002617"
@@ -982,5 +1063,4 @@ class GazetteerController extends Controller
     }
 
     /* File Formatting related helper functions all moved to App/Http/Helpers/FileFormatter.php */
-
 }

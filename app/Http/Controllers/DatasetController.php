@@ -51,7 +51,6 @@ class DatasetController extends Controller
      */
     public function viewPublicDatasetBasicStatistics(Request $request, int $id)
     {
-        Log::info('viewPublicDatasetBasicStatistics');
         $ds = Dataset::where(['public' => 1, 'id' => $id])->first();
         if (!$ds) return redirect()->route('layers'); // if not found redirect back
         return view('statistic.basicstatistics', ['ds' => $ds , 'statistic' => $ds->getBasicStatistics() ]); 

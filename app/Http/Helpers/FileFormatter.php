@@ -196,7 +196,7 @@ class FileFormatter
      * Reworked to handle public dataitems
      * !!! could be merged with DatasetController->generateJSON
      */
-    public static function toGeoJSON($results , $parameters = null)
+    public static function toGeoJSON($results , $parameters = null , $totalCount = null , $prev_link = null , $next_link = null)
     {
         $features = array();
 
@@ -364,6 +364,16 @@ class FileFormatter
             'features' => $features,
             'display' => $featureCollectionConfig->toArray()
         );
+
+        if(isset($totalCount)) {
+            $allfeatures['total'] = $totalCount;
+        }
+        if(isset($prev_link)) {
+            $allfeatures['prev'] = $prev_link;
+        }
+        if(isset($next_link)) {
+            $allfeatures['next'] = $next_link;
+        }
 
         if (!isset($metadata)) {
             $allfeatures['metadata']['warning'] = "<p>0 results found</p>";
