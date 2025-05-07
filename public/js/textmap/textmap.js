@@ -166,7 +166,7 @@ $.ajaxSetup({
                     const feature = result.features[0];
                     view.goTo({
                         target: feature.geometry,
-                        zoom: 3,
+                        zoom: view.zoom,
                     }).then(() => {
                         if (currentViewMode === "view") {
                             view.popup.open({
@@ -314,8 +314,6 @@ $.ajaxSetup({
                     };
                 }
 
-                console.log(config);
-
                 if (config.textContent && config.textcontexts) {
                     let textContent = config.textContent;
                     let textContexts = config.textcontexts;
@@ -345,6 +343,8 @@ $.ajaxSetup({
                     markedText += textContent.slice(lastIndex);
                     document.getElementById("textcontent").innerHTML =
                         markedText;
+                }else if(config.textContent){
+                    document.getElementById("textcontent").innerHTML = config.textContent
                 }
 
                 // Pass the updated data with id for each feature to layer
@@ -818,8 +818,8 @@ $.ajaxSetup({
                                     return;
                                 }
 
-                                // Ensure selection includes only whole words
-                                const wholeWordRegex = /^\b[\w\s]+\b$/;
+                                // Ensure selection includes only whole words, allowing full stops and hyphens
+                                const wholeWordRegex = /^\b[\w\s.-]+\b$/;
                                 if (!wholeWordRegex.test(selectedText)) {
                                     alert(
                                         "Your select should not include partial words."

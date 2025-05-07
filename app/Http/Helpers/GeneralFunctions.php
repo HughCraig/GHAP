@@ -307,7 +307,7 @@ class GeneralFunctions
             // Remove extra spaces but preserve newlines
             $line = preg_replace('/[^\S\r\n]+/', ' ', $line);
 
-            $line = rtrim($line);
+            $line = trim($line);
 
             $normalizedContent .= $line . "\n";
         }

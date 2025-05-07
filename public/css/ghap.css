@@ -984,6 +984,16 @@ select:disabled {
     display: none;
 }
 
+.loadingWheel {
+    position: fixed;
+    left: 50%;
+    top: 60%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 9999;
+    display: none;
+}   
+
 .spinner {
     display: inline-block;
     border: 16px solid lightgray;

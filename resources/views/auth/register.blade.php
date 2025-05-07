@@ -9,6 +9,7 @@
 
                 <div class="card-body">
                     <form method="POST" action="{{ route('register') }}">
+                        @honeypot 
                         @csrf
 
                         <div class="form-group row">

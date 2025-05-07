@@ -21,6 +21,7 @@ use TLCMap\Models\Dataitem;
 use TLCMap\Models\Text;
 use TLCMap\Models\SubjectKeyword;
 use TLCMap\Models\RecordType;
+use TLCMap\Models\TextType;
 
 use TLCMap\Mail\EmailChangedOld;
 use TLCMap\Mail\EmailChangedNew;
@@ -235,6 +236,13 @@ class UserController extends Controller
             $subjectKeywordMap[$search->id] = $search->subjectKeywords->toArray();
         }
         return view('user.usersavedsearches', ['searches' => $searches , 'recordTypeMap' => $recordTypeMap , 'recordtypes' => $recordtypes, 'subjectKeywordMap' => $subjectKeywordMap]);
+    }
+
+    public function userContribute(Request $request)
+    {
+        $recordtypes = RecordType::types();
+        $texttypes = TextType::types();
+        return view('user.usercontribute', ['recordtypes' => $recordtypes , 'texttypes' => $texttypes]);
     }
 
     /*
@@ -477,7 +485,8 @@ class UserController extends Controller
                 $this->createDataitems($arr, $ds_id);
 
             } else if (strcasecmp($ext, 'kml') == 0) { //now handles extended data, journey
-                $arr = $this->kmlToArray($file, $appendStyle);
+                $xml_object = simplexml_load_file($file, null, LIBXML_NOERROR);
+                $arr = $this->kmlToArray($xml_object, $appendStyle);
 
                 if (!is_array($arr)) return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid date format in file in node starting line ' . $arr);
 
@@ -496,7 +505,8 @@ class UserController extends Controller
 
             } else if (strcasecmp($ext, 'json') == 0 || strcasecmp($ext, 'geojson') == 0) {
                 //TODO extendeddata
-                $arr = $this->geoJSONToArray($file);
+                $geojson = json_decode($file->get());
+                $arr = $this->geoJSONToArray($geojson);
                 if (!is_array($arr)) return redirect('myprofile/mydatasets/' . $ds_id)->with('error', 'Invalid date format in file on line ' . $arr);
 
                 $this->createDataitems($arr, $ds_id);
@@ -528,12 +538,87 @@ class UserController extends Controller
 
     }
 
+    public function userContributeParseSource(Request $request)
+    {
+        ini_set('upload_max_filesize', '10M');
+        ini_set('post_max_size', '10M');
+
+        $this->middleware('auth'); //Throw error if not logged in?
+
+        $type = $request->type;
+
+        $sourceContent = null;
+        if(isset($request->sourceContent)){
+            if($type == 'json'){
+                $sourceContent = json_decode($request->sourceContent);
+            }else if($type == 'kml'){
+                $sourceContent = simplexml_load_string($request->sourceContent, null, LIBXML_NOERROR);
+            }
+        } else if(isset($request->file)){
+            $file = $request->file;
+            $ext = $file->getClientOriginalExtension();
+            if (strcasecmp($ext, 'kml') == 0) {
+                $sourceContent = simplexml_load_file($file, null, LIBXML_NOERROR);
+            }  else if (strcasecmp($ext, 'json') == 0) {
+                $sourceContent = json_decode($file->get());
+            }   else if (strcasecmp($ext, 'csv') == 0) {
+                $arr = $this->csvToArray($file);
+                return response()->json($arr, 200);
+            } 
+        }
+
+        if(!$sourceContent){
+            return response()->json(['error' => 'Invalid format for layer source!'], 500);
+        }
+
+        try{
+            if($type == 'kml'){
+                $arr = $this->kmlToArray($sourceContent);
+                unset($arr['raw_style']);
+            }else if($type == 'json'){
+                $arr = $this->geoJSONToArray($sourceContent);
+            }else{
+                return response()->json(['error' => 'Invalid  format for layer source!'], 500);
+            }
+
+            return response()->json($arr, 200);
+        }catch (\Exception $e) {
+
+            $extrainfo = "";
+            if (isset($file)) {
+                $extrainfo = $extrainfo . " " . $file->getClientOriginalName();
+            }
+            if (isset($arr)) {
+                $extrainfo = $extrainfo . " Error on line " . json_encode($arr);
+            }
+
+            return response()->json(['error' => 'Failed to parse source', 'details' => $extrainfo], 500);
+        } 
+    }
+
+
     function userEditCollaborators(Request $request, int $id)
     {
         $user = auth()->user(); //check authorization
         $dataset = $user->datasets()->find($id); //find dataset for this user
         if (!$dataset || ($dataset->pivot->dsrole != 'ADMIN' && $dataset->pivot->dsrole != 'OWNER')) return redirect('myprofile/mydatasets'); //if DS id doesnt exist OR user not ADMIN, return to DS page
         return view('user.usereditcollaborators', ['ds' => $dataset, 'user' => auth()->user()]);
+    }
+
+    public function createDataitemsForDataset(Request $request)
+    {
+        $user = auth()->user();
+        $ds_id = $request->ds_id;
+        $dataset = $user->datasets()->find($ds_id);
+
+        if (!$dataset || ($dataset->pivot->dsrole != 'OWNER' && $dataset->pivot->dsrole != 'ADMIN' && $dataset->pivot->dsrole != 'COLLABORATOR'))
+            return response()->json(['error' => 'You do not have permission to add data items to this dataset.'], 403);
+
+        $dataitems = json_decode($request->dataitems, true);
+  
+        $res = $this->createDataitems($dataitems, $ds_id);
+
+        return response()->json(['dataitems' => $res], 200);
     }
 
     /*
@@ -558,6 +643,7 @@ class UserController extends Controller
         // Exclude these columns.
         $excludeColumns = ['uid', 'datasource_id'];
 
+        $res = [];
 
         for ($i = 0; $i < count($arr); $i++) { //FOREACH data item
             $culled_array = array(); //we will cull out all keys that are not present as fillable fields
@@ -652,10 +738,11 @@ class UserController extends Controller
             if (!empty($culled_array)) { //ignore empties
                 $dataitemUID = $arr[$i]['ghap_id'] ?? null;
                 $dataitemProperties = array_merge(array('dataset_id' => $ds_id), $culled_array);
-                $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
+                $res[] = $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
             }
 
         }
+        return $res;
     }
 
     /**
@@ -669,7 +756,8 @@ class UserController extends Controller
      *   The dataitem properties.
      * @param string $uid
      *   The dataitem UID.
-     * @return void
+     * @return Dataitem
+     *  The created or updated dataitem.
      */
     private function createOrUpdateDataitem($data, $uid = null)
     {
@@ -688,6 +776,9 @@ class UserController extends Controller
                 $dataitem->save();
             }
         }
+
+        $dataitem->extended_data = $dataitem->getExtendedData();
+        return $dataitem;
     }
 
 // trawl for lat long col names
@@ -976,14 +1067,14 @@ class UserController extends Controller
     }
     //array of asoc arrays of form  [['placename' => 'newcastle', 'latitude' => 123.456, etc], ['placename' => etc], ['placename' => etc]]
     //sppendStyle is true if we want to grab the styleUrl tag for each placemark (if it exists) and import that to the database as well
-    function kmlToArray($file, $appendStyle = false)
+    
+    function kmlToArray($xml_object, $appendStyle = false)
     {
         //dd($this->getArea([[-10,-10],[-20,-10],[-20,-20],[-10,-20]])); //expected 100
         //dd($this->getCentroid([[-10,-10],[-20,-10],[-20,-20],[-10,-20]])); //expected -15,-15
         //dd($this->getMidpoint([[0,0], [0,5], [3,10]])); //expected 1,5
 
         $data = array();
-        $xml_object = simplexml_load_file($file, null, LIBXML_NOERROR);
         $raw_journey = null;
         $raw_style = null;
 
@@ -1127,17 +1218,27 @@ class UserController extends Controller
     }
 
 
-    function geoJSONToArray($file)
+    function geoJSONToArray($geojson)
     {
         $data = array();
-        $geojson = json_decode($file->get());
         $features = $geojson->features;
         foreach ($features as $feature) {
             $ed_out = array(); //reset the ed_out var
             foreach ($feature as $key => $value) { //for each data entry for this place
-                if ($key != "type" && $key != "geometry" && $key != "properties")
+                if ($key != "type" && $key != "geometry" && $key != "properties" &&  gettype($value) != "object")
                     $ed_out[strval($key)] = strval($value); //ignoring 'type' 'geometry' and 'properties', add each key val pair to $ed_out
             }
+
+            if (isset($feature->properties) && is_object($feature->properties)) {
+                foreach ($feature->properties as $key => $value) {
+                    if (!is_object($value) && $key != "TLCMapDataset" && $key != "TLCMapLinkBack"  
+                        && $key != "title" && $key != "longitude" && $key != "latitude") { 
+                        $ed_out[strval($key)] = strval($value);
+                    }
+
+                }
+            }
+            
             $data[] = array("title" => $feature->properties->name, "longitude" => $feature->geometry->coordinates[0],
                     "latitude" => $feature->geometry->coordinates[1]) + $ed_out; //adding on the extended data
         }

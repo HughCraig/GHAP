@@ -40,9 +40,10 @@ $(".add_layer_button_back").on("click", function () {
 });
 
 // Create message banner for add dataitem modal.
-const msgBanner = new MessageBanner($("#newLayerModal .message-banner"));
-msgBanner.hide();
-
+if (typeof msgBanner === 'undefined') {
+    var msgBanner = new MessageBanner($("#newLayerModal .message-banner"));
+    msgBanner.hide();
+}
 /**
  * Validate the input for adding a data item.
  *

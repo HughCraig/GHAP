@@ -35,8 +35,8 @@ class Datasource extends Model
         return self::where('search_param_name', 'searchncg')->first();
     }
 
-    public static function ausgaz(){
-        return self::where('search_param_name', 'searchausgaz')->first();
+    public static function ghap(){
+        return self::where('search_param_name', 'searchpublicdatasets')->first();
     }
 
     public static function geocoder(){

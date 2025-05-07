@@ -208,6 +208,10 @@
                 <div class="w3-mobile w3-left">
                     <a class="w3-bar-item w3-button w3-mobile" href="{{ url('multilayers') }}">Multilayers</a>
                 </div>  
+
+                <div class="w3-mobile w3-left">
+                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('contribute') }}">Contribute</a>
+                </div>  
             </div> 
 
             <div class="w3-mobile w3-right">
