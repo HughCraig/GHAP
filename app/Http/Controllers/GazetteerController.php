@@ -615,8 +615,24 @@ class GazetteerController extends Controller
             }
         }
 
-        $collection = $dataitems->get(); //needs to be applied a second time for some reason (maybe because of the subquery?)
-
+        $prev_page = null;
+        $next_page = null;
+        if ($per_page && filter_var($per_page, FILTER_VALIDATE_INT) && $per_page > 0) {
+            $page = isset($page) && filter_var($page, FILTER_VALIDATE_INT) && $page > 0 ? (int) $page : 1;
+        
+            $collection = $dataitems
+                ->forPage($page, $per_page)
+                ->get();
+        
+            $maxPage = max(1, ceil($totalCount / $per_page));
+            $prev_page = ($page > 1) ? $page - 1 : null;
+            $next_page = ($page < $maxPage) ? $page + 1 : null;
+        } else {
+            $collection = $dataitems->get();
+            $prev_page = null;
+            $next_page = null;
+        }
+        
         //Modifying the collection directly, as datestart and dateend fields are TEXT fields not dates, simpler this way (might be a little slower)
         if (isset($parameters['dateto']) || isset($parameters['datefrom'])) {
 
@@ -641,29 +657,6 @@ class GazetteerController extends Controller
             });
         }
 
-        $prev_page = null;
-        $next_page = null;
-        if ($per_page && filter_var($per_page, FILTER_VALIDATE_INT) && $per_page > 0) {
-            $total = $collection->count();
-
-            $page = isset($page) && filter_var($page, FILTER_VALIDATE_INT) && $page > 0 ? (int) $page : null;
-
-            if ($page !== null) {
-                $maxPage = max(1, ceil($total / $per_page));
-                $page = min($page, $maxPage);
-
-                $start = ($page - 1) * $per_page;
-                $collection = $collection->slice($start, $per_page)->values();
-
-                // Determine previous and next page numbers
-                $prev_page = ($page > 1) ? $page - 1 : null;
-                $next_page = ($page < $maxPage) ? $page + 1 : null;
-            } else {
-                $collection = $collection->take($per_page);
-            }
-        }
-        
-        
         // Limit the results
         if (isset($parameters['limit'])) {
             $limit = filter_var($parameters['limit'], FILTER_VALIDATE_INT);
