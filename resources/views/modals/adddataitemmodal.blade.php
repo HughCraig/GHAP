@@ -13,6 +13,8 @@
 
 @endpush
 
+@include('modals.addglycerineimagemodal')
+
 <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -58,6 +60,9 @@
                     <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title='Max upload size {{ floor(config("app.max_upload_image_size") / (1024 * 1024)) . " MB" }}'>
                     </span>
                     <input type="file" class="form-control" id="addImage" name="image" accept="image/*">
+
+                    <!-- Glycerine Image -->
+                    <button type="button" class="btn btn-default btn-sm mt-4 mb-3" id="addGlycerineImageButton">Add Glycerine Image</button>
 
                     <div class="map-picker">
                         <p><small>Either enter coordinates manually or click on the map and apply.</small></p>

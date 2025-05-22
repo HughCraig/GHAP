@@ -365,6 +365,10 @@ class Dataset extends Model
                 $proppairs["Image"] = '<img src="' . $imageUrl . '" alt="Place Image">';
             }
 
+            if(!empty($i->glycerine_url)){
+                $proppairs["Glycerine"] = '<a href="' . $i->glycerine_url . '" target="_blank">Glycerine Image</a>';
+            }
+
             if (!empty($i->title)) {
                 $proppairs["name"] = $i->title;
             } else {

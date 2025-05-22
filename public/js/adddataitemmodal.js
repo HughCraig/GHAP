@@ -12,6 +12,7 @@ $(document).ready(function () {
         keyboardNavigation: false,
     });
 
+    window.glycerineUrl = null;
     $('#addModal').on('hidden.bs.modal', function () {
         $('#related_place_uid').val(null);
     });

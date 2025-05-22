@@ -184,7 +184,11 @@ class TLCMap {
                 name: "updated_at",
                 alias: "Updated At",
                 type: "string",
-            },
+            },{
+                name: "glycerine_url",
+                alias: "Glycerine Image",
+                type: "string",
+            }
         ];
     }
 
@@ -510,7 +514,8 @@ class TLCMap {
                         key != "uid" &&
                         key != "datasource_description" &&
                         key != "dataset_name" &&
-                        key != "datasource_link"
+                        key != "datasource_link" &&
+                        key != "glycerine_url" 
                     ) {
                         content += `<tr>
                             <th>${alias}</th>
@@ -522,6 +527,11 @@ class TLCMap {
                 // Handle image field if present
                 if (attributes.image_path) {
                     content += `<tr><th>Image</th><td><img src="${attributes.image_path}" alt="Place Image" style="max-width: 100%; height: auto;"></td></tr>`;
+                }
+
+                // Handle Glycerine image. a button to open in new tab
+                if (attributes.glycerine_url) {
+                    content += `<tr><th>Glycerine Image</th><td><a href="${attributes.glycerine_url}" target="_blank" style="color:#0000EE;">Open Glycerine Image</a></td></tr>`;
                 }
 
                 content += `

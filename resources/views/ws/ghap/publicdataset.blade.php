@@ -211,6 +211,7 @@
                     </div>
                     <div class="col col-xl-2">
                         <h4>Sources</h4>
+                        @if(isset($data->glycerine_url))<dd><a href="{{$data->glycerine_url}}" target="_blank">Open Glycerine Image</a></dd>@endif
                         @if(isset($data->uid))<dt>TLCMap ID</dt><dd>{{$data->uid}}</dd>@endif
                         @if(isset($data->external_url))<dt>Linkback</dt><dd><a href="{{$data->external_url}}">{{$data->external_url}}</a></dd>@endif
                         @if(isset($data->source))<dt>Source</dt><dd>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->source) !!}</dd>@endif

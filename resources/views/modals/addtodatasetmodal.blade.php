@@ -2,6 +2,8 @@
     <script src="{{ asset('js/addtodatasetmodal.js') }}"></script>
 @endpush
 
+@include('modals.addglycerineimagemodal')
+
 <button type="button" class="mt-3 mb-3 btn btn-primary" data-toggle="modal" data-target="#addModal">Add to layer</button>
 <!-- MODAL popup -->
 <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -35,6 +37,9 @@
                       title='Max upload size {{ floor(config("app.max_upload_image_size") / (1024 * 1024)) . " MB" }}'>
                 </span>
                 <input type="file" class="form-control" id="addImage" name="image" accept="image/*">
+
+                <!-- Glycerine Image -->
+                <button type="button" class="btn btn-default btn-sm mt-4 mb-3" id="addGlycerineImageButton">Add Glycerine Image</button>
 
                 <div class="map-picker">
                     <p><small>Either enter coordinates manually or click on the map and apply.</small></p>
