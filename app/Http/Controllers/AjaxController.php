@@ -611,6 +611,7 @@ class AjaxController extends Controller
         $external_url = $request->url;
         $placename = $request->placename;
         $extendedData = $request->extendedData;
+        $glycerineUrl = $request->glycerineUrl;
 
 
         if ($title === NULL) {
@@ -666,7 +667,8 @@ class AjaxController extends Controller
             'placename' => $placename,
             'image_path' => $filename,
             'dataset_order' => $dataset_order,
-            'linked_dataitem_uid' => $linkedDataitemUID
+            'linked_dataitem_uid' => $linkedDataitemUID,
+            'glycerine_url' => $glycerineUrl
         ]);
         $isDirty = false;
         // Generate UID.

@@ -169,6 +169,9 @@ function getAddDataitemRequestData () {
     formData.append('url', $('#addexternalurl').val());
     formData.append('extendedData', JSON.stringify(new ExtendedDataEditor('#addModal .extended-data-editor').getData()));
 
+    if(window.glycerineUrl) {
+        formData.append('glycerineUrl', window.glycerineUrl);
+    }
     formData.append('related_place_uid', $('#related_place_uid').val() || null);
     // image file upload
     if ($('#addImage').length && $('#addImage')[0].files[0]) {
@@ -197,6 +200,7 @@ $("main").on('click', '#add_dataitem_button_submit', function () {
             contentType: false, 
             processData: false, 
             success: function (result) {
+                window.glycerineUrl = null;
                 location.reload();
             },
             error: function (xhr) {

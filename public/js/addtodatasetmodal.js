@@ -1,4 +1,6 @@
 $(document).ready(function () {
+    window.glycerineUrl = null;
+
     $("#addDateStartDiv").datepicker({
         format: "yyyy-mm-dd",
         todayBtn: true,

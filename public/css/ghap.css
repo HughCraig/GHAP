@@ -1030,3 +1030,12 @@ select:disabled {
     border-radius: 5px;
     transition: width 0.5s ease-in-out;
 }
+
+.image-thumb-card.border-primary {
+    border: 2px solid #007bff !important;
+}
+
+.card-img-top{
+    max-width: 240px;
+    max-height: 240px;
+}
