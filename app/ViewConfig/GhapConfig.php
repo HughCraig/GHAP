@@ -79,13 +79,14 @@ class GhapConfig
             $content .= '<img src="' . $imageUrl . '" alt="Layer Image">';
         }
         
-        if (!empty($dataset->description)) {
-            $content .= "<div>" . HtmlFilter::simple($dataset->description) . "</div>";
-        }
         if (!empty($dataset->warning)) {
             $content .= '<div class="warning-message"><strong>Warning</strong><br>' . HtmlFilter::simple($dataset->warning) . '</div>';
         }
 
+        if (!empty($dataset->description)) {
+            $content .= "<div>" . HtmlFilter::simple($dataset->description) . "</div>";
+        }
+        
         $content .= '<p><a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Help</a> | <a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Share</a></p>';
         return $content;
     }
@@ -122,12 +123,14 @@ class GhapConfig
             $content .= '<img src="' . $imageUrl . '" alt="Collection Image">';
         }
 
-        if (!empty($collection->description)) {
-            $content .= "<div>" . HtmlFilter::simple($collection->description) . "</div>";
-        }
         if (!empty($collection->warning)) {
             $content .= '<div class="warning-message"><strong>Warning</strong><br>' . HtmlFilter::simple($collection->warning) . '</div>';
         }
+
+        if (!empty($collection->description)) {
+            $content .= "<div>" . HtmlFilter::simple($collection->description) . "</div>";
+        }
+      
         $content .= '<p><a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Help</a> | <a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Share</a></p>';
         return $content;
     }
@@ -143,11 +146,11 @@ class GhapConfig
     public static function createDatasetListPaneContent(Dataset $dataset)
     {
         $content = '';
-        if (!empty($dataset->description)) {
-            $content .= "<div>" . HtmlFilter::simple($dataset->description) . "</div>";
-        }
         if (!empty($dataset->warning)) {
             $content .= '<div class="warning-message"><strong>Warning</strong><br>' . HtmlFilter::simple($dataset->warning) . '</div>';
+        }
+        if (!empty($dataset->description)) {
+            $content .= "<div>" . HtmlFilter::simple($dataset->description) . "</div>";
         }
         $url = $dataset->public ? url("publicdatasets/{$dataset->id}") : url("mydatasets/{$dataset->id}");
         $content .= '<p><a target="_blank" href="' . $url . '">View layer details</a></p>';
