@@ -1,4 +1,5 @@
-<!-- MODAL popup -->
+@include('modals.editglycerineimagemodal')
+
 <div class="modal fade" id="editDataitemModal" tabindex="-1" role="dialog" aria-labelledby="editDataitemModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -37,6 +38,12 @@
                     <label class="pr-4" for="deletePlaceImage">Delete current image</label>
                 </div>
                 <input type="file" class="form-control" id="editImage" name="image" accept="image/*">
+
+                <!-- Glycerine Image -->
+                <label for="editGlycerineImageButton" class="mt-4">Glycerine Image</label>
+                <div id="glycerine-url-container" style="display: none;">
+                </div>
+                <div><button type="button" class="btn btn-default btn-sm mb-3" id="editGlycerineImageButton">Edit Glycerine Image</button></div>
 
                 <div class="map-picker">
                     <p><small>Either enter coordinates manually or click on the map and apply.</small></p>

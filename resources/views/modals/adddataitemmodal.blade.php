@@ -62,7 +62,12 @@
                     <input type="file" class="form-control" id="addImage" name="image" accept="image/*">
 
                     <!-- Glycerine Image -->
-                    <button type="button" class="btn btn-default btn-sm mt-4 mb-3" id="addGlycerineImageButton">Add Glycerine Image</button>
+                    <label for="addGlycerineImageButton" class="mt-4">Glycerine Image</label>
+                    <div id="add-glycerine-url-container" style="display: none;">
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-default btn-sm mb-3" id="addGlycerineImageButton">Add Glycerine Image</button>
+                    </div>
 
                     <div class="map-picker">
                         <p><small>Either enter coordinates manually or click on the map and apply.</small></p>

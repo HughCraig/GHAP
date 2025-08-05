@@ -546,6 +546,10 @@ class AjaxController extends Controller
             $dataitem->image_path = $filename;
         }
 
+        if(isset($request->glycerineUrl)){
+            $dataitem->glycerine_url = $request->glycerineUrl;
+        }
+
         $dataitem->fill([
             'title' => $title,
             'recordtype_id' => $recordtype_id,
