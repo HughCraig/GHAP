@@ -1,6 +1,10 @@
 @extends('templates.layout')
 
 @push('scripts')
+    <script>
+        var dataset_id = {!! $ds->id !!};
+        var ajaxmarklayerasfeatured = "{{url('ajaxmarklayerasfeatured')}}";
+    </script>
     <script src="{{ asset('js/message-banner.js') }}"></script>
     <script src="{{ asset('js/publicdataset.js') }}"></script>
     <script src="{{ asset('/js/dataitem.js') }}"></script>
@@ -78,6 +82,18 @@
         </div>
     </div>
     @endif
+
+    @admin
+        @if ($ds->is_featured)
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_layer_as_unfeatured">
+                Remove featured
+            </button>
+        @else
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_layer_as_featured">
+                Mark as featured
+            </button>
+        @endif
+    @endadmin
 
     <!-- Quick Info -->
     <div class="row mt-3">

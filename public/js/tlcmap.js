@@ -27,6 +27,8 @@ class TLCMap {
         this.ignoreExtentChange = true; // Stop refreshing pins when the map extent changes.
         this.placeMarkers = []; // User placed marker for add place.
 
+        this.isShowingFeatureLayers = false; // True if currently showing featured layer(s)
+
         this.selectedFeature = null; // The selected feature on the map.
 
         this.addModalMapPicker = addModalMapPicker;
@@ -330,7 +332,7 @@ class TLCMap {
                     if (existingDiv) {
                         existingDiv.remove();
                     }
-                    if (this.ignoreExtentChange) {
+                    if (this.ignoreExtentChange || this.isShowingFeatureLayers) {
                         return;
                     }
 

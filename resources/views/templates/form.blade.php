@@ -89,6 +89,11 @@
                     </button>
                 </div>
 
+                <div class="d-flex">
+                    <a id="featuredLayersButton" href="#featuredLayersAccordion" data-toggle="collapse" style="color:white"><button class="btn btn-primary">FEATURED LAYERS<i class="fa fa-chevron-down pl-2"></i></button></a>
+                </div>
+
+
                 <div class="d-flex" style="align-items: center;">
 
                     <label data-toggle="tooltip" title="" class="d-flex mb-0 mr-3 datasource-filter btn" style="background-color: orange;" data-original-title="Official Australian Placenames">
@@ -129,7 +134,51 @@
             </div>
         </div>
 
-          <!-- Advanced Search and Filter -->
+        <div id="featuredLayersAccordion" class="collapse">
+            <div class="container py-4">
+                <div class="row justify-content-center">
+
+                @foreach($featuredLayers as $featuredLayer)
+                    <div class="col-5ths ml-4">
+                        <button type="button"
+                                class="featured-tile featuredLayerbutton"
+                                data-layer-id="{{ $featuredLayer->id }}">
+                            <div class="thumb">
+                            @if(!empty($featuredLayer->image_path))
+                                <img src="{{ asset('storage/images/' . $featuredLayer->image_path) }}"
+                                    alt="{{ $featuredLayer->name }}">
+                            @else
+                                <div class="thumb-placeholder"></div>
+                            @endif
+                            </div>
+                            <div class="label">{{ $featuredLayer->name }}</div>
+                        </button>
+                    </div>
+                @endforeach
+
+                @foreach($featuredmultilayers as $featuredmultilayer)
+                    <div class="col-5ths ml-4">
+                        <button type="button"
+                                class="featured-tile featuredLayerbutton"
+                                data-layer-id="{{ $featuredmultilayer['dataset_ids'] }}">
+                            <div class="thumb">
+                            @if(!empty($featuredmultilayer['image_path']))
+                                <img src="{{ asset('storage/images/' . $featuredmultilayer['image_path']) }}"
+                                    alt="{{ $featuredmultilayer['name'] }}">
+                            @else
+                                <div class="thumb-placeholder"></div>
+                            @endif
+                            </div>
+                            <div class="label">{{ $featuredmultilayer['name'] }}</div>
+                        </button>
+                    </div>
+                @endforeach
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Search and Filter -->
         <div id="advancedaccordion" class="collapse">
             <div class="d-flex justify-content-center w3-light-grey pb-4">
                 <!-- Filters -->

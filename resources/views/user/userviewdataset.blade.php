@@ -12,6 +12,7 @@
         var ajaxeditdataitem = "{{url('ajaxeditdataitem')}}";
         var ajaxdeletedataitem = "{{url('ajaxdeletedataitem')}}";
         var ajaxchangedataitemorder = "{{url('ajaxchangedataitemorder')}}";
+        var ajaxmarklayerasfeatured = "{{url('ajaxmarklayerasfeatured')}}";
 
         var lgas = {!! $lgas !!};
         var feature_terms = {!! $feature_terms !!};
@@ -126,6 +127,18 @@
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/closenessanalysis">Closeness Analysis</a>
         </div>
     </div>
+
+   @admin
+        @if ($ds->is_featured)
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_layer_as_unfeatured">
+                Remove featured
+            </button>
+        @else
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_layer_as_featured">
+                Mark as featured
+            </button>
+        @endif
+    @endadmin
     
     <!-- Quick Info -->
     <div class="row mt-3">

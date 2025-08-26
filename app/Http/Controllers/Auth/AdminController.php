@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use TLCMap\Mail\PasswordChanged;
+use TLCMap\Models\Dataset;
+use TLCMap\Models\Collection;
 
 class AdminController extends Controller
 {
@@ -161,4 +163,79 @@ class AdminController extends Controller
         $user->delete();
         return response()->json();
     }
+
+    /**
+     * Mark a dataset as featured or unfeatured
+     * 
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function marklayerasfeatured(Request $request)
+    {
+        // Admin or superuser
+        $request->user()->authorizeRoles(['ADMIN', 'SUPER_ADMIN']);  
+       
+        // Validation
+        $validated = $request->validate([
+            'layer_id'    => 'required|integer',
+            'is_featured' => 'required',
+        ]);
+        $isFeatured = filter_var($validated['is_featured'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        if ($isFeatured === null) {
+            return response()->json(['error' => 'Invalid is_featured value'], 422);
+        }
+
+        $id = $request->layer_id;
+        $ds = Dataset::find($id);
+        if (!$ds) {
+            return response()->json(['error' => 'Dataset not found for this user'], 404);
+        }
+
+        $ds->is_featured = $isFeatured ? true : false; // allow only true/false (not NULL)
+        if ($isFeatured) {
+            $ds->public = true;
+        }
+        $ds->save();
+
+        return response()->json(['success' => 'Dataset updated successfully']);
+    }
+
+    /**
+     * Mark a mlutilayer as featured or unfeatured
+     * 
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function markCollectionAsFeatured(Request $request)
+    {
+        // Admin or superuser
+        $request->user()->authorizeRoles(['ADMIN', 'SUPER_ADMIN']);
+
+        // Validation
+        $validated = $request->validate([
+            'collection_id' => 'required|integer',
+            'is_featured'   => 'required',
+        ]);
+        $isFeatured = filter_var($validated['is_featured'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        if ($isFeatured === null) {
+            return response()->json(['error' => 'Invalid is_featured value'], 422);
+        }
+
+        $id = $request->collection_id;
+        $collection = Collection::find($id);
+        if (!$collection) {
+            return response()->json(['error' => 'Collection not found'], 404);
+        }
+
+        $collection->is_featured = $isFeatured ? true : false; // allow only true/false (not NULL)
+        if ($isFeatured) {
+            $collection->public = true;
+        }
+        $collection->save();
+
+        return response()->json(['success' => 'Collection updated successfully']);
+    }
+
 }

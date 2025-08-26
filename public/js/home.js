@@ -102,7 +102,7 @@ function getDatasources() {
         datasources.push("3");
     }
     if ($("#searchpublicdatasets").is(":checked")) {
-        datasources.push("1"); 
+        datasources.push("1");
         datasources.push("4");
     }
     return datasources;
@@ -567,9 +567,15 @@ function continueSearchForm(
     names = null,
     defaultLocation = null,
     isUserSearch,
-    viewBbox
+    viewBbox,
+    data = null
 ) {
-    const data = getSearchFormData(names, tlcMap, viewBbox);
+    if (data == null) {
+        data = getSearchFormData(names, tlcMap, viewBbox);
+    } else {
+        data = data;
+    }
+
     updateUrlParameters(data);
     showLoadingWheel("loading places...");
 
@@ -858,6 +864,10 @@ function searchActions(tlcMap, isUserSearch, viewBbox) {
     var bulkfileinput = document.getElementById("bulkfileinput");
     var CSRF_TOKEN = $("input[name=_token]").val();
 
+    tlcMap.isShowingFeatureLayers = false;
+    $('#featuredLayersAccordion').collapse('hide');
+    $(".featuredLayerbutton").removeClass("active");
+
     if (bulkfileinput.value.length) {
         var myFormData = new FormData();
         myFormData.append("file", bulkfileinput.files[0]);
@@ -1093,6 +1103,14 @@ $(document).ready(async function () {
 
     $("#searchpublicdatasets, #searchausgaz, #searchncg").change(function () {
         tlcMap.removeAllPlacesFromFeatureLayer();
+
+        if(tlcMap.isShowingFeatureLayers){
+            tlcMap.isShowingFeatureLayers = false;
+            $('#featuredLayersAccordion').collapse('hide');
+            $(".featuredLayerbutton").removeClass("active");
+            tlcMap.isSearchOn = false;
+        }
+
         tlcMap.refreshMapPins();
     });
 
@@ -1104,10 +1122,13 @@ $(document).ready(async function () {
     $("#resetbutton").click(function (e) {
         tlcMap.isSearchOn = false;
         tlcMap.ignoreExtentChange = false;
+        tlcMap.isShowingFeatureLayers = false;
         tlcMap.dataitems = null;
         tlcMap.graphicsLayer.removeAll();
         tlcMap.removeAllPlacesFromFeatureLayer();
 
+        $('#featuredLayersAccordion').collapse('hide');
+        $(".featuredLayerbutton").removeClass("active");
         updateUrlParameters(null);
 
         $("#input").val("");
@@ -1368,5 +1389,23 @@ $(document).ready(async function () {
             msgBanner.show();
             $("#newLayerModal .scrollable").scrollTop(0);
         }
+    });
+
+    $(".featuredLayerbutton").on("click", function () {
+        $(".featuredLayerbutton").removeClass("active");
+        $(this).addClass("active");
+
+        const layerId = $(this).data("layer-id");
+        data = {
+            limit: 5000,
+            searchausgaz: "on",
+            searchgeocoder: "on",
+            searchlayers: layerId,
+            searchncg: "on",
+            searchpublicdatasets: "on"
+        };
+        updateUrlParameters(null);
+        tlcMap.isShowingFeatureLayers = true;
+        continueSearchForm(tlcMap, null, null, true, null, data);
     });
 });

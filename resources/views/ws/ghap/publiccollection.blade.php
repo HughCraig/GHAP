@@ -1,12 +1,17 @@
 @extends('templates.layout')
 
 @push('scripts')
+    <script>
+        var collection_id = {!! $collection->id !!};
+        var ajaxmarkmultilayerasfeatured = "{{url('ajaxmarkmultilayerasfeatured')}}";
+    </script>
     <script src="{{ asset('js/publiccollection.js') }}"></script>
 @endpush
 
 @section('content')
 
     <h2>Multilayer</h2>
+    <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
 
     <!-- Export/Download -->
     <div class="dropdown">
@@ -35,6 +40,18 @@
             </div>
         </div>
     @endif
+
+    @admin
+        @if ($collection->is_featured)
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_multilayer_as_unfeatured">
+                Remove featured
+            </button>
+        @else
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_multilayer_as_featured">
+                Mark as featured
+            </button>
+        @endif
+    @endadmin
 
     <!-- Quick Info -->
     <div class="row mt-3">

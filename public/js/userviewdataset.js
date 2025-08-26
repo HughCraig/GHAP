@@ -347,4 +347,37 @@ $(document).ready( function () {
             $('#editDataitemModal .scrollable').scrollTop(0);
         }
     });
+
+    $('#mark_layer_as_unfeatured').on('click', function() {
+        $.ajax({
+            type: 'POST',
+            url: ajaxmarklayerasfeatured,
+            data: {
+                layer_id: dataset_id,
+                is_featured: false
+            },
+            success: function () {
+                window.location.reload();
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                alert(xhr.responseText);
+            }
+        });
+    });
+    $('#mark_layer_as_featured').on('click', function() {
+        $.ajax({
+            type: 'POST',
+            url: ajaxmarklayerasfeatured,
+            data: {
+                layer_id: dataset_id,
+                is_featured: true
+            },
+            success: function () {
+                window.location.reload();
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                alert(xhr.responseText);
+            }
+        });
+    });
 });
