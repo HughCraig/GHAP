@@ -102,7 +102,7 @@ function getDatasources() {
         datasources.push("3");
     }
     if ($("#searchpublicdatasets").is(":checked")) {
-        datasources.push("1"); 
+        datasources.push("1");
         datasources.push("4");
     }
     return datasources;
@@ -848,6 +848,14 @@ function presetSearchForm() {
     $(".num-places").val(numPlaces);
 }
 
+function hideFeaturedLayerView() {
+    $("#featuredLayerView").empty();
+    $("#featuredLayerView").hide();
+    $('#viewDiv').show();
+    $("#featuredLayersAccordion").collapse("hide");
+    $(".typeFilter-map, .typeFilter-cluster, .typeFilter-list").prop("disabled", false);
+}
+
 /**
  *
  * @param bool isUserSearch. True is user initiated search, false if it trigger by bounding box change
@@ -857,6 +865,8 @@ function presetSearchForm() {
 function searchActions(tlcMap, isUserSearch, viewBbox) {
     var bulkfileinput = document.getElementById("bulkfileinput");
     var CSRF_TOKEN = $("input[name=_token]").val();
+
+    hideFeaturedLayerView();
 
     if (bulkfileinput.value.length) {
         var myFormData = new FormData();
@@ -1092,6 +1102,7 @@ $(document).ready(async function () {
     });
 
     $("#searchpublicdatasets, #searchausgaz, #searchncg").change(function () {
+        hideFeaturedLayerView();
         tlcMap.removeAllPlacesFromFeatureLayer();
         tlcMap.refreshMapPins();
     });
@@ -1102,6 +1113,7 @@ $(document).ready(async function () {
     });
 
     $("#resetbutton").click(function (e) {
+        hideFeaturedLayerView();
         tlcMap.isSearchOn = false;
         tlcMap.ignoreExtentChange = false;
         tlcMap.dataitems = null;
@@ -1175,7 +1187,6 @@ $(document).ready(async function () {
     //Upload kml search behaviour
     $("#polygonkml_search").click(async function (e) {
         e.preventDefault();
-        console.log("polygonkml_search");
 
         const fileInput = document.getElementById("polygonkml");
         const file = fileInput.files[0];
@@ -1368,5 +1379,24 @@ $(document).ready(async function () {
             msgBanner.show();
             $("#newLayerModal .scrollable").scrollTop(0);
         }
+    });
+
+    $(".featuredLayerbutton").on("click", function () {
+        $(".featuredLayerbutton").removeClass("active");
+        $(this).addClass("active");
+
+        const featuredUrl = $(this).data("featured_url");
+
+        // Hide the default map
+        $("#viewDiv").hide();
+        $("#featuredLayerView").empty();
+
+        // Inject or update the iframe inside #featuredLayerView
+        const iframeHtml = `<iframe src="${featuredUrl}" 
+                                 style="width:100%;height:100%;border:none;"></iframe>`;
+
+        $("#featuredLayerView").html(iframeHtml).show();
+
+        $(".typeFilter-map, .typeFilter-cluster, .typeFilter-list").prop("disabled", true);
     });
 });

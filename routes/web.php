@@ -255,6 +255,10 @@ Route::middleware($baseAuthMiddlewares)->group(function () {//must be logged in 
 
     Route::post('ajaxcreatedataitemsfordataset', 'User\UserController@createDataitemsForDataset');
 
+
+    Route::post('ajaxmarklayerasfeatured' , 'Auth\AdminController@marklayerasfeatured');
+    Route::post('ajaxmarkmultilayerasfeatured' , 'Auth\AdminController@markCollectionAsFeatured');
+
     /**
      * Services for collection operations.
      */

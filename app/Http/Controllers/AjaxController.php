@@ -148,7 +148,7 @@ class AjaxController extends Controller
 
         return response()->json([
             'dataitems' => $dataitems,
-            'count' => $count
+            'count' => $count,
         ]);
     }
 

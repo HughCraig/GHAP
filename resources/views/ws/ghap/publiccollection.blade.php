@@ -1,12 +1,17 @@
 @extends('templates.layout')
 
 @push('scripts')
+    <script>
+        var collection_id = {!! $collection->id !!};
+        var ajaxmarkmultilayerasfeatured = "{{url('ajaxmarkmultilayerasfeatured')}}";
+    </script>
     <script src="{{ asset('js/publiccollection.js') }}"></script>
 @endpush
 
 @section('content')
 
     <h2>Multilayer</h2>
+    <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
 
     <!-- Export/Download -->
     <div class="dropdown">
@@ -35,6 +40,29 @@
             </div>
         </div>
     @endif
+
+    @admin
+        @if (isset($collection->featured_url))
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_multilayer_as_unfeatured">
+                Remove featured
+            </button>
+        @else
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedMultiLayerDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Mark as featured
+                </button>
+                <div class="dropdown-menu" aria-labelledby="markAsFeaturedMultiLayerDropdown">
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-3d.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json') }}">3D Viewer</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-cluster.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json') }}">Cluster</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-journey.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?line=route') }}">Journey Route</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-journey.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?line=time') }}">Journey Times</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-timeline.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?sort=start') }}">Timeline</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-werekata.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json') }}">Werekata Flight by Route</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-werekata.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?sort=start') }}">Werekata Flight by Time</a>
+                </div>
+            </div>
+        @endif
+    @endadmin
 
     <!-- Quick Info -->
     <div class="row mt-3">
