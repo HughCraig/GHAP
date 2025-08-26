@@ -135,11 +135,11 @@
         </div>
 
         <div id="featuredLayersAccordion" class="collapse">
-            <div class="container py-4">
+            <div class="p-4">
                 <div class="row justify-content-center">
 
                 @foreach($featuredLayers as $featuredLayer)
-                    <div class="col-5ths ml-4">
+                    <div class="col-5ths ml-4 mb-3">
                         <button type="button"
                                 class="featured-tile featuredLayerbutton"
                                 data-layer-id="{{ $featuredLayer->id }}">
@@ -157,7 +157,7 @@
                 @endforeach
 
                 @foreach($featuredmultilayers as $featuredmultilayer)
-                    <div class="col-5ths ml-4">
+                    <div class="col-5ths ml-4 mb-3">
                         <button type="button"
                                 class="featured-tile featuredLayerbutton"
                                 data-layer-id="{{ $featuredmultilayer['dataset_ids'] }}">
