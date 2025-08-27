@@ -666,11 +666,48 @@ class GazetteerController extends Controller
             }
         }
 
+        // Return dataset or collection info
+        $layer = null;
+        if (isset($parameters['layerID'])) {
+            $res = Dataset::select('id', 'name', 'image_path', 'description', 'warning')
+                ->findOrFail($parameters['layerID']);
+
+            if ($res) {
+                $layer = [
+                    'id'          => $res->id,
+                    'name'        => $res->name,
+                    'description' => $res->description,
+                    'warning'     => $res->warning,
+                    'image_url'   => $res->image_path ? asset('storage/images/' . $res->image_path) : null,
+                    'url'         => url("/publicdatasets/{$res->id}"),
+                ];
+            }
+        }
+        $multilayer = null;
+        if (isset($parameters['multiLayerID'])) {
+            $res = \TLCMap\Models\Collection::select('id','name','image_path','description','warning')
+              ->findOrFail($parameters['multiLayerID']); 
+
+            if ($res) {
+                $multilayer = [
+                    'id'          => $res->id,
+                    'name'        => $res->name,
+                    'description' => $res->description,
+                    'warning'     => $res->warning,
+                    'image_url'   => $res->image_path ? asset('storage/images/' . $res->image_path) : null,
+                    'url'         => url("/publicdatasets/{$res->id}"),
+                ];
+            }
+        }
+      
+
         return [
             'dataitems' => $collection,
             'count' => $totalCount,
             'prev_page' => $prev_page,
             'next_page' => $next_page,
+            'layer' => $layer,
+            'multilayer' => $multilayer
         ];
     }
 

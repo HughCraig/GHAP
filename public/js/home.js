@@ -578,6 +578,8 @@ function continueSearchForm(
 
     updateUrlParameters(data);
     showLoadingWheel("loading places...");
+    tlcMap.view.ui.remove(tlcMap.featuredMultilayerExpand);
+    tlcMap.view.ui.remove(tlcMap.featuredLayersExpand);
 
     $.ajax({
         type: "POST",
@@ -627,6 +629,31 @@ function continueSearchForm(
             }
             hideLoadingWheel();
             bindDownloadLinks(tlcMap);
+
+            if (tlcMap.isShowingFeaturedLayers) {
+                let contentEl;
+                if (response.layer) {
+                    contentEl = buildFeaturedInfoContent(response.layer);
+                } else if (response.multilayer) {
+                    contentEl = buildFeaturedInfoContent(response.multilayer);
+                } else {
+                    return;
+                }
+                tlcMap.featuredLayersExpand.content = contentEl;
+                tlcMap.view.ui.add(tlcMap.featuredLayersExpand, "top-right");
+
+                // Featured multilayer layer
+                if (
+                    tlcMap.isShowingFeaturedMultiLayers &&
+                    tlcMap.featuredMultilayerColorMap
+                ) {
+                    const listEl = buildFeaturedMultilayerList(tlcMap);
+
+                    // If you want it appended under the info panel:
+                    tlcMap.featuredMultilayerExpand.content = listEl;
+                    tlcMap.view.ui.add(tlcMap.featuredMultilayerExpand, "top-left");
+                }
+            }
         },
         error: function (xhr, textStatus, errorThrown) {
             alert(
@@ -636,6 +663,179 @@ function continueSearchForm(
             console.log(xhr.responseText);
         },
     });
+}
+
+function buildFeaturedInfoContent(layer) {
+    const container = document.createElement("div");
+    container.id = "infoDiv";
+
+    // logo
+    const logoLink = document.createElement("a");
+    logoLink.href = "https://www.tlcmap.org";
+    const logo = document.createElement("img");
+    logo.className = "mdicon";
+    logo.src = "https://tlcmap.org/img/tlcmaplogofull_sm50.png";
+    logoLink.appendChild(logo);
+    container.appendChild(logoLink);
+
+    // title (linked)
+    const titleLink = document.createElement("a");
+    titleLink.href = layer.url; // provided by backend
+    titleLink.target = "_blank";
+    const h3 = document.createElement("h3");
+    h3.innerHTML = layer.name;
+    titleLink.appendChild(h3);
+    container.appendChild(titleLink);
+
+    // image (optional)
+    if (layer.image_url) {
+        const img = document.createElement("img");
+        img.alt = "Layer Image";
+        img.src = layer.image_url;
+        container.appendChild(img);
+    }
+
+    // warning (optional)
+    if (layer.warning) {
+        const warn = document.createElement("div");
+        warn.className = "warning-message";
+        warn.innerHTML = `<strong>Warning</strong><br><p>${layer.warning}</p>`;
+        container.appendChild(warn);
+    }
+
+    // description (optional)
+    if (layer.description) {
+        const descWrap = document.createElement("div");
+        const p = document.createElement("p");
+        p.classList.add("mt-4");
+        p.innerHTML = layer.description;
+        descWrap.appendChild(p);
+        container.appendChild(descWrap);
+    }
+
+    if (
+        tlcMap.isShowingFeaturedMultiLayers &&
+        tlcMap.featuredMultilayerColorMap
+    ) {
+        // wrapper
+        const legendContainer = document.createElement("div");
+        legendContainer.className = "legend-container";
+
+        const legend = document.createElement("div");
+        legend.className = "collection-legend";
+
+        Object.entries(tlcMap.featuredMultilayerColorMap)
+            .sort(([, a], [, b]) => (a.name || "").localeCompare(b.name || ""))
+            .forEach(([datasetId, info]) => {
+                const item = document.createElement("div");
+                item.className = "collection-legend-item";
+
+                const swatch = document.createElement("span");
+                swatch.className = "collection-legend-color";
+                swatch.style.backgroundColor = info.color || "#666";
+
+                const name = document.createElement("span");
+                name.className = "collection-legend-name";
+                name.textContent = info.name || String(datasetId);
+
+                item.appendChild(swatch);
+                item.appendChild(name);
+                legend.appendChild(item);
+            });
+
+        legendContainer.appendChild(legend);
+        container.appendChild(legendContainer);
+    }
+
+    // footer links
+    const footer = document.createElement("p");
+    footer.classList.add("mb-0");
+    footer.innerHTML =
+        `<a target="_blank" href="https://docs.tlcmap.org//help/guides/guide/">Help</a> | ` +
+        `<a target="_blank" href="https://docs.tlcmap.org//help/guides/guide/">Share</a>`;
+    container.appendChild(footer);
+
+    return container;
+}
+
+function buildFeaturedMultilayerList(tlcMap) {
+    const wrap = document.createElement("div");
+    wrap.className = "esri-widget esri-widget--panel";
+
+    const ul = document.createElement("ul");
+    ul.className =
+        "esri-layer-list__list esri-layer-list__list--root esri-layer-list__list--independent";
+    ul.setAttribute("aria-label", "Layer List");
+    ul.dataset.group = "root";
+
+    // Sort by name for stable order
+    const entries = Object.entries(
+        tlcMap.featuredMultilayerColorMap || {}
+    ).sort(([, a], [, b]) => (a?.name || "").localeCompare(b?.name || ""));
+
+    entries.forEach(([datasetId, info]) => {
+        const shown = !(
+            tlcMap.hiddenDatasetIds &&
+            tlcMap.hiddenDatasetIds.has(String(datasetId))
+        );
+
+        const li = document.createElement("li");
+        li.className = "esri-layer-list__item";
+
+        const row = document.createElement("div");
+        row.className = "esri-layer-list__item-container";
+
+        const label = document.createElement("div");
+        label.className = "esri-layer-list__item-label";
+        label.tabIndex = 0;
+        label.role = "switch";
+        label.title = shown ? "Hide layer" : "Show layer";
+        label.setAttribute("aria-checked", String(shown));
+        label.dataset.datasetId = String(datasetId);
+
+        // visibility icon
+        const toggle = document.createElement("span");
+        toggle.className = "esri-layer-list__item-toggle";
+        toggle.innerHTML = `<span class="${
+            shown ? "esri-icon-visible" : "esri-icon-non-visible"
+        }" aria-hidden="true"></span>`;
+
+        // color swatch + name
+        const title = document.createElement("span");
+        title.className = "esri-layer-list__item-title";
+        title.title = info?.name || `Dataset ${datasetId}`;
+        title.setAttribute("aria-label", info?.name || `Dataset ${datasetId}`);
+
+        const nameNode = document.createElement("span");
+        nameNode.textContent = info?.name || `Dataset ${datasetId}`;
+        title.appendChild(nameNode);
+
+        // click/keyboard toggle
+        const doToggle = () => {
+            const currentlyShown =
+                label.getAttribute("aria-checked") === "true";
+            const nextShow = !currentlyShown;
+
+            tlcMap.toggleDatasetVisibility(datasetId, nextShow);
+
+            label.setAttribute("aria-checked", String(nextShow));
+            label.title = nextShow ? "Hide layer" : "Show layer";
+            toggle.innerHTML = `<span class="${
+                nextShow ? "esri-icon-visible" : "esri-icon-non-visible"
+            }" aria-hidden="true"></span>`;
+        };
+
+        label.addEventListener("click", doToggle);
+
+        label.appendChild(toggle);
+        label.appendChild(title);
+        row.appendChild(label);
+        li.appendChild(row);
+        ul.appendChild(li);
+    });
+
+    wrap.appendChild(ul);
+    return wrap;
 }
 
 /**
@@ -864,8 +1064,8 @@ function searchActions(tlcMap, isUserSearch, viewBbox) {
     var bulkfileinput = document.getElementById("bulkfileinput");
     var CSRF_TOKEN = $("input[name=_token]").val();
 
-    tlcMap.isShowingFeatureLayers = false;
-    $('#featuredLayersAccordion').collapse('hide');
+    tlcMap.isShowingFeaturedLayers = false;
+    $("#featuredLayersAccordion").collapse("hide");
     $(".featuredLayerbutton").removeClass("active");
 
     if (bulkfileinput.value.length) {
@@ -1104,9 +1304,9 @@ $(document).ready(async function () {
     $("#searchpublicdatasets, #searchausgaz, #searchncg").change(function () {
         tlcMap.removeAllPlacesFromFeatureLayer();
 
-        if(tlcMap.isShowingFeatureLayers){
-            tlcMap.isShowingFeatureLayers = false;
-            $('#featuredLayersAccordion').collapse('hide');
+        if (tlcMap.isShowingFeaturedLayers) {
+            tlcMap.isShowingFeaturedLayers = false;
+            $("#featuredLayersAccordion").collapse("hide");
             $(".featuredLayerbutton").removeClass("active");
             tlcMap.isSearchOn = false;
         }
@@ -1122,12 +1322,12 @@ $(document).ready(async function () {
     $("#resetbutton").click(function (e) {
         tlcMap.isSearchOn = false;
         tlcMap.ignoreExtentChange = false;
-        tlcMap.isShowingFeatureLayers = false;
+        tlcMap.isShowingFeaturedLayers = false;
         tlcMap.dataitems = null;
         tlcMap.graphicsLayer.removeAll();
         tlcMap.removeAllPlacesFromFeatureLayer();
 
-        $('#featuredLayersAccordion').collapse('hide');
+        $("#featuredLayersAccordion").collapse("hide");
         $(".featuredLayerbutton").removeClass("active");
         updateUrlParameters(null);
 
@@ -1196,7 +1396,6 @@ $(document).ready(async function () {
     //Upload kml search behaviour
     $("#polygonkml_search").click(async function (e) {
         e.preventDefault();
-        console.log("polygonkml_search");
 
         const fileInput = document.getElementById("polygonkml");
         const file = fileInput.files[0];
@@ -1395,17 +1594,26 @@ $(document).ready(async function () {
         $(".featuredLayerbutton").removeClass("active");
         $(this).addClass("active");
 
-        const layerId = $(this).data("layer-id");
+        const layersId = $(this).data("layers-id");
         data = {
             limit: 5000,
             searchausgaz: "on",
             searchgeocoder: "on",
-            searchlayers: layerId,
+            searchlayers: layersId,
             searchncg: "on",
-            searchpublicdatasets: "on"
+            searchpublicdatasets: "on",
         };
+
+        tlcMap.isShowingFeaturedLayers = true;
+        if ($(this).data("layerId")) {
+            data.layerID = $(this).data("layerId");
+            tlcMap.isShowingFeaturedMultiLayers = false;
+        } else if ($(this).data("multilayerId")) {
+            data.multiLayerID = $(this).data("multilayerId");
+            tlcMap.isShowingFeaturedMultiLayers = true;
+        }
+
         updateUrlParameters(null);
-        tlcMap.isShowingFeatureLayers = true;
         continueSearchForm(tlcMap, null, null, true, null, data);
     });
 });

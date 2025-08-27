@@ -13,6 +13,7 @@ class TLCMap {
         this.view = null;
         this.featureLayer = null;
         this.graphicsLayer = null;
+        this.popupTemplate = null;
 
         this.totalBboxScanDataitems = null; // Total data items in the bounding box.
         this.bboxDataitems = null; // Data items from drag/zoom. not search results
@@ -27,7 +28,12 @@ class TLCMap {
         this.ignoreExtentChange = true; // Stop refreshing pins when the map extent changes.
         this.placeMarkers = []; // User placed marker for add place.
 
-        this.isShowingFeatureLayers = false; // True if currently showing featured layer(s)
+        this.isShowingFeaturedLayers = false; // True if currently showing featured layer(s)
+        this.isShowingFeaturedMultiLayers = false; // True if currently showing featured multi layer(s)
+        this.featuredLayersExpand = null;
+        this.featuredMultilayerExpand = null;
+        this.visibleDatasets = new Set();
+        this.featuredMultilayerColorMap = {};
 
         this.selectedFeature = null; // The selected feature on the map.
 
@@ -105,6 +111,11 @@ class TLCMap {
             {
                 name: "dataset_name",
                 alias: "Datasource Name",
+                type: "string",
+            },
+            {
+                name: "dataset_color",
+                alias: "Dataset Color",
                 type: "string",
             },
             {
@@ -186,11 +197,12 @@ class TLCMap {
                 name: "updated_at",
                 alias: "Updated At",
                 type: "string",
-            },{
+            },
+            {
                 name: "glycerine_url",
                 alias: "Glycerine Image",
                 type: "string",
-            }
+            },
         ];
     }
 
@@ -222,7 +234,7 @@ class TLCMap {
                 PopupTemplate,
                 Graphic
             ) => {
-                const popupTemplate = this.getPopupTemplate(
+                this.popupTemplate = this.getPopupTemplate(
                     PopupTemplate,
                     this.fields
                 );
@@ -233,54 +245,8 @@ class TLCMap {
                     fields: this.fields,
                     spatialReference: { wkid: 4326 },
                     source: [],
-                    renderer: {
-                        type: "unique-value",
-                        field: "datasource_id",
-                        defaultSymbol: { type: "simple-marker" },
-                        uniqueValueInfos: [
-                            {
-                                value: "GHAP",
-                                symbol: {
-                                    type: "simple-marker",
-                                    color: "#FFD580",
-                                    outline: { color: "white", width: 1 },
-                                },
-                            },
-                            {
-                                value: "ANPS",
-                                symbol: {
-                                    type: "simple-marker",
-                                    color: "orange",
-                                    outline: { color: "white", width: 1 },
-                                },
-                            },
-                            {
-                                value: "NCG",
-                                symbol: {
-                                    type: "simple-marker",
-                                    color: "#FE6A1B",
-                                    outline: { color: "white", width: 1 },
-                                },
-                            },
-                            {
-                                value: "Geocoder",
-                                symbol: {
-                                    type: "simple-marker",
-                                    color: "#FFD580",
-                                    outline: { color: "white", width: 1 },
-                                },
-                            },
-                            {
-                                value: "Unknown",
-                                symbol: {
-                                    type: "simple-marker",
-                                    color: "purple",
-                                    outline: { color: "white", width: 1 },
-                                },
-                            },
-                        ],
-                    },
-                    popupTemplate: popupTemplate,
+                    renderer: this.getDefaultRenderer(),
+                    popupTemplate: this.popupTemplate,
                 });
 
                 this.graphicsLayer = new GraphicsLayer({
@@ -297,6 +263,22 @@ class TLCMap {
                     center: [131.034742, -25.345113],
                     zoom: 3,
                     map: this.map,
+                });
+
+                this.featuredLayersExpand = new Expand({
+                    view: this.view,
+                    collapsedIconClass: "esri-icon-collapse",
+                    expandedIconClass: "esri-icon-expand",
+                    expandTooltip: "Show",
+                    expanded: true,
+                });
+
+                this.featuredMultilayerExpand = new Expand({
+                    view: this.view,
+                    collapsedIconClass: "esri-icon-collapse",
+                    expandedIconClass: "esri-icon-expand",
+                    expandTooltip: "Show",
+                    expanded: true,
                 });
 
                 const sketch = new Sketch({
@@ -332,7 +314,10 @@ class TLCMap {
                     if (existingDiv) {
                         existingDiv.remove();
                     }
-                    if (this.ignoreExtentChange || this.isShowingFeatureLayers) {
+                    if (
+                        this.ignoreExtentChange ||
+                        this.isShowingFeaturedLayers
+                    ) {
                         return;
                     }
 
@@ -417,6 +402,8 @@ class TLCMap {
         ], (projection, SpatialReference) => {
             projection.load().then(() => {
                 if (this.view.extent) {
+                    this.view.ui.remove(this.featuredMultilayerExpand);
+                    this.view.ui.remove(this.featuredLayersExpand);
                     var sr4326 = new SpatialReference({
                         wkid: 4326,
                     });
@@ -517,7 +504,7 @@ class TLCMap {
                         key != "datasource_description" &&
                         key != "dataset_name" &&
                         key != "datasource_link" &&
-                        key != "glycerine_url" 
+                        key != "glycerine_url"
                     ) {
                         content += `<tr>
                             <th>${alias}</th>
@@ -557,18 +544,20 @@ class TLCMap {
         return popupTemplate;
     }
 
-
     bindClickEvent() {
         this.view.popup.watch("selectedFeature", (selectedFeature) => {
             if (selectedFeature && selectedFeature.attributes) {
                 const attributes = selectedFeature.attributes;
-                if(attributes.uid && attributes.latitude && attributes.longitude) {
+                if (
+                    attributes.uid &&
+                    attributes.latitude &&
+                    attributes.longitude
+                ) {
                     this.selectedFeature = attributes;
                 }
             }
         });
     }
-
 
     /**
      * Function to check if the drawn shape is a rectangle.
@@ -837,6 +826,56 @@ class TLCMap {
         this.view.ui.add(locate, "bottom-right");
     }
 
+    getDefaultRenderer() {
+        return {
+            type: "unique-value",
+            field: "datasource_id",
+            defaultSymbol: { type: "simple-marker" },
+            uniqueValueInfos: [
+                {
+                    value: "GHAP",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "#FFD580",
+                        outline: { color: "white", width: 1 },
+                    },
+                },
+                {
+                    value: "ANPS",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "orange",
+                        outline: { color: "white", width: 1 },
+                    },
+                },
+                {
+                    value: "NCG",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "#FE6A1B",
+                        outline: { color: "white", width: 1 },
+                    },
+                },
+                {
+                    value: "Geocoder",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "#FFD580",
+                        outline: { color: "white", width: 1 },
+                    },
+                },
+                {
+                    value: "Unknown",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "purple",
+                        outline: { color: "white", width: 1 },
+                    },
+                },
+            ],
+        };
+    }
+
     /**
      * Render the list view with data items.
      *
@@ -1094,13 +1133,36 @@ class TLCMap {
     addPointsToMap(dataitems, bbox = null) {
         require(["esri/Graphic", "esri/geometry/Extent"], (Graphic, Extent) => {
             let coordinates = [];
+            this.visibleDatasets = new Set();
+            this.featuredMultilayerColorMap = {};
+            this.featureLayer.renderer = this.getDefaultRenderer();
+            this.featureLayer.definitionExpression = null;
 
+            const addPromises = [];
             // Add new points
             dataitems.forEach((dataitem) => {
                 if (this.currentPointIDS.has(dataitem.id)) {
                     return;
                 }
                 this.currentPointIDS.add(dataitem.id);
+                const dataset_id = dataitem.dataset_id;
+
+                // for multilayer layer featured layer view
+                this.visibleDatasets.add(dataitem.dataset_id);
+                if (
+                    this.isShowingFeaturedLayers &&
+                    this.isShowingFeaturedMultiLayers
+                ) {
+                    if (!this.featuredMultilayerColorMap[dataset_id]) {
+                        this.featuredMultilayerColorMap[dataset_id] = {
+                            name: dataitem.dataset.name,
+                            color: this.getRandomColor(),
+                        };
+                    }
+                    // Always use the same color for this dataset_id
+                    dataitem.dataset_color =
+                        this.featuredMultilayerColorMap[dataset_id].color;
+                }
 
                 var point = {
                     type: "point",
@@ -1155,48 +1217,77 @@ class TLCMap {
                 });
 
                 coordinates.push([dataitem.longitude, dataitem.latitude]);
-                this.featureLayer.applyEdits({
-                    addFeatures: [pointGraphic],
-                });
+                addPromises.push(
+                    this.featureLayer.applyEdits({
+                        addFeatures: [pointGraphic],
+                    })
+                );
             });
 
-            //Result from search behavior
-            if (bbox == null) {
-                // Calculate the extent from the coordinates array
-                let xCoords = coordinates.map((coord) => coord[0]);
-                let yCoords = coordinates.map((coord) => coord[1]);
-                let xmin = Math.min(...xCoords);
-                let xmax = Math.max(...xCoords);
-                let ymin = Math.min(...yCoords);
-                let ymax = Math.max(...yCoords);
+            Promise.all(addPromises).then(() => {
+                // for multilayer layer featured layer view
+                if (
+                    this.isShowingFeaturedLayers &&
+                    this.isShowingFeaturedMultiLayers
+                ) {
+                    const colors = Object.values(
+                        this.featuredMultilayerColorMap
+                    ).map((v) => v.color);
+                    const uniqueValueInfos = colors.map((c) => ({
+                        value: c,
+                        symbol: {
+                            type: "simple-marker",
+                            color: c,
+                            outline: { color: "white", width: 1 },
+                        },
+                    }));
 
-                var calculatedExtent = new Extent({
-                    xmin: xmin,
-                    ymin: ymin,
-                    xmax: xmax,
-                    ymax: ymax,
-                    spatialReference: { wkid: 4326 },
-                });
+                    this.featureLayer.renderer = {
+                        type: "unique-value",
+                        field: "dataset_color",
+                        defaultSymbol: { type: "simple-marker" },
+                        uniqueValueInfos: uniqueValueInfos,
+                    };
+                }
 
-                this.ignoreExtentChange = true;
-                this.view.goTo(calculatedExtent).then(() => {
+                //Result from search behavior
+                if (bbox == null) {
+                    // Calculate the extent from the coordinates array
+                    let xCoords = coordinates.map((coord) => coord[0]);
+                    let yCoords = coordinates.map((coord) => coord[1]);
+                    let xmin = Math.min(...xCoords);
+                    let xmax = Math.max(...xCoords);
+                    let ymin = Math.min(...yCoords);
+                    let ymax = Math.max(...yCoords);
+
+                    var calculatedExtent = new Extent({
+                        xmin: xmin,
+                        ymin: ymin,
+                        xmax: xmax,
+                        ymax: ymax,
+                        spatialReference: { wkid: 4326 },
+                    });
+
+                    this.ignoreExtentChange = true;
+                    this.view.goTo(calculatedExtent).then(() => {
+                        this.ignoreExtentChange = false;
+                    });
+                } else {
                     this.ignoreExtentChange = false;
-                });
-            } else {
-                this.ignoreExtentChange = false;
-            }
+                }
 
-            if (this.isSearchOn) {
-                var totalPoints = this.totalSearchCount;
-            } else {
-                var totalPoints = this.totalBboxScanDataitems;
-            }
+                if (this.isSearchOn) {
+                    var totalPoints = this.totalSearchCount;
+                } else {
+                    var totalPoints = this.totalBboxScanDataitems;
+                }
 
-            setListViewDisplayInfo(
-                this.currentPointIDS.size,
-                totalPoints,
-                this
-            );
+                setListViewDisplayInfo(
+                    this.currentPointIDS.size,
+                    totalPoints,
+                    this
+                );
+            });
         });
     }
 
@@ -1216,10 +1307,7 @@ class TLCMap {
 
         this.currentMapType = newMapType;
 
-        require(["esri/layers/FeatureLayer", "esri/PopupTemplate"], (
-            FeatureLayer,
-            PopupTemplate
-        ) => {
+        require(["esri/layers/FeatureLayer"], (FeatureLayer) => {
             this.featureLayer.queryFeatures().then((results) => {
                 this.view.map.layers.forEach((layer) => {
                     if (layer instanceof FeatureLayer) {
@@ -1227,10 +1315,7 @@ class TLCMap {
                     }
                 });
 
-                const popupTemplate = this.getPopupTemplate(
-                    PopupTemplate,
-                    this.fields
-                );
+                let currentRenderer = this.featureLayer.renderer;
 
                 // Create new feature layer with or without clustering
                 this.featureLayer = new FeatureLayer({
@@ -1239,46 +1324,8 @@ class TLCMap {
                     fields: this.fields,
                     spatialReference: { wkid: 4326 },
                     source: [],
-                    renderer: {
-                        type: "unique-value",
-                        field: "datasource_id",
-                        defaultSymbol: { type: "simple-marker" },
-                        uniqueValueInfos: [
-                            {
-                                value: "GHAP",
-                                symbol: {
-                                    type: "simple-marker",
-                                    color: "#FFD580",
-                                    outline: { color: "white", width: 1 },
-                                },
-                            },
-                            {
-                                value: "ANPS",
-                                symbol: {
-                                    type: "simple-marker",
-                                    color: "orange",
-                                    outline: { color: "white", width: 1 },
-                                },
-                            },
-                            {
-                                value: "NCG",
-                                symbol: {
-                                    type: "simple-marker",
-                                    color: "#FE6A1B",
-                                    outline: { color: "white", width: 1 },
-                                },
-                            },
-                            {
-                                value: "Unknown",
-                                symbol: {
-                                    type: "simple-marker",
-                                    color: "purple",
-                                    outline: { color: "white", width: 1 },
-                                },
-                            },
-                        ],
-                    },
-                    popupTemplate: popupTemplate,
+                    renderer: currentRenderer,
+                    popupTemplate: this.popupTemplate,
                     featureReduction:
                         newMapType === "cluster" ? this.clusterConfig : null,
                 });
@@ -1316,5 +1363,41 @@ class TLCMap {
                 console.log(xhr.responseText);
             },
         });
+    }
+
+    /**
+     * Hide or show only features with a given dataset_id
+     * @param {number} datasetId - The dataset_id to filter
+     * @param {boolean} show - true = only show this dataset, false = hide this dataset
+     */
+    toggleDatasetVisibility(datasetId, show) {
+        datasetId = Number(datasetId);
+        if (!this.featureLayer) return;
+
+        if (show) {
+            this.visibleDatasets.add(datasetId);
+        } else {
+            this.visibleDatasets.delete(datasetId);
+        }
+
+        if (this.visibleDatasets.size === 0) {
+            this.featureLayer.definitionExpression = "1=0";
+        } else {
+            const ids = Array.from(this.visibleDatasets)
+                .map((id) => `'${id}'`)
+                .join(",");
+            this.featureLayer.definitionExpression = `dataset_id IN (${ids})`;
+        }
+    }
+
+    getRandomColor() {
+        const r = Math.floor(100 + Math.random() * 155);
+        const g = Math.floor(100 + Math.random() * 155);
+        const b = Math.floor(100 + Math.random() * 155);
+
+        // convert each to 2-digit hex and join
+        const toHex = (c) => c.toString(16).padStart(2, "0");
+
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     }
 }

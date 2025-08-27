@@ -138,6 +138,8 @@ class AjaxController extends Controller
         $res = GazetteerController::searchDataitems($parameters);
         $dataitems = $res['dataitems'];
         $count = $res['count'];
+        $layer = $res['layer'];
+        $multilayer = $res['multilayer'];
 
         foreach ($dataitems as $dataitem) {
             $dataitem->extended_data = $dataitem->extDataAsHTML();
@@ -148,7 +150,9 @@ class AjaxController extends Controller
 
         return response()->json([
             'dataitems' => $dataitems,
-            'count' => $count
+            'count' => $count,
+            'layer' => $layer,
+            'multilayer' => $multilayer
         ]);
     }
 
