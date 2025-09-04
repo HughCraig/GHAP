@@ -665,12 +665,12 @@ class GazetteerController extends Controller
                 $collection = $collection->shuffle()->take($limit);
             }
         }
-
+      
         return [
             'dataitems' => $collection,
             'count' => $totalCount,
             'prev_page' => $prev_page,
-            'next_page' => $next_page,
+            'next_page' => $next_page
         ];
     }
 

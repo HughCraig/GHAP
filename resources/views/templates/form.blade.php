@@ -89,6 +89,11 @@
                     </button>
                 </div>
 
+                <div class="d-flex">
+                    <a id="featuredLayersButton" href="#featuredLayersAccordion" data-toggle="collapse" style="color:white"><button class="btn btn-primary">Featured Layers<i class="fa fa-chevron-down pl-2"></i></button></a>
+                </div>
+
+
                 <div class="d-flex" style="align-items: center;">
 
                     <label data-toggle="tooltip" title="" class="d-flex mb-0 mr-3 datasource-filter btn" style="background-color: orange;" data-original-title="Official Australian Placenames">
@@ -129,7 +134,51 @@
             </div>
         </div>
 
-          <!-- Advanced Search and Filter -->
+        <div id="featuredLayersAccordion" class="collapse">
+            <div class="p-4">
+                <div class="row justify-content-center">
+
+                @foreach($featuredLayers as $featuredLayer)
+                    <div class="col-3 mb-3 d-flex justify-content-center">
+                        <button type="button"
+                                class="featured-tile featuredLayerbutton"
+                                data-featured_url="{{ $featuredLayer->featured_url }}">
+                            <div class="thumb">
+                                @if(!empty($featuredLayer->image_path))
+                                    <img src="{{ asset('storage/images/' . $featuredLayer->image_path) }}"
+                                        alt="{{ $featuredLayer->name }}">
+                                @else
+                                    <img src="{{ asset('img/tlcmap_main.png') }}">
+                                @endif
+                            </div>
+                            <div class="label">{{ $featuredLayer->name }}</div>
+                        </button>
+                    </div>
+                @endforeach
+
+                @foreach($featuredmultilayers as $featuredmultilayer)
+                    <div class="col-3 mb-3 d-flex justify-content-center">
+                        <button type="button"
+                                class="featured-tile featuredLayerbutton"
+                                data-featured_url="{{ $featuredmultilayer->featured_url }}">
+                            <div class="thumb">
+                            @if(!empty($featuredmultilayer->image_path))
+                                <img src="{{ asset('storage/images/' . $featuredmultilayer->image_path) }}"
+                                    alt="{{ $featuredmultilayer->name }}">
+                            @else
+                                <img src="{{ asset('img/tlcmap_main.png') }}">
+                            @endif
+                            </div>
+                            <div class="label">{{ $featuredmultilayer->name }}</div>
+                        </button>
+                    </div>
+                @endforeach
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Search and Filter -->
         <div id="advancedaccordion" class="collapse">
             <div class="d-flex justify-content-center w3-light-grey pb-4">
                 <!-- Filters -->
@@ -414,6 +463,9 @@
     <!-- Map Area Display -->
     <div class="map-view">
         <div id="viewDiv">
+        </div>
+
+        <div id="featuredLayerView" style="display: none;">
         </div>
     </div>
 

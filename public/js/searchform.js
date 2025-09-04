@@ -115,6 +115,16 @@ $(document).ready(function () {
             .removeClass('fa-chevron-up')
             .addClass('fa-chevron-down');
     });
+    $('#featuredLayersAccordion').on('show.bs.collapse', function () {
+        $('#featuredLayersButton').find('i.fa')
+            .removeClass('fa-chevron-down')
+            .addClass('fa-chevron-up');
+    });
+    $('#featuredLayersAccordion').on('hide.bs.collapse', function () {
+        $('#featuredLayersButton').find('i.fa')
+            .removeClass('fa-chevron-up')
+            .addClass('fa-chevron-down');
+    });
 
     // Expand the advanced search tab if it's specified in the URL fragment
     if (window.location.hash === '#advancedsearch') {

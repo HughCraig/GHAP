@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use TLCMap\Mail\PasswordChanged;
+use TLCMap\Models\Dataset;
+use TLCMap\Models\Collection;
 
 class AdminController extends Controller
 {
@@ -161,4 +163,83 @@ class AdminController extends Controller
         $user->delete();
         return response()->json();
     }
+
+    /**
+     * Mark a dataset as featured or unfeatured
+     * 
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function marklayerasfeatured(Request $request)
+    {
+        // Admin or superuser
+        $request->user()->authorizeRoles(['ADMIN', 'SUPER_ADMIN']);  
+
+        // Validation
+        $validated = $request->validate([
+            'layer_id'     => 'required|integer',
+            'featured_url' => 'nullable|string',
+        ]);
+
+        $id = $validated['layer_id'];
+        $ds = Dataset::find($id);
+
+        if (!$ds) {
+            return response()->json(['error' => 'Dataset not found'], 404);
+        }
+
+        if (!empty($validated['featured_url'])) {
+            // Mark as featured
+            $ds->featured_url = $validated['featured_url'];
+            $ds->public       = true; // ensure public
+        } else {
+            // Remove featured
+            $ds->featured_url = null;
+        }
+
+        $ds->save();
+
+        return response()->json(['success' => 'Dataset updated successfully']);
+    }
+
+    /**
+     * Mark a mlutilayer as featured or unfeatured
+     * 
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function markCollectionAsFeatured(Request $request)
+    {
+        // Admin or superuser
+        $request->user()->authorizeRoles(['ADMIN', 'SUPER_ADMIN']);
+
+        // Validation
+        $validated = $request->validate([
+            'collection_id' => 'required|integer',
+            'featured_url'  => 'nullable|string',
+        ]);
+
+        $id = $validated['collection_id'];
+        $collection = Collection::find($id);
+
+        if (!$collection) {
+            return response()->json(['error' => 'Collection not found'], 404);
+        }
+
+        if (!empty($validated['featured_url'])) {
+            // Mark as featured
+            $collection->featured_url = $validated['featured_url'];
+            $collection->public       = true; // ensure public
+        } else {
+            // Remove featured
+            $collection->featured_url = null;
+        }
+
+        $collection->save();
+
+        return response()->json(['success' => 'Collection updated successfully']);
+    }
+
 }

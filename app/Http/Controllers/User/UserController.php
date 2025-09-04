@@ -737,8 +737,22 @@ class UserController extends Controller
 
             if (!empty($culled_array)) { //ignore empties
                 $dataitemUID = $arr[$i]['ghap_id'] ?? null;
+                if (isset($culled_array['dataset_order']) && $culled_array['dataset_order'] === '') {
+                    unset($culled_array['dataset_order']);
+                    $assignLastDatasetOrder = true;
+                } else {
+                    $assignLastDatasetOrder = false;
+                }
                 $dataitemProperties = array_merge(array('dataset_id' => $ds_id), $culled_array);
-                $res[] = $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
+                $dataitem = $this->createOrUpdateDataitem($dataitemProperties, $dataitemUID);
+                // If dataset_order was empty, set it to the last value
+                if ($assignLastDatasetOrder) {
+                    $maxOrder = Dataitem::where('dataset_id', $ds_id)->max('dataset_order');
+                    $dataitem->dataset_order = is_null($maxOrder) ? 0 : $maxOrder + 1;
+                    $dataitem->save();
+                }
+
+                $res[] = $dataitem;
             }
 
         }

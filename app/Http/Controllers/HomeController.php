@@ -4,6 +4,7 @@ namespace TLCMap\Http\Controllers;
 
 use TLCMap\Models\Dataitem;
 use TLCMap\Models\Dataset;
+use TLCMap\Models\Collection;
 use TLCMap\Models\Datasource;
 use TLCMap\Models\RecordType;
 use Illuminate\Support\Facades\Auth;
@@ -71,6 +72,14 @@ class HomeController extends Controller
             }
         }
 
+        // featured layers
+        $featuredLayers = Dataset::where('featured_url', '!=', null)
+        ->get(['id', 'name' ,'image_path' , 'featured_url']); 
+
+        // featured collections
+        $featuredmultilayers = Collection::where('featured_url', '!=', null)
+        ->get(['id', 'name' ,'image_path' , 'featured_url']);
+
         return view('ws.ghap.places.index', [
             'lgas' => $lgas,
             'feature_terms' => $feature_terms,
@@ -81,7 +90,9 @@ class HomeController extends Controller
             'datasources' => $datasources,
             'layers' => $layers,
             'userLayers' => $userLayers,
-            'recordTypeMap' => $recordTypeMap
+            'recordTypeMap' => $recordTypeMap,
+            'featuredLayers' => $featuredLayers,
+            'featuredmultilayers' => $featuredmultilayers
         ]);
     }
 

@@ -12,6 +12,7 @@
         var ajaxeditdataitem = "{{url('ajaxeditdataitem')}}";
         var ajaxdeletedataitem = "{{url('ajaxdeletedataitem')}}";
         var ajaxchangedataitemorder = "{{url('ajaxchangedataitemorder')}}";
+        var ajaxmarklayerasfeatured = "{{url('ajaxmarklayerasfeatured')}}";
 
         var lgas = {!! $lgas !!};
         var feature_terms = {!! $feature_terms !!};
@@ -126,6 +127,33 @@
             <a class="dropdown-item grab-hover" href="{{url()->full()}}/closenessanalysis">Closeness Analysis</a>
         </div>
     </div>
+
+   @admin
+        @if (isset($ds->featured_url))
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_layer_as_unfeatured">
+                Remove featured
+            </button>
+        @else
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedLayerDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Mark as featured
+                </button>
+                <div class="dropdown-menu" aria-labelledby="markAsFeaturedLayerDropdown">
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json') }}">3D Viewer</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/cluster.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json') }}">Cluster</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/journey.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?line=route') }}">Journey Route</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/journey.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?line=time') }}">Journey Times</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/timeline.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?sort=start') }}">Timeline</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/werekata.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json') }}">Werekata Flight by Route</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/werekata.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?sort=start') }}">Werekata Flight by Time</a>
+                    @if ($ds->recordtype->type == 'Text' && $ds->text)
+                        <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/fulltext.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?textmap=true') }}">Full Text</a>
+                    @endif
+                </div>
+
+            </div>
+        @endif
+    @endadmin
     
     <!-- Quick Info -->
     <div class="row mt-3">
