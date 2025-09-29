@@ -10,7 +10,7 @@
         <span tabindex="0" data-html="true"
               data-animation="true"
               class="glyphicon glyphicon-question-sign"
-              data-toggle="tooltip"
+              data-bs-toggle="tooltip"
               data-placement="right"
               style="font-size:16px"
               title="Multilayers are contributed by many authors. They may be incomplete or imprecise. Check the multilayer for details about the source.">
@@ -33,7 +33,7 @@
                     @if (!empty(config('app.views_root_url')))
                         <!-- Visualise-->
                         <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 🌏 View Maps...
                             </button>
                             <div class="dropdown-menu" aria-labelledby="visualiseDropdown">

@@ -1,7 +1,7 @@
 <span tabindex="0" data-html="true"
       data-animation="true"
       class="glyphicon glyphicon-question-sign"
-      data-toggle="tooltip"
+      data-bs-toggle="tooltip"
       data-placement="right"
       style="font-size:16px"
       title="<ul>

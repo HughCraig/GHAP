@@ -15,7 +15,7 @@
 
     <!-- Export/Download -->
     <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Download
         </button>
         <div class="dropdown-menu" aria-labelledby="downloadDropdown">
@@ -26,7 +26,7 @@
     @if (!empty(config('app.views_root_url')))
         <!-- Visualise-->
         <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             🌏 View Maps...
             </button>
             <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
@@ -48,7 +48,7 @@
             </button>
         @else
             <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedMultiLayerDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedMultiLayerDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Mark as featured
                 </button>
                 <div class="dropdown-menu" aria-labelledby="markAsFeaturedMultiLayerDropdown">
@@ -147,7 +147,7 @@
                         @if (!empty(config('app.views_root_url')))
                             <!-- Visualise-->
                             <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     🌏 View Maps...
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
@@ -180,7 +180,7 @@
                         @if (!empty(config('app.views_root_url')))
                             <!-- Visualise-->
                             <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     🌏 View Maps...
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="visualiseDropdown">

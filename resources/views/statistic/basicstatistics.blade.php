@@ -19,7 +19,7 @@
     </button>
 
     <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Download
         </button>
         <div class="dropdown-menu" aria-labelledby="downloadDropdown">
@@ -42,7 +42,7 @@
             @foreach($statistic as $stat)
             <tr>
                 <td>
-                    <div data-toggle="tooltip" title="{{ $stat['explanation'] }}">
+                    <div data-bs-toggle="tooltip" title="{{ $stat['explanation'] }}">
                         {{ $stat['name'] }}
                     </div>
                 </td>

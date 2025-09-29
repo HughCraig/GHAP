@@ -10,9 +10,7 @@
                 <h3 class="modal-title" id="exampleModalLabel">
                     Edit Glycerine Image
                 </h3>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body scrollable">
                 <div class="scrollable">
@@ -31,7 +29,7 @@
             <div class="modal-footer">
                 <span class="text-danger">* required fields</span>
                 <button type="button" class="btn btn-primary" id="edit_glycerine_image_submit">Add Glycerine Image</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="edit_glycerine_image_close">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="edit_glycerine_image_close">Close</button>
             </div>
         </div>
     </div>

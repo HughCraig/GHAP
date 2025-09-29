@@ -1,5 +1,5 @@
-<button type="button" class="mt-3 mb-3 btn btn-primary" data-toggle="modal" data-target="#bulkaddModal">Import source</button>
-<span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right"
+<button type="button" class="mt-3 mb-3 btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkaddModal">Import source</button>
+<span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right"
                         title="You can add points one by one, or upload a CSV, KML or GeoJSON file to import many points.">
 </span>
 <!-- MODAL popup -->
@@ -11,9 +11,7 @@
                     Upload File
                     @include('templates.misc.contentdisclaimer')
                 </h3>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{url('bulkadddataitem')}}" method="post" enctype="multipart/form-data">
             <div class="modal-body">
@@ -36,7 +34,7 @@
             </div>
             <div class="modal-footer">
                 <input class="btn btn-primary" type="submit" value="Upload File" name="submit">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </form>
         </div>

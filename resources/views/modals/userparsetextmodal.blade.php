@@ -23,7 +23,7 @@
                     <div class="d-flex" style="align-items: center;">
                         <h4 class="font-weight-bold">Geoparsing Method</h4>
                         <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign pl-2"
-                            data-toggle="tooltip" data-placement="right"
+                            data-bs-toggle="tooltip" data-placement="right"
                             title="This step detects words that seem to be place names. BERT detects any placename. Dictionary allows you to detect only the place names you specify."></span>
                     </div>
                     <select id="parsing_method" class="mb-4 w3-white form-control">
@@ -37,7 +37,7 @@
                     <div class="d-flex" style="align-items: center;">
                         <h4 class="font-weight-bold">Geocoding Method</h4>
                         <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign pl-2"
-                            data-toggle="tooltip" data-placement="right"
+                            data-bs-toggle="tooltip" data-placement="right"
                             title="Having identified placenames, this step finds coordinates for them. The Google method sends the text but not your details to Google."></span>
                     </div>
                     <select id="geocoding_method" class="mb-4 w3-white form-control">
@@ -50,7 +50,7 @@
                     <div class="d-flex" style="align-items: center;">
                         <h4 class="font-weight-bold">Geocoding Bias</h4>
                         <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign pl-2"
-                            data-toggle="tooltip" data-placement="right"
+                            data-bs-toggle="tooltip" data-placement="right"
                             title="Many Australian placenames occur in other countries. Bias to Australia for texts set in Australia, or choose Global or another country as needed."></span>
                     </div>
 

@@ -483,12 +483,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content position-relative">
                 <!-- Close button -->
-                    <button type="button" 
-                            class="btn btn-close" 
-                            data-dismiss="modal" 
-                            aria-label="Close">
-                            <i class="fa fa-times"></i>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="embed-responsive embed-responsive-16by9">
                     <iframe class="embed-responsive-item" src="{{ config('app.help_video_url') }}" title="GHAP Help Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>

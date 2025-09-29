@@ -39,7 +39,7 @@
         {{ Form::open(array('route' => 'editUserPassword')) }}
         @csrf
         <h2 class="d-inline-block">Password</h2>              
-        <span tabindex="0" data-html="true" data-animation="true" class="mb-4 glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" 
+        <span tabindex="0" data-html="true" data-animation="true" class="mb-4 glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" 
                 title="Password must have 10 or more characters, <br>contain a lowercase letter, uppercase letter, number, and special character,
                     <br>must not contain any part of your name or email address,<br>and must not contain any character repeated more than 3 times.">
         </span>

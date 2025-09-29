@@ -16,7 +16,7 @@
 
     <!-- Export/Download -->
     <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Download
         </button>
         <div class="dropdown-menu" aria-labelledby="downloadDropdown">
@@ -29,7 +29,7 @@
 
     <!-- Web Services Feed -->
     <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             WS Feed
         </button>
         <div class="dropdown-menu" aria-labelledby="wsfeedDropdown">
@@ -42,7 +42,7 @@
     @if (!empty(config('app.views_root_url')))
         <!-- Visualise-->
         <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             🌏 View Maps...
             </button>
             <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
@@ -70,7 +70,7 @@
     @if ($ds->public)
     <!-- Basic Statistics Feed -->
     <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="analyseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Analyse
         </button>
         <div class="dropdown-menu" aria-labelledby="analyseDropdown">
@@ -90,7 +90,7 @@
             </button>
         @else
             <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedLayerDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedLayerDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Mark as featured
                 </button>
                 <div class="dropdown-menu" aria-labelledby="markAsFeaturedLayerDropdown">
@@ -196,7 +196,7 @@
                             @elseif(isset($data->dataset->recordtype_id))<dt>Type</dt><dd>{{$data->dataset->recordtype->type}}</dd>
                             @endif
                             <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     🌏 View Maps...
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">

@@ -1003,7 +1003,7 @@ $.ajaxSetup({
                 switchMapType.setAttribute("tabindex", "0");
                 switchMapType.setAttribute("data-html", "true");
                 switchMapType.setAttribute("data-animation", "true");
-                switchMapType.setAttribute("data-toggle", "tooltip");
+                switchMapType.setAttribute("data-bs-toggle", "tooltip");
                 switchMapType.setAttribute("data-placement", "top");
                 switchMapType.setAttribute("title", "Switch Map type");
 

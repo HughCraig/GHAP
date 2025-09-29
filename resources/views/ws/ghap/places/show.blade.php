@@ -24,7 +24,7 @@
 
                 <!-- Export/Download -->
                 <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Download
                     </button>
                     <div class="dropdown-menu" aria-labelledby="downloadDropdown">
@@ -37,7 +37,7 @@
 
                 <!-- Web Services Feed -->
                 <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         WS Feed
                     </button>
                     <div class="dropdown-menu" aria-labelledby="wsfeedDropdown">
@@ -49,7 +49,7 @@
 
                 @if (!empty(config('app.views_root_url')))
                     <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         &#x1F30F View Maps...
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
