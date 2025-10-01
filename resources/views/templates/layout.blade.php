@@ -242,6 +242,8 @@
   </li>
   <li class="nav-item d-lg-none">
     <a class="nav-link" href="https://docs.tlcmap.org">About</a>
+  </li><li class="nav-item d-lg-none">
+    <a class="nav-link" href="https://tlcmap.org">Home</a>
   </li>
 
   @endguest
@@ -257,75 +259,6 @@
 </ul>
 
 
-
-
-
-
-      
-      <!--
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      <ul class="navbar-nav ms-auto align-items-lg-center">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            My Maps
-          </a>
-		  <ul class="dropdown-menu dropdown-menu-end tlcmgreen">
-            <li><a class="dropdown-item" href="{{ url('myprofile/mydatasets') }}">My layers</a></li>
-            <li><a class="dropdown-item" href="{{ url('myprofile/mycollections') }}">My multilayers</a></li>
-            <li><a class="dropdown-item" href="{{ url('myprofile/mytexts') }}">My texts</a></li>
-			<li><a class="dropdown-item" href="{{ url('myprofile/mysearches') }}">My searches</a></li>
-          </ul>
-        </li>
-
-        <li class="nav-item dropdown me-lg-2">
-            @guest
-            <ul class="dropdown-menu dropdown-menu-end tlcmgreen">
-            <li><a class="dropdown-item" href="{{ url('register') }}">Register</a></li>
-            <li><a class="dropdown-item" href="{{ url('login') }}">Log in</a></li>
-            </ul>
-            @else
-
-
-        
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            {{ Auth::user()->name }}
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end tlcmgreen">
-            <li><a class="dropdown-item" href="{{ url('myprofile') }}">My profile</a></li>
-            @admin
-            <li><a class="dropdown-item" href="{{ url('admin') }}">Admin</a></li>
-            @endadmin
-            <li><a class="dropdown-item" href="{{ url('logout') }}" onclick="event.preventDefault();
-					document.getElementById('logout-form').submit();">Log out</a>
-          </ul>
-
-          @endguest
-
-        </li>
-
-        <!-- Small-screen burger menu, right  
-        <li class="nav-item dropdown d-lg-none">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="More">
-            Help
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end tlcmgreen">
-            <li><a class="dropdown-item" href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Guide</a></li>
-            <li><a class="dropdown-item" href="{{ config('app.tlcmap_doc_url') }}">About</a></li>
-          </ul>
-        </li>
-
-        <!-- Large screen burger with its own dropdown, far right ... see offcanvas menu 
-        <li class="nav-item d-none d-lg-block">
-		  <button class="btn nav-link p-2" type="button"
-				  data-bs-toggle="offcanvas" data-bs-target="#moreMenu"
-				  aria-controls="moreMenu" aria-label="More">
-			<span class="navbar-toggler-icon"></span>
-		  </button>
-		</li>
-      </ul>
-
-
-      -->
 	  
 	  <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                         @csrf

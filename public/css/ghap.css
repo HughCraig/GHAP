@@ -681,6 +681,10 @@ span.bi-question-circle a {
   cursor: help;              /* nice affordance for tooltips */
 }
 
+.tlcmyellow {
+    background-color: #FFD580;
+}
+
 .tlcmorange {
     background-color: #F29469;
 }
@@ -789,6 +793,10 @@ div#mainnav {
     }
 }
 
+/* spacing between nav and page heading etc */
+.tlcmapcontainer {
+    margin-top: 16px;
+}
 .tlcmapcontainer .container {
     width: 100%;
 }

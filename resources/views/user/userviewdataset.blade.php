@@ -31,7 +31,7 @@
 @section('content')
 
     <h2>View Layer</h2>
-    <a href="{{url('myprofile/mydatasets')}}" class="btn btn-primary">Back</a>
+    
     
     @if($ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'OWNER') 
 

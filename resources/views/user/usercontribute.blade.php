@@ -45,7 +45,7 @@
     @include('modals.contributesourcemodal')
 
     <h2>
-        Contribute
+        Add Map
         @include('templates.misc.contentdisclaimer')
     </h2>
 
@@ -55,7 +55,7 @@
         <div class="mb-5" style="font-size: 1.5em; font-weight: 900;">
             1. Layer details
         </div>
-
+        <p>To add places and information to the map, first create your own map layer to put places in.
         <div class="mb-4">
             *Layer name
             <input type="text" class="mb-2 w3-white form-control" id="layername" required />
@@ -76,9 +76,17 @@
 
     <div class="p-4 mt-4 mb-5" style="border: 1.5px solid black;">
         <div style="font-size: 1.5em; font-weight: 900;">  
-            2. Source
+            2. Source File
         </div>
-        
+        <p>Upload a file of map data or skip to add places one by one after the layer is created. 
+        Add new places to your layer in any of these ways:
+        <ul>
+            <li>click the <span class="esri-icon-map-pin tlcmyellow" style="padding: 2px;"></span> icon at bottom right of the main map on the homepage 
+            </li><li>right click anywhere on the main map or click a dot
+            </li><li>find and edit your layer under 'My Layers' in the menu
+            </li><li>upload a file of map data
+            </li>
+        </ul>
         <div id="layersource" class="collapse" class="container-fluid border">
             <button class="m-4 p-4 btn btn-primary" id="source">Source</button>
 
@@ -86,6 +94,9 @@
 
             <div>
                 <button class="m-4 p-4 btn btn-secondary" href="#layerotherinfo" data-bs-toggle="collapse">Next</button>
+            </div>
+            <div>
+                <button class="m-4 p-4 btn btn-secondary" href="#layerotherinfo" data-bs-toggle="collapse">Skip</button>
             </div>
         </div>
 
@@ -96,7 +107,7 @@
         <div style="font-size: 1.5em; font-weight: 900;">  
                 3. Other information
         </div>
-
+        <p>These details are not required but useful. You can always update this later.
         <div id="layerotherinfo" class="collapse" class="container-fluid border">
             <div class="row">
                 <div class="col-lg p-5">
