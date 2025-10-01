@@ -190,7 +190,7 @@
                                 <!-- All filter section -->
                                 <p class="h4">
                                     Filters
-                                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" style="font-size:14px" title="Some records may not be comprehensively tagged. Tags for records may differ between states.">
+                                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Some records may not be comprehensively tagged. Tags for records may differ between states.">
                                     </span>
                                 </p>
 
@@ -336,7 +336,7 @@
                                 <div class="row align-items-center my-auto mb-1">
                                     <div class="col-sm-8 pl-0" data-bs-toggle="tooltip">
                                         Search Description
-                                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" title="Also search Description field"></span>
+                                        <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="Also search Description field"></span>
                                     </div>
                                     <div class="col-sm-4">
                                         <input type="checkbox" id="searchdescription" name="searchdescription">
@@ -362,7 +362,7 @@
 
                             <p class="h4">
                                 Search within region
-                                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" style="font-size:14px" title="Use the shapes at top right of the map to draw a region on the map, or provide details below.">
+                                <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Use the shapes at top right of the map to draw a region on the map, or provide details below.">
                                 </span>
                             </p>
 
@@ -414,7 +414,7 @@
                             <div class="bulk-placename-search">
                                 <h4>
                                     Search for a list of place names
-                                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" style="font-size:14px" title="Upload a file containing a list of place names, either one per line or separated by commas.">
+                                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Upload a file containing a list of place names, either one per line or separated by commas.">
                                     </span>
                                 </h4>
 
@@ -429,7 +429,7 @@
                             <div class="kml-search">
                                 <h4>
                                     Search within a KML polygon
-                                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" style="font-size:14px" title="Upload a KML file specifying a polygon. No visualisation. Downloadable results only.">
+                                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Upload a KML file specifying a polygon. No visualisation. Downloadable results only.">
                                     </span>
                                 </h4>
                                 <!-- MODAL Search within kml polygon from file

@@ -34,12 +34,12 @@
                     <input type="text" class="smallerinputs w3-white form-control" id="save_search_name" />
 
                     <br>Description<label class="text-danger">*</label>
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" title="A short paragraph summarising the search. Anything not covered by other fields can be added here."></span>
+                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="A short paragraph summarising the search. Anything not covered by other fields can be added here."></span>
                     <textarea id="save_search_description" rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control wysiwyg-editor"></textarea>
 
                     @if(isset($recordtypes) && count($recordtypes) > 0)
                         <br>Search Type
-                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" title="The type of information in this search. If the type is mixed, use ‘other’."></span>
+                        <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="The type of information in this search. If the type is mixed, use ‘other’."></span>
                         <select class="w3-white form-control mb-2" id="save_search_recordtype">
                             @foreach($recordtypes as $type)
                                 @if(isset($type) && isset($type->type) )
@@ -50,15 +50,15 @@
                     @endif
 
                     <br>Subject (keywords)
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" title="Type and press enter to create keywords describing this search."></span>
+                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="Type and press enter to create keywords describing this search."></span>
                     <input id="save_search_tags" name="tags" type="text" class="smallerinputs mb-2 w3-white form-control" style="height: 50px;" />
 
                     <br>Content Warning
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" title="Anything the viewer should be aware of before viewing information in this search, such as that the content may distress some viewers."></span>
+                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="Anything the viewer should be aware of before viewing information in this search, such as that the content may distress some viewers."></span>
                     <textarea id="save_search_warning" rows="3" maxlength="1500" class="w-100 mb-2 w3-white form-control wysiwyg-editor"></textarea>
 
                     <br>Spatial Coverage
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" title="The latitude and longitude of the ‘bounding box’ for the area covered by this layer."></span>
+                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="The latitude and longitude of the ‘bounding box’ for the area covered by this layer."></span>
                     <div class="border p-3 mb-3">
                         from latitude: <input type="text" class="mb-2 w3-white form-control" id="save_search_latitudefrom" />
                         from longitude: <input type="text" class="mb-2 w3-white form-control" id="save_search_longitudefrom" />
@@ -67,7 +67,7 @@
                     </div>
 
                     <br>Temporal Coverage
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right" title="The date range covered by the information in this layer."></span>
+                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="The date range covered by the information in this layer."></span>
                     <div class="border p-3 mb-3">
                         <div class="input-group date" id="temporalfromdiv">
                             From: <input type="text" class="mb-2 w3-white form-control input-group-addon" id="save_search_temporalfrom" autocomplete="off" />

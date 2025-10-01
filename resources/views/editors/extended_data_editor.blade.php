@@ -1,6 +1,6 @@
 <div class="extended-data-editor">
     <label>Extended Data</label>
-    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right"
+    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
           title="For advanced use, you can add any kind of data to places as key-value pairs. When importing and exporting this data is in columns under headings.">
     </span>
     <table class="table table-striped">

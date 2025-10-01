@@ -28,7 +28,7 @@
                 <input class="mr-2" type="radio" name="source" value="json"> GeoJSON
                 <input class="ml-4 mr-2" type="radio" name="source" value="kml"> KML
                 <input class="ml-4 mr-2" type="radio" name="source" value="csv"> CSV
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign ml-1" id="sourceguide" data-bs-toggle="tooltip" data-placement="right"
+                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="glyphicon glyphicon-question-sign ml-1" id="sourceguide" data-bs-toggle="tooltip" data-bs-placement="right"
                     title="Required Fields/Columns: 'title' or 'placename', 'latitude', 'longitude'
                         Recommended Fields/Columns: description, datestart, dateend, linkback (a link to this record on another website)"></span>
                 <input class="ml-4 mr-2" type="radio" name="source" value="text"> Text

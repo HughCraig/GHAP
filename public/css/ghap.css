@@ -670,11 +670,15 @@ input[type=text] {
 /*
  *  * style the info shown when someone clicks a question mark
  *   */
-span.glyphicon {
+
+span.bi-question-circle a {
+    text-decoration: underline;
 }
 
-span.glyphicon a {
-    text-decoration: underline;
+.bi.bi-question-circle {
+  display: inline-block;     /* ensures vertical-align applies consistently */
+  vertical-align: super;     /* bumps it up like <sup> */
+  cursor: help;              /* nice affordance for tooltips */
 }
 
 .tlcmorange {

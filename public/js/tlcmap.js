@@ -731,10 +731,10 @@ class TLCMap {
         addPlace.className =
             "esri-icon-map-pin esri-widget--button esri-widget esri-interactive";
         addPlace.setAttribute("tabindex", "0");
-        addPlace.setAttribute("data-html", "true");
-        addPlace.setAttribute("data-animation", "true");
+        addPlace.setAttribute("data-bs-html", "true");
+        addPlace.setAttribute("data-bs-animation", "true");
         addPlace.setAttribute("data-bs-toggle", "tooltip");
-        addPlace.setAttribute("data-placement", "top");
+        addPlace.setAttribute("data-bs-placement", "top");
         addPlace.setAttribute("title", "Add Place To TLCMap");
 
         $(addPlace).tooltip();

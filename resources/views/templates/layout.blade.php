@@ -39,6 +39,9 @@
     <!-- Bootstrap min css-->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 
+    <!-- Bootstrap icons for inline help css-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     <!-- Google font -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 
@@ -168,7 +171,7 @@
       <ul class="navbar-nav me-auto">
         <li class="nav-item"><a class="nav-link" href="{{ url('layers') }}">Layers</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url('multilayers') }}">Multilayers</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url('contribute') }}">Add To Map</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url('contribute') }}">Add Map</a></li>
       </ul>
 
       <!-- Right: logged in menu -->
@@ -367,7 +370,7 @@
         <div id="moreGroup1" class="accordion-collapse collapse" data-bs-parent="#moreAccordion">
           <div class="accordion-body p-0">
             <ul class="list-unstyled mb-0">
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Add To Map</a></li>
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Add Map</a></li>
               <li><a class="dropdown-item py-2 px-3" href="https://quicktools.tlcmap.org/">Quick Tools</a></li>
 			  <li><a class="dropdown-item py-2 px-3" href="https://www.researchobject.org/ro-crate/">RO-Crate</a></li>
 			  <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/core-data/">Core Data</a></li>

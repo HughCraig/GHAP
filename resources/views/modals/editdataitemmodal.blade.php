@@ -18,14 +18,14 @@
                 <input type="text" class="mb-3 form-control" id="editTitle" placeholder="Title" required>
 
                 <label for="editPlacename">Placename</label>
-                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right"
+                <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
                       title="Every item must have a Title and Placename is optional. If the purpose is to name a place, then put the Placename in the Title too.">
                     </span>
                 <input type="text" class="mb-3 form-control" id="editPlacename" placeholder="Placename" required>
 
                 <!-- Image Upload -->
                 <label for="editImage">Image</label> 
-                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right"
+                <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
                       title='Max upload size {{ floor(config("app.max_upload_image_size") / (1024 * 1024)) . " MB" }}'>
                     </span>
                 <div id="editImageContainer" class="mb-3" style="display: none;">
@@ -49,7 +49,7 @@
                     <p><small>Either enter coordinates manually or click on the map and apply.</small></p>
 
                     <label for="editLatitude">Latitude</label><label class="text-danger">*</label>
-                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right"
+                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
                           title="Try <a href='https://tlcmap.org/quicktools/quickcoordinates.html'>Quick Coordinates</a>.">
                     </span>
                     <input type="text" class="mb-3 form-control mp-input-lat" id="editLatitude" placeholder="Latitude" required>
@@ -79,7 +79,7 @@
 
                 <label for="editFeatureterm">Feature Term
                     <a href="/guides/featureterms.php" target="_blank">
-                            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right"
+                            <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
                                   title="Click here for information on valid feature terms">
                             </span>
                     </a>
@@ -103,7 +103,7 @@
 
                 <label for="editLga">LGA
                     <a href="/guides/lgas.php" target="_blank">
-                            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right"
+                            <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
                                   title="Click here for information on valid Local Government Areas">
                             </span>
                     </a>
@@ -112,7 +112,7 @@
 
                 <!-- Linkback with validator-->
                 <label for="editExternalurl">Linkback (URL)</label>
-                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-bs-toggle="tooltip" data-placement="right"
+                <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
                       title="For the URL to be a clickable link please ensure it starts with http:// or https://"></span>
                 <input type="text" class="mb-3 form-control" id="editExternalurl" placeholder="Linkback">
 

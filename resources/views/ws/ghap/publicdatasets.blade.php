@@ -8,11 +8,11 @@
 
     <h2>
         Layers
-        <span tabindex="0" data-html="true"
-              data-animation="true"
-              class="glyphicon glyphicon-question-sign"
+        <span tabindex="0" data-bs-html="true"
+              data-bs-animation="true"
+              class="bi bi-question-circle"
               data-bs-toggle="tooltip"
-              data-placement="right"
+              data-bs-placement="right"
               style="font-size:16px"
               title="Layers are contributed by many authors. They may be incomplete or imprecise. Check the layer for details about the source.">
         </span>
