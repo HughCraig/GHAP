@@ -20,7 +20,7 @@
                         <small class="form-text text-muted">Paste a Collection-level IIIF manifest URL here.</small>
                     </div>
 
-                    <button type="button" class="btn btn-primary mb-3" id="editLoadManifest">Load</button>
+                    <button type="button" class="mt-3 mb-3 btn btn-primary" id="editLoadManifest">Load</button>
 
                     <div id="editImageSetsContainer" class="row"></div>
                     <div id="editImagesContainer" class="row mt-4"></div>

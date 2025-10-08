@@ -33,25 +33,7 @@
     <h2>View Layer</h2>
     
     
-    @if($ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'OWNER') 
-
-        <!-- Edit Collaborators Button-->
-        <!-- <a href="{{url()->full()}}/collaborators" class="btn btn-primary">Edit Collaborators</a> -->
-
-        <button id="toggle-drag" class="btn btn-primary">Change Order</button>
-
-        <!-- Edit Dataset Modal Button-->
-        @include('modals.editdatasetmodal')
-    @else
-        @push('styles')
-            <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
-            <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
-        @endpush
-
-        @push('scripts')
-            <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
-        @endpush
-    @endif
+<div class="d-flex flex-column flex-md-row gap-2">
 
     <!-- Export/Download -->
     <div class="dropdown">
@@ -105,11 +87,7 @@
             </div>
         </div>
 
-        @if ($ds->recordtype->type == 'Text' && $ds->text)
-            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ url()->current() }}/textmap?load=' + encodeURIComponent('{{ url('') }}/layers/{{$ds->id}}/json?textmap=true'))">
-                Edit Text Map
-            </button>
-        @endif
+        
     @endif
 
 
@@ -128,32 +106,13 @@
         </div>
     </div>
 
-   @admin
-        @if (isset($ds->featured_url))
-            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_layer_as_unfeatured">
-                Remove featured
-            </button>
-        @else
-            <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedLayerDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Mark as featured
-                </button>
-                <div class="dropdown-menu" aria-labelledby="markAsFeaturedLayerDropdown">
-                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json') }}">3D Viewer</a>
-                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/cluster.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json') }}">Cluster</a>
-                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/journey.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?line=route') }}">Journey Route</a>
-                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/journey.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?line=time') }}">Journey Times</a>
-                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/timeline.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?sort=start') }}">Timeline</a>
-                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/werekata.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json') }}">Werekata Flight by Route</a>
-                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/werekata.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?sort=start') }}">Werekata Flight by Time</a>
-                    @if ($ds->recordtype->type == 'Text' && $ds->text)
-                        <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/fulltext.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?textmap=true') }}">Full Text</a>
-                    @endif
-                </div>
+<span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                        title="Access, view and analyse this map layer in various ways. Use 'Download' or 'WS Feed' to use the data offline or in other systems. 
+                        Use 'View Map' to see the layer on different kinds of map. Some map views may not be relevant to this dataset. 3D Viewer is the simplest.
+                        Use 'Analyse' to see some statistics about this map or use 'clustering' to visualise distinct areas of intensity, or 'closeness' to compare two datasets.">
+</span>
 
-            </div>
-        @endif
-    @endadmin
+</div>
     
     <!-- Quick Info -->
     <div class="row mt-3">
@@ -175,6 +134,7 @@
             </div>
         </div>
 
+    <div class="col-lg-8 collapse d-lg-flex" id="extraInfo">
         <div class="col-lg-4">
             <div class="table-responsive" style="overflow: unset">
                 <table class="table table-bordered">
@@ -225,31 +185,106 @@
             </div>
         </div>
     </div>
+    </div>
+
+    <!-- Toggle button visible only on small screens -->
+    <div class="d-lg-none mt-2">
+    <button class="btn btn-outline-secondary w-100"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#extraInfo"
+            aria-expanded="false"
+            aria-controls="extraInfo">
+        Layer details
+    </button>
+    </div>
+
+<div class="d-flex flex-column flex-md-row align-items-start gap-2">
 
     @if($ds->pivot->dsrole == 'OWNER' || $ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'COLLABORATOR') 
     
+            <!-- Edit Collaborators Button-->
+        <!-- <a href="{{url()->full()}}/collaborators" class="btn btn-primary">Edit Collaborators</a> -->
+
+        <!-- Edit Dataset Modal Button-->
+        @include('modals.editdatasetmodal')
+
+        @if ($ds->recordtype->type == 'Text' && $ds->text)
+            <button class="mt-3 mb-3 btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ url()->current() }}/textmap?load=' + encodeURIComponent('{{ url('') }}/layers/{{$ds->id}}/json?textmap=true'))">
+                Edit Text Map
+            </button>
+        @endif
+
         <!-- Modal Add to dataset button -->
         @include('modals.addtodatasetmodal')
 
         <!-- MODAL Bulk Add Dataset button -->
         @include('modals.bulkaddtodatasetmodal')
 
+<button id="toggle-drag" class="btn btn-primary mt-3 mb-3">Change Order</button>
+
+
         <!-- Modal edit dataitem modal -->
         @include('modals.editdataitemmodal')
 
         <!-- Modal delete dataitem modal -->
         @include('modals.deleteconfirmmodal')
+    
+    @else
+        @push('styles')
+            <link href="{{ asset('/css/jquery.tagsinput.css') }}" rel="stylesheet">
+            <link href="{{ asset('/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
+        @endpush
+
+        @push('scripts')
+            <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
+        @endpush
+
     @endif
+
+@admin
+        @if (isset($ds->featured_url))
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_layer_as_unfeatured">
+                Remove featured
+            </button>
+        @else
+            <div class="dropdown">
+                <button class="mt-3 mb-3 btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedLayerDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Mark as featured
+                </button>
+                <div class="dropdown-menu" aria-labelledby="markAsFeaturedLayerDropdown">
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/3d.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json') }}">3D Viewer</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/cluster.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json') }}">Cluster</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/journey.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?line=route') }}">Journey Route</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/journey.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?line=time') }}">Journey Times</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/timeline.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?sort=start') }}">Timeline</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/werekata.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json') }}">Werekata Flight by Route</a>
+                    <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/werekata.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?sort=start') }}">Werekata Flight by Time</a>
+                    @if ($ds->recordtype->type == 'Text' && $ds->text)
+                        <a class="dropdown-item grab-hover mark_layer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/fulltext.html?load={{ urlencode(url('/layers/' . $ds->id) . '/json?textmap=true') }}">Full Text</a>
+                    @endif
+                </div>
+
+            </div>
+        @endif
+    @endadmin
+<span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                        title="Use 'Add place to layer' to add points one by one, or 'Import source' to upload a CSV, KML or GeoJSON file of spatial data. See the Help guide for details on file format.
+                        Use 'Change Order' to change the sequence of points if viewing on a Journey by Route map.">
+</span>
+</div>
+
+<h3>Places</h3>
 
     <!-- Dataitem Table -->
     <div class="container-fluid">
         <div class="place-list">
             @foreach($ds->dataitems as $data)
-                <div class="row" data-id="{{ $data->id }}">
+                <div class="row gy-2 gy-xl-0 mb-3" data-id="{{ $data->id }}">
                     <div class="col dragIcon" style="max-width: 4%;display:none">
                         <img src="{{ asset('img/draggable.svg') }}">
                     </div>
-                    <div class="col col-xl-2">
+                    <div class="col-12 col-xl-2">
                         <h4>
                             @if ($ds->public)
                                 <button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
@@ -286,9 +321,22 @@
                             </div>
                         </dl>
                     </div>
-                    <div class="col col-xl-2">
+                    <div class="col-12 col-xl-2">
 
-                        <h4>Details</h4>
+                        <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#details-805453"
+                                aria-expanded="false"
+                                aria-controls="details-805453">
+                            Location, Dates
+                        </button>
+
+                        <!-- Desktop heading (only shows on xl+) -->
+                        <h4 class="d-none d-xl-block">Location, Dates</h4>
+
+                        <!-- Body: collapsed on small, always shown on xl+ -->
+                        <div id="details-805453" class="collapse d-xl-block">
 
                         @if(isset($data->latitude))<dt>Latitude</dt><dd>{{$data->latitude}}</dd>@endif
                         @if(isset($data->longitude))<dt>Longitude</dt><dd>{{$data->longitude}}</dd>@endif
@@ -300,22 +348,40 @@
                         @if(isset($data->parish))<dt>Parish</dt><dd>{{$data->parish}}</dd>@endif
                         @if(isset($data->feature_term))<dt>Feature Term</dt><dd>{{$data->feature_term}}</dd>@endif
 
+                        </div>
                     </div>
-                    <div class="col col-xl-2">
 
-                        <h4>Description</h4>
+                    <div class="col-12 col-xl-2">
+                        <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                                data-bs-toggle="collapse" data-bs-target="#desc-805453">
+                            Description
+                        </button>
+                        <h4 class="d-none d-xl-block">Description</h4>
+                        <div id="desc-805453" class="collapse d-xl-block">
                         @if(isset($data->description))
                             <div>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->description) !!}</div>
                         @endif
                         @if(isset($data->extended_data))
+                        </div>
                     </div>
-                    <div class="col col-xl-2">
-                        <h4>Extended Data</h4>
+                    <div class="col-12 col-xl-2">
+                        <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                                data-bs-toggle="collapse" data-bs-target="#extdata-805453">
+                            Extended Data
+                        </button>
+                        <h4 class="d-none d-xl-block">Extended Data</h4>
+                        <div id="extdata-805453" class="collapse d-xl-block">
                         {!!$data->extDataAsHTML()!!}
                         @endif
+                        </div>
                     </div>
-                    <div class="col col-xl-2">
-                        <h4>Sources</h4>
+                    <div class="col-12 col-xl-2">
+                        <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                                data-bs-toggle="collapse" data-bs-target="#sources-805453">
+                            Sources
+                        </button>
+                        <h4 class="d-none d-xl-block">Sources</h4>
+                        <div id="sources-805453" class="collapse d-xl-block">
                         @if(isset($data->glycerine_url))<dd><a href="{{$data->glycerine_url}}" target="_blank">Open Glycerine Image</a></dd>@endif
                         @if(isset($data->uid))<dt>TLCMap ID</dt><dd>{{$data->uid}}</dd>@endif
                         @if(isset($data->external_url))<dt>Linkback</dt><dd><a href="{{$data->external_url}}">{{$data->external_url}}</a></dd>@endif
@@ -323,10 +389,10 @@
 
                         @if(isset($data->created_at))<dt>Created At</dt><dd>{{$data->created_at}}</dd>@endif
                         @if(isset($data->updated_at))<dt id="updatedat">Updated At</dt><dd>{{$data->updated_at}}</dd>@endif
-
+                        </div>
                     </div>
                     @if(!empty($data->image_path))
-                        <div class="col col-xl-2">
+                        <div class="col-12 col-xl-2">
                             <img src="{{ asset('storage/images/' . $data->image_path) }}" alt="Place image" style="max-width: 100%;max-height:150px">
                         </div>
                     @endif
@@ -337,5 +403,4 @@
         <!-- end bootstrap container -->
     </div>
 
-    <a href="{{url('myprofile/mydatasets')}}" class="mt-3 mb-3 btn btn-primary">Back</a>
 @endsection

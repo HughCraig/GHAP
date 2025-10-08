@@ -1,7 +1,5 @@
 <button type="button" class="mt-3 mb-3 btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkaddModal">Import source</button>
-<span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                        title="You can add points one by one, or upload a CSV, KML or GeoJSON file to import many points.">
-</span>
+
 <!-- MODAL popup -->
 <div class="modal fade" id="bulkaddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">

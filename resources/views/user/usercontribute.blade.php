@@ -107,7 +107,7 @@
         <div style="font-size: 1.5em; font-weight: 900;">  
                 3. Other information
         </div>
-        <p>These details are not required but useful. You can always update this later.
+        <p>These details are not required but are useful. You can always update this later.
         <div id="layerotherinfo" class="collapse" class="container-fluid border">
             <div class="row">
                 <div class="col-lg p-5">
