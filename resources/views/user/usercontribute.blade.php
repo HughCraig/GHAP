@@ -69,36 +69,44 @@
         </div>
 
 
-        <button class="m-4 p-4 btn btn-secondary" href="#layersource" data-bs-toggle="collapse" id="basicInfoNextButton" disabled>
-            Next
-        </button>
+        <button
+  type="button"
+  class="btn btn-secondary"
+  id="basicInfoNextButton"
+  data-bs-toggle="collapse"
+  data-bs-target="#layersource"
+  aria-controls="layersource"
+  aria-expanded="false">
+  Next
+</button>
     </div>
 
     <div class="p-4 mt-4 mb-5" style="border: 1.5px solid black;">
         <div style="font-size: 1.5em; font-weight: 900;">  
             2. Source File
         </div>
-        <p>Upload a file of map data or skip to add places one by one after the layer is created. 
-        Add new places to your layer in any of these ways:
-        <ul>
-            <li>click the <span class="esri-icon-map-pin tlcmyellow" style="padding: 2px;"></span> icon at bottom right of the main map on the homepage 
-            </li><li>right click anywhere on the main map or click a dot
-            </li><li>find and edit your layer under 'My Layers' in the menu
-            </li><li>upload a file of map data
-            </li>
-        </ul>
-        <div id="layersource" class="collapse" class="container-fluid border">
-            <button class="m-4 p-4 btn btn-primary" id="source">Source</button>
+        <p>Upload a file of map data or skip to add places one by one later. 
+        </p>
+        
 
-            <div class="ml-4" id="sourceadded" style="color: blue;"></div>
+<div id="layersource" class="collapse container-fluid border p-3">
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <button type="button" class="btn btn-primary" id="source">Source</button>
 
-            <div>
-                <button class="m-4 p-4 btn btn-secondary" href="#layerotherinfo" data-bs-toggle="collapse">Next</button>
-            </div>
-            <div>
-                <button class="m-4 p-4 btn btn-secondary" href="#layerotherinfo" data-bs-toggle="collapse">Skip</button>
-            </div>
-        </div>
+    <button type="button" class="btn btn-secondary"
+            data-bs-toggle="collapse" data-bs-target="#layerotherinfo">
+      Next
+    </button>
+
+    <button type="button" class="btn btn-secondary"
+            data-bs-toggle="collapse" data-bs-target="#layerotherinfo">
+      Skip
+    </button>
+    
+    <div id="sourceadded" class="ms-3 text-primary"></div>
+  </div>
+</div>
+
 
     </div>
 
@@ -107,7 +115,7 @@
         <div style="font-size: 1.5em; font-weight: 900;">  
                 3. Other information
         </div>
-        <p>These details are not required but are useful. You can always update this later.
+        <p>These details are optional. You can always update this later.
         <div id="layerotherinfo" class="collapse" class="container-fluid border">
             <div class="row">
                 <div class="col-lg p-5">
@@ -250,7 +258,22 @@
                 </div>
             </div>
 
-            <button class="m-4 p-4 btn btn-primary" type="Submit" id="contributesavebtn">Create Layer</button>
+
+<p><strong><i class="bi bi-exclamation-circle help-icon"></i> After you create this layer, add new places to it in any of these ways:</strong></p>
+        <ul>
+            <li>click the <span class="esri-icon-map-pin tlcmyellow" style="padding: 2px;"></span> icon at bottom right of the main map on the homepage 
+            </li><li>right click anywhere on the main map or click a dot
+            </li><li>find and edit your layer under 'My Layers' in the menu
+            </li><li>upload a file of map data
+            </li>
+        </ul>
+<button
+  type="submit"
+  class="btn btn-primary"
+  id="contributesavebtn">
+  Create Layer
+</button>
+
         </div>
     </div>
 
