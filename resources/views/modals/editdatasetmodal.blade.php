@@ -35,9 +35,24 @@
                 <div class="modal-body scrollable">
                     @csrf
                     <div class="row">
-                        <div class="col-lg-6">
+                        <div class="col-lg-12">
                             Layer name<label class="text-danger">*</label>
                             <input type="text" class="mb-4 w3-white form-control" name="dsn" value="{{$ds->name}}" required/>
+
+
+                            <div class="mb-4">
+                                Description<label class="text-danger">*</label>
+                                <span tabindex="0" data-bs-html="true" data-bs-animation="true"
+                                      class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                                      title="A short paragraph summarising the layer. Anything not covered by other fields can be added here."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor"
+                                          name="description" id="description">{{$ds->description}}</textarea>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-12">
+
+                            <h4>Details</h4>
 
                             Subject (keywords)
                             <span tabindex="0" data-bs-html="true" data-bs-animation="true"
@@ -68,14 +83,39 @@
                                 <option value="1"{{ $ds->public ? ' selected' : '' }}>Public</option>
                             </select>
 
-                            Allow ANPS to collect this data?
+                            Linkback
                             <span tabindex="0" data-bs-html="true" data-bs-animation="true"
                                   class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                                  title="GHAP is based on information collected and compiled by the Australian National Placenames Survey, who keep records of historical and other placenames. If your layer includes placenames, we’d like to provide them back to ANPS to help their research and records."></span>
-                            <select id="allowanps" name="allowanps" class="mb-4 w3-white form-control">
-                                <option value="0"{{ $ds->allowanps ? '' : ' selected' }}>No</option>
-                                <option value="1"{{ $ds->allowanps ? ' selected' : '' }}>Yes</option>
-                            </select>
+                                  title="The URL linking to the website for your project. This should be the URL only."> </span>
+                            <input type="text" class="mb-4 w3-white form-control" name="linkback" value="{{$ds->linkback}}"/>
+
+
+                            Image
+                            <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                            title='Max upload size {{ floor(config("app.max_upload_image_size") / (1024 * 1024)) . " MB" }}'>
+                            </span>
+                            @if($ds->image_path)
+                                <img src="{{ asset('storage/images/' . $ds->image_path) }}" alt="Layer Image" style="max-height: 150px;">
+                                <div class="pt-4 pb-2">
+                                    <input type="checkbox" id="datasetDeleteImage" name="dataset_delete_image">
+                                    <label class="pr-4" for="datasetDeleteImage">Delete current image</label>
+                                </div>
+                            @endif
+                            <input type="file" name="image" id="datasetEditImage" accept="image/*"/>
+
+                            <div class="mb-4">
+                                Content Warning
+                                <span tabindex="0" data-bs-html="true" data-bs-animation="true"
+                                      class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                                      title="Anything the viewer should be aware of before viewing information in this layer, such as that the content may distress some viewers."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor" name="warning"
+                                          id="warning">{{$ds->warning}}</textarea>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-12">
+
+                            <h4>Licence and Permissions</h4>
 
                             Creator
                             <span tabindex="0" data-bs-html="true" data-bs-animation="true"
@@ -92,33 +132,6 @@
                                   title="Contact details if people have questions about this layer."></span>
                             <input type="text" class="mb-4 w3-white form-control" name="contact" value="{{$ds->contact}}"/>
 
-                            Language
-                            <span tabindex="0" data-bs-html="true" data-bs-animation="true"
-                                  class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                                  title="The language this layer is in. Use the two-digit language code where possible, such as ‘EN’ for English."></span>
-                            <input type="text" class=" mb-4 w3-white form-control" name="language" value="{{$ds->language}}"/>
-
-                            License
-                            <span tabindex="0" data-bs-html="true" data-bs-animation="true"
-                                  class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                                  title="The usage licence that applies to this layer. Open data is often under a <a href='https://creativecommons.org/licenses/' target='_blank'>Creative Commons</a> CC BY or CC BY-NC licence. If you created the information, you can choose the licence. If you obtained it from another source, select the licence specified there."></span>
-                            <input type="text" class=" mb-4 w3-white form-control" name="license" value="{{$ds->license}}"/>
-
-                            Image
-                            <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                            title='Max upload size {{ floor(config("app.max_upload_image_size") / (1024 * 1024)) . " MB" }}'>
-                            </span>
-                            @if($ds->image_path)
-                                <img src="{{ asset('storage/images/' . $ds->image_path) }}" alt="Layer Image" style="max-height: 150px;">
-                                <div class="pt-4 pb-2">
-                                    <input type="checkbox" id="datasetDeleteImage" name="dataset_delete_image">
-                                    <label class="pr-4" for="datasetDeleteImage">Delete current image</label>
-                                </div>
-                            @endif
-                            <input type="file" name="image" id="datasetEditImage" accept="image/*"/>
-
-                        </div>
-                        <div class="col-lg-6">
                             DOI
                             <span tabindex="0" data-bs-html="true" data-bs-animation="true"
                                   class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
@@ -131,11 +144,51 @@
                                   title="The URL linking to the source for the information in this layer. This should be the URL only."> </span>
                             <input type="text" class="mb-4 w3-white form-control" name="source_url" value="{{$ds->source_url}}"/>
 
-                            Linkback
+                            
+                            License
                             <span tabindex="0" data-bs-html="true" data-bs-animation="true"
                                   class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                                  title="The URL linking to the website for your project. This should be the URL only."> </span>
-                            <input type="text" class="mb-4 w3-white form-control" name="linkback" value="{{$ds->linkback}}"/>
+                                  title="The usage licence that applies to this layer. Open data is often under a <a href='https://creativecommons.org/licenses/' target='_blank'>Creative Commons</a> CC BY or CC BY-NC licence. If you created the information, you can choose the licence. If you obtained it from another source, select the licence specified there."></span>
+                            <input type="text" class=" mb-4 w3-white form-control" name="license" value="{{$ds->license}}"/>
+
+                            Allow ANPS to collect this data?
+                            <span tabindex="0" data-bs-html="true" data-bs-animation="true"
+                                  class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                                  title="GHAP is based on information collected and compiled by the Australian National Placenames Survey, who keep records of historical and other placenames. If your layer includes placenames, we’d like to provide them back to ANPS to help their research and records."></span>
+                            <select id="allowanps" name="allowanps" class="mb-4 w3-white form-control">
+                                <option value="0"{{ $ds->allowanps ? '' : ' selected' }}>No</option>
+                                <option value="1"{{ $ds->allowanps ? ' selected' : '' }}>Yes</option>
+                            </select>
+
+                            <div class="mb-4">
+                                Citation
+                                <span tabindex="0" data-bs-html="true" data-bs-animation="true"
+                                      class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                                      title="A bibliographic citation people should use when referencing this data, such as its source or related project."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor"
+                                          name="citation">{{ $ds->citation }}</textarea>
+                            </div>
+
+                            <div class="mb-4">
+                                Usage Rights
+                                <span tabindex="0" data-bs-html="true" data-bs-animation="true"
+                                      class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                                      title="If not covered by the licence, the rights that apply to use of the information in this layer. You may need to declare that you use it with permission, and others would also have to ask before re-using it; or that it is out of copyright."></span>
+                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor"
+                                          name="rights">{{ $ds->rights }}</textarea>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-12">
+                            
+                            <h4>Region and Date Range</h4>
+
+                            Language
+                            <span tabindex="0" data-bs-html="true" data-bs-animation="true"
+                                  class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                                  title="The language this layer is in. Use the two-digit language code where possible, such as ‘EN’ for English."></span>
+                            <input type="text" class=" mb-4 w3-white form-control" name="language" value="{{$ds->language}}"/>
+
 
                             Spatial Coverage
                             <span tabindex="0" data-bs-html="true" data-bs-animation="true"
@@ -174,38 +227,10 @@
                     </div>
                     <div class="row pt-4">
                         <div class="col">
-                            <div class="mb-4">
-                                Description<label class="text-danger">*</label>
-                                <span tabindex="0" data-bs-html="true" data-bs-animation="true"
-                                      class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                                      title="A short paragraph summarising the layer. Anything not covered by other fields can be added here."></span>
-                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor"
-                                          name="description" id="description">{{$ds->description}}</textarea>
-                            </div>
-                            <div class="mb-4">
-                                Content Warning
-                                <span tabindex="0" data-bs-html="true" data-bs-animation="true"
-                                      class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                                      title="Anything the viewer should be aware of before viewing information in this layer, such as that the content may distress some viewers."></span>
-                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor" name="warning"
-                                          id="warning">{{$ds->warning}}</textarea>
-                            </div>
-                            <div class="mb-4">
-                                Citation
-                                <span tabindex="0" data-bs-html="true" data-bs-animation="true"
-                                      class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                                      title="A bibliographic citation people should use when referencing this data, such as its source or related project."></span>
-                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor"
-                                          name="citation">{{ $ds->citation }}</textarea>
-                            </div>
-                            <div class="mb-4">
-                                Usage Rights
-                                <span tabindex="0" data-bs-html="true" data-bs-animation="true"
-                                      class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                                      title="If not covered by the licence, the rights that apply to use of the information in this layer. You may need to declare that you use it with permission, and others would also have to ask before re-using it; or that it is out of copyright."></span>
-                                <textarea rows="3" maxlength="1500" class="w-100 mb-4 w3-white form-control wysiwyg-editor"
-                                          name="rights">{{ $ds->rights }}</textarea>
-                            </div>
+                            
+                            
+                            
+                            
                         </div>
                     </div>
                 </div>
