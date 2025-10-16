@@ -57,6 +57,63 @@ class MapPicker {
                 container: editor.mapElement
             });
 
+            // Ensure popup is docked and always expanded on small screens
+            const pop = editor.view.popup;
+            pop.dockEnabled = true; // let ArcGIS dock on small screens
+            pop.dockOptions = { position: "bottom-center" }; // match your behavior
+            pop.collapseEnabled = false; // <-- key line: disables the collapse toggle
+
+            // If a popup is already opening, force it expanded
+            pop.watch("visible", (v) => {
+            if (v && typeof pop.collapsed !== "undefined") pop.collapsed = false;
+            });
+
+            // Also guard against any future auto-collapse (e.g., orientation change)
+            pop.watch("collapsed", (isCollapsed) => {
+            if (isCollapsed && pop.collapseEnabled === false) pop.collapsed = false;
+            });
+
+            /* tweaks for responsive design, small screens */
+
+            /* full screen button */
+            const btn = editor.container.find('.mp-toggle-fullscreen');
+            if (btn.length) {
+            btn.on('click', () => {
+                editor.container.toggleClass('is-fullscreen');
+                setTimeout(() => editor.view && editor.view.resize(), 0);
+            });
+            }
+
+            /* close full screen */
+            const closeBtn = editor.container.find('.mp-fs-close');
+                if (closeBtn.length) {
+                closeBtn.on('click', () => {
+                    editor.container.removeClass('is-fullscreen');
+                    setTimeout(() => editor.view && editor.view.resize(), 0);
+                });
+                }
+
+            /* default 70% size on small screen */
+            const resize = (() => {
+            let t;
+            return () => {
+                clearTimeout(t);
+                t = setTimeout(() => {
+                if (editor.view) editor.view.resize();
+                }, 150);
+            };
+            })();
+
+            window.addEventListener('resize', resize);
+
+            // In case the map is initially rendered inside a collapsed/tabbed area,
+            // nudge a resize once it’s on screen.
+            setTimeout(() => editor.view && editor.view.resize(), 0);
+
+            /* end responsive design tweak */
+
+
+
             // Set the marker.
             if (coordinates) {
                 editor.addMarker(coordinates);
@@ -103,9 +160,9 @@ class MapPicker {
 
         // Create popup content node.
         let popupHtml = `<div class="mp-popup-content">`;
-        popupHtml += `<p>Latitude: <span class="mp-popup-lat"></span></p>`;
-        popupHtml += `<p>Longitude: <span class="mp-popup-lng"></span></p>`;
-        popupHtml += `<p><button type="button" class="btn btn-default btn-sm mp-popup-btn-set">Apply these coordinates</button></p>`;
+        popupHtml += `<p class="d-none d-sm-block">Latitude: <span class="mp-popup-lat"></span></p>`;
+        popupHtml += `<p class="d-none d-sm-block">Longitude: <span class="mp-popup-lng"></span></p>`;
+        popupHtml += `<p><button type="button" class="btn btn-secondary btn-sm mp-popup-btn-set">Use these coordinates</button></p>`;
         popupHtml += `</div>`;
         this.popupContent = $(popupHtml);
         this.popupContent.find('.mp-popup-btn-set').on('click', function () {

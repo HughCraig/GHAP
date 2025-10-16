@@ -47,11 +47,13 @@
                     <input type="text" class="mb-3 form-control mp-input-lng" id="addlongitude" placeholder="Longitude" required>
 
                     <div class="mb-3">
-                        <button type="button" class="btn btn-default btn-sm mp-btn-refresh" title="Refresh the map to reflect coordinate changes">Refresh Map</button>
-                        <button type="button" class="btn btn-default btn-sm mp-btn-unset" title="Unset the coordinates">Unset</button>
+                        <button type="button" class="btn btn-secondary btn-sm mp-toggle-fullscreen">Fullscreen map</button>
+                        <button type="button" class="btn btn-secondary btn-sm mp-btn-refresh" title="Refresh the map to reflect coordinate changes">Refresh Map</button>
+                        <button type="button" class="btn btn-secondary btn-sm mp-btn-unset" title="Unset the coordinates">Unset</button>
                     </div>
 
                     <div class="mp-map"></div>
+                    <button type="button" class="mp-fs-close">×</button>
                 </div>
 
                 <label for="addrecordtype">Record Type</label>
