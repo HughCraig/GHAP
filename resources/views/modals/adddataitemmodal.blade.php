@@ -99,7 +99,8 @@
                     </div>
 
                     <label for="addfeatureterm">Feature Term
-                        <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="A list of feature terms for types of places such as mountains, towns or rivers, used by government bodies. Start typing to see a list of terms."></span>
+                        <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" 
+                        data-bs-placement="right" title="A list of feature terms for types of places such as mountains, towns or rivers, used by government bodies. Start typing to see a list of terms."></span>
                     </label>
                     <input type="text" class="mb-3 form-control" id="addfeatureterm" placeholder="Feature Term">
 
