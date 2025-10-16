@@ -106,7 +106,7 @@
                 </div>
 
 </div>
-<!-- Image -->
+<!-- Images -->
 <h4 class="d-none d-lg-block mt-3">Image</h4>
 <button
   class="btn btn-outline-secondary w-100 text-start d-lg-none mb-2 mt-3"
