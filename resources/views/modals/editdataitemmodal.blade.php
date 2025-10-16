@@ -17,17 +17,6 @@
                 <label for="editTitle">Title</label><label class="text-danger">*</label>
                 <input type="text" class="mb-3 form-control" id="editTitle" placeholder="Title" required>
 
-                <label for="editPlacename">Placename</label>
-                <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                      title="Every item must have a Title. Placename is optional. If the purpose is to name a place put the Placename in the Title too.">
-                    </span>
-                <input type="text" class="mb-3 form-control" id="editPlacename" placeholder="Placename" required>
-
-                <div class="mb-3">
-                    <label for="editDescription">Description</label>
-                    <textarea rows="3" class="mb-3 form-control w-100 wysiwyg-editor" id="editDescription" placeholder="Description"></textarea>
-                </div>
-
                 <div class="map-picker">
                     <p><small>Either enter coordinates manually or click on the map and apply.</small></p>
 
@@ -48,12 +37,40 @@
                     <div class="mp-map"></div>
                 </div>
 
+<!-- Description -->
+<h4 class="d-none d-lg-block mt-3">Description</h4>
+<button
+  class="btn btn-outline-secondary w-100 text-start d-lg-none mb-2 mt-3"
+  type="button"
+  data-bs-toggle="collapse"
+  data-bs-target="#sectionDespription"
+  aria-expanded="false"
+  aria-controls="sectionDespription">
+  Description
+  <span class="bi bi-caret-down-fill float-end"></span>
+</button>
+
+<div id="sectionDespription" class="collapse d-lg-block">
+
+                <label for="editPlacename">Placename</label>
+                <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                      title="Every item must have a Title. Placename is optional. If the purpose is to name a place put the Placename in the Title too.">
+                    </span>
+                <input type="text" class="mb-3 form-control" id="editPlacename" placeholder="Placename" required>
+
                 <label for="editRecordtype">Record Type</label>
                 <select class="w3-white form-control mb-3" id="editRecordtype" name="addrecordtype">
                     @foreach($recordtypes as $type)
                         <option value="{{$type}}">{{$type}}</option>
                     @endforeach
                 </select>
+
+                <div class="mb-3">
+                    <label for="editDescription">Description</label>
+                    <textarea rows="3" class="mb-3 form-control w-100 wysiwyg-editor" id="editDescription" placeholder="Description"></textarea>
+                </div>
+</div>
+
 
 <!-- Dates -->
 <h4 class="d-none d-lg-block mt-3">Dates</h4>
