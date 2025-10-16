@@ -60,7 +60,7 @@ class MapPicker {
             // Ensure popup is docked and always expanded on small screens
             const pop = editor.view.popup;
             pop.dockEnabled = true; // let ArcGIS dock on small screens
-            pop.dockOptions = { position: "bottom-center" }; // match your behavior
+            pop.dockOptions = { position: "bottom-center" }; 
             pop.collapseEnabled = false; // <-- key line: disables the collapse toggle
 
             // If a popup is already opening, force it expanded
@@ -140,6 +140,7 @@ class MapPicker {
                     content: editor.popupContent[0],
                     location: event.mapPoint
                 });
+                
             });
         });
 
@@ -172,6 +173,15 @@ class MapPicker {
                 editor.container.find('.mp-input-lat').val(lat);
                 editor.container.find('.mp-input-lng').val(lng);
             }
+
+            // if we're in fullscreen, exit it
+            if (editor.container.hasClass('is-fullscreen')) {
+                editor.container.removeClass('is-fullscreen');
+                // if you ever locked scroll when entering fullscreen, unlock it:
+                document.body.style.overflow = '';
+                setTimeout(() => editor.view && editor.view.resize(), 0);
+            }
+
             editor.view.popup.close();
         });
     }

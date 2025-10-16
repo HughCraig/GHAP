@@ -16,10 +16,10 @@ CSS styles for the map picker widget.
 
 /* changes for responsive design, small screens */
 
-/* Default (desktop/tablet): keep your current small picker height */
+/* Default (desktop/tablet)*/
 .map-picker .mp-map {
   width: 100%;
-  height: 260px;            /* adjust if you like */
+  height: 560px;            /* adjust if you like */
 }
 
 /* Small screens: let the map take most of the viewport */
