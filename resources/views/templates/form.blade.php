@@ -66,7 +66,7 @@
                     </div>
 
                     <div class="col-sm-auto pt-2 d-flex justify-content-center pr-0">
-                        <a id="advancedSearchButton" href="#advancedaccordion" data-bs-toggle="collapse"><i class="fa fa-chevron-down"></i></a>
+                        <a id="advancedSearchButton" href="#advancedaccordion" data-toggle="collapse"><i class="fa fa-chevron-down"></i></a>
                     </div>
 
                     <div class="col-sm-auto pl-0 pr-0 datasource-filter d-flex justify-content-center">
@@ -90,25 +90,25 @@
                 </div>
 
                 <div class="d-flex">
-                    <a id="featuredLayersButton" href="#featuredLayersAccordion" data-bs-toggle="collapse" style="color:white"><button class="btn btn-primary">Featured Layers<i class="fa fa-chevron-down pl-2"></i></button></a>
+                    <a id="featuredLayersButton" href="#featuredLayersAccordion" data-toggle="collapse" style="color:white"><button class="btn btn-primary">Featured Layers<i class="fa fa-chevron-down pl-2"></i></button></a>
                 </div>
 
 
                 <div class="d-flex" style="align-items: center;">
 
-                    <label data-bs-toggle="tooltip" title="" class="d-flex mb-0 mr-3 datasource-filter btn" style="background-color: orange;" data-original-title="Official Australian Placenames">
+                    <label data-toggle="tooltip" title="" class="d-flex mb-0 mr-3 datasource-filter btn" style="background-color: orange;" data-original-title="Official Australian Placenames">
                         <div class="pl-1 pr-1">
                             ANPS Gazetteer
                         </div>
                         <input type="checkbox" id="searchausgaz" name="searchausgaz" style="margin-top: 2px; cursor:pointer" checked>
                     </label>
-                    <label data-bs-toggle="tooltip" title="" class="d-flex mb-0 mr-3 datasource-filter btn" style="background-color: #FE6A1B;" data-original-title="Composite Gazetteer of Australia">
+                    <label data-toggle="tooltip" title="" class="d-flex mb-0 mr-3 datasource-filter btn" style="background-color: #FE6A1B;" data-original-title="Composite Gazetteer of Australia">
                         <div class="pl-1 pr-1">
                             NCG Gazetteer
                         </div>
                         <input type="checkbox" id="searchncg" name="searchncg" style="margin-top: 2px; cursor:pointer" checked>
                     </label>
-                    <label data-bs-toggle="tooltip"  class="d-flex mb-0 mr-2 datasource-filter btn" style="background-color: #FFD580;" data-original-title="Contributed layers">
+                    <label data-toggle="tooltip"  class="d-flex mb-0 mr-2 datasource-filter btn" style="background-color: #FFD580;" data-original-title="Contributed layers">
                         <div class="pl-1 pr-1">
                             Layers
                         </div>
@@ -190,7 +190,7 @@
                                 <!-- All filter section -->
                                 <p class="h4">
                                     Filters
-                                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Some records may not be comprehensively tagged. Tags for records may differ between states.">
+                                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" style="font-size:14px" title="Some records may not be comprehensively tagged. Tags for records may differ between states.">
                                     </span>
                                 </p>
 
@@ -242,7 +242,7 @@
                                     </div>
                                     <div class="row align-items-center my-auto" id="filter-Extended-Data" style="display: none;">
                                         <div class="col-sm-6">
-                                            <a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/" style="color: #000000; text-decoration: none;" target="_blank" data-bs-toggle="tooltip" title="This enables nuanced search and map creation within layers and needs special syntax, see under 'Search' in the Guide.">Extended Data?</a>
+                                            <a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/" style="color: #000000; text-decoration: none;" target="_blank" data-toggle="tooltip" title="This enables nuanced search and map creation within layers and needs special syntax, see under 'Search' in the Guide.">Extended Data?</a>
                                         </div>
                                         <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" name="extended_data" id="extended_data" autocomplete="off">
@@ -251,7 +251,7 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-LGA" style="display: none;" data-bs-toggle="tooltip" title="Local Government Area.">
+                                    <div class="row align-items-center my-auto" id="filter-LGA" style="display: none;" data-toggle="tooltip" title="Local Government Area.">
                                         <div class="col-sm-6">LGA:</div>
                                         <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" name="lga" id="lga" autocomplete="off">
@@ -283,7 +283,7 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-Feature" style="display: none;" data-bs-toggle="tooltip" title="Not all places are tagged with their feature for all states, so this will return only partial results for some areas.">
+                                    <div class="row align-items-center my-auto" id="filter-Feature" style="display: none;" data-toggle="tooltip" title="Not all places are tagged with their feature for all states, so this will return only partial results for some areas.">
                                         <div class="col-sm-6">Feature:</div>
                                         <div class="col-sm-6 vertical-center">
                                             <input type="text" class="w3-white form-control" name="feature_term" id="feature_term" autocomplete="off">
@@ -310,7 +310,7 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="row align-items-center my-auto" id="filter-Date-From" style="display: none;" data-bs-toggle="tooltip" title="Places without dates associated are not included.">
+                                    <div class="row align-items-center my-auto" id="filter-Date-From" style="display: none;" data-toggle="tooltip" title="Places without dates associated are not included.">
                                         <div class="col-sm-6">Date From:</div>
                                         <div class="col-sm-6 vertical-center">
                                             <input type="text" class="smallerinputs w3-white form-control" id="datefrom" name="datefrom">
@@ -334,9 +334,9 @@
                             <div class="col-lg-5" style="margin-top:6%" id="home-description-numplaces">
 
                                 <div class="row align-items-center my-auto mb-1">
-                                    <div class="col-sm-8 pl-0" data-bs-toggle="tooltip">
+                                    <div class="col-sm-8 pl-0" data-toggle="tooltip">
                                         Search Description
-                                        <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="Also search Description field"></span>
+                                        <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" title="Also search Description field"></span>
                                     </div>
                                     <div class="col-sm-4">
                                         <input type="checkbox" id="searchdescription" name="searchdescription">
@@ -362,7 +362,7 @@
 
                             <p class="h4">
                                 Search within region
-                                <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Use the shapes at top right of the map to draw a region on the map, or provide details below.">
+                                <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" style="font-size:14px" title="Use the shapes at top right of the map to draw a region on the map, or provide details below.">
                                 </span>
                             </p>
 
@@ -414,7 +414,7 @@
                             <div class="bulk-placename-search">
                                 <h4>
                                     Search for a list of place names
-                                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Upload a file containing a list of place names, either one per line or separated by commas.">
+                                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" style="font-size:14px" title="Upload a file containing a list of place names, either one per line or separated by commas.">
                                     </span>
                                 </h4>
 
@@ -429,12 +429,12 @@
                             <div class="kml-search">
                                 <h4>
                                     Search within a KML polygon
-                                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Upload a KML file specifying a polygon. No visualisation. Downloadable results only.">
+                                    <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="right" style="font-size:14px" title="Upload a KML file specifying a polygon. No visualisation. Downloadable results only.">
                                     </span>
                                 </h4>
                                 <!-- MODAL Search within kml polygon from file
                                     NB: the popup content for this is below. It can't be here as it contains a form element, which would create bad form nesting. -->
-                                <button type="button" class="d-inline-block border border-dark" data-bs-toggle="modal" data-bs-target="#kmlPolygonSearchModal" style="padding-top: 1%; padding-bottom:1%">
+                                <button type="button" class="d-inline-block border border-dark" data-toggle="modal" data-target="#kmlPolygonSearchModal" style="padding-top: 1%; padding-bottom:1%">
                                     Choose file
                                 </button>
                             </div>
@@ -480,24 +480,9 @@
             <h2>Search Results</h2>
 
             <div id="list-buttons">
-                
-                @if (!empty(config('app.views_root_url')))
-                <div class="dropdown shown_in_search">
-                    <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        &#x1F30F View Maps...
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <a class="dropdown-item grab-hover" id="view3d" href="#">3D Viewer</a>
-                        <a class="dropdown-item grab-hover" id="viewCluster" href="#">Cluster</a>
-                        <a class="dropdown-item grab-hover" id="viewJourney" href="#">Journey Route</a>
-                        <a class="dropdown-item grab-hover" id="viewWerekata" href="#">Werekata Flight by Route</a>
-                    </div>
-                </div>
-                @endif
-
                 <!-- Export/Download -->
                 <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Download
                     </button>
                     <div class="dropdown-menu" aria-labelledby="downloadDropdown">
@@ -510,7 +495,7 @@
 
                 <!-- Web Services Feed -->
                 <div class="dropdown shown_in_search">
-                    <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         WS Feed
                     </button>
                     <div class="dropdown-menu" aria-labelledby="wsfeedDropdown">
@@ -520,7 +505,19 @@
                     </div>
                 </div>
 
-                
+                @if (!empty(config('app.views_root_url')))
+                <div class="dropdown shown_in_search">
+                    <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        &#x1F30F View Maps...
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item grab-hover" id="view3d" href="#">3D Viewer</a>
+                        <a class="dropdown-item grab-hover" id="viewCluster" href="#">Cluster</a>
+                        <a class="dropdown-item grab-hover" id="viewJourney" href="#">Journey Route</a>
+                        <a class="dropdown-item grab-hover" id="viewWerekata" href="#">Werekata Flight by Route</a>
+                    </div>
+                </div>
+                @endif
             </div>
 
             <div class="mt-4 mb-1">
@@ -580,7 +577,9 @@
                 <div class="modal-header">
                     <h3 class="modal-title" id="kmlPolygonSearchModalLabel">Search within a polygon using a KML file. Eg:
                         you may have a KML file of an LGA suburb or national park.</h3>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <div id="kmlPolygonFileUploadForm">

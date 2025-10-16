@@ -8,11 +8,11 @@
 
     <h2>
         Layers
-        <span tabindex="0" data-bs-html="true"
-              data-bs-animation="true"
-              class="bi bi-question-circle"
-              data-bs-toggle="tooltip"
-              data-bs-placement="right"
+        <span tabindex="0" data-html="true"
+              data-animation="true"
+              class="glyphicon glyphicon-question-sign"
+              data-toggle="tooltip"
+              data-placement="right"
               style="font-size:16px"
               title="Layers are contributed by many authors. They may be incomplete or imprecise. Check the layer for details about the source.">
         </span>
@@ -36,7 +36,7 @@
                     @if (!empty(config('app.views_root_url')))
                         <!-- Visualise-->
                         <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             🌏 View Maps...
                             </button>
                             <div class="dropdown-menu" aria-labelledby="visualiseDropdown">

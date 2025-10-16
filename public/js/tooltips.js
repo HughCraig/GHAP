@@ -1,4 +1,4 @@
 $(document).ready(function () {
     //Bootstrap tooltips.
-    $('[data-bs-toggle="tooltip"]').tooltip();
+    $('[data-toggle="tooltip"]').tooltip();
 });
