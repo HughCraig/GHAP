@@ -480,6 +480,21 @@
             <h2>Search Results</h2>
 
             <div id="list-buttons">
+                
+                @if (!empty(config('app.views_root_url')))
+                <div class="dropdown shown_in_search">
+                    <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        &#x1F30F View Maps...
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item grab-hover" id="view3d" href="#">3D Viewer</a>
+                        <a class="dropdown-item grab-hover" id="viewCluster" href="#">Cluster</a>
+                        <a class="dropdown-item grab-hover" id="viewJourney" href="#">Journey Route</a>
+                        <a class="dropdown-item grab-hover" id="viewWerekata" href="#">Werekata Flight by Route</a>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Export/Download -->
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -505,19 +520,7 @@
                     </div>
                 </div>
 
-                @if (!empty(config('app.views_root_url')))
-                <div class="dropdown shown_in_search">
-                    <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        &#x1F30F View Maps...
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <a class="dropdown-item grab-hover" id="view3d" href="#">3D Viewer</a>
-                        <a class="dropdown-item grab-hover" id="viewCluster" href="#">Cluster</a>
-                        <a class="dropdown-item grab-hover" id="viewJourney" href="#">Journey Route</a>
-                        <a class="dropdown-item grab-hover" id="viewWerekata" href="#">Werekata Flight by Route</a>
-                    </div>
-                </div>
-                @endif
+                
             </div>
 
             <div class="mt-4 mb-1">

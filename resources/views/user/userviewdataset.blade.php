@@ -35,30 +35,7 @@
     
 <div class="d-flex flex-column flex-md-row gap-2">
 
-    <!-- Export/Download -->
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Download
-        </button>
-        <div class="dropdown-menu" aria-labelledby="downloadDropdown">
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/kml/download">KML</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv/download">CSV</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/json/download">GeoJSON</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/ro-crate">RO-Crate</a>
-        </div>
-    </div>
-
-    <!-- Web Services Feed -->
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="wsfeedDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            WS Feed
-        </button>
-        <div class="dropdown-menu" aria-labelledby="wsfeedDropdown">
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/kml">KML</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv">CSV</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/json">GeoJSON</a>
-        </div>
-    </div>
+    
 
     @if (!empty(config('app.views_root_url')) && $ds->public)
         <!-- Visualise-->
@@ -106,10 +83,38 @@
         </div>
     </div>
 
-<span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                        title="Access, view and analyse this map layer in various ways. Use 'Download' or 'WS Feed' to use the data offline or in other systems. 
+
+
+<!-- Export/Download -->
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Download
+        </button>
+        <div class="dropdown-menu" aria-labelledby="downloadDropdown">
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/kml/download">KML</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv/download">CSV</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/json/download">GeoJSON</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/ro-crate">RO-Crate</a>
+        </div>
+    </div>
+
+    <!-- Web Services Feed -->
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="wsfeedDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            WS Feed
+        </button>
+        <div class="dropdown-menu" aria-labelledby="wsfeedDropdown">
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/kml">KML</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv">CSV</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/json">GeoJSON</a>
+        </div>
+    </div>
+
+    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                        title="Access, view and analyse this map layer in various ways.  
                         Use 'View Map' to see the layer on different kinds of map. Some map views may not be relevant to this dataset. 3D Viewer is the simplest.
-                        Use 'Analyse' to see some statistics about this map or use 'clustering' to visualise distinct areas of intensity, or 'closeness' to compare two datasets.">
+                        Use 'Analyse' to see some statistics about this map or use 'clustering' to visualise distinct areas of intensity, or 'closeness' to compare two datasets.
+                        Use 'Download' or 'WS Feed' to use the data offline or in other systems.">
 </span>
 
 </div>

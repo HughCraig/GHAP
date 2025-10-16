@@ -22,6 +22,23 @@
                     $separator = (parse_url($url, PHP_URL_QUERY) == NULL) ? '?' : '&';
                 @endphp
 
+                @if (!empty(config('app.views_root_url')))
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        &#x1F30F View Maps...
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load='+encodeURIComponent(downloadurl+'&format=json'));">3D Viewer</a>
+                            <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load='+encodeURIComponent(downloadurl+'&format=json'));">Cluster</a>
+                            <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load='+encodeURIComponent(downloadurl+'&format=json&line=route'));">Journey Route</a>
+                            <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?&load='+encodeURIComponent(downloadurl+'&format=json'));">Werekata Flight by Route</a>
+                            @if (!empty(config('app.views_temporal_earth_url')))
+                                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file='+encodeURIComponent(downloadurl+'&format=kml'));">Temporal Earth</a>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Export/Download -->
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -47,22 +64,7 @@
                     </div>
                 </div>
 
-                @if (!empty(config('app.views_root_url')))
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        &#x1F30F View Maps...
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/3d.html?load='+encodeURIComponent(downloadurl+'&format=json'));">3D Viewer</a>
-                            <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/cluster.html?load='+encodeURIComponent(downloadurl+'&format=json'));">Cluster</a>
-                            <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/journey.html?load='+encodeURIComponent(downloadurl+'&format=json&line=route'));">Journey Route</a>
-                            <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_root_url') }}/werekata.html?&load='+encodeURIComponent(downloadurl+'&format=json'));">Werekata Flight by Route</a>
-                            @if (!empty(config('app.views_temporal_earth_url')))
-                                <a class="dropdown-item grab-hover" onclick="window.open('{{ config('app.views_temporal_earth_url') }}?file='+encodeURIComponent(downloadurl+'&format=kml'));">Temporal Earth</a>
-                            @endif
-                        </div>
-                    </div>
-                @endif
+                
                 
             </div>
 
