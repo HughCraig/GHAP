@@ -9,6 +9,8 @@ use TLCMap\Models\Dataset;
 use TLCMap\Models\SavedSearch;
 use Illuminate\Http\Request;
 use TLCMap\Http\Controllers\GazetteerController;
+use Illuminate\Support\HtmlString;
+use TLCMap\Models\TextContext;
 
 class ROCrateGenerator
 {
@@ -42,6 +44,33 @@ class ROCrateGenerator
             //Remove escape slashes from GeoJSON
             $formattedGeoJSON = json_encode( json_decode($dataset->json()) , JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);  
             $zip->addFromString(self::getSearchExportFileName('json'), $formattedGeoJSON);
+
+            if ($dataset->recordtype->type == 'Text' && $dataset->text) {
+                $text = $dataset->text;
+
+                $textContexts = [];
+                $dateitems = $dataset->dataitems()->where('recordtype_id', "4")->get();
+                foreach ($dateitems as $dataitem) {
+                    $textContext = TextContext::getContentByDataitemUid($dataitem->uid);
+                    if ($textContext->count() > 0) {
+                        $textContexts[] = $$textContext->first();
+                    }
+                }
+
+                $markedHtml = self::generateMarkedTextHtml(
+                    $text->content,
+                    $textContexts
+                );
+
+                $zip->addFromString(
+                    'text.html',
+                    view('rocrate.text', [
+                        'markedText' => $markedHtml,
+                        'metadata'   => $metadata,
+                    ])->render()
+                );
+            }
+
             $zip->close();
             return $zipFile;
         }
@@ -273,6 +302,44 @@ class ROCrateGenerator
     public static function generateDatasetHtml($metadata)
     {
         return view('rocrate.dataset', ['metadata' => $metadata])->render();
+    }
+
+
+    private static function generateMarkedTextHtml(string $textContent, $textContexts)
+    {
+        if (empty($textContexts)) {
+            return new HtmlString($textContent);
+        }
+
+        $markedText = '';
+        $lastIndex = 0;
+
+        usort($textContexts, function ($a, $b) {
+            return $a->start_index <=> $b->start_index;
+        });
+
+        foreach ($textContexts as $context) {
+            $startIndex = $context->start_index;
+            $endIndex   = $context->end_index;
+
+            // Text before highlight
+            $markedText .= e(mb_substr(
+                $textContent,
+                $lastIndex,
+                $startIndex - $lastIndex
+            ));
+
+            // Highlighted text
+            $markedText .= '<span style="background-color: orange; padding:2px;">'
+                . e(mb_substr($textContent, $startIndex, $endIndex - $startIndex))
+                . '</span>';
+
+            $lastIndex = $endIndex;
+        }
+
+        $markedText .= e(mb_substr($textContent, $lastIndex));
+
+        return new HtmlString(nl2br($markedText));
     }
 
     /**

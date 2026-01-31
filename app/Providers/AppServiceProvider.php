@@ -16,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Previously was EMPTY
         $this->app->bind('path.public', function () {
-            return base_path() . '/public/ghap';
+            return base_path() . '/public';
         });
     }
 

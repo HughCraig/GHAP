@@ -405,7 +405,7 @@ class AjaxController extends Controller
         }
 
         if ($dataitem->recordtype_id == '4') {
-            $textContexts = TextContext::getAllByDataitemUid($dataitem->uid);
+            $textContexts = TextContext::getContentByDataitemUid($dataitem->uid);
 
             foreach ($textContexts as $textContext) {
                 $textContext->delete();
