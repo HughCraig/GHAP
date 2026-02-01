@@ -53,7 +53,7 @@ class ROCrateGenerator
                 foreach ($dateitems as $dataitem) {
                     $textContext = TextContext::getContentByDataitemUid($dataitem->uid);
                     if ($textContext->count() > 0) {
-                        $textContexts[] = $$textContext->first();
+                        $textContexts[] = $textContext->first();
                     }
                 }
 
