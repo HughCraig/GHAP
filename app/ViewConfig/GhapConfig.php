@@ -87,7 +87,7 @@ class GhapConfig
             $content .= "<div>" . HtmlFilter::simple($dataset->description) . "</div>";
         }
         
-        $content .= '<p><a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Help</a> | <a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Share</a></p>';
+        $content .= '<p><a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Help</a></p>';
         return $content;
     }
 
@@ -131,7 +131,7 @@ class GhapConfig
             $content .= "<div>" . HtmlFilter::simple($collection->description) . "</div>";
         }
       
-        $content .= '<p><a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Help</a> | <a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Share</a></p>';
+        $content .= '<p><a href="' . config('app.tlcmap_doc_url') . '/help/guides/guide/" target="_blank">Help</a></p>';
         return $content;
     }
 
