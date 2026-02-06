@@ -12,13 +12,18 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
-    {
-        // Previously was EMPTY
-        $this->app->bind('path.public', function () {
-            return base_path() . '/public/ghap';
-        });
-    }
+	public function register()
+	{
+		$this->app->bind('path.public', function () {
+			// Local dev (artisan serve) expects /public
+			if (app()->environment('local')) {
+				return base_path('public');
+			}
+
+			// Production (if your hosting really needs it)
+			return base_path('public/ghap');
+		});
+	}
 
     /**
      * Bootstrap any application services.
