@@ -1001,10 +1001,10 @@ $.ajaxSetup({
                 switchMapType.className =
                     "esri-icon-globe esri-widget--button esri-widget esri-interactive";
                 switchMapType.setAttribute("tabindex", "0");
-                switchMapType.setAttribute("data-bs-html", "true");
-                switchMapType.setAttribute("data-bs-animation", "true");
-                switchMapType.setAttribute("data-bs-toggle", "tooltip");
-                switchMapType.setAttribute("data-bs-placement", "top");
+                switchMapType.setAttribute("data-html", "true");
+                switchMapType.setAttribute("data-animation", "true");
+                switchMapType.setAttribute("data-toggle", "tooltip");
+                switchMapType.setAttribute("data-placement", "top");
                 switchMapType.setAttribute("title", "Switch Map type");
 
                 switchMapType.addEventListener("click", () => {

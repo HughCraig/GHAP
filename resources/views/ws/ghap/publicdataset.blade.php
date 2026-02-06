@@ -14,10 +14,35 @@
 
     <h2>Layer</h2>
 
-   @if (!empty(config('app.views_root_url')))
+    <!-- Export/Download -->
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Download
+        </button>
+        <div class="dropdown-menu" aria-labelledby="downloadDropdown">
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/kml/download">KML</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv/download">CSV</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/json/download">GeoJSON</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/ro-crate">RO-Crate</a>
+        </div>
+    </div>
+
+    <!-- Web Services Feed -->
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            WS Feed
+        </button>
+        <div class="dropdown-menu" aria-labelledby="wsfeedDropdown">
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/kml">KML</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv">CSV</a>
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/json">GeoJSON</a>
+        </div>
+    </div>
+
+    @if (!empty(config('app.views_root_url')))
         <!-- Visualise-->
         <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             🌏 View Maps...
             </button>
             <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
@@ -45,7 +70,7 @@
     @if ($ds->public)
     <!-- Basic Statistics Feed -->
     <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="analyseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="analyseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Analyse
         </button>
         <div class="dropdown-menu" aria-labelledby="analyseDropdown">
@@ -58,33 +83,6 @@
     </div>
     @endif
 
-    <!-- Export/Download -->
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Download
-        </button>
-        <div class="dropdown-menu" aria-labelledby="downloadDropdown">
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/kml/download">KML</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv/download">CSV</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/json/download">GeoJSON</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/ro-crate">RO-Crate</a>
-        </div>
-    </div>
-
-    <!-- Web Services Feed -->
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="wsfeedDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            WS Feed
-        </button>
-        <div class="dropdown-menu" aria-labelledby="wsfeedDropdown">
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/kml">KML</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/csv">CSV</a>
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/json">GeoJSON</a>
-        </div>
-    </div>
-
- 
-
     @admin
         @if (isset($ds->featured_url))
             <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_layer_as_unfeatured">
@@ -92,7 +90,7 @@
             </button>
         @else
             <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedLayerDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedLayerDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Mark as featured
                 </button>
                 <div class="dropdown-menu" aria-labelledby="markAsFeaturedLayerDropdown">
@@ -198,7 +196,7 @@
                             @elseif(isset($data->dataset->recordtype_id))<dt>Type</dt><dd>{{$data->dataset->recordtype->type}}</dd>
                             @endif
                             <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     🌏 View Maps...
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">

@@ -38,7 +38,7 @@
         <button class="btn btn-secondary" id="backButton">Back</button>
         
         <div class="dropdown">
-            <button class="btn btn-primary dropdown-toggle" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 View Maps
             </button>
             <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
@@ -48,7 +48,7 @@
         </div>
 
         <div class="dropdown">
-            <button class="btn btn-primary dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Download
             </button>
             <div class="dropdown-menu" aria-labelledby="downloadDropdown">

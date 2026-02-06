@@ -6,7 +6,7 @@
             </div>
             <div class="modal-footer">
                 <button id="deleteConfirmButton" type="button" class="btn btn-danger">Delete</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
