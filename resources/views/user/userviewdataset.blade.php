@@ -246,7 +246,7 @@
         <div class="place-list">
             @foreach($ds->dataitems as $data)
                 <div class="row" data-id="{{ $data->id }}">
-                    <div class="col dragIcon" style="max-width: 4%;display:none">
+                    <div class="dragIcon" style="margin:auto;display:none">
                         <img src="{{ asset('img/draggable.svg') }}">
                     </div>
                     <div class="col col-xl-2">
