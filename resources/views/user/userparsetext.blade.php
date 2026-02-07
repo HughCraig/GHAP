@@ -43,8 +43,8 @@
     <div class="col-lg-4">
         <div class="d-flex" style="align-items: center;">
             <h4 class="font-weight-bold">Geoparsing Method</h4>
-            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign pl-2"
-                data-toggle="tooltip" data-placement="right"
+            <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="glyphicon glyphicon-question-sign pl-2"
+                data-bs-toggle="tooltip" data-bs-placement="right"
                 title="This step detects words that seem to be place names. BERT detects any placename. Dictionary allows you to detect only the place names you specify."></span>
         </div>
         <select id="parsing_method" class="mb-4 w3-white form-control">
@@ -57,8 +57,8 @@
     <div class="col-lg-4">
         <div class="d-flex" style="align-items: center;">
             <h4 class="font-weight-bold">Geocoding Method</h4>
-            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign pl-2"
-                data-toggle="tooltip" data-placement="right"
+            <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="glyphicon glyphicon-question-sign pl-2"
+                data-bs-toggle="tooltip" data-bs-placement="right"
                 title="Having identified placenames, this step finds coordinates for them. The Google method sends the text but not your details to Google."></span>
         </div>
         <select id="geocoding_method" class="mb-4 w3-white form-control">
@@ -70,8 +70,8 @@
 
         <div class="d-flex" style="align-items: center;">
             <h4 class="font-weight-bold">Geocoding Bias</h4>
-            <span tabindex="0" data-html="true" data-animation="true" class="glyphicon glyphicon-question-sign pl-2"
-                data-toggle="tooltip" data-placement="right"
+            <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="glyphicon glyphicon-question-sign pl-2"
+                data-bs-toggle="tooltip" data-bs-placement="right"
                 title="Many Australian placenames occur in other countries. Bias to Australia for texts set in Australia, or choose Global or another country as needed."></span>
         </div>
 
@@ -209,7 +209,7 @@
     </div>
 </div>
 
-<label data-toggle="tooltip" class="d-flex datasource-filter btn pl-0" style="align-items: center;">
+<label data-bs-toggle="tooltip" class="d-flex datasource-filter btn pl-0" style="align-items: center;">
     <input type="checkbox" id="saveautomatically" class="mr-2" style="margin-top: 1px; cursor:pointer">
     <p style="white-space: normal; word-wrap: break-word;text-align:left; padding-bottom:0; margin-bottom:0">Save all results to a new layer automatically 
     (Recommended for book-length texts which may take up to an hour or so to be ready to review and save. 

@@ -39,7 +39,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <!-- Bootstrap min css-->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+    <!-- Bootstrap icons for inline help css-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Google font -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
@@ -97,7 +100,7 @@
             crossorigin="anonymous"></script>
 
     <!-- Bootstrap 3.4 js -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Leafletjs 1.6 js -->
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
@@ -143,141 +146,233 @@
     <!-- NAVBAR -->
     <div class="header">
 
-        <div id="mainnav" class="main-nav">
-            <div class="main-site-logo">
+      <div id="mainnav" class="main-nav">
+          <div class="main-site-logo">
                 <a href="/">
                     @include('templates/misc/tlcmap_logo')
                 </a>
-            </div>
+          </div>
 
-            <div class="main-nav-content">
+          <div class="main-nav-content">
                 <div class="site-name">
                     Mapping Australian history and culture
                 </div>
                 <div class="site-sub-name">
-                    We acknowledge the Traditional Owners of country and pay our respects to Elders past, present and emerging. <a href="{{ config('app.tlcmap_doc_url') }}/first-australians/" target="_blank" style="text-decoration: underline !important;">First Australians...</a>
+                    We acknowledge the Traditional Owners of country and pay our respects to Elders past, present and emerging. <a href="{{ config('app.tlcmap_doc_url') }}/first-australians/" target="_blank" style="text-decoration: underline !important; color: #17331C;">First Australians...</a>
                 </div>
-            </div>
+          </div>
 
         </div>
 
-            <nav class="menu-nav">
-                <div class="menu-nav-close">
-                    <span class="icon icon-close-dark"></span>
-                </div>
-                <ul>
-                    <li>
-                        <div style="display:flex; font-weight:bold"><a href="{{ url('/') }}" style="color:black">HOME</a></div>
-                    </li>
-                    <li>
-                        <div style="display:flex; font-weight:bold"><a href="{{ config('app.tlcmap_doc_url') }}/tools/" style="color:black">TOOLS</a><span id="menu-item-58" class="icon icon-arrow-down-dark u-pull-right submenu-toggle"></span></div>
-                        <ul class="submenu" style="display: block;">
+            
 
-                            <li><a href="/">Search Maps</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Make Maps</a></li>
-                            <li><a href="https://quicktools.tlcmap.org/">Quick Tools</a></li>
-                            <li><a href="https://www.researchobject.org/ro-crate/">RO-Crate</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/core-data/">Core Data</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Web Services</a></li>
-                        </ul>
-                    </li>
-                    <li>
-                        <div style="display:flex; font-weight:bold"><a href="{{ config('app.tlcmap_doc_url') }}/help/" style="color:black">HELP</a><span id="menu-item-60" class="icon icon-arrow-down-dark u-pull-right submenu-toggle"></span></div>
-                        <ul class="submenu" style="display: block;">
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/">Get started</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/guides/">Guides</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/faqs/">FAQs</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Developers</a></li>
-                        </ul>
-                    </li>
-                    <li>
-                        <div style="display:flex; font-weight:bold"><a href="{{ config('app.tlcmap_doc_url') }}/about/" style="color:black">ABOUT</a><span id="menu-item-59" class="icon icon-arrow-down-dark u-pull-right submenu-toggle"></span></div>
-                        <ul class="submenu" style="display: block;">
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/first-australians/">First Australians</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/about/updates/">Updates</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/about/lead-researchers/">Lead researchers</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/about/partners/">Partners</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/research-outputs/">Research Outputs</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/examples/">Examples</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/contact/">Contact</a></li>
-                            <li><a href="{{ config('app.tlcmap_doc_url') }}/about/conditionsofuse/">Conditions of Use</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </nav>
-        </div>
 
-        <!-- Start Navbar -->
-        <div class="secondary-nav w3-bar" style="padding-left: 1%; padding-right: 1%;">    
-            <div>
-                <div class="w3-mobile w3-left">
-                        <a class="w3-bar-item w3-button w3-mobile" href="{{ url('layers') }}">Layers</a>
-                </div>
-                <div class="w3-mobile w3-left">
-                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('multilayers') }}">Multilayers</a>
-                </div>  
+<!-- Start new navbar -->
 
-                <div class="w3-mobile w3-left">
-                    <a class="w3-bar-item w3-button w3-mobile" href="{{ url('contribute') }}">Contribute</a>
-                </div>  
-            </div> 
 
-            <div class="w3-mobile w3-right">
+<nav class="navbar navbar-expand-lg tlcmgreen border-bottom" data-bs-theme="dark">
+  <div class="container-fluid">
 
-                <div class="w3-mobile w3-right menu-nav-button">
-                    <span class="menu-nav-button-icon">
-                        <span class="icon icon-menu-light">
-                        </span>
-                    </span>
-                </div>
-                
-                <div class="w3-mobile w3-right">
-                        <a class="w3-bar-item w3-button w3-mobile" href="{{ config('app.tlcmap_doc_url') }}/contact/">Contact</a>
-                </div>
-                @guest
-                    <div class="w3-mobile w3-right">
-                        <a class="w3-bar-item w3-button w3-mobile" href="{{ url('register') }}">Register</a>
-                    </div>
+    <!-- Collapsible content (all items live here) -->
+    <div class="collapse navbar-collapse order-3 order-lg-1 tlcmgreen" id="greennav">
+      <!-- Left: public menu -->
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url('layers') }}">Layers</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url('multilayers') }}">Multilayers</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url('contribute') }}">Add Map</a></li>
+      </ul>
 
-                    <div class="w3-mobile w3-right d-flex" style="justify-content: center;">
-                        <a class="w3-bar-item w3-button w3-mobile" href="{{ url('login') }}">Log in</a>
-                    </div>
-                @else
-                    <div class="w3-dropdown-hover w3-mobile w3-right">
-                        <button class="w3-button" style=" background-color: #17331C;color: white;">
-                            {{ Auth::user()->name }} <i class="fa fa-caret-down"></i>
-                        </button>
-                        <div class="w3-dropdown-content w3-bar-block w3-card-4">
-                            <a class="w3-bar-item w3-button" href="{{ url('myprofile') }}">My profile</a>
-                            @admin
-                            <a class="w3-bar-item w3-button" href="{{ url('admin') }}">Admin</a>
-                            @endadmin
-                            <a class="w3-bar-item w3-button" href="{{ url('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Log out</a>
-                        </div>
-                    </div>
-                    
-                    <div class="w3-dropdown-hover w3-mobile w3-right">
-                        <button class="w3-button" style=" background-color: #17331C;color: white;">
-                            My Maps <i class="fa fa-caret-down"></i>
-                        </button>
-                        <div class="w3-dropdown-content w3-bar-block w3-card-4">
-                            <a class="w3-bar-item w3-button" href="{{ url('myprofile/mydatasets') }}">My layers</a>
-                            <a class="w3-bar-item w3-button" href="{{ url('myprofile/mycollections') }}">My multilayers</a>
-                            <a class="w3-bar-item w3-button" href="{{ url('myprofile/mytexts') }}">My texts</a>
-                            <a class="w3-bar-item w3-button" href="{{ url('myprofile/mysearches') }}">My searches</a>
-                        </div>
-                    </div>
+      <!-- Right: logged in menu -->
+      
+      
+      
 
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+
+
+
+
+
+<ul class="navbar-nav ms-auto align-items-lg-center">
+  
+
+  @guest
+    {{-- Guest: plain links (no dropdown) --}}
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url('register') }}">Register</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url('login') }}">Log in</a>
+    </li>
+  @else
+    {{-- Auth: My Maps menu --}}
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button"
+         data-bs-toggle="dropdown" aria-expanded="false">
+        My Maps
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end tlcmgreen">
+        <li><a class="dropdown-item" href="{{ url('myprofile/mydatasets') }}">My layers</a></li>
+        <li><a class="dropdown-item" href="{{ url('myprofile/mycollections') }}">My multilayers</a></li>
+        <li><a class="dropdown-item" href="{{ url('myprofile/mytexts') }}">My texts</a></li>
+        <li><a class="dropdown-item" href="{{ url('myprofile/mysearches') }}">My searches</a></li>
+      </ul>
+    </li>
+
+
+    {{-- Auth: User menu --}}
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button"
+         data-bs-toggle="dropdown" aria-expanded="false">
+        {{ Auth::user()->name }}
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end tlcmgreen">
+        <li><a class="dropdown-item" href="{{ url('myprofile') }}">My profile</a></li>
+        @admin
+          <li><a class="dropdown-item" href="{{ url('admin') }}">Admin</a></li>
+        @endadmin
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <a class="dropdown-item" href="{{ url('logout') }}"
+             onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+            Log out
+          </a>
+        </li>
+      </ul>
+    </li>
+
+
+  {{-- Always visible --}}
+  <li class="nav-item">
+    <a class="nav-link" href="{{ config('app.tlcmap_doc_url') }}/contact/">Contact</a>
+  </li>
+  <li class="nav-item d-lg-none">
+    <a class="nav-link" href="https://docs.tlcmap.org/help/guides/guide/">Help</a>
+  </li>
+  <li class="nav-item d-lg-none">
+    <a class="nav-link" href="https://docs.tlcmap.org">About</a>
+  </li><li class="nav-item d-lg-none">
+    <a class="nav-link" href="https://tlcmap.org">Home</a>
+  </li>
+
+  @endguest
+
+  {{-- Desktop burger → opens #moreMenu offcanvas --}}
+  <li class="nav-item d-none d-lg-block">
+    <button class="btn nav-link p-2" type="button"
+            data-bs-toggle="offcanvas" data-bs-target="#moreMenu"
+            aria-controls="moreMenu" aria-label="More">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  </li>
+</ul>
+
+
+	  
+	  <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                         @csrf
                     </form>
-                @endguest     
+	  
+    </div>
 
-               
-            </div>
+    <!-- Small-screen toggler to open/close everything -->
+    <button class="navbar-toggler ms-auto order-2" type="button" data-bs-toggle="collapse"
+        data-bs-target="#greennav" aria-controls="greennav" aria-expanded="false"
+        aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+  </div>
+</nav>		
+			
+
+<!-- Main Offcanvas menu (right side) -->
+
+<!-- Main Offcanvas menu (right side) -->
+<div class="offcanvas offcanvas-end" data-bs-theme="light"
+     tabindex="-1" id="moreMenu" 
+     aria-labelledby="moreMenuLabel" >
+  <div class="offcanvas-header border-bottom">
+    <h5 id="moreMenuLabel" class="mb-0"><a href="{{ url('/') }}" style="color: #000;">Home</a></h5>
+    <button type="button" class="btn-close"
+            data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body p-0">
+    <div class="accordion accordion-flush" id="moreAccordion">
+
+      <!-- Group 1 -->
+      <div class="accordion-item ">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#moreGroup1"
+                  aria-expanded="false">TOOLS</button>
+        </h2>
+        <div id="moreGroup1" class="accordion-collapse collapse" data-bs-parent="#moreAccordion">
+          <div class="accordion-body p-0">
+            <ul class="list-unstyled mb-0">
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Add Map</a></li>
+              <li><a class="dropdown-item py-2 px-3" href="https://quicktools.tlcmap.org/">Quick Tools</a></li>
+			  <li><a class="dropdown-item py-2 px-3" href="https://www.researchobject.org/ro-crate/">RO-Crate</a></li>
+			  <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/core-data/">Core Data</a></li>
+			  <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Web Services</a></li>
+            </ul>
+          </div>
         </div>
+      </div>
 
-        <!-- End Navbar -->
+      <!-- Group 2 -->
+      <div class="accordion-item ">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#moreGroup2"
+                  aria-expanded="false">Help</button>
+        </h2>
+        <div id="moreGroup2" class="accordion-collapse collapse" data-bs-parent="#moreAccordion">
+          <div class="accordion-body p-0">
+            <ul class="list-unstyled mb-0">
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/">Get started</a></li>
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/guides/">Guides</a></li>
+			  <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/faqs/">FAQs</a></li>
+			  <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Developers</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group 3 -->
+      <div class="accordion-item ">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#moreGroup3"
+                  aria-expanded="false">About</button>
+        </h2>
+        <div id="moreGroup3" class="accordion-collapse collapse" data-bs-parent="#moreAccordion">
+          <div class="accordion-body p-0">
+            <ul class="list-unstyled mb-0">
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/first-australians/">First Australians</a></li>
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/about/updates/">Updates</a></li>
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/about/lead-researchers/">Lead researchers</a></li>
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/about/partners/">Partners</a></li>
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/research-outputs/">Research Outputs</a></li>
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/examples/">Examples</a></li>
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/contact/">Contact</a></li>
+              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/about/conditionsofuse/">Conditions of Use</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- End offcanvas menu -->
+<!-- End new navbar -->
+
+<!-- end header section -->
+</div>
+
+
 
     <!-- Main content area -->
     <main class="w3-container tlcmapcontainer">
@@ -332,12 +427,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content position-relative">
                 <!-- Close button -->
-                    <button type="button" 
-                            class="btn btn-close" 
-                            data-dismiss="modal" 
-                            aria-label="Close">
-                            <i class="fa fa-times"></i>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="embed-responsive embed-responsive-16by9">
                     <iframe class="embed-responsive-item" src="{{ config('app.help_video_url') }}" title="GHAP Help Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>

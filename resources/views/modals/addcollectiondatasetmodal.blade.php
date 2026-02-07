@@ -16,7 +16,7 @@
     <script src="{{ asset('/js/addcollectiondatasetmodal.js') }}"></script>
 @endpush
 
-<button type="button" class="btn btn-primary mt-3 mb-3" data-toggle="modal" data-target="#addDatasetModal">Add a Layer</button>
+<button type="button" class="btn btn-primary mt-3 mb-3" data-bs-toggle="modal" data-bs-target="#addDatasetModal">Add a Layer</button>
 
 <!-- MODAL popup -->
 <div class="modal fade" id="addDatasetModal" data-collection-id="{{ $collection->id }}" tabindex="-1" role="dialog" aria-labelledby="addDatasetModalLabel" aria-hidden="true">
@@ -25,9 +25,7 @@
             <div class="modal-header">
                 <h3 class="modal-title" id="addDatasetModalLabel">Add a Layer</h3>
 
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 Add from
@@ -53,7 +51,7 @@
 
             <div class="modal-footer">
                 <button class="btn btn-primary" id="submitAddDataset" type="button">Add</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
