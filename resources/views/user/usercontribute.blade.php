@@ -26,7 +26,6 @@
     <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
     <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
     <script> 
-        const max_upload_image_size = {{ config('app.max_upload_image_size') }};
         const ajaxcreatedataitemsfordataset =  "{{url('ajaxcreatedataitemsfordataset')}}";
         const ajaxaddtextcontent = "{{url('ajaxaddtextcontent')}}";
     </script>

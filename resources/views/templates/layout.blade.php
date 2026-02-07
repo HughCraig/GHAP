@@ -114,6 +114,12 @@
     <!-- TinyMCE -->
     <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
 
+
+    <!-- set TLCMap constants, to avoid conflicts later -->
+    <script>
+        const max_upload_image_size = {{ (int) config('app.max_upload_image_size') }};
+    </script>
+
     <!-- TLCMap js-->
     <script type="text/javascript" src="{{ asset('/js/tablesort.js') }}"></script>
     <script type="text/javascript" src="{{ asset('/js/tooltips.js') }}"></script>

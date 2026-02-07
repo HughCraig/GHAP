@@ -8,9 +8,6 @@
 @push('scripts')
     <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
     <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
-    <script> 
-        const max_upload_image_size = {{ config('app.max_upload_image_size') }};
-    </script>
     <script src="{{ asset('js/usernewcollection.js') }}"></script>
 @endpush
 

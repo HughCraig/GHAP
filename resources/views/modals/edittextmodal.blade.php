@@ -10,9 +10,6 @@
 <script>
     const currentKeywords = {!!$text->subjectKeywords!!};
 </script>
-<script>
-    const max_upload_image_size = {{config('app.max_upload_image_size')}};
-</script>
 <script src="{{ asset('/js/edittextmodal.js') }}"></script>
 @endpush
 

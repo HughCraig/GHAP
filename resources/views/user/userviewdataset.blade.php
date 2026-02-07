@@ -16,7 +16,6 @@
 
         var lgas = {!! $lgas !!};
         var feature_terms = {!! $feature_terms !!};
-        const max_upload_image_size = {{ config('app.max_upload_image_size') }};
         var dataset_id = {!! $ds->id !!};
     </script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>

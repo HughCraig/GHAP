@@ -10,9 +10,7 @@
     <script>
         const currentKeywords = {!! $ds->subjectKeywords !!};
     </script>
-    <script>
-        const max_upload_image_size = {{ config('app.max_upload_image_size') }};
-    </script>
+    
     <script src="{{ asset('/js/editdatasetmodal.js') }}"></script>
 @endpush
 

@@ -2,7 +2,7 @@
 
 <script>
     var ajaxadddataitem = "{{url('ajaxadddataitem')}}";
-    const max_upload_image_size = {{ config('app.max_upload_image_size') }};
+    
 </script>
 
 

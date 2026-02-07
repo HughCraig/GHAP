@@ -9,7 +9,6 @@
 <script type="text/javascript" src="{{ asset('/js/jquery.tagsinput.js') }}"></script>
 <script src="{{ asset('/js/bootstrap-datepicker.min.js') }}"></script>
 <script>
-    const max_upload_image_size = {{config('app.max_upload_image_size')}};
     const allowed_text_file_types = @json(config('app.allowed_text_file_types'));
     const text_max_upload_file_size = {{config('app.text_max_upload_file_size')}}
 </script>
