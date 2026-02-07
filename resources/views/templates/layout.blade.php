@@ -16,7 +16,9 @@
 
     <!--
         TLCMap was concieved by Bill Pascoe System Architect with the support of Professor Hugh Craig.
-    Developers: Bill Pascoe, Ben McDonnell, Kaine Usher, Zongwen Fan
+    1st Develop Team: Bill Pascoe, Ben McDonnell, Kaine Usher, Zongwen Fan
+    2nd Dev Team: Bill Pascoe, Kaine Usher, Ivy Zheng, Yang Li (Systemik)
+    3rd Dev Team: Yang Li (Systemik), Mufeng Nui (Systemik), Bill Pascoe
     The Chief Investigators and Partners listed in the grants, and the steering committee and advisory board members provided valuable use cases and proof of concept to demonstrate feasibility and usefulness, essential for prioritising features and development.
     TLCMap v1 was funded by the Australian Research Council, PROJECT ID: LE190100019 (2019 - 2020)
     TLCMap v2 was funded by the Australian Research Data Commons. (2021)
