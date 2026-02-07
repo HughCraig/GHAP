@@ -143,6 +143,13 @@ html {
     padding: 6px;
 }
 
+/* this is just for the "Search:" box added by Datatables, for narrowing down results above a list of results */
+
+#datasettable_filter input[type="search"] {
+    border: 1px solid #555;
+    height: 26px;
+}
+
 #gazformbutton {
     /*
     border-radius: 0 1rem 1rem 0;
