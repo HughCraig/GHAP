@@ -18,7 +18,7 @@
                 <input type="text" class="mb-3 form-control" id="editTitle" placeholder="Title" required>
 
                 <div class="map-picker">
-                    <p><small>Either enter coordinates or click on the map and apply.</small></p>
+                    <p><small>Either enter Lat, Long or click the map to place a dot and set coordinates.</small></p>
 
                     <label for="editLatitude">Latitude</label><label class="text-danger">*</label>
                     <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
@@ -29,9 +29,16 @@
                     <label for="editLongitude">Longitude</label><label class="text-danger">*</label>
                     <input type="text" class="mb-3 form-control mp-input-lng" id="editLongitude" placeholder="Longitude" required>
 
+                    <label for="addlongitude">Map</label>
+                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                          title="Click the map to place the dot then click the Set Coordinates button. The reset button places the dot at the Lat, Long coordinates, or your location if Lat and Long are empty.">
+                    </span>
                     <div class="mb-3">
-                        <button type="button" class="btn btn-default btn-sm mp-btn-refresh" title="Refresh the map to reflect coordinate changes">Refresh Map</button>
-                        <button type="button" class="btn btn-default btn-sm mp-btn-unset" title="Unset the coordinates">Unset</button>
+                        <button type="button" class="btn btn-secondary btn-sm mp-toggle-fullscreen">Fullscreen</button>
+                        <button type="button" class="btn btn-secondary btn-sm mp-btn-reset" title="Reset the map to the Lat Long fields.">Reset</button>
+                       <!-- This button seems unecessary clutter, but not sure so commenting out for now on 2026-02-08.
+                       <button type="button" class="btn btn-default btn-sm mp-btn-unset" title="Unset the coordinates">Unset</button> 
+                       -->
                     </div>
 
                     <div class="mp-map"></div>

@@ -219,7 +219,7 @@
         @include('modals.editdatasetmodal')
 
         @if ($ds->recordtype->type == 'Text' && $ds->text)
-            <button class="mt-3 mb-3 btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ url()->current() }}/textmap?load=' + encodeURIComponent('{{ url('') }}/layers/{{$ds->id}}/json?textmap=true'))">
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" onclick="window.open('{{ url()->current() }}/textmap?load=' + encodeURIComponent('{{ url('') }}/layers/{{$ds->id}}/json?textmap=true'))">
                 Edit Text Map
             </button>
         @endif

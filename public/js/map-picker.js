@@ -75,6 +75,11 @@ class MapPicker {
             // If no saved coordinates, try centering on user
             if (!coordinates) {
                 editor.view.when(async () => {
+
+                    // if coords got filled after init (edit modal), bail out
+                    if (editor.getCoordinates()) return;
+
+
                     const coords = await getUserLocation(); // returns [lng, lat] or null
                     if (!coords) return;
 
@@ -155,6 +160,10 @@ class MapPicker {
 
             // Set the marker.
             if (coordinates) {
+                // ensure no stale popup is showing for edit mode
+                if (editor.view && editor.view.popup) {
+                    editor.view.popup.close();
+                }
                 editor.addMarker(coordinates);
             }
 
@@ -285,6 +294,10 @@ class MapPicker {
      *   Whether to view to the marker after it's been created.
      */
     createMarkerAt(coordinates, clear = true, goto = true) {
+        // Prevent stale "Use these coordinates" popup
+        if (this.view?.popup) {
+            this.view.popup.close();
+        }
         if (clear) {
             this.clearMarkers();
         }
