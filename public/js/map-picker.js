@@ -15,7 +15,7 @@ class MapPicker {
      *   The container's HTML markups must include the following element:
      *   - `input` element with class `mp-input-lat`, which holds the latitude of the coordinates.
      *   - `input` element with class `mp-input-lng`, which holds the longitude of the coordinates.
-     *   - `button` element with class `mp-btn-refresh`, which is used to refresh the location on the map.
+     *   - `button` element with class `mp-btn-reset`, which is used to refresh the location on the map.
      *   - `button` element with class `mp-btn-unset`, which is used to unset the coordinates.
      *   - `div` element with class `mp-map`, which is the container of the actual map.
      */
@@ -35,6 +35,20 @@ class MapPicker {
     init() {
         const editor = this;
         const coordinates = this.getCoordinates();
+
+        
+        // default the map to users location
+        function getUserLocation() {
+            return new Promise((resolve) => {
+                if (!("geolocation" in navigator)) return resolve(null);
+
+                navigator.geolocation.getCurrentPosition(
+                (pos) => resolve([pos.coords.longitude, pos.coords.latitude]),
+                () => resolve(null),
+                { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+                );
+            });
+        }
 
         require([
             "esri/Map",
@@ -56,6 +70,31 @@ class MapPicker {
                 zoom: 3,
                 container: editor.mapElement
             });
+
+
+            // If no saved coordinates, try centering on user
+            if (!coordinates) {
+                editor.view.when(async () => {
+                    const coords = await getUserLocation(); // returns [lng, lat] or null
+                    if (!coords) return;
+
+                    const [lng, lat] = coords;
+
+                    // 1) create marker at user location (and optionally go there)
+                    editor.createMarkerAt([lng, lat], true, true); // clear old, goto = true
+
+                    // 2) populate popup fields
+                    editor.popupContent.find('.mp-popup-lat').text(lat);
+                    editor.popupContent.find('.mp-popup-lng').text(lng);
+
+                    // 3) open popup with Apply button already visible
+                    editor.view.popup.open({
+                    title: 'Coordinates',
+                    content: editor.popupContent[0],
+                    location: { type: "point", longitude: lng, latitude: lat }
+                    });
+                });
+            }
 
             // Ensure popup is docked and always expanded on small screens
             const pop = editor.view.popup;
@@ -144,12 +183,32 @@ class MapPicker {
             });
         });
 
-        // Handle click event on refresh button.
-        this.container.find('.mp-btn-refresh').on('click', function () {
+        // Handle click event on reset button.
+        this.container.find('.mp-btn-reset').on('click', async function () {
+            if (!editor.view) return;
+
+            if (editor.view && editor.view.popup) {
+                editor.view.popup.close();
+            }
+            // 1) If fields contain coords: go there
             const coordinates = editor.getCoordinates();
             if (coordinates) {
-                editor.createMarkerAt(coordinates);
+                editor.createMarkerAt(coordinates, true, false);
+                editor.view.goTo({ center: coordinates, zoom: 11 });
+                return;
             }
+
+            // 2) Else try user location
+            const userCoords = await getUserLocation();
+            if (userCoords) {
+                editor.createMarkerAt(userCoords, true, false);
+                editor.view.goTo({ center: userCoords, zoom: 11 });
+                return;
+            }
+
+            // 3) Else fallback to Australia
+            editor.clearMarkers();
+            editor.view.goTo({ center: [134.934082, -26.490240], zoom: 3 });
         });
 
         // Handle click event on unset button.
@@ -163,7 +222,7 @@ class MapPicker {
         let popupHtml = `<div class="mp-popup-content">`;
         popupHtml += `<p class="d-none d-sm-block">Latitude: <span class="mp-popup-lat"></span></p>`;
         popupHtml += `<p class="d-none d-sm-block">Longitude: <span class="mp-popup-lng"></span></p>`;
-        popupHtml += `<p><button type="button" class="btn btn-secondary btn-sm mp-popup-btn-set">Use these coordinates</button></p>`;
+        popupHtml += `<p><button type="button" class="btn btn-secondary btn-sm mp-popup-btn-set">Set coordinates</button></p>`;
         popupHtml += `</div>`;
         this.popupContent = $(popupHtml);
         this.popupContent.find('.mp-popup-btn-set').on('click', function () {
