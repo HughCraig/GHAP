@@ -8,6 +8,9 @@ $(document).ready( function () {
         bSortable: true,
         bRetrieve: true,
         aaSorting: [[ 0, "asc" ]],
-        "pageLength": 25
+        "pageLength": 25,
+        oLanguage: {
+            sSearch: "Filter list:"
+        }
     });
 });

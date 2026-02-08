@@ -11,6 +11,9 @@ $(document).ready(function () {
         aoColumnDefs: [
             {"aTargets": [6], "bSortable": false, "bSearchable": false},
         ],
-        "pageLength": 25
+        "pageLength": 25,
+        oLanguage: {
+            sSearch: "Filter list:"
+        }
     });
 });

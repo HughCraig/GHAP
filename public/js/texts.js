@@ -31,6 +31,9 @@ $(document).ready(function () {
         aaSorting: [[0, "asc"]],
         aoColumnDefs: [{ aTargets: [4], bSortable: false, bSearchable: false }],
         pageLength: 25,
+        oLanguage: {
+            sSearch: "Filter list:"
+        }
     });
 
     // Handle click event of the text delete buttons.

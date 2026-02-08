@@ -148,12 +148,8 @@
                         </td>
                     </tr>
                     <tr><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td></tr>
+                    <tr><th>Number of places</th><td id="dscount">{{count($ds->dataitems)}}</td></tr>
                     
-                    <tr><th>Your Role</th><td>{{$ds->pivot->dsrole}}</td></tr>
-                    <tr><th>Contributor</th><td>{{$ds->ownerName()}} @if($ds->owner() == $user->id) (You) @endif</td></tr>
-                    <tr><th>Entries</th><td id="dscount">{{count($ds->dataitems)}}</td></tr>
-                    <tr><th>Added to System</th><td>{{$ds->created_at}}</td></tr>
-                    <tr><th>Updated in System</th><td id="dsupdatedat">{{$ds->updated_at}}</td></tr>
                 </table>
             </div>
         </div>
@@ -162,8 +158,9 @@
         <div class="col-lg-4">
             <div class="table-responsive" style="overflow: unset">
                 <table class="table table-bordered">
-                
-                    <tr><th class="w-25">Creator</th><td>{{$ds->creator}}</td></tr>
+                    <tr><th class="w-25">Your Role</th><td>{{$ds->pivot->dsrole}}</td></tr>
+                    <tr><th>Contributor</th><td>{{$ds->ownerName()}} @if($ds->owner() == $user->id) (You) @endif</td></tr>
+                    <tr><th>Creator</th><td>{{$ds->creator}}</td></tr>
                     <tr><th>Publisher</th><td>{{$ds->publisher}}</td></tr>
                     <tr><th>Contact</th><td>{{$ds->contact}}</td></tr>
                     <tr><th>DOI</th><td id="doi">{{$ds->doi}}</td></tr>
@@ -190,6 +187,8 @@
                     <tr><th>Date From</th><td>{{$ds->temporal_from}}</td></tr>
                     <tr><th>Date To</th><td>{{$ds->temporal_to}}</td></tr>
                     <tr><th>Date Created (externally)</th><td>{{$ds->created}}</td></tr>
+                    <tr><th>Added to System</th><td>{{$ds->created_at}}</td></tr>
+                    <tr><th>Updated in System</th><td id="dsupdatedat">{{$ds->updated_at}}</td></tr>
                 </table>
             </div>
         </div>
