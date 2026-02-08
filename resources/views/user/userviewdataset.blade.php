@@ -208,7 +208,7 @@
     </button>
     </div>
 
-<div class="d-flex flex-column flex-md-row align-items-start gap-2">
+<div class="d-flex flex-column flex-md-row align-items-start gap-2 mt-3 mb-3">
 
     @if($ds->pivot->dsrole == 'OWNER' || $ds->pivot->dsrole == 'ADMIN' || $ds->pivot->dsrole == 'COLLABORATOR') 
     
@@ -230,7 +230,7 @@
         <!-- MODAL Bulk Add Dataset button -->
         @include('modals.bulkaddtodatasetmodal')
 
-<button id="toggle-drag" class="btn btn-primary mt-3 mb-3">Change Order</button>
+<button id="toggle-drag" class="btn btn-primary">Change Order</button>
 
 
         <!-- Modal edit dataitem modal -->
@@ -258,7 +258,7 @@
             </button>
         @else
             <div class="dropdown">
-                <button class="mt-3 mb-3 btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedLayerDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedLayerDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Mark as featured
                 </button>
                 <div class="dropdown-menu" aria-labelledby="markAsFeaturedLayerDropdown">

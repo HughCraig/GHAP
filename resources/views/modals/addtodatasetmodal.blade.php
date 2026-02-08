@@ -4,7 +4,7 @@
 
 @include('modals.addglycerineimagemodal')
 
-<button type="button" class="mt-3 mb-3 btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">Add place to layer</button>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">Add place to layer</button>
 <!-- MODAL popup -->
 <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">

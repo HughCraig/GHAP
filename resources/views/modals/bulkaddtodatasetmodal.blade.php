@@ -1,4 +1,4 @@
-<button type="button" class="mt-3 mb-3 btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkaddModal">Import source</button>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkaddModal">Import source</button>
 
 <!-- MODAL popup -->
 <div class="modal fade" id="bulkaddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
