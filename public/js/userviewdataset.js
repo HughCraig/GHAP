@@ -126,7 +126,15 @@ $(document).ready( function () {
      * @param {Array} dataitem
      *   The object data of the dataitem.
      */
-    const setEditDataitemFormValues = function (dataitem) {
+    const setEditDataitemFormValues = function (dataitem) {   
+        
+        // Clear all existing values first
+        clearEditDataitemFormValues();
+        msgBanner.clear();
+        msgBanner.hide();
+        $('#editDataitemModal').data('itemId', "");
+        $('#editDataitemModal').data('setId', "");
+
         if (dataitem.title) {
             $('#editTitle').val(dataitem.title);
         }
@@ -179,8 +187,15 @@ $(document).ready( function () {
             $('#editImageContainer').hide();
             $('#deleteImageContainer').hide();
         }
-    };
 
+        window.editGlycerineUrl = null;
+        if (dataitem.glycerine_url) {
+            $('#glycerine-url-container').html('<a href="' + dataitem.glycerine_url + '" target="_blank">Open Glycerine Image</a>');
+            $('#glycerine-url-container').show();
+        }else{
+            $('#glycerine-url-container').hide();
+        }
+    }
     /**
      * Get the data to send to the dataitem edit service.
      *
@@ -214,7 +229,11 @@ $(document).ready( function () {
         if($('#deletePlaceImage').is(':checked')) {
             formData.append('delete_image', true);
         }
-    
+
+        if(window.editGlycerineUrl) {
+            formData.append('glycerineUrl', window.editGlycerineUrl);
+        }
+
         return formData;
     };    
 
@@ -237,6 +256,11 @@ $(document).ready( function () {
         tinymce.get('editSource').setContent('');
         const extendedDataEditor = new ExtendedDataEditor('#editDataitemModal .extended-data-editor');
         extendedDataEditor.setData(null);
+
+        window.editGlycerineUrl = null;
+        $('#glycerine-url-container').empty();
+        $('#glycerine-url-container').hide();
+        $('#editImagePreview').attr('src', '');
     };
 
     // Handle dataitem edit.
@@ -265,15 +289,6 @@ $(document).ready( function () {
     // Create the message banner for edit modal.
     const msgBanner = new MessageBanner($('#editDataitemModal .message-banner'));
     msgBanner.hide();
-
-    // Unset all control values when the modal is hidden.
-    $('#editDataitemModal').on('hidden.bs.modal', function () {
-        clearEditDataitemFormValues();
-        msgBanner.clear();
-        msgBanner.hide();
-        $('#editDataitemModal').data('itemId', "");
-        $('#editDataitemModal').data('setId', "");
-    });
 
     // Refresh the map when the modal is shown.
     $('#editDataitemModal').on('shown.bs.modal', function () {
@@ -332,6 +347,7 @@ $(document).ready( function () {
                 contentType: false, 
                 processData: false, 
                 success: function (result) {
+                    window.editGlycerineUrl = null;
                     saveButton.prop('disabled', true);
                     $('#editDataitemModal').modal('hide');
                     location.reload();

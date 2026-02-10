@@ -91,38 +91,7 @@ div#mainnav {
     margin: 0 5% 0 5%;
 }
 
-div#mainnav a.navselectedpage {
-    color: #F29469;
-    /*    background-color: #FACC99;	*/
-}
-
-div#mainnav button {
-    color: #17331C;
-}
-
-div#mainnav a {
-    color: #17331C;
-    text-decoration: none;
-}
-
-div#mainnav a:hover {
-    color: #F29469;
-    /*background-color: #FACC99;*/
-
-}
-
-div#mainnav div.navb {
-    z-index: 100;
-}
-
-div#mainnav div.navb a {
-    font-size: 12pt;
-}
-
 /* tweak position of nav buttons */
-div.navb div.subnav a {
-    padding-left: 20px;
-}
 
 div.footcredits {
     background-color: #ffffff;
@@ -275,4 +244,85 @@ tr:first-child {
         display: flex;
         justify-content: center;
     }
+}
+
+/* Navbar theme 
+replacing old nav in September, 2025
+*/
+.navbar {
+    min-height: px;
+/* Slim the bar */
+    --bs-navbar-padding-y: 0; 
+}
+
+/* Slim the links */
+.navbar .nav-link { 
+  padding-top: .35rem; 
+  padding-bottom: .35rem; 
+}
+
+.navbar .container-fluid {
+    display: flex;
+    align-items: stretch; /* or center, if you want vertical centering */
+    min-height: 0; /* ensures it can shrink if needed */
+    padding: 0;
+}
+
+.navbar.tlcmgreen[data-bs-theme="dark"] .dropdown-menu,
+.navbar.tlcmgreen[data-bs-theme="dark"] .dropdown-menu.show {
+  background-color: #17331C;
+  border-color: #17331C; /* optional */
+}
+
+div#moremenu {
+    z-index: 1052 !important; /* higher than most Bootstrap elements */
+    font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+    font-size: 14px;
+}
+
+#moreMenu h5 {
+  color: #000000 !important;
+}
+
+#moreMenu .dropdown-item h5 {
+  color: #000000 !important;
+}
+
+#moreMenu .accordion-button{
+  background:#fff; color:#212529;
+}
+#moreMenu .accordion-button:not(.collapsed){
+  background:#fff; color:#212529; box-shadow:none;
+}
+#moreMenu .accordion-button:focus{ box-shadow:none; }
+
+
+/* Ensure the dropdown menu appears above other content */
+.collapse.navbar-collapse {
+    z-index: 1044 !important; /* higher than most Bootstrap elements */
+    position: relative !important;
+}
+
+.navbar-toggler {
+    border: none !important;
+    border-radius: 0 !important;
+    
+    background: transparent !important;
+}
+
+.navbar-toggler .navbar-toggler-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.navbar.tlcmgreen[data-bs-theme="dark"] .dropdown-menu .dropdown-item:hover,
+.navbar.tlcmgreen[data-bs-theme="dark"] .dropdown-menu .dropdown-item:focus {
+    background-color: #fff !important;
+    color: #17331C !important;
+}
+
+.navbar.tlcmgreen[data-bs-theme="dark"] .nav-link:hover,
+.navbar.tlcmgreen[data-bs-theme="dark"] .nav-link:focus {
+    background-color: #fff !important;
+    color: #17331C !important;
 }

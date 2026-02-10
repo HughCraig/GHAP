@@ -3,9 +3,9 @@ $(document).ready(function () {
     let selectedImageId = null;
     let glycerineUrl = null;
 
-    $("#addGlycerineImageButton").on("click", function () {
-        $("#addModal").modal("hide");
-        $("#addGlycerineImageModal").modal("show");
+    $("#editGlycerineImageButton").on("click", function () {
+        $("#editDataitemModal").modal("hide");
+        $("#editGlycerineImageModal").modal("show");
     });
 
     function resolveRealManifestUrl(url) {
@@ -37,19 +37,19 @@ $(document).ready(function () {
     }
 
     function showLoadingWheel() {
-        document.getElementById("loadingWheel-contribute").style.display =
+        document.getElementById("edit-loadingWheel-contribute").style.display =
             "block";
     }
 
     function hideLoadingWheel() {
-        document.getElementById("loadingWheel-contribute").style.display =
+        document.getElementById("edit-loadingWheel-contribute").style.display =
             "none";
     }
 
     // User load collection manifest
-    $("#loadManifest").on("click", function () {
-        window.glycerineUrl = null;
-        let url = $("#iiifManifestInput").val();
+    $("#editLoadManifest").on("click", function () {
+        window.editGlycerineUrl = null;
+        let url = $("#editIiifManifestInput").val();
         if (!url) {
             alert("Please enter a IIIF manifest URL");
             return;
@@ -58,8 +58,8 @@ $(document).ready(function () {
         url = resolveRealManifestUrl(url);
         showLoadingWheel();
 
-        $("#imageSetsContainer").empty();
-        $("#imagesContainer").empty();
+        $("#editImageSetsContainer").empty();
+        $("#editImagesContainer").empty();
 
         $.getJSON(url, function (manifest) {
             hideLoadingWheel();
@@ -90,7 +90,7 @@ $(document).ready(function () {
                         </div>
                     </div>
                 `;
-                $("#imageSetsContainer").append(html);
+                $("#editImageSetsContainer").append(html);
             });
         }).fail(function () {
             alert("Failed to fetch or parse manifest.");
@@ -104,8 +104,8 @@ $(document).ready(function () {
         let manifestUrl = $(this).data("manifest");
         manifestUrl = resolveRealManifestUrl(manifestUrl);
 
-        $("#imageSetsContainer").empty();
-        $("#imagesContainer").empty();
+        $("#editImageSetsContainer").empty();
+        $("#editImagesContainer").empty();
 
         showLoadingWheel();
         $.getJSON(manifestUrl, function (manifest) {
@@ -135,7 +135,7 @@ $(document).ready(function () {
                                     </div>
                                 </div>
                             `;
-                $("#imagesContainer").append(html);
+                $("#editImagesContainer").append(html);
             });
         }).fail(function () {
             hideLoadingWheel();
@@ -158,7 +158,7 @@ $(document).ready(function () {
     });
 
     // Submit: close Glycerine modal and reopen main modal when hidden
-    $("#add_glycerine_image_submit").on("click", function (e) {
+    $("#edit_glycerine_image_submit").on("click", function (e) {
         e.preventDefault();
 
         if (!selectedImageSetId || !selectedImageId || !glycerineUrl) {
@@ -166,27 +166,28 @@ $(document).ready(function () {
             return;
         }
 
-        window.glycerineUrl = glycerineUrl;
-        $("#add-glycerine-url-container").empty();
-        $("#add-glycerine-url-container").html(
+        window.editGlycerineUrl = glycerineUrl;
+
+        $("#glycerine-url-container").empty();
+        $("#glycerine-url-container").html(
             '<a href="' +
                 glycerineUrl +
                 '" target="_blank">Open Glycerine Image</a>'
         );
-        $("#add-glycerine-url-container").show();
+        $("#glycerine-url-container").show();
 
-        $("#addGlycerineImageModal").modal("hide");
+        $("#editGlycerineImageModal").modal("hide");
         setTimeout(function () {
-            $("#addModal").modal("show");
+            $("#editDataitemModal").modal("show");
         }, 400);
     });
 
-    $("#add_glycerine_image_close").on("click", function (e) {
+    $("#edit_glycerine_image_close").on("click", function (e) {
         e.preventDefault();
 
-        $("#addGlycerineImageModal").modal("hide");
+        $("#editGlycerineImageModal").modal("hide");
         setTimeout(function () {
-            $("#addModal").modal("show");
+            $("#editDataitemModal").modal("show");
         }, 400);
     });
 });
