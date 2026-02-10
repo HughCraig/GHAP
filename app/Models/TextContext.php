@@ -29,9 +29,4 @@ class TextContext extends Model
     {
         return self::where('dataitem_uid', $dataitem_uid)->get();
     }
-
-    public static function getAllByDataitemUid($dataitem_uid)
-    {
-        return self::where('dataitem_uid', $dataitem_uid)->get();
-    }
 }
