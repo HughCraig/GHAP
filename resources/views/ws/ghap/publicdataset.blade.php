@@ -122,7 +122,7 @@
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <tr><th class="w-25">Name</th><td>{{$ds->name}}</td></tr>
-		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->description) !!}</td></tr>
+		            <tr><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->description) !!}</td></tr>
 		            <tr><th>Type</th><td>{{$ds->recordtype->type}}</td></tr>
                     <tr><th class="w-25">Subject</th>
                         <td>
@@ -144,7 +144,7 @@
                             @endif
                         </td>
                     </tr>
-                    <tr style="height: 50px; overflow: auto"><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td></tr>
+                    <tr><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td></tr>
                     
                     <tr><th>Number of places</th><td id="dscount">{{count($ds->dataitems)}}</td></tr>
                 </table>
@@ -205,8 +205,8 @@
     <div class="container-fluid">
         <div class="place-list">
             @foreach($ds->dataitems as $data)
-                <div class="row">
-                    <div class="col col-xl-3">
+                <div class="row gy-2 gy-xl-0 mb-3">
+                    <div class="col-12 col-xl-2">
                         <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
                             <a href="{{config('app.url')}}/places/{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
                                 @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif</a>
@@ -233,9 +233,22 @@
                             </div>
                         </dl>
                     </div>
-                    <div class="col col-xl-2">
+                    <div class="col-12 col-xl-2">
 
-                        <h4>Details</h4>
+                        <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#details-805453"
+                                aria-expanded="false"
+                                aria-controls="details-805453">
+                            Location, Dates
+                        </button>
+
+                        <!-- Desktop heading (only shows on xl+) -->
+                        <h4 class="d-none d-xl-block">Location, Dates</h4>
+
+                        <!-- Body: collapsed on small, always shown on xl+ -->
+                        <div id="details-805453" class="collapse d-xl-block">
 
                         @if(isset($data->latitude))<dt>Latitude</dt><dd>{{$data->latitude}}</dd>@endif
                         @if(isset($data->longitude))<dt>Longitude</dt><dd>{{$data->longitude}}</dd>@endif
@@ -247,22 +260,48 @@
                         @if(isset($data->parish))<dt>Parish</dt><dd>{{$data->parish}}</dd>@endif
                         @if(isset($data->feature_term))<dt>Feature Term</dt><dd>{{$data->feature_term}}</dd>@endif
 
-                    </div>
-                    <div class="col col-xl-3">
+                        </div>
 
-                        <h4>Description</h4>
+                    </div>
+                    <div class="col-12 col-xl-2">
+
+                        <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                                data-bs-toggle="collapse" data-bs-target="#desc-805453">
+                            Description
+                        </button>
+                        <h4 class="d-none d-xl-block">Description</h4>
+                        <div id="desc-805453" class="collapse d-xl-block">
+
                         @if(isset($data->description))
                             <div>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->description) !!}</div>
                         @endif
                         @if(isset($data->extended_data))
+
+                        </div>
+
                     </div>
-                    <div class="col col-xl-2">
-                        <h4>Extended Data</h4>
+                    <div class="col-12 col-xl-2">
+                        <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                                data-bs-toggle="collapse" data-bs-target="#extdata-805453">
+                            Extended Data
+                        </button>
+                        <h4 class="d-none d-xl-block">Extended Data</h4>
+                        <div id="extdata-805453" class="collapse d-xl-block">
+
                         {!!$data->extDataAsHTML()!!}
                         @endif
+
+                        </div>
+
                     </div>
-                    <div class="col col-xl-2">
-                        <h4>Sources</h4>
+                    <div class="col-12 col-xl-2">
+                        <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                                data-bs-toggle="collapse" data-bs-target="#sources-805453">
+                            Sources
+                        </button>
+                        <h4 class="d-none d-xl-block">Sources</h4>
+                        <div id="sources-805453" class="collapse d-xl-block">
+
                         @if(isset($data->glycerine_url))<dd><a href="{{$data->glycerine_url}}" target="_blank">Open Glycerine Image</a></dd>@endif
                         @if(isset($data->uid))<dt>TLCMap ID</dt><dd>{{$data->uid}}</dd>@endif
                         @if(isset($data->external_url))<dt>Linkback</dt><dd><a href="{{$data->external_url}}">{{$data->external_url}}</a></dd>@endif
@@ -271,9 +310,11 @@
                         @if(isset($data->created_at))<dt>Created At</dt><dd>{{$data->created_at}}</dd>@endif
                         @if(isset($data->updated_at))<dt id="updatedat">Updated At</dt><dd>{{$data->updated_at}}</dd>@endif
 
+                        </div>
+
                     </div>
                     @if(!empty($data->image_path))
-                        <div class="col col-xl-2">
+                        <div class="col-12 col-xl-2">
                             <img src="{{ asset('storage/images/' . $data->image_path) }}" alt="Place image" style="max-width: 100%;max-height:150px">
                         </div>
                     @endif
