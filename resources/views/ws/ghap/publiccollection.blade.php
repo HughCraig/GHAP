@@ -11,6 +11,9 @@
 @section('content')
 
     <h2>Multilayer</h2>
+
+<div class="d-flex flex-column flex-md-row gap-2">
+
     <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
 
     @if (!empty(config('app.views_root_url')))
@@ -66,6 +69,8 @@
         @endif
     @endadmin
 
+</div>
+
     <!-- Quick Info -->
     <div class="row mt-3">
         <div class="col-lg-4">
@@ -99,6 +104,7 @@
             </div>
         </div>
 
+<div class="col-lg-8 collapse d-lg-flex" id="extraInfo">
         <div class="col-lg-4">
             <div class="table-responsive" style="overflow: unset">
                 <table class="table table-bordered">
@@ -133,6 +139,19 @@
                 </table>
             </div>
         </div>
+    </div>
+    </div>
+
+        <!-- Toggle button visible only on small screens -->
+    <div class="d-lg-none mt-2">
+    <button class="btn btn-outline-secondary w-100"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#extraInfo"
+            aria-expanded="false"
+            aria-controls="extraInfo">
+        Layer details
+    </button>
     </div>
 
     @if (!empty($datasets) || !empty($collection->savedSearches))
