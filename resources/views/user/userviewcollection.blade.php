@@ -79,39 +79,19 @@
                 <table class="table table-bordered">
                     <tr><th class="w-25">Name</th><td>{{$collection->name}}</td></tr>
 		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->description) !!}</td></tr>
-                    <tr><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->warning) !!}</td></tr>
-                    <tr><th>Contributor</th><td>{{$collection->ownerUser->name}} (You)</td></tr>
-                    <tr><th>Entries</th><td id="datasetsCount">{{count($collection->datasets)}}</td></tr>
+                    <tr><th class="w-25">Subject</th>
+                        <td>
+                            @for ($i = 0; $i < count($collection->subjectKeywords); $i++)
+                                @if ($i == count($collection->subjectKeywords)-1)
+                                    {{$collection->subjectKeywords[$i]->keyword}}
+                                @else
+                                    {{$collection->subjectKeywords[$i]->keyword}},
+                                @endif
+                            @endfor
+                        </td>
+                    </tr>
                     <tr><th>Visibility</th><td id="collectionPublic">@if($collection->public)Public @else Private @endif</td></tr>
-                    <tr><th>Added to System</th><td>{{$collection->created_at}}</td></tr>
-                    <tr><th>Updated in System</th><td id="collectionUpdatedAt">{{$collection->updated_at}}</td></tr>
-                </table>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="table-responsive" style="overflow: unset">
-                <table class="table table-bordered">
-                <tr><th class="w-25">Subject</th>
-                    <td>
-                        @for ($i = 0; $i < count($collection->subjectKeywords); $i++)
-                            @if ($i == count($collection->subjectKeywords)-1)
-                                {{$collection->subjectKeywords[$i]->keyword}}
-                            @else
-                                {{$collection->subjectKeywords[$i]->keyword}},
-                            @endif
-                        @endfor
-                    </td>
-                </tr>
-                    <tr><th>Creator</th><td>{{$collection->creator}}</td></tr>
-                    <tr><th>Publisher</th><td>{{$collection->publisher}}</td></tr>
-                    <tr><th>Contact</th><td>{{$collection->contact}}</td></tr>
-                    <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->citation) !!}</td></tr>
-                    <tr><th>DOI</th><td id="doi">{{$collection->doi}}</td></tr>
-                    <tr><th>Source URL</th><td id="source_url">{{$collection->source_url}}</td></tr>
                     <tr><th>Linkback</th><td id="linkback">{{$collection->linkback}}</td></tr>
-                    <tr><th>Date From</th><td>{{$collection->temporal_from}}</td></tr>
-                    <tr><th>Date To</th><td>{{$collection->temporal_to}}</td></tr>
                     <tr>
                         <th>Image</th>
                         <td>
@@ -120,6 +100,26 @@
                             @endif
                         </td>
                     </tr>
+                    <tr><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->warning) !!}</td></tr>
+                    <tr><th>Number of places</th><td id="datasetsCount">{{count($collection->datasets)}}</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="table-responsive" style="overflow: unset">
+                <table class="table table-bordered">
+                    <tr><th>Contributor</th><td>{{$collection->ownerUser->name}} (You)</td></tr>
+                    <tr><th>Creator</th><td>{{$collection->creator}}</td></tr>
+                    <tr><th>Publisher</th><td>{{$collection->publisher}}</td></tr>
+                    <tr><th>Contact</th><td>{{$collection->contact}}</td></tr>
+                    <tr><th>DOI</th><td id="doi">{{$collection->doi}}</td></tr>
+                    <tr><th>Source URL</th><td id="source_url">{{$collection->source_url}}</td></tr>
+                    <tr><th>License</th><td>{{$collection->license}}</td></tr>
+                    <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->citation) !!}</td></tr>
+                    <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->rights) !!}</td></tr>
+                    
+                    
                 </table>
             </div>
         </div>
@@ -127,14 +127,16 @@
         <div class="col-lg-4">
             <div class="table-responsive">
                 <table class="table table-bordered">
+                    <tr><th>Language</th><td>{{$collection->language}}</td></tr>
                     <tr><th class="w-25">Latitude From</th><td>{{$collection->latitude_from}}</td></tr>
                     <tr><th>Longitude From</th><td>{{$collection->longitude_from}}</td></tr>
                     <tr><th>Latitude To</th><td>{{$collection->latitude_to}}</td></tr>
                     <tr><th>Longitude To</th><td>{{$collection->longitude_to}}</td></tr>
-                    <tr><th>Language</th><td>{{$collection->language}}</td></tr>
-                    <tr><th>License</th><td>{{$collection->license}}</td></tr>
-                    <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->rights) !!}</td></tr>
+                    <tr><th>Date From</th><td>{{$collection->temporal_from}}</td></tr>
+                    <tr><th>Date To</th><td>{{$collection->temporal_to}}</td></tr>
                     <tr><th>Date Created (externally)</th><td>{{$collection->created}}</td></tr>
+                    <tr><th>Added</th><td>{{$collection->created_at}}</td></tr>
+                    <tr><th>Updated</th><td id="collectionUpdatedAt">{{$collection->updated_at}}</td></tr>
                 </table>
             </div>
         </div>

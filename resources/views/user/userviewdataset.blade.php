@@ -168,9 +168,7 @@
                     <tr><th>License</th><td>{{$ds->license}}</td></tr>
                     <tr><th>Allow ANPS Collection?</th><td id="dspublic">@if($ds->allowanps)Yes @else No @endif</td></tr>
                     <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->citation) !!}</td></tr>
-                    
                     <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->rights) !!}</td></tr>
-                    
                 </table>
             </div>
         </div>
@@ -178,7 +176,6 @@
         <div class="col-lg-4">
             <div class="table-responsive">
                 <table class="table table-bordered">
-                
                     <tr><th class="w-25">Language</th><td>{{$ds->language}}</td></tr>
                     <tr><th>Latitude From</th><td>{{$ds->latitude_from}}</td></tr>
                     <tr><th>Longitude From</th><td>{{$ds->longitude_from}}</td></tr>
@@ -187,8 +184,8 @@
                     <tr><th>Date From</th><td>{{$ds->temporal_from}}</td></tr>
                     <tr><th>Date To</th><td>{{$ds->temporal_to}}</td></tr>
                     <tr><th>Date Created (externally)</th><td>{{$ds->created}}</td></tr>
-                    <tr><th>Added to System</th><td>{{$ds->created_at}}</td></tr>
-                    <tr><th>Updated in System</th><td id="dsupdatedat">{{$ds->updated_at}}</td></tr>
+                    <tr><th>Added</th><td>{{$ds->created_at}}</td></tr>
+                    <tr><th>Updated</th><td id="dsupdatedat">{{$ds->updated_at}}</td></tr>
                 </table>
             </div>
         </div>
