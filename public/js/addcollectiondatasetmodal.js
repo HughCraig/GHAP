@@ -86,7 +86,9 @@ $(document).ready(function () {
     // Initialize the select2 widget.
     $('#datasetSelect').select2({
         theme: "bootstrap",
-        placeholder: 'Select a layer...'
+        placeholder: 'Select a layer...',
+        dropdownParent: $('#addDatasetModal'),
+        width: '100%'
     });
 
     // Event handling when an option is selected.
@@ -116,7 +118,8 @@ $(document).ready(function () {
 
     // Event handling when the add button is clicked.
     $('#submitAddDataset').on('click', function () {
-        $('#addDatasetModal').modal('hide');
+        // this syntax is from older version, but seems redundant now. But not sure so just commenting out: $('#addDatasetModal').modal('hide');
+
         const selections = $('#datasetSelect').select2('data');
         if (selections.length > 0 && selections[0].id) {
             const datasetID = selections[0].id;

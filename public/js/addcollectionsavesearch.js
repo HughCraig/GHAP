@@ -46,6 +46,8 @@ $(document).ready(function () {
     $("#savedSearchSelect").select2({
         theme: "bootstrap",
         placeholder: "Select a saved search...",
+        dropdownParent: $("#addSavedSearchModal"),
+        width: "100%",
     });
 
     const msgBanner = new MessageBanner(
