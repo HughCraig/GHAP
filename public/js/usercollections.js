@@ -1,19 +1,20 @@
 $(document).ready(function () {
-    // Init datatable.
-    $("#collectionsTable").dataTable({
-        orderClasses: false,
-        bPaginate: true,
-        bFilter: true,
-        bInfo: false,
-        bSortable: true,
-        bRetrieve: true,
-        aaSorting: [[0, "asc"]],
-        aoColumnDefs: [
-            {"aTargets": [6], "bSortable": false, "bSearchable": false},
-        ],
-        "pageLength": 25,
-        oLanguage: {
-            sSearch: "Filter list:"
-        }
-    });
+  $("#collectionsTable").DataTable({
+    orderClasses: false,
+    paging: true,
+    searching: true,
+    info: false,
+    retrieve: true,
+    responsive: true,
+    order: [[0, "asc"]],
+    pageLength: 25,
+    language: {
+      search: "Filter list:"
+    },
+    columnDefs: [
+      { targets: 6, orderable: false, searchable: false }, // existing rule
+      { responsivePriority: 1, targets: 0 },               // highest priority
+      { responsivePriority: 2, targets: 6 }                // second priority
+    ]
+  });
 });

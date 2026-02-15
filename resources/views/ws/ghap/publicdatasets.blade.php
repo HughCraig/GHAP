@@ -21,8 +21,8 @@
     <a href="{{route('index')}}" class="mb-3 btn btn-primary">Back</a>
     <a href="{{url('myprofile/mydatasets/newdataset')}}" class="mb-3 btn btn-primary">Create Layer</a><br>
 
-    <table id="datasettable" class="display" style="width:100%">
-        <thead class="w3-black"><tr><th>Name</th><th>Size</th><th>Type</th><th>Content Warning</th><th>Created</th><th>Updated</th><th>View Map</th></tr></thead>
+    <table id="datasettable" class="display responsive" style="width:100%">
+        <thead class="w3-black"><tr><th>Name</th><th>Size</th><th>Type</th><th>Content Warning</th><th>Keywords</th><th>Updated</th><th>View Map</th></tr></thead>
         <tbody>
         @foreach($datasets as $ds)
             <tr id="row_id_{{$ds->id}}">
@@ -30,8 +30,16 @@
                 <td>{{count($ds->dataitems)}}</td>
                 <td>{{$ds->recordtype->type}}</td>
                 <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td>
-                <td>{{$ds->created_at}}</td>
-                <td>{{$ds->updated_at}}</td>
+                <td>
+                @for($i = 0; $i < count($ds->subjectKeywords); $i++)
+                                @if($i == count($ds->subjectKeywords)-1)
+                                {{$ds->subjectKeywords[$i]->keyword}}
+                                @else
+                                {{$ds->subjectKeywords[$i]->keyword}},
+                                @endif
+                @endfor
+                </td>
+                <td class="text-nowrap">{{$ds->updated_at->format('Y-m-d')}}</td>
                 <td>
                     @if (!empty(config('app.views_root_url')))
                         <!-- Visualise-->

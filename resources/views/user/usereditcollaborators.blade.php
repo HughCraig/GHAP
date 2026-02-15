@@ -36,7 +36,7 @@
    </div>
 
     <!-- Collaborator Table -->
-    <table id="collabtable" class="display" style="width:100%">
+    <table id="collabtable" class="display responsive" style="width:100%">
         <thead class="w3-black"><tr>
             <th>Email</th><th>Name</th><th>Role</th><th>Edit</th><th>Delete</th>
         </tr></thead>

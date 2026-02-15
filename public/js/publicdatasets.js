@@ -1,16 +1,19 @@
-$(document).ready( function () {
-    // Init datatable.
-    $("#datasettable").dataTable({
-        orderClasses: false,
-        bPaginate: true,
-        bFilter: true,
-        bInfo: false,
-        bSortable: true,
-        bRetrieve: true,
-        aaSorting: [[ 0, "asc" ]],
-        "pageLength": 25,
-        oLanguage: {
-            sSearch: "Filter list:"
-        }
-    });
+$(document).ready(function () {
+  $("#datasettable").DataTable({
+    orderClasses: false,
+    paging: true,
+    searching: true,
+    info: false,
+    retrieve: true,
+    responsive: true,
+    order: [[0, "asc"]],
+    pageLength: 25,
+    language: {
+      search: "Filter list:"
+    },
+    columnDefs: [
+      { responsivePriority: 1, targets: 0 }, // keep first column longest
+      { responsivePriority: 2, targets: 6 }  // keep this next
+    ]
+  });
 });

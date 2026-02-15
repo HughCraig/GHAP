@@ -15,14 +15,14 @@
     <a href="{{url('myprofile')}}" class="mb-3 btn btn-primary">Back</a><br>
     <a href="{{url('myprofile/mycollections/newcollection')}}" class="mb-3 btn btn-primary">Create Multilayer</a>
     
-    <table id="collectionsTable" class="display" style="width:100%">
+    <table id="collectionsTable" class="display responsive" style="width:100%">
         <thead class="w3-black">
         <tr>
             <th>Name</th>
             <th>Size</th>
             <th>Contributor</th>
             <th>Visibility</th>
-            <th>Created</th>
+            <th>Keyword</th>
             <th>Updated</th>
             <th>Delete</th>
         </tr>
@@ -40,7 +40,15 @@
                         Private
                     @endif
                 </td>
-                <td>{{$collection->created_at}}</td>
+                <td>
+                @for($i = 0; $i < count($collection->subjectKeywords); $i++)
+                                @if($i == count($collection->subjectKeywords)-1)
+                                {{$collection->subjectKeywords[$i]->keyword}}
+                                @else
+                                {{$collection->subjectKeywords[$i]->keyword}},
+                                @endif
+                @endfor
+                </td>
                 <td>{{$collection->updated_at}}</td>
                 <td>
                     <button name="delete_collection_button" id="delete_collection_button_{{$collection->id}}">Delete</button></td>

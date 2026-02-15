@@ -1,21 +1,22 @@
 $(document).ready( function () {
     // Init datatable.
-    $("#datasettable").dataTable({
+    $("#datasettable").DataTable({
         orderClasses: false,
-        bPaginate: true,
-        bFilter: true,
-        bInfo: false,
-        bSortable: true,
-        bRetrieve: true,
+        paging: true,
+        searching: true,
+        info: false,
+        retrieve: true,
         responsive: true,
-        aaSorting: [[ 0, "asc" ]],
-        aoColumnDefs: [
-            { "aTargets": [ 6 ], "bSortable": false, "bSearchable": false },
-        ],
-        "pageLength": 25,
-        oLanguage: {
-            sSearch: "Filter list:"
-        }
+        order: [[0, "asc"]],
+        pageLength: 25,
+        language: {
+            search: "Filter list:"
+        },
+        columnDefs: [
+            { targets: 6, orderable: false, searchable: false },
+            { responsivePriority: 1, targets: 0 },
+            { responsivePriority: 2, targets: 6 }
+        ]
     });
 
     /* Get CSRF token for POST and add it to the AJAX header */

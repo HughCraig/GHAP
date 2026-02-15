@@ -171,7 +171,7 @@
     <!-- list all multilayers in a datatable -->
 
     @if ( !empty($collection->datasets) || !empty($collection->savedSearches) )
-        <table id="datasetsTable" class="display responsive nowrap" style="width:100%">
+        <table id="datasetsTable" class="display responsive" style="width:100%">
             <thead class="w3-black">
             <tr>
                 <th>Name</th>

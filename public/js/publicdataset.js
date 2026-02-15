@@ -9,6 +9,7 @@ $(document).ready(function () {
         bRetrieve: true,
         aaSorting: [[0, "asc"]],
         pageLength: 25,
+        responsive: true,
         aoColumnDefs: [
             { aTargets: [13], bSortable: false, bSearchable: false },
         ],

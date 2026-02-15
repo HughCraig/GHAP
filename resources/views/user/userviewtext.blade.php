@@ -163,7 +163,7 @@
 <h2 class="pt-4">Layers created from this text</h2>
 <a href="{{url()->full()}}/parse" class="btn btn-primary mb-4">Create Layer From Text</a>
 
-<table id="datasettable" class="display" style="width:100%">
+<table id="datasettable" class="display responsive" style="width:100%">
     <thead class="w3-black">
         <tr>
             <th>Name</th>

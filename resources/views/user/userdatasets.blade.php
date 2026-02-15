@@ -23,8 +23,8 @@
     </div>
     <div id="success" class="w3-panel w3-pale-green w3-border hideme">Success!</div>
 
-    <table id="datasettable" class="display" style="width:100%">
-        <thead class="w3-black"><tr><th>Name</th><th>Size</th><th>Dataset Role</th><th>Visibility</th><th>Created</th><th>Updated</th><th>Delete</th></tr></thead>
+    <table id="datasettable" class="display responsive" style="width:100%">
+        <thead class="w3-black"><tr><th>Name</th><th>Size</th><th>Dataset Role</th><th>Visibility</th><th>Keywords</th><th>Updated</th><th>Delete</th></tr></thead>
         <tbody>
         @foreach($user->datasets as $ds)
             <tr id="row_id_{{$ds->id}}">
@@ -32,7 +32,15 @@
                 <td>{{count($ds->dataitems)}}</td>
                 <td>{{$ds->pivot->dsrole}}</td>
                 <td>@if($ds->public)Public @else Private @endif</td>
-                <td>{{$ds->created_at}}</td>
+                <td>
+                @for($i = 0; $i < count($ds->subjectKeywords); $i++)
+                                @if($i == count($ds->subjectKeywords)-1)
+                                {{$ds->subjectKeywords[$i]->keyword}}
+                                @else
+                                {{$ds->subjectKeywords[$i]->keyword}},
+                                @endif
+                @endfor
+                </td>
                 <td>{{$ds->updated_at}}</td>
                 <td>
                     @if($user->id == $ds->owner())

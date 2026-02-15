@@ -155,8 +155,8 @@
     </div>
 
     @if (!empty($datasets) || !empty($collection->savedSearches))
-        <table id="datasetsTable" class="display" style="width:100%">
-            <thead class="w3-black"><tr><th>Name</th><th>Size</th><th>Type</th><th>Content Warning</th><th>Updated</th><th>View Map</th></tr></thead>
+        <table id="datasetsTable" class="display nowrap" style="width:100%">
+            <thead class="w3-black"><tr><th>Name</th><th>Size</th><th>Type</th><th>Content Warning</th><th>Keyword</th><th>Updated</th><th>View Map</th></tr></thead>
             <tbody>
             @foreach($datasets as $ds)
                 <tr id="row_id_{{$ds->id}}">
@@ -164,8 +164,16 @@
                     <td>{{count($ds->dataitems)}}</td>
                     <td>{{$ds->recordtype->type}}</td>
                     <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td>
-                  
-                    <td>{{$ds->updated_at}}</td>
+                    <td>
+                        @for($i = 0; $i < count($ds->subjectKeywords); $i++)
+                                    @if($i == count($ds->subjectKeywords)-1)
+                                    {{$ds->subjectKeywords[$i]->keyword}}
+                                    @else
+                                    {{$ds->subjectKeywords[$i]->keyword}},
+                                    @endif
+                        @endfor
+                    </td>
+                    <td>{{$ds->updated_at->format('Y-m-d')}}</td>
                     <td>
                         @if (!empty(config('app.views_root_url')))
                             <!-- Visualise-->
@@ -196,9 +204,16 @@
                 <td><a href="{{$ss->query}}">{{$ss->name}}</a></td>
                     <td>{{$ss->count}}</td>
                     <td>Saved search</td>
-                    <td></td>
-                    <td>{{$ss->created_at}}</td>
-                    <td>{{$ss->updated_at}}</td>
+                    <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ss->warning) !!}</td>
+                    <td>
+                    @for($i = 0; $i < count($ss->subjectKeywords); $i++)
+                                    @if($i == count($ss->subjectKeywords)-1)
+                                    {{$ss->subjectKeywords[$i]->keyword}}
+                                    @else
+                                    {{$ss->subjectKeywords[$i]->keyword}},
+                                    @endif
+                    @endfor</td>
+                    <td>{{$ss->updated_at->format('Y-m-d')}}</td>
                     <td>
                         @if (!empty(config('app.views_root_url')))
                             <!-- Visualise-->

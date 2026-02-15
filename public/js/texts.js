@@ -8,32 +8,43 @@ $(document).ready(function () {
     });
 
     // Init datatable.
-    $("#textsTable").dataTable({
+    $("#textsTable").DataTable({
         orderClasses: false,
-        bPaginate: true,
-        bFilter: true,
-        bInfo: false,
-        bSortable: true,
-        bRetrieve: true,
-        aaSorting: [[0, "asc"]],
-        aoColumnDefs: [{ aTargets: [5], bSortable: false, bSearchable: false }],
+        paging: true,
+        searching: true,
+        info: false,
+        retrieve: true,
+        responsive: true,
+        order: [[0, "asc"]],
         pageLength: 25,
-    });
+        language: {
+            search: "Filter list:"
+        },
+        columnDefs: [
+            { targets: 5, orderable: false, searchable: false }, // existing rule
+            { responsivePriority: 1, targets: 0 },               // most important
+            { responsivePriority: 2, targets: 1 }                // second priority
+        ]
+        });
 
     // Init datatable.
-    $("#datasettable").dataTable({
+    $("#datasettable").DataTable({
         orderClasses: false,
-        bPaginate: true,
-        bFilter: true,
-        bInfo: false,
-        bSortable: true,
-        bRetrieve: true,
-        aaSorting: [[0, "asc"]],
-        aoColumnDefs: [{ aTargets: [4], bSortable: false, bSearchable: false }],
+        paging: true,
+        searching: true,
+        info: false,
+        retrieve: true,
+        responsive: true,
+        order: [[0, "asc"]],
         pageLength: 25,
-        oLanguage: {
-            sSearch: "Filter list:"
-        }
+        language: {
+            search: "Filter list:"
+        },
+        columnDefs: [
+            { targets: 4, orderable: false, searchable: false }, // existing rule
+            { responsivePriority: 1, targets: 0 },               // most important
+            { responsivePriority: 2, targets: 1 }                // second priority
+        ]
     });
 
     // Handle click event of the text delete buttons.

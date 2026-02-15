@@ -20,13 +20,22 @@
     <a href="{{url('myprofile')}}" class="mb-3 btn btn-primary">Back</a><br>
     <a href="{{url('/')}}" class="mb-3 btn btn-primary">Create a new search</a>
 
-    <table id="savedsearchestable" class="display" style="width:100%">
-        <thead class="w3-black"><tr><th>Name</th><th>Result Size</th><th>Search URL</th><th>Date Saved</th><th>Edit</th><th>Delete</th></tr></thead>
+    <table id="savedsearchestable" class="display responsive" style="width:100%">
+        <thead class="w3-black"><tr><th>Name</th><th>Result Size</th><th>Search URL</th><th>Keywords</td><th>Date Saved</th><th>Edit</th><th>Delete</th></tr></thead>
         <tbody>
         @foreach($searches as $search)
             <td><a href="#" class="openMetaDataModal" data-id="{{$search->id}}">{{$search->name}}</a></td>
             <td>{{$search->count}}</td>
             <td class="wordwrap"><a href="{{$search->query}}"> {{$search->query}}</a></td>
+            <td>
+            @for($i = 0; $i < count($search->subjectKeywords); $i++)
+                                @if($i == count($search->subjectKeywords)-1)
+                                {{$search->subjectKeywords[$i]->keyword}}
+                                @else
+                                {{$search->subjectKeywords[$i]->keyword}},
+                                @endif
+                @endfor
+                </td>
             <td>{{$search->updated_at}}</td>
             <input type="hidden" name="delete_id" id="delete_id" value="{{$search->id}}" />
             <td><button class="openEditMetaDataModal" data-id="{{$search->id}}">Edit</button></td>
