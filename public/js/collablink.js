@@ -8,6 +8,7 @@ $(document).ready( function () {
         bSortable: true,
         bRetrieve: true,
         aaSorting: [[ 0, "asc" ]],
+        responsive: true,
         aoColumnDefs: [{ "aTargets": [ 3,4 ], "bSortable": false, "bSearchable": false }],
         "pageLength": 25
     });

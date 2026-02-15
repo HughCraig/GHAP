@@ -42,6 +42,7 @@
                     </div>
 
                     <div class="mp-map"></div>
+                    <button type="button" class="mp-fs-close">×</button>
                 </div>
 
 <!-- Description -->

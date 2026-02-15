@@ -12,7 +12,7 @@
 @section('content')
     <h2>User Management</h2>
     <a href="{{ url('/admin') }}" class="mb-3 btn btn-primary">Back</a><br>
-    <table id="usertable" class="display" style="width:100%">
+    <table id="usertable" class="display responsive" style="width:100%">
         <thead class="w3-black"><tr><th>ID</th><th>Email</th><th>Name</th><th>Role</th><th>Active</th><th>Created</th><th>Updated</th><th>Delete</th></tr></thead>
         <tbody>
         @foreach($users as $user)

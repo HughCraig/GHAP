@@ -7,9 +7,13 @@ $(document).ready(function () {
         bInfo: false,
         bSortable: true,
         bRetrieve: true,
+        responsive: true,
         aaSorting: [[0, "asc"]],
-        aoColumnDefs: [{ aTargets: [9], bSortable: false, bSearchable: false }],
+        aoColumnDefs: [{ aTargets: [8], bSortable: false, bSearchable: false }],
         pageLength: 25,
+        oLanguage: {
+            sSearch: "Filter list:"
+        }
     });
 
     $("#mark_multilayer_as_unfeatured").on("click", function () {

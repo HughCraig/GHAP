@@ -8,7 +8,7 @@
     <script src="{{ asset('/js/addcollectionsavesearch.js') }}"></script>
 @endpush
 
-<button type="button" class="btn btn-primary mt-3 mb-3" data-bs-toggle="modal" data-bs-target="#addSavedSearchModal">Add a saved search</button>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSavedSearchModal">Add a saved search</button>
 
 <!-- Add saved search MODAL popup -->
 <div class="modal fade" id="addSavedSearchModal" data-collection-id="{{ $collection->id }}" tabindex="-1" role="dialog" aria-labelledby="addSavedSearchModalLabel" aria-hidden="true">

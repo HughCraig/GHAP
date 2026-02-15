@@ -344,7 +344,8 @@
                                 </div>
 
                                 <div class="row align-items-center my-auto mb-1 pt-4">
-                                    <select class="w3-white form-control num-places pl-0" style="width:auto" id="num-places">
+                                    Limit to 
+                                    <select class="form-select w3-white num-places ms-2" style="width:auto" id="num-places">
                                         <option value="100">100 places</option>
                                         <option value="200">200 places</option>
                                         <option value="500">500 places</option>
@@ -556,11 +557,13 @@
                     </div>
                 </div>
             </div>
-        </div>
+        
 
-        <div class="place-list pt-4" style="margin: 0 6%;">
-        </div>
+            <div class="container-fluid">
+                <div class="place-list pt-4"></div>
+            </div>
 
+        </div>
     </div>
     <!-- END List Area Display -->
 

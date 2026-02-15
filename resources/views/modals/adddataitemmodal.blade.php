@@ -49,7 +49,7 @@
                     <input type="text" class="mb-3 form-control" id="addtitle" placeholder="Title" required>
 
                     <div class="map-picker">
-                        <p><small>Either enter coordinates manually or click on the map and 'apply'.</small></p>
+                        <p><small>Either enter coordinates or click on the map and 'apply'.</small></p>
 
                         <label for="addlatitude">Latitude</label><label class="text-danger">*</label>
                             <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="Use decimal coordinates. For adding many places,try <a href='https://tlcmap.org/quicktools/quickcoordinates.html' target='_blank'>Quick Coordinates</a> and upload a CSV."></span>
