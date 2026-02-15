@@ -16,10 +16,7 @@
 
     <h2>View Multilayer</h2>
 
-    <a href="{{url('myprofile/mycollections')}}" class="btn btn-primary">Back</a>
-
-    <!-- Edit Collection Modal Button-->
-    @include('modals.editcollectionmodal')
+<div class="d-flex flex-column flex-md-row gap-2">
 
     <!-- Export/Download -->
     <div class="dropdown">
@@ -49,28 +46,7 @@
         </div>
     @endif
 
-    @admin
-        @if (isset($collection->featured_url))
-            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_multilayer_as_unfeatured">
-                Remove featured
-            </button>
-        @else
-            <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedMultiLayerDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Mark as featured
-                </button>
-                <div class="dropdown-menu" aria-labelledby="markAsFeaturedMultiLayerDropdown">
-                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-3d.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json') }}">3D Viewer</a>
-                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-cluster.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json') }}">Cluster</a>
-                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-journey.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?line=route') }}">Journey Route</a>
-                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-journey.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?line=time') }}">Journey Times</a>
-                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-timeline.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?sort=start') }}">Timeline</a>
-                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-werekata.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json') }}">Werekata Flight by Route</a>
-                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-werekata.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?sort=start') }}">Werekata Flight by Time</a>
-                </div>
-            </div>
-        @endif
-    @endadmin
+</div>
     
     <!-- Quick Info -->
     <div class="row mt-3">
@@ -106,6 +82,9 @@
             </div>
         </div>
 
+
+
+    <div class="col-lg-8 collapse d-lg-flex" id="extraInfo">
         <div class="col-lg-4">
             <div class="table-responsive" style="overflow: unset">
                 <table class="table table-bordered">
@@ -141,13 +120,58 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Toggle button visible only on small screens -->
+    <div class="d-lg-none mt-2">
+    <button class="btn btn-outline-secondary w-100"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#extraInfo"
+            aria-expanded="false"
+            aria-controls="extraInfo">
+        Multilayer details
+    </button>
+    </div>
+
+<div class="d-flex flex-column flex-md-row align-items-start gap-2 mt-3 mb-3">
+
+    <!-- Edit Collection Modal Button-->
+    @include('modals.editcollectionmodal')
 
     <!-- Add dataset Modal Button-->
     @include('modals.addcollectiondatasetmodal')
     @include('modals.addsavedsearchmodal')
 
+    @admin
+        @if (isset($collection->featured_url))
+            <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_multilayer_as_unfeatured">
+                Remove featured
+            </button>
+        @else
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedMultiLayerDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Mark as featured
+                </button>
+                <div class="dropdown-menu" aria-labelledby="markAsFeaturedMultiLayerDropdown">
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-3d.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json') }}">3D Viewer</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-cluster.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json') }}">Cluster</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-journey.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?line=route') }}">Journey Route</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-journey.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?line=time') }}">Journey Times</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-timeline.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?sort=start') }}">Timeline</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-werekata.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json') }}">Werekata Flight by Route</a>
+                    <a class="dropdown-item grab-hover mark_multilayer_as_featured" data-featured-url="{{ config('app.views_root_url') }}/collection-werekata.html?load={{ urlencode(url('/multilayers/' . $collection->id) . '/json?sort=start') }}">Werekata Flight by Time</a>
+                </div>
+            </div>
+        @endif
+    @endadmin
+
+</div>
+
+    <!-- list all multilayers in a datatable -->
+
     @if ( !empty($collection->datasets) || !empty($collection->savedSearches) )
-        <table id="datasetsTable" class="display" style="width:100%">
+        <table id="datasetsTable" class="display responsive nowrap" style="width:100%">
             <thead class="w3-black">
             <tr>
                 <th>Name</th>
@@ -156,7 +180,6 @@
                 <th>Content Warning</th>
                 <th>Contributor</th>
                 <th>Visibility</th>
-                <th>Created</th>
                 <th>Updated</th>
                 <th>View Map</th>
                 <th>Remove</th>
@@ -171,7 +194,7 @@
                     <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td>
                     <td>{{$ds->ownerName()}} @if($ds->owner() == Auth::user()->id) (You) @endif</td>
                     <td>{{ $ds->public ? 'Public' : 'Private' }}</td>
-                    <td>{{$ds->created_at}}</td>
+                    
                     <td>{{$ds->updated_at}}</td>
                     <td>
                         @if (!empty(config('app.views_root_url')) && $ds->public)
@@ -209,7 +232,6 @@
                     <td></td>
                     <td></td>   
                     <td></td>
-                    <td>{{$ss->created_at}}</td>
                     <td>{{$ss->updated_at}}</td>
                     <td>
                         @if (!empty(config('app.views_root_url')))

@@ -16,7 +16,7 @@
     <script src="{{ asset('/js/addcollectiondatasetmodal.js') }}"></script>
 @endpush
 
-<button type="button" class="btn btn-primary mt-3 mb-3" data-bs-toggle="modal" data-bs-target="#addDatasetModal">Add a Layer</button>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDatasetModal">Add a Layer</button>
 
 <!-- MODAL popup -->
 <div class="modal fade" id="addDatasetModal" data-collection-id="{{ $collection->id }}" tabindex="-1" role="dialog" aria-labelledby="addDatasetModalLabel" aria-hidden="true">

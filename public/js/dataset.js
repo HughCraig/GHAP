@@ -7,6 +7,7 @@ $(document).ready( function () {
         bInfo: false,
         bSortable: true,
         bRetrieve: true,
+        responsive: true,
         aaSorting: [[ 0, "asc" ]],
         aoColumnDefs: [
             { "aTargets": [ 6 ], "bSortable": false, "bSearchable": false },

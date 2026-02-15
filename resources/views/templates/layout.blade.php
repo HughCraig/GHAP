@@ -63,6 +63,10 @@
 
     <!-- jQuery datatables -->
     <link href="//cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" rel="stylesheet">
+    <!-- with responsive datatables -->
+    <link rel="stylesheet"
+      href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+
 
     <!-- ArcGis styles -->
     <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css">
@@ -113,7 +117,8 @@
 
     <!-- jQuery datatables -->
     <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
-
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    
     <!-- TinyMCE -->
     <script src="{{ asset('tinymce/tinymce.min.js') }}"></script>
 
