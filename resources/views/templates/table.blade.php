@@ -43,7 +43,7 @@
                                 <dd><a href="{{ $line->datasource->link }}">{{ $line->datasource->description }}</a></dd>
                             @endif
                             @if(isset($line->external_url))
-                                <dt>Link back to source:</dt>
+                                <dt>Link back to source</dt>
                                 <dd>
                                     <a target="_blank" href="{{$line->external_url}}">{{$line->external_url}}</a>
                                 </dd>

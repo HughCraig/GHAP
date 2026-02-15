@@ -229,7 +229,7 @@
                     <td><a href="{{ url($ss->query) }}">{{ $ss->name }}</a></td>
                     <td>{{$ss->count}}</td>
                     <td>Saved search</td>
-                    <td></td>
+                    <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ss->warning) !!}</td>
                     <td></td>   
                     <td></td>
                     <td>{{$ss->updated_at}}</td>

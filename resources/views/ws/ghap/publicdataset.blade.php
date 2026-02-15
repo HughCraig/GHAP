@@ -207,8 +207,9 @@
             @foreach($ds->dataitems as $data)
                 <div class="row gy-2 gy-xl-0 mb-3">
                     <div class="col-12 col-xl-2">
-                        <h4><button type="button" class="btn btn-primary btn-sm" onclick="copyLink('{{ $data->uid }}',this,'id')">C</button>
-                            <a href="{{config('app.url')}}/places/{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}">
+                        <h4>
+                            <a href="/places/{{ \TLCMap\Http\Helpers\UID::create($data->id, 't') }}" 
+                            class="link-dark link-underline-opacity-0 link-underline-opacity-100-hover">🌏 
                                 @if(isset($data->title)){{$data->title}}@else{{$data->placename}}@endif</a>
                         </h4>
                         <dl>
@@ -304,7 +305,7 @@
 
                         @if(isset($data->glycerine_url))<dd><a href="{{$data->glycerine_url}}" target="_blank">Open Glycerine Image</a></dd>@endif
                         @if(isset($data->uid))<dt>TLCMap ID</dt><dd>{{$data->uid}}</dd>@endif
-                        @if(isset($data->external_url))<dt>Linkback</dt><dd><a href="{{$data->external_url}}">{{$data->external_url}}</a></dd>@endif
+                        @if(isset($data->external_url))<dt>Linkback</dt><dd><a href="{{$data->external_url}}" class="text-break">{{$data->external_url}}</a></dd>@endif
                         @if(isset($data->source))<dt>Source</dt><dd>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($data->source) !!}</dd>@endif
 
                         @if(isset($data->created_at))<dt>Created At</dt><dd>{{$data->created_at}}</dd>@endif
