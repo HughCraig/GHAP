@@ -343,6 +343,15 @@ div#moreMenu {
   border-bottom: 0;
 }
 
+/* styling for advanced search */
+#advancedaccordion h4 {
+    font-family: "Open Sans", Arial, Helvetica, sans-serif;
+  font-size: 18px !important;              /* old type.less */
+  
+  font-weight: 500;
+  margin-bottom: .5rem;
+}
+
 /* Ensure the dropdown menu appears above other content */
 .collapse.navbar-collapse {
     z-index: 1044 !important; /* higher than most Bootstrap elements */
