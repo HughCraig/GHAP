@@ -44,7 +44,7 @@
     @include('modals.contributesourcemodal')
 
     <h2>
-        Add Map
+        Contribute Map Layer
         @include('templates.misc.contentdisclaimer')
     </h2>
 

@@ -119,17 +119,9 @@ div.header {
         width: 100%;
     }
 
-    #filterType {
-        width: 100%;
-    }
-
     #input-select-box {
         width: 100%;
     }
-}
-
-#filterType {
-    width: 110%;
 }
 
 .vertical-center {

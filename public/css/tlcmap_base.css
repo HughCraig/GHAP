@@ -274,10 +274,12 @@ replacing old nav in September, 2025
   border-color: #17331C; /* optional */
 }
 
-div#moremenu {
+/* note these moreMenu customisations are getting heavy handed. Could do with a refactor to simplify. */
+
+div#moreMenu {
     z-index: 1052 !important; /* higher than most Bootstrap elements */
     font-family: 'Open Sans', Arial, Helvetica, sans-serif;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 #moreMenu h5 {
@@ -289,13 +291,66 @@ div#moremenu {
 }
 
 #moreMenu .accordion-button{
-  background:#fff; color:#212529;
+  background:#fff; color:#000;
 }
 #moreMenu .accordion-button:not(.collapsed){
-  background:#fff; color:#212529; box-shadow:none;
+  background:#fff; color:#000; box-shadow:none;
 }
 #moreMenu .accordion-button:focus{ box-shadow:none; }
 
+/* Fix white-on-white dropdown-item links inside the offcanvas */
+#moreMenu a.dropdown-item {
+  color: #000; /* or: color: var(--bs-body-color); */
+}
+
+#moreMenu a.dropdown-item:hover,
+#moreMenu a.dropdown-item:focus {
+  color: #000; /* keep readable on hover too */
+}
+
+/* Submenu indent to mimic old nested UL */
+#moreMenu .accordion-body a.dropdown-item {
+  padding-left: 2.75rem; /* tune: 2rem–2.75rem */
+}
+
+#moreMenu .offcanvas-header {
+  padding-top: .5rem;
+  padding-bottom: .25rem;
+}
+
+#moreMenu .offcanvas-body {
+  padding-top: 0;
+}
+
+#moreMenu .offcanvas-header {
+  padding-left: 1.75rem;
+  padding-right: 1rem;
+}
+
+#moreMenu {
+  --bs-accordion-btn-padding-y: .55rem;   /* default ≈ 1rem */
+}
+
+#moreMenu .accordian-link::after{
+  display: none !important;
+}
+
+/* Remove section divider lines */
+#moreMenu .accordion-item {
+  border: 0;
+}
+#moreMenu .accordion-header {
+  border-bottom: 0;
+}
+
+/* styling for advanced search */
+#advancedaccordion h4 {
+    font-family: "Open Sans", Arial, Helvetica, sans-serif;
+  font-size: 18px !important;              /* old type.less */
+  
+  font-weight: 500;
+  margin-bottom: .5rem;
+}
 
 /* Ensure the dropdown menu appears above other content */
 .collapse.navbar-collapse {

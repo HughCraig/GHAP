@@ -61,15 +61,15 @@
 
                 <div class="d-flex">
                  
-                    <div class="col-sm-auto pl-0 pr-0 mr-4">
+                    <div class="col-sm-auto ps-0 pe-0 me-4">
                         <input type="text" class="form-control" name="fuzzyname" id="input" placeholder="Search places and culture">
                     </div>
 
-                    <div class="col-sm-auto pt-2 d-flex justify-content-center pr-0">
-                        <a id="advancedSearchButton" href="#advancedaccordion" data-bs-toggle="collapse"><i class="fa fa-chevron-down"></i></a>
+                    <div class="d-flex align-items-center justify-content-center pe-0">
+                        <a id="advancedSearchButton" href="#advancedaccordion" data-bs-toggle="collapse" class="text-black mx-2"><i class="fa fa-chevron-down"></i></a>
                     </div>
 
-                    <div class="col-sm-auto pl-0 pr-0 datasource-filter d-flex justify-content-center">
+                    <div class="col-sm-auto ps-0 pe-0 datasource-filter d-flex justify-content-center">
                         <select class="form-control" id="input-select-box">
                             <option value="containsname" selected="selected">Contains</option>
                             <option value="fuzzyname">Similar Match</option>
@@ -78,7 +78,7 @@
                         </select>
                     </div>
 
-                    <div class="col-sm-auto pl-0">
+                    <div class="col-sm-auto ps-0">
                         <button class="btn btn-primary" type="button" id="searchbutton">
                             <i class="fa fa-search"></i>
                         </button>
@@ -90,43 +90,43 @@
                 </div>
 
                 <div class="d-flex">
-                    <a id="featuredLayersButton" href="#featuredLayersAccordion" data-bs-toggle="collapse" style="color:white"><button class="btn btn-primary">Featured Layers<i class="fa fa-chevron-down pl-2"></i></button></a>
+                    <a id="featuredLayersButton" href="#featuredLayersAccordion" data-bs-toggle="collapse" style="color:white"><button class="btn btn-primary">Featured Layers<i class="fa fa-chevron-down ps-2"></i></button></a>
                 </div>
 
 
                 <div class="d-flex" style="align-items: center;">
 
-                    <label data-bs-toggle="tooltip" title="" class="d-flex mb-0 mr-3 datasource-filter btn" style="background-color: orange;" data-original-title="Official Australian Placenames">
-                        <div class="pl-1 pr-1">
+                    <label data-bs-toggle="tooltip" title="" class="d-flex mb-0 me-3 datasource-filter btn" style="background-color: orange;" data-original-title="Official Australian Placenames">
+                        <div class="ps-1 pe-1">
                             ANPS Gazetteer
                         </div>
                         <input type="checkbox" id="searchausgaz" name="searchausgaz" style="margin-top: 2px; cursor:pointer" checked>
                     </label>
-                    <label data-bs-toggle="tooltip" title="" class="d-flex mb-0 mr-3 datasource-filter btn" style="background-color: #FE6A1B;" data-original-title="Composite Gazetteer of Australia">
-                        <div class="pl-1 pr-1">
+                    <label data-bs-toggle="tooltip" title="" class="d-flex mb-0 me-3 datasource-filter btn" style="background-color: #FE6A1B;" data-original-title="Composite Gazetteer of Australia">
+                        <div class="ps-1 pe-1">
                             NCG Gazetteer
                         </div>
                         <input type="checkbox" id="searchncg" name="searchncg" style="margin-top: 2px; cursor:pointer" checked>
                     </label>
-                    <label data-bs-toggle="tooltip"  class="d-flex mb-0 mr-2 datasource-filter btn" style="background-color: #FFD580;" data-original-title="Contributed layers">
-                        <div class="pl-1 pr-1">
+                    <label data-bs-toggle="tooltip"  class="d-flex mb-0 me-2 datasource-filter btn" style="background-color: #FFD580;" data-original-title="Contributed layers">
+                        <div class="ps-1 pe-1">
                             Layers
                         </div>
                         <input type="checkbox" id="searchpublicdatasets" name="searchpublicdatasets" style="margin-top: 2px; cursor:pointer" checked >
                     </label>
 
-                    <div class="d-flex view-button pl-5" style="align-items: baseline;">
+                    <div class="d-flex view-button ps-5" style="align-items: baseline;">
                         <label class="radio" id="radio-map">
                             <input type="radio" name="typeFilter" class="typeFilter-map">
-                            <span class="label-body pl-1">Points</span>
+                            <span class="label-body ps-1">Points</span>
                         </label>
                         <label class="radio" id="radio-map" style="padding-left: 3rem;">
                             <input type="radio" name="typeFilter" class="typeFilter-cluster">
-                            <span class="label-body pl-1">Cluster</span>
+                            <span class="label-body ps-1">Cluster</span>
                         </label>
                         <label class="radio" id="radio-list" style="padding-left: 3rem; padding-right: 2rem;">
                             <input type="radio" name="typeFilter" class="typeFilter-list">
-                            <span class="label-body pl-1">List</span>
+                            <span class="label-body ps-1">List</span>
                         </label>
                     </div>
 
@@ -180,273 +180,359 @@
 
         <!-- Advanced Search and Filter -->
         <div id="advancedaccordion" class="collapse">
-            <div class="d-flex justify-content-center w3-light-grey pb-4">
-                <!-- Filters -->
-                <div class="row" style="min-width: 75%;">
+  <div class="bg-light border-top py-4">
+    <div class="container">
 
-                    <div class="col-lg-6">
-                        <div class="row">
-                            <div class="col-lg-7">
-                                <!-- All filter section -->
-                                <p class="h4">
-                                    Filters
-                                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Some records may not be comprehensively tagged. Tags for records may differ between states.">
-                                    </span>
-                                </p>
+      <div class="row g-4">
 
-                                <div class="row align-items-center my-auto pb-4">
-                                    <div class="col-sm-6">
-                                        <select class="w3-white form-control" name="filterType" id="filterType">
-                                            <option label="Place Type" selected>Place-Type</option>
-                                            <option label="Layers">Layers</option>
-                                            <option label="Extended Data">Extended-Data</option>
-                                            <option label="LGA">LGA</option>
-                                            <option label="State/Territory">State-Territory</option>
-                                            <option label="Parish">Parish</option>
-                                            <option label="Feature">Feature</option>
-                                            <option label="From ID">From-ID</option>
-                                            <option label="To ID">To-ID</option>
-                                            <option label="Date From">Date-From</option>
-                                            <option label="Date To">Date-To</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <button id="addFilter" class="btn btn-primary">Add</button>
-                                    </div>
-                                </div>
+        {{-- 1) FILTERS --}}
+        <div class="col-12 col-lg-4">
+          <div class="card h-100">
+            <div class="card-body">
 
-                                <div id="filtersContainer">
-                                    <div class="row align-items-center my-auto" id="filter-Place-Type" style="display: none;">
-                                        <div class="col-sm-6">Place Type:</div>
-                                        <div class="col-sm-6 vertical-center">
-                                            <select class="w3-white form-control" name="recordtype" id="recordtype">
-                                                <option label="" selected></option>
-                                                @foreach($recordtypes as $recordtype)
-                                                <option label="{{$recordtype->type}}">{{$recordtype->type}}</option>
-                                                @endforeach
-                                            </select>
-                                            
-                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center my-auto" id="filter-Layers" style="display: none;">
-                                        <div class="col-sm-6">Layers:</div>
-                                        <div class="col-sm-6 vertical-center">
-                                            <input type="text" class="w3-white form-control" id="searchlayers" autocomplete="off">
-                                            <input type="hidden" name="searchlayers" id="selected-layers">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <h4 class="mb-0">Filters</h4>
+                <span tabindex="0"
+                      data-bs-html="true"
+                      data-bs-animation="true"
+                      class="bi bi-question-circle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="right"
+                      style="font-size:14px"
+                      title="Some records may not be comprehensively tagged. Tags for records may differ between states.">
+                </span>
+              </div>
 
-                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center my-auto" id="filter-Extended-Data" style="display: none;">
-                                        <div class="col-sm-6">
-                                            <a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/" style="color: #000000; text-decoration: none;" target="_blank" data-bs-toggle="tooltip" title="This enables nuanced search and map creation within layers and needs special syntax, see under 'Search' in the Guide.">Extended Data?</a>
-                                        </div>
-                                        <div class="col-sm-6 vertical-center">
-                                            <input type="text" class="w3-white form-control" name="extended_data" id="extended_data" autocomplete="off">
+              {{-- Search Description + Limit to --}}
 
-                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center my-auto" id="filter-LGA" style="display: none;" data-bs-toggle="tooltip" title="Local Government Area.">
-                                        <div class="col-sm-6">LGA:</div>
-                                        <div class="col-sm-6 vertical-center">
-                                            <input type="text" class="w3-white form-control" name="lga" id="lga" autocomplete="off">
+              <div id="home-description-numplaces" class="vstack gap-3">
 
-                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center my-auto" id="filter-State-Territory" style="display: none;">
-                                        <div class="col-sm-6">State/Territory:</div>
-                                        <div class="col-sm-6 vertical-center">
-                                            <select class="w3-white form-control" name="state" id="state">
-                                                <option label="" selected></option>
-                                                @foreach($states as $state)
-                                                <option label="{{$state}}">{{$state}}</option>
-                                                @endforeach
-                                            </select>
+                <div class="row align-items-center">
+                  <div class="col">
+                    <div class="form-check d-flex align-items-center gap-2">
 
-                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center my-auto" id="filter-Parish" style="display: none;">
-                                        <div class="col-sm-6">Parish:</div>
-                                        <div class="col-sm-6 vertical-center">
-                                            <input type="text" class="w3-white form-control" name="parish" id="parish" autocomplete="off">
+                      <input class="form-check-input mt-0"
+                            type="checkbox"
+                            id="searchdescription"
+                            name="searchdescription">
 
-                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center my-auto" id="filter-Feature" style="display: none;" data-bs-toggle="tooltip" title="Not all places are tagged with their feature for all states, so this will return only partial results for some areas.">
-                                        <div class="col-sm-6">Feature:</div>
-                                        <div class="col-sm-6 vertical-center">
-                                            <input type="text" class="w3-white form-control" name="feature_term" id="feature_term" autocomplete="off">
+                      <label class="form-check-label mb-0" for="searchdescription">
+                        Search Description
+                      </label>
 
-                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center my-auto" id="filter-From-ID" style="display: none;">
-                                        <div class="col-sm-6">From ID:</div>
-                                        <div class="col-sm-6 vertical-center">
-                                            <input type="text" class="smallerinputs w3-white form-control" id="from" name="from">
+                      <span tabindex="0"
+                            data-bs-html="true"
+                            data-bs-animation="true"
+                            class="bi bi-question-circle"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="right"
+                            style="font-size:14px"
+                            title="Also search Description field">
+                      </span>
 
-                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center my-auto" id="filter-To-ID" style="display: none;">
-                                        <div class="col-sm-6">To ID:</div>
-                                        <div class="col-sm-6 vertical-center">
-                                            <input type="text" class="w3-white form-control" id="to" name="to">
-
-                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center my-auto" id="filter-Date-From" style="display: none;" data-bs-toggle="tooltip" title="Places without dates associated are not included.">
-                                        <div class="col-sm-6">Date From:</div>
-                                        <div class="col-sm-6 vertical-center">
-                                            <input type="text" class="smallerinputs w3-white form-control" id="datefrom" name="datefrom">
-
-                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="row align-items-center my-auto" id="filter-Date-To" style="display: none;">
-                                        <div class="col-sm-6">Date To:</div>
-                                        <div class="col-sm-6 vertical-center">
-                                            <input type="text" class="w3-white form-control" id="dateto" name="dateto">
-
-                                            <span tabindex="0" class="glyphicon glyphicon-remove-sign remove-filter-button">
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-lg-5" style="margin-top:6%" id="home-description-numplaces">
-
-                                <div class="row align-items-center my-auto mb-1">
-                                    <div class="col-sm-8 pl-0" data-bs-toggle="tooltip">
-                                        Search Description
-                                        <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" title="Also search Description field"></span>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <input type="checkbox" id="searchdescription" name="searchdescription">
-                                    </div>
-                                </div>
-
-                                <div class="row align-items-center my-auto mb-1 pt-4">
-                                    Limit to 
-                                    <select class="form-select w3-white num-places ms-2" style="width:auto" id="num-places">
-                                        <option value="100">100 places</option>
-                                        <option value="200">200 places</option>
-                                        <option value="500">500 places</option>
-                                        <option value="2000">2000 places</option>
-                                        <option value="5000">5000 places</option>
-                                    </select>          
-                                </div>
-                            </div>
-                        </div>
                     </div>
-
-                    <div class="col-lg-6" style="border-left: 2px solid black;">
-                        <!-- Map Area Search -->
-                        <div class="col-lg-6">
-
-                            <p class="h4">
-                                Search within region
-                                <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Use the shapes at top right of the map to draw a region on the map, or provide details below.">
-                                </span>
-                            </p>
-
-                            <div class="row mb-2">
-                                <div class="col-sm-6">
-                                    <select id="mapselector" class="h5 m-0 mt-2 mb-3 text-center">
-                                        <option id="bboxoption" value="bboxoption">Bounding Box</option>
-                                        <option id="polygonoption" value="polygonoption">Polygon</option>
-                                    </select>
-                                </div>
-                                <div class="col-sm-6">
-                                    <button class="btn btn-primary" id="mapdraw" type="button">Draw</button>
-                                </div>
-                            </div>
-
-                            <div id="bboxdiv">
-                                <input type="hidden" id="bbox" name="bbox" value="">
-
-                                <p class="mb-0">Longitude</p>
-                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                                    <input type="text" class="w3-white form-control p-2" id="minlong" placeholder="min long">
-                                    <p class="mr-2 ml-2 text-decoration-none">to</p>
-                                    <input type="text" class="w3-white form-control p-2" id="maxlong" placeholder="max long">
-                                </div>
-
-                                <p class="mb-0">Latitude</p>
-                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                                    <input type="text" class="w3-white form-control p-2" id="minlat" placeholder="min lat">
-                                    <p class="mr-2 ml-2 text-decoration-none">to</p>
-                                    <input type="text" class="w3-white form-control p-2" id="maxlat" placeholder="max lat">
-                                </div>
-
-                            </div>
-
-                            <div id="polygondiv" class="hidden">
-                                <input type="hidden" id="polygon" name="polygon" value="">
-                                <div class="rTableRow d-inline-flex" style="line-height:32px;">
-                                    Points
-                                    <input type="text" class="w3-white form-control p-2 ml-2" id="polygoninput" placeholder="0 0, 0 100, 100 100, 100 0, 0 0">
-                                </div>
-                            </div>
-
-                        </div>
-                        <!-- End map Area Search -->
-
-                        <!-- file upload  -->
-                        <div class="col-lg-6">
-                            <!-- Bulk search placenames from file -->
-                            <div class="bulk-placename-search">
-                                <h4>
-                                    Search for a list of place names
-                                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Upload a file containing a list of place names, either one per line or separated by commas.">
-                                    </span>
-                                </h4>
-
-
-                                <input type="file" name="bulkfileinput" id="bulkfileinput" class="d-inline-block pl-0" style="font-size: 14px;">
-                                <button type="button" class="btn btn-danger" id="bulkfileCancel" hidden>&times;</button>
-
-                            </div>
-                            <!-- END Bulk search placenames from file -->
-
-                            <!-- Search KML polygon from file -->
-                            <div class="kml-search">
-                                <h4>
-                                    Search within a KML polygon
-                                    <span tabindex="0" data-bs-html="true" data-bs-animation="true" class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="right" style="font-size:14px" title="Upload a KML file specifying a polygon. No visualisation. Downloadable results only.">
-                                    </span>
-                                </h4>
-                                <!-- MODAL Search within kml polygon from file
-                                    NB: the popup content for this is below. It can't be here as it contains a form element, which would create bad form nesting. -->
-                                <button type="button" class="d-inline-block border border-dark" data-bs-toggle="modal" data-bs-target="#kmlPolygonSearchModal" style="padding-top: 1%; padding-bottom:1%">
-                                    Choose file
-                                </button>
-                            </div>
-                            <!-- END KML polygon from file -->
-                        </div>
-                        <!-- End of file upload  -->
-                    </div>
-
+                  </div>
                 </div>
+
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                  <div class="fw-normal">Limit to</div>
+                  <select class="form-select w3-white num-places" style="width:auto" id="num-places">
+                    <option value="100">100 places</option>
+                    <option value="200">200 places</option>
+                    <option value="500">500 places</option>
+                    <option value="2000">2000 places</option>
+                    <option value="5000">5000 places</option>
+                  </select>
+                </div>
+
+              
+
+              {{-- Add filter control --}}
+              <div class="row g-2 align-items-center mb-3">
+                <div class="col-12 col-md-8">
+                  <select class="form-select w3-white" name="filterType" id="filterType">
+                    <option label="Place Type" selected>Place-Type</option>
+                    <option label="Layers">Layers</option>
+                    <option label="Extended Data">Extended-Data</option>
+                    <option label="LGA">LGA</option>
+                    <option label="State/Territory">State-Territory</option>
+                    <option label="Parish">Parish</option>
+                    <option label="Feature">Feature</option>
+                    <option label="From ID">From-ID</option>
+                    <option label="To ID">To-ID</option>
+                    <option label="Date From">Date-From</option>
+                    <option label="Date To">Date-To</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-4 d-grid">
+                  <button id="addFilter" class="btn btn-primary" type="button">Add</button>
+                </div>
+              </div>
+
+              {{-- Existing dynamic filters container (keep ids + inner controls exactly) --}}
+              <div id="filtersContainer" class="vstack gap-2">
+
+                <div class="row g-2 align-items-center" id="filter-Place-Type" style="display:none;">
+                  <div class="col-12 col-sm-5 d-flex align-items-center">Place Type:</div>
+                  <div class="col-12 col-sm-7">
+                    <div class="d-flex align-items-center">
+                      <select class="form-select w3-white" name="recordtype" id="recordtype">
+                        <option label="" selected></option>
+                        @foreach($recordtypes as $recordtype)
+                          <option label="{{ $recordtype->type }}">{{ $recordtype->type }}</option>
+                        @endforeach
+                      </select>
+                    <span tabindex="0" class="bi bi-x-circle remove-filter-button ms-2"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-2 align-items-center" id="filter-Layers" style="display:none;">
+                  <div class="col-12 col-sm-5 d-flex align-items-center">Layers:</div>
+                  <div class="col-12 col-sm-7">
+                    <div class="d-flex align-items-center">
+                      <input type="text" class="form-control w3-white" id="searchlayers" autocomplete="off">
+                      <input type="hidden" name="searchlayers" id="selected-layers">
+                      <span tabindex="0" class="bi bi-x-circle remove-filter-button ms-2"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-2 align-items-center" id="filter-Extended-Data" style="display:none;">
+                  <div class="col-12 col-sm-5 d-flex align-items-center">
+                    <a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/"
+                      style="color:#000000; text-decoration:none;"
+                      target="_blank"
+                      data-bs-toggle="tooltip"
+                      title="This enables nuanced search and map creation within layers and needs special syntax, see under 'Search' in the Guide.">
+                      Extended Data?
+                    </a>
+                  </div>
+                  <div class="col-12 col-sm-7">
+                    <div class="d-flex align-items-center">
+                      <input type="text" class="form-control w3-white" name="extended_data" id="extended_data" autocomplete="off">
+                      <span tabindex="0" class="bi bi-x-circle remove-filter-button ms-2"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-2 align-items-center" id="filter-LGA" style="display:none;" data-bs-toggle="tooltip" title="Local Government Area.">
+                  <div class="col-12 col-sm-5 d-flex align-items-center">LGA:</div>
+                  <div class="col-12 col-sm-7">
+                    <div class="d-flex align-items-center">
+                      <input type="text" class="form-control w3-white" name="lga" id="lga" autocomplete="off">
+                      <span tabindex="0" class="bi bi-x-circle remove-filter-button ms-2"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-2 align-items-center" id="filter-State-Territory" style="display:none;">
+                  <div class="col-12 col-sm-5 d-flex align-items-center">State/Territory:</div>
+                  <div class="col-12 col-sm-7">
+                    <div class="d-flex align-items-center">
+                      <select class="form-select w3-white" name="state" id="state">
+                        <option label="" selected></option>
+                        @foreach($states as $state)
+                          <option label="{{ $state }}">{{ $state }}</option>
+                        @endforeach
+                      </select>
+                      <span tabindex="0" class="bi bi-x-circle remove-filter-button ms-2"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-2 align-items-center" id="filter-Parish" style="display:none;">
+                  <div class="col-12 col-sm-5 d-flex align-items-center">Parish:</div>
+                  <div class="col-12 col-sm-7">
+                    <div class="d-flex align-items-center">
+                      <input type="text" class="form-control w3-white" id="parish" name="parish" autocomplete="off">
+                      <span tabindex="0" class="bi bi-x-circle remove-filter-button ms-2"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-2 align-items-center" id="filter-Feature" style="display:none;">
+                  <div class="col-12 col-sm-5 d-flex align-items-center">Feature:</div>
+                  <div class="col-12 col-sm-7">
+                    <div class="d-flex align-items-center">
+                      <input type="text" class="form-control w3-white" id="feature" name="feature" autocomplete="off">
+                      <span tabindex="0" class="bi bi-x-circle remove-filter-button ms-2"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-2 align-items-center" id="filter-From-ID" style="display:none;">
+                  <div class="col-12 col-sm-5 d-flex align-items-center">From ID:</div>
+                  <div class="col-12 col-sm-7">
+                    <div class="d-flex align-items-center">
+                      <input type="text" class="form-control w3-white" id="fromid" name="fromid">
+                      <span tabindex="0" class="bi bi-x-circle remove-filter-button ms-2"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-2 align-items-center" id="filter-To-ID" style="display:none;">
+                  <div class="col-12 col-sm-5 d-flex align-items-center">To ID:</div>
+                  <div class="col-12 col-sm-7">
+                    <div class="d-flex align-items-center">
+                      <input type="text" class="form-control w3-white" id="toid" name="toid">
+                      <span tabindex="0" class="bi bi-x-circle remove-filter-button ms-2"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-2 align-items-center" id="filter-Date-From" style="display:none;">
+                  <div class="col-12 col-sm-5 d-flex align-items-center">Date From:</div>
+                  <div class="col-12 col-sm-7">
+                    <div class="d-flex align-items-center">
+                      <input type="date" class="form-control w3-white" id="datefrom" name="datefrom">
+                      <span tabindex="0" class="bi bi-x-circle remove-filter-button ms-2"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-2 align-items-center" id="filter-Date-To" style="display:none;">
+                  <div class="col-12 col-sm-5 d-flex align-items-center">Date To:</div>
+                  <div class="col-12 col-sm-7">
+                    <div class="d-flex align-items-center">
+                      <input type="date" class="form-control w3-white" id="dateto" name="dateto">
+                      <span tabindex="0" class="bi bi-x-circle remove-filter-button ms-2"></span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              </div>
+
             </div>
+          </div>
         </div>
+
+        {{-- 2) SEARCH WITHIN REGION --}}
+        <div class="col-12 col-lg-4">
+          <div class="card h-100">
+            <div class="card-body">
+
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <h4 class="mb-0">Search within region</h4>
+                <span tabindex="0"
+                      data-bs-html="true"
+                      data-bs-animation="true"
+                      class="bi bi-question-circle"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="right"
+                      style="font-size:14px"
+                      title="Use the shapes at top right of the map to draw a region on the map, or provide details below.">
+                </span>
+              </div>
+
+              <div class="row g-2 align-items-center mb-3">
+                <div class="col-12 col-md-7">
+                  <select id="mapselector" class="form-select">
+                    <option id="bboxoption" value="bboxoption">Bounding Box</option>
+                    <option id="polygonoption" value="polygonoption">Polygon</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-5 d-grid">
+                  <button class="btn btn-primary" id="mapdraw" type="button">Draw</button>
+                </div>
+              </div>
+
+              <div id="bboxdiv" class="vstack gap-2">
+                <input type="hidden" id="bbox" name="bbox" value="">
+
+                <div class="fw-semibold">Longitude</div>
+                <div class="input-group">
+                  <input type="text" class="form-control w3-white" id="minlong" placeholder="min long">
+                  <span class="text-muted mx-2 align-self-center">to</span>
+                  <input type="text" class="form-control w3-white" id="maxlong" placeholder="max long">
+                </div>
+
+                <div class="fw-semibold">Latitude</div>
+                <div class="input-group">
+                  <input type="text" class="form-control w3-white" id="minlat" placeholder="min lat">
+                  <span class="text-muted mx-2 align-self-center">to</span>
+                  <input type="text" class="form-control w3-white" id="maxlat" placeholder="max lat">
+                </div>
+              </div>
+
+              <div id="polygondiv" class="hidden mt-3">
+                <input type="hidden" id="polygon" name="polygon" value="">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span class="fw-semibold">Points</span>
+                  <input type="text"
+                         class="form-control w3-white"
+                         id="polygoninput"
+                         placeholder="0 0, 0 100, 100 100, 100 0, 0 0">
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {{-- 3) BULK PLACE NAMES + KML POLYGON --}}
+        <div class="col-12 col-lg-4">
+          <div class="card h-100">
+            <div class="card-body">
+
+              <div class="bulk-placename-search mb-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <h4 class="mb-0">Search for a list of place names</h4>
+                  <span tabindex="0"
+                        data-bs-html="true"
+                        data-bs-animation="true"
+                        class="bi bi-question-circle"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="right"
+                        style="font-size:14px"
+                        title="Upload a file containing a list of place names, either one per line or separated by commas.">
+                  </span>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <input type="file"
+                         name="bulkfileinput"
+                         id="bulkfileinput"
+                         class="form-control"
+                         style="max-width: 100%; font-size:14px;">
+                  <button type="button" class="btn btn-danger" id="bulkfileCancel" hidden>&times;</button>
+                </div>
+              </div>
+
+              <div class="kml-search">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <h4 class="mb-0">Search within a KML polygon</h4>
+                  <span tabindex="0"
+                        data-bs-html="true"
+                        data-bs-animation="true"
+                        class="bi bi-question-circle"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="right"
+                        style="font-size:14px"
+                        title="Upload a KML file specifying a polygon. No visualisation. Downloadable results only.">
+                  </span>
+                </div>
+
+                {{-- NB: modal content lives elsewhere (as in your comment) --}}
+                <button type="button"
+                        class="btn btn-outline-dark"
+                        data-bs-toggle="modal"
+                        data-bs-target="#kmlPolygonSearchModal">
+                  Choose file
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div> {{-- /row --}}
+
+    </div>
+  </div>
+</div>
         <!-- END Advanced Search and Filter -->
 
 

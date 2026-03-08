@@ -182,9 +182,9 @@
     <div class="collapse navbar-collapse order-3 order-lg-1 tlcmgreen" id="greennav">
       <!-- Left: public menu -->
       <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href="{{ url('layers') }}">Layers</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url('multilayers') }}">Multilayers</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url('contribute') }}">Add Map</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url('layers') }}" title="Map layers contributed by people on different topics.">Layers</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url('multilayers') }}" title="Map layers combined for comparison.">Multilayers</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url('contribute') }}" title="Create your own map layer of places and add information to places.">Contribute</a></li>
       </ul>
 
       <!-- Right: logged in menu -->
@@ -294,17 +294,26 @@
 <!-- Main Offcanvas menu (right side) -->
 
 <!-- Main Offcanvas menu (right side) -->
-<div class="offcanvas offcanvas-end" data-bs-theme="light"
+<div class="offcanvas offcanvas-end p-3" data-bs-theme="light"
      tabindex="-1" id="moreMenu" 
      aria-labelledby="moreMenuLabel" >
-  <div class="offcanvas-header border-bottom">
-    <h5 id="moreMenuLabel" class="mb-0"><a href="{{ url('/') }}" style="color: #000;">Home</a></h5>
+  <div class="offcanvas-header">
     <button type="button" class="btn-close"
             data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
 
-  <div class="offcanvas-body p-0">
+  <div class="offcanvas-body">
     <div class="accordion accordion-flush" id="moreAccordion">
+
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed accordian-link"
+                  type="button"
+                  onclick="window.location='{{ url('/') }}'">
+            HOME
+          </button>
+        </h2>
+      </div>
 
       <!-- Group 1 -->
       <div class="accordion-item ">
@@ -316,11 +325,11 @@
         <div id="moreGroup1" class="accordion-collapse collapse" data-bs-parent="#moreAccordion">
           <div class="accordion-body p-0">
             <ul class="list-unstyled mb-0">
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Add Map</a></li>
-              <li><a class="dropdown-item py-2 px-3" href="https://quicktools.tlcmap.org/">Quick Tools</a></li>
-			  <li><a class="dropdown-item py-2 px-3" href="https://www.researchobject.org/ro-crate/">RO-Crate</a></li>
-			  <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/core-data/">Core Data</a></li>
-			  <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Web Services</a></li>
+              <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Add Map</a></li>
+              <li><a class="dropdown-item py-2 " href="https://quicktools.tlcmap.org/">Quick Tools</a></li>
+			  <li><a class="dropdown-item py-2 " href="https://www.researchobject.org/ro-crate/">RO-Crate</a></li>
+			  <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/core-data/">Core Data</a></li>
+			  <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Web Services</a></li>
             </ul>
           </div>
         </div>
@@ -331,15 +340,15 @@
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button"
                   data-bs-toggle="collapse" data-bs-target="#moreGroup2"
-                  aria-expanded="false">Help</button>
+                  aria-expanded="false">HELP</button>
         </h2>
         <div id="moreGroup2" class="accordion-collapse collapse" data-bs-parent="#moreAccordion">
           <div class="accordion-body p-0">
             <ul class="list-unstyled mb-0">
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/">Get started</a></li>
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/guides/">Guides</a></li>
-			  <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/faqs/">FAQs</a></li>
-			  <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Developers</a></li>
+              <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/help/">Get started</a></li>
+              <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/help/guides/">Guides</a></li>
+			  <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/help/faqs/">FAQs</a></li>
+			  <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/help/developers/">Developers</a></li>
             </ul>
           </div>
         </div>
@@ -350,19 +359,19 @@
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button"
                   data-bs-toggle="collapse" data-bs-target="#moreGroup3"
-                  aria-expanded="false">About</button>
+                  aria-expanded="false">ABOUT</button>
         </h2>
         <div id="moreGroup3" class="accordion-collapse collapse" data-bs-parent="#moreAccordion">
           <div class="accordion-body p-0">
             <ul class="list-unstyled mb-0">
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/first-australians/">First Australians</a></li>
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/about/updates/">Updates</a></li>
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/about/lead-researchers/">Lead researchers</a></li>
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/about/partners/">Partners</a></li>
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/research-outputs/">Research Outputs</a></li>
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/examples/">Examples</a></li>
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/contact/">Contact</a></li>
-              <li><a class="dropdown-item py-2 px-3" href="{{ config('app.tlcmap_doc_url') }}/about/conditionsofuse/">Conditions of Use</a></li>
+              <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/first-australians/">First Australians</a></li>
+              <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/about/updates/">Updates</a></li>
+              <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/about/lead-researchers/">Lead researchers</a></li>
+              <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/about/partners/">Partners</a></li>
+              <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/research-outputs/">Research Outputs</a></li>
+              <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/examples/">Examples</a></li>
+              <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/contact/">Contact</a></li>
+              <li><a class="dropdown-item py-2 " href="{{ config('app.tlcmap_doc_url') }}/about/conditionsofuse/">Conditions of Use</a></li>
             </ul>
           </div>
         </div>
