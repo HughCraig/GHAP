@@ -115,16 +115,16 @@
                         <input type="checkbox" id="searchpublicdatasets" name="searchpublicdatasets" style="margin-top: 2px; cursor:pointer" checked >
                     </label>
 
-                    <div class="d-flex view-button ps-5" style="align-items: baseline;">
-                        <label class="radio" id="radio-map">
+                    <div class="d-flex view-button ps-5" style="align-items: center;">
+                        <label class="radio" id="radio-map" style="margin-bottom: 0px;">
                             <input type="radio" name="typeFilter" class="typeFilter-map">
                             <span class="label-body ps-1">Points</span>
                         </label>
-                        <label class="radio" id="radio-map" style="padding-left: 3rem;">
+                        <label class="radio" id="radio-map" style="padding-left: 3rem;margin-bottom: 0px;">
                             <input type="radio" name="typeFilter" class="typeFilter-cluster">
                             <span class="label-body ps-1">Cluster</span>
                         </label>
-                        <label class="radio" id="radio-list" style="padding-left: 3rem; padding-right: 2rem;">
+                        <label class="radio" id="radio-list" style="padding-left: 3rem; padding-right: 2rem;margin-bottom: 0px;">
                             <input type="radio" name="typeFilter" class="typeFilter-list">
                             <span class="label-body ps-1">List</span>
                         </label>
