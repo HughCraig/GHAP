@@ -263,7 +263,7 @@
 
   {{-- Desktop burger → opens #moreMenu offcanvas --}}
   <li class="nav-item d-none d-lg-block">
-    <button class="btn navbar-toggler p-2" type="button"
+    <button class="btn p-2" type="button"
             data-bs-toggle="offcanvas" data-bs-target="#moreMenu"
             aria-controls="moreMenu" aria-label="More">
       <span class="navbar-toggler-icon"></span>
