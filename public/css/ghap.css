@@ -802,8 +802,9 @@ div#mainnav {
 
 /* spacing between nav and page heading etc */
 .tlcmapcontainer {
-    margin-top: 16px;
+    margin-top: 3px;
 }
+
 .tlcmapcontainer .container {
     width: 100%;
 }
