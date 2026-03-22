@@ -285,7 +285,7 @@
     <div class="container-fluid">
         <div class="place-list">
             @foreach($ds->dataitems as $data)
-                <div class="row gy-2 gy-xl-0 mb-3" data-id="{{ $data->id }}">
+                <div class="row" data-id="{{ $data->id }}">
                     <div class="col dragIcon" style="max-width: 4%;display:none">
                         <img src="{{ asset('img/draggable.svg') }}">
                     </div>
