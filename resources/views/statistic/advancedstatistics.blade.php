@@ -31,7 +31,7 @@
             @foreach($statistic as $stat)
             <tr>
                 <td>
-                    <div data-toggle="tooltip" title="{{ $stat['explanation'] }}">
+                    <div data-bs-toggle="tooltip" title="{{ $stat['explanation'] }}">
                         {{ $stat['name'] }}
                     </div>
                 </td>

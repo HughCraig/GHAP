@@ -985,7 +985,7 @@ $(document).ready(async function () {
         .querySelectorAll(".remove-filter-button")
         .forEach(function (button) {
             button.addEventListener("click", function () {
-                var filterRow = this.closest(".row.align-items-center.my-auto");
+                var filterRow = this.closest(".row.align-items-center");
                 var filterType = filterRow.id.replace("filter-", "");
                 filterRow.style.display = "none";
 

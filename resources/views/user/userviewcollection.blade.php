@@ -16,14 +16,11 @@
 
     <h2>View Multilayer</h2>
 
-    <a href="{{url('myprofile/mycollections')}}" class="btn btn-primary">Back</a>
-
-    <!-- Edit Collection Modal Button-->
-    @include('modals.editcollectionmodal')
+<div class="d-flex flex-column flex-md-row gap-2">
 
     <!-- Export/Download -->
     <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Download
         </button>
         <div class="dropdown-menu" aria-labelledby="downloadDropdown">
@@ -34,7 +31,7 @@
     @if (!empty(config('app.views_root_url')) && $collection->public)
         <!-- Visualise-->
         <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 View Map
             </button>
             <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
@@ -49,6 +46,103 @@
         </div>
     @endif
 
+</div>
+    
+    <!-- Quick Info -->
+    <div class="row mt-3">
+        <div class="col-lg-4">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <tr><th class="w-25">Name</th><td>{{$collection->name}}</td></tr>
+		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->description) !!}</td></tr>
+                    <tr><th class="w-25">Subject</th>
+                        <td>
+                            @for ($i = 0; $i < count($collection->subjectKeywords); $i++)
+                                @if ($i == count($collection->subjectKeywords)-1)
+                                    {{$collection->subjectKeywords[$i]->keyword}}
+                                @else
+                                    {{$collection->subjectKeywords[$i]->keyword}},
+                                @endif
+                            @endfor
+                        </td>
+                    </tr>
+                    <tr><th>Visibility</th><td id="collectionPublic">@if($collection->public)Public @else Private @endif</td></tr>
+                    <tr><th>Linkback</th><td id="linkback">{{$collection->linkback}}</td></tr>
+                    <tr>
+                        <th>Image</th>
+                        <td>
+                            @if($collection->image_path)
+                            <img src="{{ asset('storage/images/' . $collection->image_path) }}" alt="Collection Image" style="max-width: 100%; max-height:150px">
+                            @endif
+                        </td>
+                    </tr>
+                    <tr><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->warning) !!}</td></tr>
+                    <tr><th>Number of places</th><td id="datasetsCount">{{count($collection->datasets)}}</td></tr>
+                </table>
+            </div>
+        </div>
+
+
+
+    <div class="col-lg-8 collapse d-lg-flex" id="extraInfo">
+        <div class="col-lg-4">
+            <div class="table-responsive" style="overflow: unset">
+                <table class="table table-bordered">
+                    <tr><th>Contributor</th><td>{{$collection->ownerUser->name}} (You)</td></tr>
+                    <tr><th>Creator</th><td>{{$collection->creator}}</td></tr>
+                    <tr><th>Publisher</th><td>{{$collection->publisher}}</td></tr>
+                    <tr><th>Contact</th><td>{{$collection->contact}}</td></tr>
+                    <tr><th>DOI</th><td id="doi">{{$collection->doi}}</td></tr>
+                    <tr><th>Source URL</th><td id="source_url">{{$collection->source_url}}</td></tr>
+                    <tr><th>License</th><td>{{$collection->license}}</td></tr>
+                    <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->citation) !!}</td></tr>
+                    <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->rights) !!}</td></tr>
+                    
+                    
+                </table>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <tr><th>Language</th><td>{{$collection->language}}</td></tr>
+                    <tr><th class="w-25">Latitude From</th><td>{{$collection->latitude_from}}</td></tr>
+                    <tr><th>Longitude From</th><td>{{$collection->longitude_from}}</td></tr>
+                    <tr><th>Latitude To</th><td>{{$collection->latitude_to}}</td></tr>
+                    <tr><th>Longitude To</th><td>{{$collection->longitude_to}}</td></tr>
+                    <tr><th>Date From</th><td>{{$collection->temporal_from}}</td></tr>
+                    <tr><th>Date To</th><td>{{$collection->temporal_to}}</td></tr>
+                    <tr><th>Date Created (externally)</th><td>{{$collection->created}}</td></tr>
+                    <tr><th>Added</th><td>{{$collection->created_at}}</td></tr>
+                    <tr><th>Updated</th><td id="collectionUpdatedAt">{{$collection->updated_at}}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toggle button visible only on small screens -->
+    <div class="d-lg-none mt-2">
+    <button class="btn btn-outline-secondary w-100"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#extraInfo"
+            aria-expanded="false"
+            aria-controls="extraInfo">
+        Multilayer details
+    </button>
+    </div>
+
+<div class="d-flex flex-column flex-md-row align-items-start gap-2 mt-3 mb-3">
+
+    <!-- Edit Collection Modal Button-->
+    @include('modals.editcollectionmodal')
+
+    <!-- Add dataset Modal Button-->
+    @include('modals.addcollectiondatasetmodal')
+    @include('modals.addsavedsearchmodal')
+
     @admin
         @if (isset($collection->featured_url))
             <button class="btn btn-primary" type="button" aria-haspopup="true" aria-expanded="false" id="mark_multilayer_as_unfeatured">
@@ -56,7 +150,7 @@
             </button>
         @else
             <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedMultiLayerDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedMultiLayerDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Mark as featured
                 </button>
                 <div class="dropdown-menu" aria-labelledby="markAsFeaturedMultiLayerDropdown">
@@ -71,81 +165,13 @@
             </div>
         @endif
     @endadmin
-    
-    <!-- Quick Info -->
-    <div class="row mt-3">
-        <div class="col-lg-4">
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <tr><th class="w-25">Name</th><td>{{$collection->name}}</td></tr>
-		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->description) !!}</td></tr>
-                    <tr><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->warning) !!}</td></tr>
-                    <tr><th>Contributor</th><td>{{$collection->ownerUser->name}} (You)</td></tr>
-                    <tr><th>Entries</th><td id="datasetsCount">{{count($collection->datasets)}}</td></tr>
-                    <tr><th>Visibility</th><td id="collectionPublic">@if($collection->public)Public @else Private @endif</td></tr>
-                    <tr><th>Added to System</th><td>{{$collection->created_at}}</td></tr>
-                    <tr><th>Updated in System</th><td id="collectionUpdatedAt">{{$collection->updated_at}}</td></tr>
-                </table>
-            </div>
-        </div>
 
-        <div class="col-lg-4">
-            <div class="table-responsive" style="overflow: unset">
-                <table class="table table-bordered">
-                <tr><th class="w-25">Subject</th>
-                    <td>
-                        @for ($i = 0; $i < count($collection->subjectKeywords); $i++)
-                            @if ($i == count($collection->subjectKeywords)-1)
-                                {{$collection->subjectKeywords[$i]->keyword}}
-                            @else
-                                {{$collection->subjectKeywords[$i]->keyword}},
-                            @endif
-                        @endfor
-                    </td>
-                </tr>
-                    <tr><th>Creator</th><td>{{$collection->creator}}</td></tr>
-                    <tr><th>Publisher</th><td>{{$collection->publisher}}</td></tr>
-                    <tr><th>Contact</th><td>{{$collection->contact}}</td></tr>
-                    <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->citation) !!}</td></tr>
-                    <tr><th>DOI</th><td id="doi">{{$collection->doi}}</td></tr>
-                    <tr><th>Source URL</th><td id="source_url">{{$collection->source_url}}</td></tr>
-                    <tr><th>Linkback</th><td id="linkback">{{$collection->linkback}}</td></tr>
-                    <tr><th>Date From</th><td>{{$collection->temporal_from}}</td></tr>
-                    <tr><th>Date To</th><td>{{$collection->temporal_to}}</td></tr>
-                    <tr>
-                        <th>Image</th>
-                        <td>
-                            @if($collection->image_path)
-                            <img src="{{ asset('storage/images/' . $collection->image_path) }}" alt="Collection Image" style="max-width: 100%; max-height:150px">
-                            @endif
-                        </td>
-                    </tr>
-                </table>
-            </div>
-        </div>
+</div>
 
-        <div class="col-lg-4">
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <tr><th class="w-25">Latitude From</th><td>{{$collection->latitude_from}}</td></tr>
-                    <tr><th>Longitude From</th><td>{{$collection->longitude_from}}</td></tr>
-                    <tr><th>Latitude To</th><td>{{$collection->latitude_to}}</td></tr>
-                    <tr><th>Longitude To</th><td>{{$collection->longitude_to}}</td></tr>
-                    <tr><th>Language</th><td>{{$collection->language}}</td></tr>
-                    <tr><th>License</th><td>{{$collection->license}}</td></tr>
-                    <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->rights) !!}</td></tr>
-                    <tr><th>Date Created (externally)</th><td>{{$collection->created}}</td></tr>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add dataset Modal Button-->
-    @include('modals.addcollectiondatasetmodal')
-    @include('modals.addsavedsearchmodal')
+    <!-- list all multilayers in a datatable -->
 
     @if ( !empty($collection->datasets) || !empty($collection->savedSearches) )
-        <table id="datasetsTable" class="display" style="width:100%">
+        <table id="datasetsTable" class="display responsive" style="width:100%">
             <thead class="w3-black">
             <tr>
                 <th>Name</th>
@@ -154,7 +180,6 @@
                 <th>Content Warning</th>
                 <th>Contributor</th>
                 <th>Visibility</th>
-                <th>Created</th>
                 <th>Updated</th>
                 <th>View Map</th>
                 <th>Remove</th>
@@ -169,13 +194,13 @@
                     <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td>
                     <td>{{$ds->ownerName()}} @if($ds->owner() == Auth::user()->id) (You) @endif</td>
                     <td>{{ $ds->public ? 'Public' : 'Private' }}</td>
-                    <td>{{$ds->created_at}}</td>
+                    
                     <td>{{$ds->updated_at}}</td>
                     <td>
                         @if (!empty(config('app.views_root_url')) && $ds->public)
                             <!-- Visualise-->
                             <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     🌏 View Maps...
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
@@ -204,16 +229,15 @@
                     <td><a href="{{ url($ss->query) }}">{{ $ss->name }}</a></td>
                     <td>{{$ss->count}}</td>
                     <td>Saved search</td>
-                    <td></td>
+                    <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ss->warning) !!}</td>
                     <td></td>   
                     <td></td>
-                    <td>{{$ss->created_at}}</td>
                     <td>{{$ss->updated_at}}</td>
                     <td>
                         @if (!empty(config('app.views_root_url')))
                             <!-- Visualise-->
                             <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     🌏 View Maps...
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="visualiseDropdown">

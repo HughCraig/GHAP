@@ -43,7 +43,7 @@
                                 <dd><a href="{{ $line->datasource->link }}">{{ $line->datasource->description }}</a></dd>
                             @endif
                             @if(isset($line->external_url))
-                                <dt>Link back to source:</dt>
+                                <dt>Link back to source</dt>
                                 <dd>
                                     <a target="_blank" href="{{$line->external_url}}">{{$line->external_url}}</a>
                                 </dd>
@@ -58,7 +58,7 @@
                         </dl>
                         <div class="dropdown">
                             <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 🌏 View Place In...
                             </button>
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">

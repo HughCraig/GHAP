@@ -62,5 +62,6 @@ trait InfoBlockConfig
     public function setInfoContent($content)
     {
         $this->set('content', $content, 'info');
+        $this->set('enableShareWidget', true, 'info');
     }
 }

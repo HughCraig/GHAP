@@ -6,16 +6,23 @@ $(document).ready(function () {
     });
 
     // Init datatable.
-    $("#datasetsTable").dataTable({
+    $("#datasetsTable").DataTable({
         orderClasses: false,
-        bPaginate: true,
-        bFilter: true,
-        bInfo: false,
-        bSortable: true,
-        bRetrieve: true,
-        aaSorting: [[0, "asc"]],
+        paging: true,
+        searching: true,
+        info: false,
+        retrieve: true,
+        responsive: true,
+        order: [[0, "asc"]],
         pageLength: 25,
-    });
+        language: {
+        search: "Filter list:"
+        },
+        columnDefs: [
+            { responsivePriority: 1, targets: 0 }, // most important
+            { responsivePriority: 2, targets: 6 }  // second priority
+        ]
+        });
 
     $("#mark_multilayer_as_unfeatured").on("click", function () {
         $.ajax({

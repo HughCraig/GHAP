@@ -731,10 +731,10 @@ class TLCMap {
         addPlace.className =
             "esri-icon-map-pin esri-widget--button esri-widget esri-interactive";
         addPlace.setAttribute("tabindex", "0");
-        addPlace.setAttribute("data-html", "true");
-        addPlace.setAttribute("data-animation", "true");
-        addPlace.setAttribute("data-toggle", "tooltip");
-        addPlace.setAttribute("data-placement", "top");
+        addPlace.setAttribute("data-bs-html", "true");
+        addPlace.setAttribute("data-bs-animation", "true");
+        addPlace.setAttribute("data-bs-toggle", "tooltip");
+        addPlace.setAttribute("data-bs-placement", "top");
         addPlace.setAttribute("title", "Add Place To TLCMap");
 
         $(addPlace).tooltip();
@@ -849,157 +849,151 @@ class TLCMap {
             }
             this.currentListItemsIDS.add(item.id);
 
-            var html = `<div class="row">`;
+            var html = `<div class="row gy-2 gy-xl-0 mb-3">`;
 
-            //Main info
+            // Main info
             html += `
-                    <div class="col col-xl-3">
-                        <div class="sresultmain">
-                            <h4>
-                                <button type="button" class="btn btn-primary btn-sm" onclick="copyLink('${
-                                    item.uid
-                                }', this, 'id')">C</button>
-                                <a href="/places/${item.uid}">
-                                    ${item.title || item.placename}
-                                </a>
-                            </h4>
-                            <dl>
-                                ${
-                                    item.placename
-                                        ? `<dt>Placename</dt><dd>${item.placename}</dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.dataset
-                                        ? `<dt>Layer</dt><dd><a href="/layers/${item.dataset_id}">${item.dataset.name}</a></dd>`
-                                        : item.datasource
-                                        ? `<dt>Layer</dt><dd><a href="${item.datasource.link}">${item.datasource.description}</a></dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.external_url
-                                        ? `<dt>Link back to source:</dt><dd><a target="_blank" href="${item.external_url}">${item.external_url}</a></dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.recordtype_id
-                                        ? `<dt>Type</dt><dd>${
-                                              recordTypeMap[item.recordtype_id]
-                                          }</dd>`
-                                        : ""
-                                }
-                            </dl>
-                        </div>
-                    </div>`;
+            <div class="col-12 col-xl-3">
+                <div class="sresultmain">
+                <h4>
+                    <a href="/places/${item.uid}" class="link-dark link-underline-opacity-0 link-underline-opacity-100-hover">
+                    🌏 ${item.title || item.placename} 
+                    </a>
+                </h4>
 
-            //Details
-            html += `<div class="col col-xl-2">
-                        <div>
-                            <h4>Details</h4>
-                            <dl>
-                                ${
-                                    item.latitude
-                                        ? `<dt>Latitude</dt><dd>${item.latitude}</dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.longitude
-                                        ? `<dt>Longitude</dt><dd>${item.longitude}</dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.datestart
-                                        ? `<dt>Start Date</dt><dd>${item.datestart}</dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.dateend
-                                        ? `<dt>End Date</dt><dd>${item.dateend}</dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.state
-                                        ? `<dt>State</dt><dd>${item.state}</dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.lga
-                                        ? `<dt>LGA</dt><dd>${item.lga}</dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.parish
-                                        ? `<dt>Parish</dt><dd>${item.parish}</dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.feature_term
-                                        ? `<dt>Feature Term</dt><dd>${item.feature_term}</dd>`
-                                        : ""
-                                }
-                            </dl>
-                        </div>
-                    </div>
-                    `;
+                <dl>
+                    ${ item.placename
+                        ? `<dt>Placename</dt><dd>${item.placename}</dd>`
+                        : "" }
 
-            //Description
-            html += `<div class="col col-xl-3">
-                        <h4>Description</h4>
-                        <div>
-                            <dl>
-                                ${
-                                    item.dataset && item.dataset.warning
-                                        ? `<dt style="background-color: #ffcc00;">Layer Warning:</dt><dd style="background-color: #ffcc00;">${item.dataset.warning}</dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.description
-                                        ? `<dd>${item.description}</dd>`
-                                        : ""
-                                }
-                            </dl>
-                        </div>
-                    </div>
-                    `;
+                    ${
+                    item.dataset
+                        ? `<dt>Layer</dt><dd><a href="/layers/${item.dataset_id}">${item.dataset.name}</a></dd>`
+                        : item.datasource
+                        ? `<dt>Layer</dt><dd><a href="${item.datasource.link}">${item.datasource.description}</a></dd>`
+                        : ""
+                    }
 
-            //Sources
-            html += `<div class="col col-xl-2">
-                        <div>
-                            <h4>Sources</h4>
-                            <dl>
-                                ${
-                                    item.uid
-                                        ? `<dt>ID</dt><dd>${item.uid}</dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.source
-                                        ? `<dt>Source</dt><dd>${item.source}</dd>`
-                                        : ""
-                                }
-                                ${
-                                    item.dataset && item.dataset.flag
-                                        ? `<dt>ANPS to TLCMap Import Note</dt><dd>${item.dataset.flag}</dd>`
-                                        : ""
-                                }
-                            </dl>
-                        </div>
-                    </div>`;
+                    ${ item.external_url
+                        ? `<dt>Link back to source</dt><dd class="text-break">${item.external_url}</dd>`
+                        : "" }
+
+                    ${ item.recordtype_id
+                        ? `<dt>Type</dt><dd>${recordTypeMap[item.recordtype_id]}</dd>`
+                        : "" }
+                </dl>
+                </div>
+            </div>`;
+
+            // Details
+            html += `<div class="col-12 col-xl-2">
+
+            <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#details-${item.uid}"
+                    aria-expanded="false"
+                    aria-controls="details-${item.uid}">
+                Details
+            </button>
+
+            <h4 class="d-none d-xl-block">Details</h4>
+
+            <div id="details-${item.uid}" class="collapse d-xl-block">
+                <dl>
+                ${ item.latitude   ? `<dt>Latitude</dt><dd>${item.latitude}</dd>` : "" }
+                ${ item.longitude  ? `<dt>Longitude</dt><dd>${item.longitude}</dd>` : "" }
+                ${ item.datestart  ? `<dt>Start Date</dt><dd>${item.datestart}</dd>` : "" }
+                ${ item.dateend    ? `<dt>End Date</dt><dd>${item.dateend}</dd>` : "" }
+                ${ item.state      ? `<dt>State</dt><dd>${item.state}</dd>` : "" }
+                ${ item.lga        ? `<dt>LGA</dt><dd>${item.lga}</dd>` : "" }
+                ${ item.parish     ? `<dt>Parish</dt><dd>${item.parish}</dd>` : "" }
+                ${ item.feature_term ? `<dt>Feature Term</dt><dd>${item.feature_term}</dd>` : "" }
+                </dl>
+            </div>
+
+            </div>`;
+                    // Description
+            html += `<div class="col-12 col-xl-3">
+                <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#desc-${item.uid}"
+                        aria-expanded="false"
+                        aria-controls="desc-${item.uid}">
+                    Description
+                </button>
+
+                <h4 class="d-none d-xl-block">Description</h4>
+
+                <div id="desc-${item.uid}" class="collapse d-xl-block">
+                    <dl>
+                    ${
+                        item.dataset && item.dataset.warning
+                        ? `<dt style="background-color: #ffcc00;">Layer Warning:</dt><dd style="background-color: #ffcc00;">${item.dataset.warning}</dd>`
+                        : ""
+                    }
+                    ${
+                        item.description
+                        ? `<dd>${item.description}</dd>`
+                        : ""
+                    }
+                    </dl>
+                </div>
+                </div>`;
+
+            // Sources
+            html += `<div class="col-12 col-xl-2">
+            <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#sources-${item.uid}"
+                    aria-expanded="false"
+                    aria-controls="sources-${item.uid}">
+                Sources
+            </button>
+
+            <h4 class="d-none d-xl-block">Sources</h4>
+
+            <div id="sources-${item.uid}" class="collapse d-xl-block">
+                <dl>
+                ${ item.uid ? `<dt>ID</dt><dd>${item.uid}</dd>` : "" }
+                ${ item.source ? `<dt>Source</dt><dd>${item.source}</dd>` : "" }
+                ${
+                    item.dataset && item.dataset.flag
+                    ? `<dt>ANPS to TLCMap Import Note</dt><dd>${item.dataset.flag}</dd>`
+                    : ""
+                }
+                </dl>
+            </div>
+            </div>`;
 
             //Extended Data
+            // Extended Data
             if (item.extended_data) {
-                html += `<div class="col col-xl-2"> ${
-                    item.extended_data
-                        ? `<h4>Extended Data</h4>${item.extended_data}`
-                        : ""
-                }</div> `;
+            html += `<div class="col-12 col-xl-2">
+                <button class="btn btn-outline-secondary w-100 text-start fw-semibold py-2 d-xl-none collapsed"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#extdata-${item.uid}"
+                        aria-expanded="false"
+                        aria-controls="extdata-${item.uid}">
+                Extended Data
+                </button>
+
+                <h4 class="d-none d-xl-block">Extended Data</h4>
+
+                <div id="extdata-${item.uid}" class="collapse d-xl-block">
+                ${item.extended_data}
+                </div>
+            </div>`;
             }
 
-            //Image
+            // Image
             if (item.image_path) {
-                html += `<div class="col col-xl-2">
-                            <img src="${item.image_path}" alt="Place Image" style="max-width: 100%; height: auto;">
-                        </div>`;
+            html += `<div class="col-12 col-xl-2">
+                <img src="${item.image_path}" alt="Place Image" style="max-width: 100%; height: auto;">
+            </div>`;
             }
 
             html += `</div>`;

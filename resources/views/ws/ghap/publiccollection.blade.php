@@ -11,22 +11,15 @@
 @section('content')
 
     <h2>Multilayer</h2>
-    <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
 
-    <!-- Export/Download -->
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Download
-        </button>
-        <div class="dropdown-menu" aria-labelledby="downloadDropdown">
-            <a class="dropdown-item grab-hover" href="{{url()->full()}}/ro-crate">RO-Crate</a>
-        </div>
-    </div>
+<div class="d-flex flex-column flex-md-row gap-2">
+
+    <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
 
     @if (!empty(config('app.views_root_url')))
         <!-- Visualise-->
         <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             🌏 View Maps...
             </button>
             <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
@@ -40,6 +33,18 @@
             </div>
         </div>
     @endif
+    
+    <!-- Export/Download -->
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle tlcmgreen" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Download
+        </button>
+        <div class="dropdown-menu" aria-labelledby="downloadDropdown">
+            <a class="dropdown-item grab-hover" href="{{url()->full()}}/ro-crate">RO-Crate</a>
+        </div>
+    </div>
+
+
 
     @admin
         @if (isset($collection->featured_url))
@@ -48,7 +53,7 @@
             </button>
         @else
             <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedMultiLayerDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="markAsFeaturedMultiLayerDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Mark as featured
                 </button>
                 <div class="dropdown-menu" aria-labelledby="markAsFeaturedMultiLayerDropdown">
@@ -64,6 +69,8 @@
         @endif
     @endadmin
 
+</div>
+
     <!-- Quick Info -->
     <div class="row mt-3">
         <div class="col-lg-4">
@@ -71,18 +78,6 @@
                 <table class="table table-bordered">
                     <tr><th class="w-25">Name</th><td>{{$collection->name}}</td></tr>
                     <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->description) !!}</td></tr>
-                    <tr style="height: 50px; overflow: auto"><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->warning) !!}</td></tr>
-                    <tr><th>Contributor</th><td>{{$collection->ownerUser->name}}</td></tr>
-                    <tr><th>Entries</th><td id="collectionCount">{{count($collection->datasets)}}</td></tr>
-                    <tr><th>Added to System</th><td>{{$collection->created_at}}</td></tr>
-                    <tr><th>Updated in System</th><td id="collectionUpdatedAt">{{$collection->updated_at}}</td></tr>
-                </table>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="table-responsive" style="overflow: unset">
-                <table class="table table-bordered">
                     <tr><th class="w-25">Subject</th>
                         <td>
                             @for ($i = 0; $i < count($collection->subjectKeywords); $i++)
@@ -94,15 +89,7 @@
                             @endfor
                         </td>
                     </tr>
-                    <tr><th>Creator</th><td>{{$collection->creator}}</td></tr>
-                    <tr><th>Publisher</th><td>{{$collection->publisher}}</td></tr>
-                    <tr><th>Contact</th><td>{{$collection->contact}}</td></tr>
-                    <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->citation) !!}</td></tr>
-                    <tr><th>DOI</th><td id="doi">{{$collection->doi}}</td></tr>
-                    <tr><th>Source URL</th><td id="sourceURL">{{$collection->source_url}}</td></tr>
                     <tr><th>Linkback</th><td id="linkback">{{$collection->linkback}}</td></tr>
-                    <tr><th>Date From</th><td>{{$collection->temporal_from}}</td></tr>
-                    <tr><th>Date To</th><td>{{$collection->temporal_to}}</td></tr> 
                     <tr>
                         <th>Image</th>
                         <td>
@@ -111,6 +98,27 @@
                             @endif
                         </td>
                     </tr>
+                    <tr style="height: 50px; overflow: auto"><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->warning) !!}</td></tr>
+                    <tr><th>Number of places</th><td id="collectionCount">{{count($collection->datasets)}}</td></tr>
+                </table>
+            </div>
+        </div>
+
+<div class="col-lg-8 collapse d-lg-flex" id="extraInfo">
+        <div class="col-lg-4">
+            <div class="table-responsive" style="overflow: unset">
+                <table class="table table-bordered">
+                    <tr><th>Contributor</th><td>{{$collection->ownerUser->name}}</td></tr>
+                    <tr><th>Creator</th><td>{{$collection->creator}}</td></tr>
+                    <tr><th>Publisher</th><td>{{$collection->publisher}}</td></tr>
+                    <tr><th>Contact</th><td>{{$collection->contact}}</td></tr>
+                    <tr><th>DOI</th><td id="doi">{{$collection->doi}}</td></tr>
+                    <tr><th>Source URL</th><td id="sourceURL">{{$collection->source_url}}</td></tr>
+                    <tr><th>License</th><td>{{$collection->license}}</td></tr>
+                    <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->citation) !!}</td></tr>
+                    <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->rights) !!}</td></tr>
+
+                    
                 </table>
             </div>
         </div>
@@ -118,22 +126,37 @@
         <div class="col-lg-4">
             <div class="table-responsive">
                 <table class="table table-bordered">
-                    <tr><th class="w-25">Latitude From</th><td>{{$collection->latitude_from}}</td></tr>
+                    <tr><th class="w-25">Language</th><td>{{$collection->language}}</td></tr>
+                    <tr><th>Latitude From</th><td>{{$collection->latitude_from}}</td></tr>
                     <tr><th>Longitude From</th><td>{{$collection->longitude_from}}</td></tr>
                     <tr><th>Latitude To</th><td>{{$collection->latitude_to}}</td></tr>
                     <tr><th>Longitude To</th><td>{{$collection->longitude_to}}</td></tr>
-                    <tr><th>Language</th><td>{{$collection->language}}</td></tr>
-                    <tr><th>License</th><td>{{$collection->license}}</td></tr>
-                    <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($collection->rights) !!}</td></tr>
+                    <tr><th>Date From</th><td>{{$collection->temporal_from}}</td></tr>
+                    <tr><th>Date To</th><td>{{$collection->temporal_to}}</td></tr> 
                     <tr><th>Date Created (externally)</th><td>{{$collection->created}}</td></tr>
+                    <tr><th>Added</th><td>{{$collection->created_at}}</td></tr>
+                    <tr><th>Updated</th><td id="collectionUpdatedAt">{{$collection->updated_at}}</td></tr>
                 </table>
             </div>
         </div>
     </div>
+    </div>
+
+        <!-- Toggle button visible only on small screens -->
+    <div class="d-lg-none mt-2">
+    <button class="btn btn-outline-secondary w-100"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#extraInfo"
+            aria-expanded="false"
+            aria-controls="extraInfo">
+        Layer details
+    </button>
+    </div>
 
     @if (!empty($datasets) || !empty($collection->savedSearches))
-        <table id="datasetsTable" class="display" style="width:100%">
-            <thead class="w3-black"><tr><th>Name</th><th>Size</th><th>Type</th><th>Content Warning</th><th>Created</th><th>Updated</th><th>View Map</th></tr></thead>
+        <table id="datasetsTable" class="display nowrap" style="width:100%">
+            <thead class="w3-black"><tr><th>Name</th><th>Size</th><th>Type</th><th>Content Warning</th><th>Keyword</th><th>Updated</th><th>View Map</th></tr></thead>
             <tbody>
             @foreach($datasets as $ds)
                 <tr id="row_id_{{$ds->id}}">
@@ -141,13 +164,21 @@
                     <td>{{count($ds->dataitems)}}</td>
                     <td>{{$ds->recordtype->type}}</td>
                     <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td>
-                    <td>{{$ds->created_at}}</td>
-                    <td>{{$ds->updated_at}}</td>
+                    <td>
+                        @for($i = 0; $i < count($ds->subjectKeywords); $i++)
+                                    @if($i == count($ds->subjectKeywords)-1)
+                                    {{$ds->subjectKeywords[$i]->keyword}}
+                                    @else
+                                    {{$ds->subjectKeywords[$i]->keyword}},
+                                    @endif
+                        @endfor
+                    </td>
+                    <td>{{$ds->updated_at->format('Y-m-d')}}</td>
                     <td>
                         @if (!empty(config('app.views_root_url')))
                             <!-- Visualise-->
                             <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     🌏 View Maps...
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
@@ -173,14 +204,21 @@
                 <td><a href="{{$ss->query}}">{{$ss->name}}</a></td>
                     <td>{{$ss->count}}</td>
                     <td>Saved search</td>
-                    <td></td>
-                    <td>{{$ss->created_at}}</td>
-                    <td>{{$ss->updated_at}}</td>
+                    <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ss->warning) !!}</td>
+                    <td>
+                    @for($i = 0; $i < count($ss->subjectKeywords); $i++)
+                                    @if($i == count($ss->subjectKeywords)-1)
+                                    {{$ss->subjectKeywords[$i]->keyword}}
+                                    @else
+                                    {{$ss->subjectKeywords[$i]->keyword}},
+                                    @endif
+                    @endfor</td>
+                    <td>{{$ss->updated_at->format('Y-m-d')}}</td>
                     <td>
                         @if (!empty(config('app.views_root_url')))
                             <!-- Visualise-->
                             <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button class="btn btn-secondary dropdown-toggle tlcmorange" type="button" id="visualiseDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     🌏 View Maps...
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="visualiseDropdown">
