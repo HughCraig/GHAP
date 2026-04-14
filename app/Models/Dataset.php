@@ -148,6 +148,48 @@ class Dataset extends Model
         });
     }
 
+     /**
+     * Get all user-editable metadata for this layer.
+     *
+     * @return array
+     *   An associative array of all metadata fields for this layer.
+     */
+    public function getMetadata()
+    {
+        $metadata = array(
+            'layerid' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'subject_keywords' => $this->subjectKeywords->pluck('keyword')->toArray(),
+            'recordtype' => $this->recordtype ? $this->recordtype->type : null,
+            'linkback' => $this->linkback,
+            'warning' => $this->warning,
+            'creator' => $this->creator,
+            'publisher' => $this->publisher,
+            'contact' => $this->contact,
+            'doi' => $this->doi,
+            'source_url' => $this->source_url,
+            'license' => $this->license,
+            'rights' => $this->rights,
+            'citation' => $this->citation,
+            'language' => $this->language,
+            'latitude_from' => $this->latitude_from,
+            'longitude_from' => $this->longitude_from,
+            'latitude_to' => $this->latitude_to,
+            'longitude_to' => $this->longitude_to,
+            'temporal_from' => $this->temporal_from,
+            'temporal_to' => $this->temporal_to,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'ghap_url' => $this->public ? url("layers/{$this->id}") : url("myprofile/mydatasets/{$this->id}"),
+        );
+
+        return array_filter($metadata, function ($value) {
+            if (is_array($value)) return !empty($value);
+            return $value !== null && $value !== '';
+        });
+    }
+
     /**
      * Generate the KML of the dataset.
      *
@@ -169,16 +211,25 @@ class Dataset extends Model
         //get all dataitems for this dataset as eloquent collection
         $dataitems = $dataset->dataitems;
 
-        //TODO: Add all of the dataset data that we need here (name, style, etc)
-        //name
-        $docNode->appendChild($dom->createElement('name'))->appendChild($dom->createCDATASection($dataset->name));
-        //description
-        $docNode->appendChild($dom->createElement('description'))->appendChild($dom->createCDATASection($dataset->description));
-        //ghap_url
+        // Add all metadata to the KML document
+        $metadata = $dataset->getMetadata();
+        $docNode->appendChild($dom->createElement('name'))->appendChild($dom->createCDATASection($metadata['name'] ?? ''));
+        if (!empty($metadata['description'])) {
+            $docNode->appendChild($dom->createElement('description'))->appendChild($dom->createCDATASection($metadata['description']));
+        }
         $doc_ed = $docNode->appendChild($dom->createElement('ExtendedData'));
-        $ghap_url = $doc_ed->appendChild($dom->createElement('Data'));
-        $ghap_url->setAttribute('name', "ghap_url");
-        $ghap_url->appendChild($dom->createCDATASection(url("publicdatasets/" . $dataset->id)));
+        foreach ($metadata as $key => $value) {
+            if ($key === 'name' || $key === 'description') continue;
+            $dataNode = $doc_ed->appendChild($dom->createElement('Data'));
+            $dataNode->setAttribute('name', $key);
+            if (is_array($value)) {
+                $dataNode->appendChild($dom->createCDATASection(implode(', ', $value)));
+            } elseif (is_bool($value)) {
+                $dataNode->appendChild($dom->createCDATASection($value ? 'true' : 'false'));
+            } else {
+                $dataNode->appendChild($dom->createCDATASection((string) $value));
+            }
+        }
         //style
         // if (!empty($dataset->kml_style)) {
         //     $f = $dom->createDocumentFragment();
@@ -310,14 +361,7 @@ class Dataset extends Model
         $dataset = $this;
         $features = array();  
         
-        $metadata = array(
-            'layerid' => $dataset->id,
-            'name' => $dataset->name,
-            'description' => $dataset->description,
-            'warning' => $dataset->warning,
-            'ghap_url' => $dataset->public ? url("publicdatasets/{$dataset->id}") : url("myprofile/mydatasets/{$dataset->id}"),
-            'linkback' => $dataset->linkback
-        );
+        $metadata = $dataset->getMetadata();
 
         // Set the feature collection config.
         $featureCollectionConfig = new FeatureCollectionConfig();

@@ -67,33 +67,7 @@ class CollectionController extends Controller
         $collections = Collection::where('public', 1)->get();
         $data = [];
         foreach ($collections as $collection) {
-            $data[] = array(
-                'id' => $collection->id,
-                'name' => $collection->name,
-                'description' => $collection->description,
-                'owner' => $collection->owner,
-                'creator' => $collection->creator,
-                'public' => $collection->public,
-                'publisher' => $collection->publisher,
-                'contact' => $collection->contact,
-                'citation' => $collection->citation,
-                'doi' => $collection->doi,
-                'source_url' => $collection->source_url,
-                'linkback' => $collection->linkback,
-                'latitude_from' => $collection->latitude_from,
-                'longitude_from' => $collection->longitude_from,
-                'latitude_to' => $collection->latitude_to,
-                'longitude_to' => $collection->longitude_to,
-                'language' => $collection->language,
-                'license' => $collection->license,
-                'rights' => $collection->rights,
-                'temporal_from' => $collection->temporal_from,
-                'temporal_to' => $collection->temporal_to,
-                'created' => $collection->created,
-                'warning' => $collection->warning,
-                'created_at' => $collection->created_at,
-                'updated_at' => $collection->updated_at,
-            );
+            $data[] = $collection->getMetadata();
         }
 
         return Response::make(json_encode($data, JSON_PRETTY_PRINT), '200', array('Content-Type' => 'application/json')); //generate the json response
@@ -228,7 +202,7 @@ class CollectionController extends Controller
         if (!$collection) {
             return Response::make(Collection::getRestrictedCollectionGeoJSON(), '200', array('Content-Type' => 'application/json'));
         }
-        $result = $collection->toArray();
+        $result = $collection->getMetadata();
         $result['url'] = url("publiccollections/{$collection->id}");
         $data = [
             'metadata' => $result
@@ -305,27 +279,27 @@ class CollectionController extends Controller
         $kml .= '<Document>';
 
         // Create a KML entry for the collection
+        $metadata = $collection->getMetadata();
         $kml .= '<Placemark>';
-        $kml .= '<name>' . htmlspecialchars($collection->name) . '</name>';
-        $kml .= '<description>' . htmlspecialchars($collection->description) . '</description>';
-        $kml .= '<creator>' . htmlspecialchars($collection->creator) . '</creator>';
-        $kml .= '<publisher>' . htmlspecialchars($collection->publisher) . '</publisher>';
-        $kml .= '<contact>' . htmlspecialchars($collection->contact) . '</contact>';
-        $kml .= '<citation>' . htmlspecialchars($collection->citation) . '</citation>';
-        $kml .= '<doi>' . htmlspecialchars($collection->doi) . '</doi>';
-        $kml .= '<latitude_from>' . htmlspecialchars($collection->latitude_from) . '</latitude_from>';
-        $kml .= '<latitude_to>' . htmlspecialchars($collection->latitude_to) . '</latitude_to>';
-        $kml .= '<longitude_from>' . htmlspecialchars($collection->longitude_from) . '</longitude_from>';
-        $kml .= '<longitude_to>' . htmlspecialchars($collection->longitude_to) . '</longitude_to>';
-        $kml .= '<language>' . htmlspecialchars($collection->language) . '</language>';
-        $kml .= '<license>' . htmlspecialchars($collection->license) . '</license>';
-        $kml .= '<rights>' . htmlspecialchars($collection->rights) . '</rights>';
-        $kml .= '<temporal_from>' . htmlspecialchars($collection->temporal_from) . '</temporal_from>';
-        $kml .= '<temporal_to>' . htmlspecialchars($collection->temporal_to) . '</temporal_to>';
-        $kml .= '<created>' . htmlspecialchars($collection->created) . '</created>';
-        $kml .= '<warning>' . htmlspecialchars($collection->warning) . '</warning>';
-        $kml .= '<source_url>' . htmlspecialchars($collection->source_url) . '</source_url>';
-        $kml .= '<linkback>' . htmlspecialchars($collection->linkback) . '</linkback>';
+        if (isset($metadata['name'])) {
+            $kml .= '<name>' . htmlspecialchars($metadata['name']) . '</name>';
+        }
+        if (isset($metadata['description'])) {
+            $kml .= '<description>' . htmlspecialchars($metadata['description']) . '</description>';
+        }
+        $kml .= '<ExtendedData>';
+        foreach ($metadata as $key => $value) {
+            if ($key === 'name' || $key === 'description') continue;
+            if (is_array($value)) {
+                $value = implode(', ', $value);
+            } elseif (is_bool($value)) {
+                $value = $value ? 'true' : 'false';
+            } else {
+                $value = (string) $value;
+            }
+            $kml .= '<Data name="' . htmlspecialchars($key) . '"><value>' . htmlspecialchars($value) . '</value></Data>';
+        }
+        $kml .= '</ExtendedData>';
         $kml .= '</Placemark>';
 
         // Adding Datasets
