@@ -911,6 +911,84 @@ class Dataset extends Model
             'explanation' => 'N/A'
         ];
 
+        // Temporal statistics
+        $dataitems = $this->dataitems()
+            ->where(function ($query) {
+                $query->whereNotNull('datestart')->orWhereNotNull('dateend');
+            })
+            ->get();
+
+        $allDateFloats = [];
+        $allDateStrings = [];
+        foreach ($dataitems as $item) {
+            foreach (['datestart', 'dateend'] as $col) {
+                $rawValue = $item->getAttributes()[$col] ?? null;
+                if (!empty($rawValue)) {
+                    $f = GeneralFunctions::dateToFloat($rawValue);
+                    if ($f !== null) {
+                        $allDateFloats[] = $f;
+                        $allDateStrings[] = $rawValue;
+                    }
+                }
+            }
+        }
+
+        if (!empty($allDateFloats)) {
+            // Sort and find earliest/latest
+            array_multisort($allDateFloats, SORT_ASC, $allDateStrings);
+
+            $earliestFloat = $allDateFloats[0];
+            $latestFloat = $allDateFloats[count($allDateFloats) - 1];
+            $earliestStr = $allDateStrings[0];
+            $latestStr = $allDateStrings[count($allDateStrings) - 1];
+
+            $statistics[] = [
+                'name' => 'Start Date',
+                'value' => $earliestStr,
+                'unit' => null,
+                'explanation' => 'The earliest date found across all places in the layer'
+            ];
+
+            $statistics[] = [
+                'name' => 'End Date',
+                'value' => $latestStr,
+                'unit' => null,
+                'explanation' => 'The latest date found across all places in the layer'
+            ];
+
+            // Duration in years (assume 365 days/year)
+            $durationYears = ($latestFloat - $earliestFloat) / 365.0;
+            $statistics[] = [
+                'name' => 'Duration',
+                'value' => round($durationYears, 2),
+                'unit' => 'years',
+                'explanation' => 'The time span between the earliest and latest dates, assuming 365 days per year'
+            ];
+
+            // Median date
+            $count = count($allDateFloats);
+            if ($count % 2 === 1) {
+                $medianFloat = $allDateFloats[intdiv($count, 2)];
+            } else {
+                $medianFloat = ($allDateFloats[$count / 2 - 1] + $allDateFloats[$count / 2]) / 2;
+            }
+            $statistics[] = [
+                'name' => 'Median Date',
+                'value' => GeneralFunctions::floatToDateString($medianFloat),
+                'unit' => null,
+                'explanation' => 'The middle date when all dates are sorted chronologically. If even count, average of the two middle dates.'
+            ];
+
+            // Average date
+            $averageFloat = array_sum($allDateFloats) / $count;
+            $statistics[] = [
+                'name' => 'Average Date',
+                'value' => GeneralFunctions::floatToDateString($averageFloat),
+                'unit' => null,
+                'explanation' => 'The arithmetic mean of all dates, converted to approximate days then back to a date.'
+            ];
+        }
+
         return $statistics;
     }
 
@@ -1693,7 +1771,7 @@ class Dataset extends Model
     
         return $clusterResults;
     }
-    
+
     /**
      * Converts various date string formats to a float representation capturing the year and fractional part of the year.
      *

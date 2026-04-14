@@ -14,32 +14,6 @@ use Illuminate\Support\Facades\Log;
 
 class GeneralFunctions
 {
-    /**
-     * NO LONGER USED AS IT IS MORE CONVENIENT TO CONVERT TO STRING AND RETURN IT USING dateMatchesRegexAndConvertString
-     *
-     * {$dateString} is a STRING representing a DATE
-     * Return true if date matches regex, else false
-     *
-     * accepted formats (6 ISO friendly, 2 Excel friendly):
-     *      - Year  (accepts negatives, leading zeroes, 1 to n characters, cannot be 0)                             Results in an array of size 2: [0] is full string, [1] is Year
-     *      - Year-Month yyyy-mm format
-     *      - Year-Month-Day (as above, and day/month cannot be single digits... eg: 1993-02-12 not 1993-2-12)      Results in an array of size 5: [1] is Year, [3] is Month, [4] is Day
-     *      - Year-Month-DayThh      AS above but with time in hours                                                Results in an array of size 7: [1] is Year, [3] is Month, [4] is Day, [6] is Hour
-     *      - Year-Month-DayThh:mm      AS above but with time in hours and minutes, minutes must be 2 digits       Results in an array of size 9: [1] is Year, [3] is Month, [4] is Day, [6] is Hour, [8] is minute
-     *      - Year-Month-DayThh:mm:ss (as above but with time)      seconds must be 2 digits                        Results in an array of size 11: [1] is Year, [3] is Month, [4] is Day, [6] is Hour, [8] is Minute, [10] is Second
-     *      - Year-Month-DayThh:mm:ss.sss (as above but with decimal seconds)                                       Results in an array of size 12: [1] is Year, [3] is Month, [4] is Day, [6] is Hour, [8] is Minute, [10] is Second, [11] is decimal seconds
-     *      - Day/Month/Year (year month and day rules as above)                                                    Results in an array of size 4: [1] is Day [2] is Month, [3] is Year
-     *      - Day/Month/Year hh:mm (as above but with time, no seconds as this is how excel exports csv)            Results in an array of size 8: [1] is Day, [2] is Month, [3] is Year, [6] is Hour, [7] is Minute
-     */
-    // public static function dateMatchesRegex($dateString) {
-    //     if (preg_match(
-    //         '/^(-?[0-9]*[1-9]+0*)(-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])(T(0?[0-9]|1[0-9]|2[0-3])(:(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])(:(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])([.][0-9]+)?)?)?)?)?$/',
-    //         $dateString) ) return true;
-    //     if (preg_match(
-    //         '/^(0?[1-9]|[12][0-9]|3[01])\/(0?[1-9]|1[012])\/(-?[0-9]*[1-9]+0*)( ((0?[0-9]|1[0-9]|2[0-3]):(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])))?$/',
-    //         $dateString) ) return true;
-    //     return false;
-    // }
 
     //As above but it will return the actual STRING
     public static function dateMatchesRegexAndConvertString($dateString)
@@ -95,7 +69,95 @@ class GeneralFunctions
         return $timestamp ? $timestamp * 1000 : null; // Return in milliseconds
     }
 
+    public static function dateToFloat($dateString)
+    {
+        if (empty($dateString)) {
+            return null;
+        }
 
+        $dateString = trim($dateString);
+
+        // Handle negative (BC) prefix
+        $negative = false;
+        if (substr($dateString, 0, 1) === '-') {
+            $negative = true;
+            $dateString = substr($dateString, 1);
+        }
+
+        $year = null;
+        $month = 1;
+        $day = 1;
+
+        // YYYY-MM-DD or Y+-MM-DD (1 to 4+ digit year)
+        if (preg_match('/^(\d{1,4})-(\d{1,2})-(\d{1,2})$/', $dateString, $m)) {
+            $year = (int)$m[1];
+            $month = (int)$m[2];
+            $day = (int)$m[3];
+        }
+        // YYYY-MM (year and month only)
+        elseif (preg_match('/^(\d{1,4})-(\d{1,2})$/', $dateString, $m)) {
+            $year = (int)$m[1];
+            $month = (int)$m[2];
+        }
+        // YYYY-00-00 (year only with zeroed month/day)
+        elseif (preg_match('/^(\d{1,4})-00-00$/', $dateString, $m)) {
+            $year = (int)$m[1];
+        }
+        // DD/MM/YYYY
+        elseif (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{1,4})$/', $dateString, $m)) {
+            $year = (int)$m[3];
+            $month = (int)$m[2];
+            $day = (int)$m[1];
+        }
+        // 00/00/YYYY
+        elseif (preg_match('/^00\/00\/(\d{1,4})$/', $dateString, $m)) {
+            $year = (int)$m[1];
+        }
+        // Plain year (1 to 4 digits)
+        elseif (preg_match('/^(\d{1,4})$/', $dateString, $m)) {
+            $year = (int)$m[1];
+        }
+        else {
+            return null;
+        }
+
+        // Clamp month/day to valid ranges
+        $month = max(1, min($month, 12));
+        $day = max(1, min($day, 31));
+
+        $dayOfYear = ($month - 1) * 30.44 + $day;
+        $result = $year * 365.0 + $dayOfYear;
+
+        return $negative ? -$result : $result;
+    }
+
+      /**
+     * Convert a float (days since year 0) back to a date string.
+     * Returns format like "YYYY-MM-DD" or "-YYYY-MM-DD" for BC dates.
+     *
+     * @param float $floatDate
+     * @return string
+     */
+    public static function floatToDateString($floatDate)
+    {
+        $prefix = '';
+        if ($floatDate < 0) {
+            $prefix = '-';
+            $floatDate = abs($floatDate);
+        }
+
+        $year = (int)floor($floatDate / 365.0);
+        $remainder = $floatDate - ($year * 365.0);
+        $month = (int)floor($remainder / 30.44) + 1;
+        $day = (int)round($remainder - ($month - 1) * 30.44);
+
+        $month = max(1, min($month, 12));
+        $day = max(1, min($day, 31));
+
+        return $prefix . sprintf('%04d-%02d-%02d', $year, $month, $day);
+    }
+
+    
     /**
      * $a is the date from/to sent via $parameters   (the date we inputted into the search form)
      * $b is the date in the database that we are checking
