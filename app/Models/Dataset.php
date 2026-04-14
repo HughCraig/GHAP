@@ -157,11 +157,11 @@ class Dataset extends Model
     public function getMetadata()
     {
         $metadata = array(
-            'layerid' => $this->id,
+            'layer_id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'subject_keywords' => $this->subjectKeywords->pluck('keyword')->toArray(),
-            'recordtype' => $this->recordtype ? $this->recordtype->type : null,
+            'subject_keywords' => array_values(array_filter($this->subjectKeywords->pluck('keyword')->toArray(), function ($v) { return $v !== null && $v !== ''; })),
+            'type' => $this->recordtype ? $this->recordtype->type : null,
             'linkback' => $this->linkback,
             'warning' => $this->warning,
             'creator' => $this->creator,
