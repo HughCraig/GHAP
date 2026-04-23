@@ -152,9 +152,9 @@
         </div>
 
 <div class="col-lg-8 collapse d-lg-flex" id="extraInfo">
-        <div class="col-lg-4">
-            <div class="table-responsive" style="overflow: unset">
-                <table class="table table-bordered">
+        <div class="col-lg-6">
+            <div class="table-responsive" style="overflow: auto;">
+                <table class="table table-bordered" style="table-layout: fixed;word-wrap: break-word;">
                     <tr><th>Contributor</th><td>{{$ds->ownerName()}}</td></tr>
                     <tr><th>Creator</th><td>{{$ds->creator}}</td></tr>
                     <tr><th>Publisher</th><td>{{$ds->publisher}}</td></tr>
@@ -169,8 +169,8 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="table-responsive">
+        <div class="col-lg-6">
+            <div class="table-responsive" style="table-layout: fixed;word-wrap: break-word;">
                 <table class="table table-bordered">
                     <tr><th>Language</th><td>{{$ds->language}}</td></tr>
                     <tr><th class="w-25">Latitude From</th><td>{{$ds->latitude_from}}</td></tr>

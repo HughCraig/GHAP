@@ -118,27 +118,43 @@
 
 </div>
     
-    <!-- Quick Info -->
+   <!-- Quick Info -->
     <div class="row mt-3">
         <div class="col-lg-4">
             <div class="table-responsive">
                 <table class="table table-bordered">
-                    <tr><th class="w-25">Name</th><td>{{$ds->name}}</td></tr>
-		            <tr style="height: 50px; overflow: auto"><th>Description</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->description) !!}</td></tr>
-                    <tr style="height: 50px; overflow: auto"><th>Type</th><td>{{$ds->recordtype->type}}</td></tr>
-                    <tr><th>Subject</th>
+                    <tr>
+                        <th class="w-25">Name</th>
+                        <td>{{$ds->name}}</td>
+                    </tr>
+                    <tr style="height: 50px; overflow: auto">
+                        <th>Description</th>
+                        <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->description) !!}</td>
+                    </tr>
+                    <tr style="height: 50px; overflow: auto">
+                        <th>Type</th>
+                        <td>{{$ds->recordtype->type}}</td>
+                    </tr>
+                    <tr>
+                        <th>Subject</th>
                         <td>
-                        @for($i = 0; $i < count($ds->subjectKeywords); $i++)
-                            @if($i == count($ds->subjectKeywords)-1)
-                            {{$ds->subjectKeywords[$i]->keyword}}
-                            @else
-                            {{$ds->subjectKeywords[$i]->keyword}},
-                            @endif
-                        @endfor
+                            @for($i = 0; $i < count($ds->subjectKeywords); $i++)
+                                @if($i == count($ds->subjectKeywords)-1)
+                                {{$ds->subjectKeywords[$i]->keyword}}
+                                @else
+                                {{$ds->subjectKeywords[$i]->keyword}},
+                                @endif
+                                @endfor
                         </td>
                     </tr>
-                    <tr><th>Visibility</th><td id="dspublic">@if($ds->public)Public @else Private @endif</td></tr>
-                    <tr><th>Linkback</th><td id="linkback">{{$ds->linkback}}</td></tr>
+                    <tr>
+                        <th>Visibility</th>
+                        <td id="dspublic">@if($ds->public)Public @else Private @endif</td>
+                    </tr>
+                    <tr>
+                        <th>Linkback</th>
+                        <td id="linkback">{{$ds->linkback}}</td>
+                    </tr>
                     <tr>
                         <th>Image</th>
                         <td>
@@ -147,49 +163,118 @@
                             @endif
                         </td>
                     </tr>
-                    <tr><th>Content Warning</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td></tr>
-                    <tr><th>Number of places</th><td id="dscount">{{count($ds->dataitems)}}</td></tr>
-                    
+                    <tr>
+                        <th>Content Warning</th>
+                        <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td>
+                    </tr>
+                    <tr>
+                        <th>Number of places</th>
+                        <td id="dscount">{{count($ds->dataitems)}}</td>
+                    </tr>
+
                 </table>
             </div>
         </div>
 
-    <div class="col-lg-8 collapse d-lg-flex" id="extraInfo">
-        <div class="col-lg-4">
-            <div class="table-responsive" style="overflow: unset">
-                <table class="table table-bordered">
-                    <tr><th class="w-25">Your Role</th><td>{{$ds->pivot->dsrole}}</td></tr>
-                    <tr><th>Contributor</th><td>{{$ds->ownerName()}} @if($ds->owner() == $user->id) (You) @endif</td></tr>
-                    <tr><th>Creator</th><td>{{$ds->creator}}</td></tr>
-                    <tr><th>Publisher</th><td>{{$ds->publisher}}</td></tr>
-                    <tr><th>Contact</th><td>{{$ds->contact}}</td></tr>
-                    <tr><th>DOI</th><td id="doi">{{$ds->doi}}</td></tr>
-                    <tr><th>Source URL</th><td id="source_url">{{$ds->source_url}}</td></tr>
-                    <tr><th>License</th><td>{{$ds->license}}</td></tr>
-                    <tr><th>Allow ANPS Collection?</th><td id="dspublic">@if($ds->allowanps)Yes @else No @endif</td></tr>
-                    <tr><th>Citation</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->citation) !!}</td></tr>
-                    <tr><th>Usage Rights</th><td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->rights) !!}</td></tr>
-                </table>
+        <div class="col-lg-8 collapse d-lg-flex" id="extraInfo">
+            <div class="col-lg-6">
+                <div class="table-responsive" style="overflow: auto;">
+                    <table class="table table-bordered" style="table-layout: fixed;word-wrap: break-word;">
+                        <tr>
+                            <th class="w-25">Your Role</th>
+                            <td>{{$ds->pivot->dsrole}}</td>
+                        </tr>
+                        <tr>
+                            <th>Contributor</th>
+                            <td>{{$ds->ownerName()}} @if($ds->owner() == $user->id) (You) @endif</td>
+                        </tr>
+                        <tr>
+                            <th>Creator</th>
+                            <td>{{$ds->creator}}</td>
+                        </tr>
+                        <tr>
+                            <th>Publisher</th>
+                            <td>{{$ds->publisher}}</td>
+                        </tr>
+                        <tr>
+                            <th>Contact</th>
+                            <td>{{$ds->contact}}</td>
+                        </tr>
+                        <tr>
+                            <th>DOI</th>
+                            <td id="doi">{{$ds->doi}}</td>
+                        </tr>
+                        <tr>
+                            <th>Source URL</th>
+                            <td id="source_url">{{$ds->source_url}}</td>
+                        </tr>
+                        <tr>
+                            <th>License</th>
+                            <td>{{$ds->license}}</td>
+                        </tr>
+                        <tr>
+                            <th>Allow ANPS Collection?</th>
+                            <td id="dspublic">@if($ds->allowanps)Yes @else No @endif</td>
+                        </tr>
+                        <tr>
+                            <th>Citation</th>
+                            <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->citation) !!}</td>
+                        </tr>
+                        <tr>
+                            <th>Usage Rights</th>
+                            <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->rights) !!}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
-        </div>
 
-        <div class="col-lg-4">
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <tr><th class="w-25">Language</th><td>{{$ds->language}}</td></tr>
-                    <tr><th>Latitude From</th><td>{{$ds->latitude_from}}</td></tr>
-                    <tr><th>Longitude From</th><td>{{$ds->longitude_from}}</td></tr>
-                    <tr><th>Latitude To</th><td>{{$ds->latitude_to}}</td></tr>
-                    <tr><th>Longitude To</th><td>{{$ds->longitude_to}}</td></tr>
-                    <tr><th>Date From</th><td>{{$ds->temporal_from}}</td></tr>
-                    <tr><th>Date To</th><td>{{$ds->temporal_to}}</td></tr>
-                    <tr><th>Date Created (externally)</th><td>{{$ds->created}}</td></tr>
-                    <tr><th>Added</th><td>{{$ds->created_at}}</td></tr>
-                    <tr><th>Updated</th><td id="dsupdatedat">{{$ds->updated_at}}</td></tr>
-                </table>
+            <div class="col-lg-6">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th class="w-25">Language</th>
+                            <td>{{$ds->language}}</td>
+                        </tr>
+                        <tr>
+                            <th>Latitude From</th>
+                            <td>{{$ds->latitude_from}}</td>
+                        </tr>
+                        <tr>
+                            <th>Longitude From</th>
+                            <td>{{$ds->longitude_from}}</td>
+                        </tr>
+                        <tr>
+                            <th>Latitude To</th>
+                            <td>{{$ds->latitude_to}}</td>
+                        </tr>
+                        <tr>
+                            <th>Longitude To</th>
+                            <td>{{$ds->longitude_to}}</td>
+                        </tr>
+                        <tr>
+                            <th>Date From</th>
+                            <td>{{$ds->temporal_from}}</td>
+                        </tr>
+                        <tr>
+                            <th>Date To</th>
+                            <td>{{$ds->temporal_to}}</td>
+                        </tr>
+                        <tr>
+                            <th>Date Created (externally)</th>
+                            <td>{{$ds->created}}</td>
+                        </tr>
+                        <tr>
+                            <th>Added</th>
+                            <td>{{$ds->created_at}}</td>
+                        </tr>
+                        <tr>
+                            <th>Updated</th>
+                            <td id="dsupdatedat">{{$ds->updated_at}}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
     </div>
 
     <!-- Toggle button visible only on small screens -->

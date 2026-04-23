@@ -85,9 +85,9 @@
 
 
     <div class="col-lg-8 collapse d-lg-flex" id="extraInfo">
-        <div class="col-lg-4">
-            <div class="table-responsive" style="overflow: unset">
-                <table class="table table-bordered">
+        <div class="col-lg-6">
+            <div class="table-responsive" style="overflow: auto">
+                <table class="table table-bordered" style="table-layout: fixed;word-wrap: break-word;">
                     <tr><th>Contributor</th><td>{{$collection->ownerUser->name}} (You)</td></tr>
                     <tr><th>Creator</th><td>{{$collection->creator}}</td></tr>
                     <tr><th>Publisher</th><td>{{$collection->publisher}}</td></tr>
@@ -103,7 +103,7 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="col-lg-6">
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <tr><th>Language</th><td>{{$collection->language}}</td></tr>
