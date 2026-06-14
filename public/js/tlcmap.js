@@ -1015,8 +1015,45 @@ class TLCMap {
                 resolve([position.coords.longitude, position.coords.latitude]);
             }
 
-            function handleError() {
+            function handleError(error) {
+                let message = '';
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        message = 'Location access was denied. This may be due to your browser or operating system settings. '
+                            + 'To enable location access, check your browser\'s site permissions and your OS location settings.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        message = 'Your location could not be determined. Please check that location services are enabled in your operating system settings.';
+                        break;
+                    case error.TIMEOUT:
+                        message = 'The request to get your location timed out. Please try again later.';
+                        break;
+                    default:
+                        message = 'An unknown error occurred while trying to access your location.';
+                        break;
+                }
+                showLocationWarning(message);
                 resolve(defaultLocation);
+            }
+
+            function showLocationWarning(message) {
+                // Remove any existing location warning
+                $('#location-warning-toast').remove();
+
+                var toast = $(
+                    '<div id="location-warning-toast" class="alert alert-warning alert-dismissible fade show" role="alert" '
+                    + 'style="position:fixed;bottom:30%;right:20px;z-index:9999;max-width:400px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">'
+                    + message
+                    + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+                    + '</div>'
+                );
+
+                $('body').append(toast);
+
+                // Auto-dismiss after 10 seconds
+                setTimeout(function () {
+                    toast.alert('close');
+                }, 10000);
             }
 
             if ("geolocation" in navigator) {
@@ -1025,6 +1062,7 @@ class TLCMap {
                     handleError
                 );
             } else {
+                showLocationWarning('Geolocation is not supported by your browser. The map will default to Australia.');
                 resolve(defaultLocation);
             }
         });

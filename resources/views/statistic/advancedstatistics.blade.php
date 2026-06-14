@@ -19,7 +19,40 @@
 
     <p class="pt-4">To understand this analysis, check the <a href="{{ config('app.tlcmap_doc_url') }}/help/guides/guide/">Guide</a></p>
 
-    <table class="table table-bordered" style="margin-top: 20px;">
+    <table class="table table-bordered">
+        <tbody>
+            @php
+            $htmlFields = ['description', 'warning', 'citation', 'rights'];
+            $metadataItems = collect($ds->getMetadata())->map(function($value, $key) use ($htmlFields) {
+            $label = ucwords(str_replace('_', ' ', $key));
+            if (is_array($value)) {
+            $display = e(implode(', ', $value));
+            } elseif (filter_var($value, FILTER_VALIDATE_URL)) {
+            $display = '<a href="' . e($value) . '" target="_blank">' . e($value) . '</a>';
+            } elseif (in_array($key, $htmlFields)) {
+            $display = $value;
+            } else {
+            $display = e($value);
+            }
+            return ['label' => $label, 'display' => $display];
+            })->values()->all(); @endphp
+            @foreach(array_chunk($metadataItems, 2) as $row)
+            <tr>
+                <td><strong>{{ $row[0]['label'] }}</strong></td>
+                <td>{!! $row[0]['display'] !!}</td>
+                @if(isset($row[1]))
+                <td><strong>{{ $row[1]['label'] }}</strong></td>
+                <td>{!! $row[1]['display'] !!}</td>
+                @else
+                <td></td>
+                <td></td>
+                @endif
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    <table class="table table-bordered" style="margin-top: 40px;">
         <thead>
             <tr>
                 <th>Statistic</th>
