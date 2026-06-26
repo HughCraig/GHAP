@@ -25,7 +25,10 @@ class DatasetController extends Controller
      */
     public function viewPublicDatasets(Request $request)
     {
-        $datasets = Dataset::where('public', 1)->get();
+        $datasets = Dataset::with(['recordtype', 'subjectKeywords', 'text'])
+            ->withCount('dataitems')
+            ->where('public', 1)
+            ->get();
         return view('ws.ghap.publicdatasets', ['datasets' => $datasets]);
     }
 

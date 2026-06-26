@@ -27,7 +27,7 @@
         @foreach($datasets as $ds)
             <tr id="row_id_{{$ds->id}}">
                 <td><a href="{{url()->full()}}/{{$ds->id}}">{{$ds->name}}</a></td>
-                <td>{{count($ds->dataitems)}}</td>
+                <td>{{$ds->dataitems_count}}</td>
                 <td>{{$ds->recordtype->type}}</td>
                 <td>{!! \TLCMap\Http\Helpers\HtmlFilter::simple($ds->warning) !!}</td>
                 <td>
