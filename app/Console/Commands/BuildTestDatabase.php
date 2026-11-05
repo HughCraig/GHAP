@@ -11,8 +11,11 @@ use Illuminate\Support\Facades\DB;
  *
  * The migrations assume things that exist only in production: the tlcmap schema, the PostGIS and
  * pg_trgm extensions, and the datasource and recordtype rows. This command creates them (the
- * extensions in the public schema), never editing a migration. Adjustments made for migrations:
- * none yet; each one is listed here when found.
+ * extensions in the public schema), never editing a migration. Adjustments made for migrations,
+ * each listed here when found:
+ *
+ * - The create_text_table migration inserts the geocoder datasource row with the next sequence
+ *   value, id 1 on a new database. It is moved to id 4 so ids 1-3 are free for the production rows.
  */
 class BuildTestDatabase extends Command
 {
@@ -32,6 +35,13 @@ class BuildTestDatabase extends Command
 
         config(['database.connections.pgsql.database' => $name]);
         DB::purge('pgsql');
+
+        // The schemas are dropped on the connection actually open, so check that it is the test one.
+        $connected = DB::connection('pgsql')->getDatabaseName();
+        if (substr($connected, -5) !== '_test') {
+            $this->error("Refusing to drop schemas in '$connected': the database name must end in _test.");
+            return 1;
+        }
 
         DB::unprepared('DROP SCHEMA IF EXISTS tlcmap CASCADE');
         DB::unprepared('DROP SCHEMA IF EXISTS public CASCADE');
