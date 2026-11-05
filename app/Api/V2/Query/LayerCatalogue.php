@@ -50,10 +50,13 @@ class LayerCatalogue
     public static function run(array $layerFilters, RecordFilters $records, Sort $sort, Paging $paging, string $hash): array
     {
         $layers = DB::query()->fromSub(self::layers($layerFilters, $records), 'd');
-        $total = (clone $layers)->count();
 
         list($keyExpr, $keyType) = self::SORT_KEYS[$sort->key];
         $page = KeysetPager::page($layers->select('d.*'), $keyExpr, $keyType, $sort, $paging, $hash, self::ID);
+
+        // Every row carries the count of the whole match set, so the set is computed once. A page
+        // with no rows has none to read it from, and counts separately.
+        $total = $page['rows'] === [] ? (clone $layers)->count() : (int) $page['rows'][0]->_total;
 
         return ['total' => $total] + $page;
     }
@@ -77,6 +80,9 @@ class LayerCatalogue
                 'coalesce(a.unparseable_date, 0) as unparseable_date',
                 '(' . self::HAS_LICENSE . ') as has_license',
                 '(' . self::HAS_WARNING . ') as has_warning',
+                // A window over the unpaged set. Pushing the outer keyset condition below it would
+                // change its value, so PostgreSQL never does: this is the total on every page.
+                'count(*) over () as _total',
             ]));
 
         if ($withMatching) {
@@ -93,24 +99,28 @@ class LayerCatalogue
         return $q;
     }
 
-    /** Each layer's figures over all its records (spec §10.2), defined as the summary's (§8). */
+    /**
+     * Each public layer's figures over all its visible records (spec §10.2) — the set layer detail
+     * summarises — defined as the summary's (§8), each date function called once per record.
+     */
     private static function aggregates(): Builder
     {
-        return DB::table('tlcmap.dataitem as i')
-            ->whereNotNull('i.dataset_id')
-            ->groupBy('i.dataset_id')
+        $records = RecordQuery::build(RecordFilters::visible())->whereNotNull('i.dataset_id');
+
+        return RecordQuery::withDates($records, ['i.dataset_id', 'i.geom'])
+            ->groupBy('r.dataset_id')
             ->selectRaw(implode(', ', [
-                'i.dataset_id',
+                'r.dataset_id',
                 'count(*) as record_count',
-                'ST_XMin(ST_Extent(i.geom)) as min_lon',
-                'ST_YMin(ST_Extent(i.geom)) as min_lat',
-                'ST_XMax(ST_Extent(i.geom)) as max_lon',
-                'ST_YMax(ST_Extent(i.geom)) as max_lat',
-                'min(' . RecordQuery::LO . ') as date_start',
-                'max(' . RecordQuery::HI . ') as date_end',
-                'count(*) filter (where ' . RecordQuery::LO . ' is null) as undated_total',
-                'count(*) filter (where ' . RecordQuery::NO_DATE . ') as no_date',
-                'count(*) filter (where ' . RecordQuery::LO . ' is null and not ' . RecordQuery::NO_DATE . ') as unparseable_date',
+                'ST_XMin(ST_Extent(r.geom)) as min_lon',
+                'ST_YMin(ST_Extent(r.geom)) as min_lat',
+                'ST_XMax(ST_Extent(r.geom)) as max_lon',
+                'ST_YMax(ST_Extent(r.geom)) as max_lat',
+                'min(' . RecordQuery::R_LO . ') as date_start',
+                'max(' . RecordQuery::R_HI . ') as date_end',
+                'count(*) filter (where ' . RecordQuery::R_LO . ' is null) as undated_total',
+                'count(*) filter (where ' . RecordQuery::R_NO_DATE . ') as no_date',
+                'count(*) filter (where ' . RecordQuery::R_LO . ' is null and not ' . RecordQuery::R_NO_DATE . ') as unparseable_date',
             ]));
     }
 

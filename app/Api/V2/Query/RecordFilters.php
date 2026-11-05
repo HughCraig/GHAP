@@ -55,8 +55,8 @@ class RecordFilters
     {
     }
 
-    /** Every record of one layer, nothing else filtered; a missing or private layer is refused (spec §10.3). */
-    public static function forLayer(int $layerId): self
+    /** Every visible record, nothing filtered: the set a request with no parameters searches. */
+    public static function visible(): self
     {
         $f = new self();
         $f->sources = Sources::ALL;
@@ -67,9 +67,17 @@ class RecordFilters
                 $f->sourceIds[] = $byKey[$key];
             }
         }
+        $f->includeUndated = true;
+
+        return $f;
+    }
+
+    /** Every record of one layer, nothing else filtered; a missing or private layer is refused (spec §10.3). */
+    public static function forLayer(int $layerId): self
+    {
+        $f = self::visible();
         $f->layers = [$layerId];
         LayerGate::assertPublic($f->layers);
-        $f->includeUndated = true;
 
         return $f;
     }

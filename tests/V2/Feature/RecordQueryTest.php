@@ -67,6 +67,23 @@ class RecordQueryTest extends TestCase
 
     // Visibility, sources, layers.
 
+    public function testComputedOnceDateExpressionsAreTheirCounterpartsExactly(): void
+    {
+        foreach ([
+            RecordQuery::LO => RecordQuery::R_LO,
+            RecordQuery::HI => RecordQuery::R_HI,
+            RecordQuery::NO_DATE => RecordQuery::R_NO_DATE,
+            RecordQuery::UNPARSEABLE_SIDE => RecordQuery::R_UNPARSEABLE_SIDE,
+        ] as $expression => $overColumns) {
+            $this->assertSame($expression, strtr($overColumns, RecordQuery::R_COLUMNS));
+        }
+        $selected = [];
+        foreach (RecordQuery::R_COLUMNS as $column => $expression) {
+            $selected[] = $expression . ' as ' . substr($column, 2);
+        }
+        $this->assertSame(implode(', ', $selected), RecordQuery::ROW_DATE_COLUMNS);
+    }
+
     public function testVisibilityExcludesPrivateLayersAndKeepsGazetteerRecords(): void
     {
         $public = Fixtures::layer();

@@ -163,6 +163,13 @@ class LayerCatalogueTest extends TestCase
         $this->assertSame(['start' => Civil::udate(1850), 'end' => Civil::udate(1911) - 1], $layer['date_range']);
         $this->assertSame(['total' => 2, 'no_date' => 1, 'unparseable_date' => 1], $layer['undated']);
         $this->assertNull($layer['matching_count']);
+
+        // The same figures as layer detail's summary of the layer's records.
+        $summary = $this->get('/api/v2/layers/' . $id)->json('summary');
+        $this->assertSame($summary['total'], $layer['record_count']);
+        $this->assertSame($summary['extent'], $layer['bbox']);
+        $this->assertSame($summary['date_range'], $layer['date_range']);
+        $this->assertSame($summary['undated'], $layer['undated']);
     }
 
     public function test_1_private_layers_never_and_empty_layers_listed()
@@ -199,7 +206,9 @@ class LayerCatalogueTest extends TestCase
 
         $this->assertSame([$byName, $byDescription, $byKeyword], $this->ids($this->catalogue('q=convict')));
         $this->assertSame([$percent], $this->ids($this->catalogue('q=' . rawurlencode('0%'))));
-        $this->assertSame([], $this->ids($this->catalogue('q=' . rawurlencode('_onvict%'))));
+        $none = $this->catalogue('q=' . rawurlencode('_onvict%'));
+        $this->assertSame([], $this->ids($none));
+        $this->assertSame(0, $none->json('total'));
 
         $alice = Fixtures::layer(['creator' => 'Dr Alice Smith']);
         Fixtures::layer(['creator' => 'Bob']);

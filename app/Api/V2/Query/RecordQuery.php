@@ -34,14 +34,37 @@ class RecordQuery
     public const END_KEY = 'coalesce(' . self::E . ', ' . self::S . ')';
 
     /** Null or blank, trimming the same whitespace as v2_udate (spaces, tabs, CR, LF). */
-    private const START_BLANK = 'nullif(btrim(i.datestart, E\' \t\r\n\'), \'\') IS NULL';
-    private const END_BLANK = 'nullif(btrim(i.dateend, E\' \t\r\n\'), \'\') IS NULL';
+    public const START_BLANK = 'nullif(btrim(i.datestart, E\' \t\r\n\'), \'\') IS NULL';
+    public const END_BLANK = 'nullif(btrim(i.dateend, E\' \t\r\n\'), \'\') IS NULL';
 
     /** Both datestart and dateend are null or blank (spec §6.3). */
     public const NO_DATE = '(' . self::START_BLANK . ' AND ' . self::END_BLANK . ')';
     /** Either side has text that does not parse, whether or not the other side does. */
     public const UNPARSEABLE_SIDE = '((NOT ' . self::START_BLANK . ' AND ' . self::S . ' IS NULL)'
         . ' OR (NOT ' . self::END_BLANK . ' AND ' . self::E . ' IS NULL))';
+
+    /**
+     * Each row's date values, computed once (see withDates): s, e, se, ee are S, E, SE, EE, and
+     * sb, eb are START_BLANK, END_BLANK.
+     */
+    public const ROW_DATE_COLUMNS = self::S . ' as s, ' . self::E . ' as e, ' . self::SE . ' as se, '
+        . self::EE . ' as ee, ' . self::START_BLANK . ' as sb, ' . self::END_BLANK . ' as eb';
+
+    /*
+     * LO, HI, NO_DATE and UNPARSEABLE_SIDE over those columns of the derived table `r`. Each is its
+     * counterpart above with every call replaced by its column; RecordQueryTest checks that the
+     * substitution gives the counterpart exactly, so the two cannot drift.
+     */
+    public const R_LO = 'least(coalesce(r.s, r.e), coalesce(r.e, r.s))';
+    public const R_HI = 'greatest(coalesce(r.ee, r.se), coalesce(r.se, r.ee))';
+    public const R_NO_DATE = '(r.sb AND r.eb)';
+    public const R_UNPARSEABLE_SIDE = '((NOT r.sb AND r.s IS NULL) OR (NOT r.eb AND r.e IS NULL))';
+
+    /** Each column of `r` and the expression it holds. */
+    public const R_COLUMNS = [
+        'r.s' => self::S, 'r.e' => self::E, 'r.se' => self::SE, 'r.ee' => self::EE,
+        'r.sb' => self::START_BLANK, 'r.eb' => self::END_BLANK,
+    ];
 
     /** A record's extended-data field by name; the name is bound. */
     private const FIELD = 'tlcmap.v2_extended_value(i.extended_data, CAST(? AS text))';
@@ -123,6 +146,22 @@ class RecordQuery
         }
 
         return $q;
+    }
+
+    /**
+     * The rows of $records as the derived table `r`: the given columns plus ROW_DATE_COLUMNS, so
+     * an aggregate over R_LO, R_HI and the rest calls each date function once per row rather than
+     * once per use. OFFSET 0 keeps PostgreSQL from flattening the subquery, which would copy the
+     * calls back into every expression that reads them.
+     *
+     * @param Builder  $records an unselected RecordQuery builder; cloned, never mutated
+     * @param string[] $columns trusted column expressions over `i`
+     */
+    public static function withDates(Builder $records, array $columns): Builder
+    {
+        $rows = (clone $records)->select($columns)->selectRaw(self::ROW_DATE_COLUMNS)->offset(0);
+
+        return DB::query()->fromSub($rows, 'r');
     }
 
     /**

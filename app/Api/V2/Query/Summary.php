@@ -17,23 +17,26 @@ class Summary
         $sourceKeys = Sources::keyById();
         $selects = [
             'count(*) as total',
-            'ST_XMin(ST_Extent(i.geom)) as min_lon',
-            'ST_YMin(ST_Extent(i.geom)) as min_lat',
-            'ST_XMax(ST_Extent(i.geom)) as max_lon',
-            'ST_YMax(ST_Extent(i.geom)) as max_lat',
-            'count(*) filter (where i.geom is null) as no_coordinates',
-            'min(' . RecordQuery::LO . ') as date_start',
-            'max(' . RecordQuery::HI . ') as date_end',
-            'count(*) filter (where ' . RecordQuery::LO . ' is null) as undated_total',
-            'count(*) filter (where ' . RecordQuery::NO_DATE . ') as no_date',
-            'count(*) filter (where ' . RecordQuery::UNPARSEABLE_SIDE . ') as unparseable_dates',
-            'count(*) filter (where ' . RecordQuery::LO . ' is null and not ' . RecordQuery::NO_DATE . ') as unparseable_date',
+            'ST_XMin(ST_Extent(r.geom)) as min_lon',
+            'ST_YMin(ST_Extent(r.geom)) as min_lat',
+            'ST_XMax(ST_Extent(r.geom)) as max_lon',
+            'ST_YMax(ST_Extent(r.geom)) as max_lat',
+            'count(*) filter (where r.geom is null) as no_coordinates',
+            'min(' . RecordQuery::R_LO . ') as date_start',
+            'max(' . RecordQuery::R_HI . ') as date_end',
+            'count(*) filter (where ' . RecordQuery::R_LO . ' is null) as undated_total',
+            'count(*) filter (where ' . RecordQuery::R_NO_DATE . ') as no_date',
+            'count(*) filter (where ' . RecordQuery::R_UNPARSEABLE_SIDE . ') as unparseable_dates',
+            'count(*) filter (where ' . RecordQuery::R_LO . ' is null and not ' . RecordQuery::R_NO_DATE . ') as unparseable_date',
         ];
         foreach ($sourceKeys as $id => $key) {
-            $selects[] = 'count(*) filter (where i.datasource_id = ' . (int) $id . ') as source_' . (int) $id;
+            $selects[] = 'count(*) filter (where r.datasource_id = ' . (int) $id . ') as source_' . (int) $id;
         }
 
-        $row = (clone $filtered)->selectRaw(implode(', ', $selects))->first();
+        // Each record's dates are computed once, then aggregated (RecordQuery::withDates).
+        $row = RecordQuery::withDates($filtered, ['i.geom', 'i.datasource_id'])
+            ->selectRaw(implode(', ', $selects))
+            ->first();
 
         $bySource = [];
         foreach ($sourceKeys as $id => $key) {
