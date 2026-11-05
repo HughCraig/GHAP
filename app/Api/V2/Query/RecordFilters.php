@@ -55,6 +55,25 @@ class RecordFilters
     {
     }
 
+    /** Every record of one layer, nothing else filtered; a missing or private layer is refused (spec §10.3). */
+    public static function forLayer(int $layerId): self
+    {
+        $f = new self();
+        $f->sources = Sources::ALL;
+        $f->sourceIds = [];
+        $byKey = Sources::idsByKey();
+        foreach ($f->sources as $key) {
+            if (isset($byKey[$key])) {
+                $f->sourceIds[] = $byKey[$key];
+            }
+        }
+        $f->layers = [$layerId];
+        LayerGate::assertPublic($f->layers);
+        $f->includeUndated = true;
+
+        return $f;
+    }
+
     public static function fromParams(ParameterSet $p): self
     {
         $f = new self();
