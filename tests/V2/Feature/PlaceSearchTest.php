@@ -159,6 +159,24 @@ class PlaceSearchTest extends TestCase
         $this->assertSame('cursor', $r->json('error.details.parameter'));
     }
 
+    public function test_3_cursor_with_summary_only_is_400()
+    {
+        for ($n = 0; $n < 3; $n++) {
+            Fixtures::record();
+        }
+
+        $r = $this->search('summary_only=true&cursor=not-a-cursor');
+        $this->assertError($r, 400, 'INVALID_PARAMETER');
+        $this->assertSame('cursor', $r->json('error.details.parameter'));
+
+        // A real cursor is issued only when summary_only is false, so it never fits a summary-only query.
+        $cursor = $this->search('per_page=1')->json('page.next_cursor');
+        $this->assertNotNull($cursor);
+        $r = $this->search('summary_only=true&per_page=1&cursor=' . $cursor);
+        $this->assertError($r, 400, 'INVALID_PARAMETER');
+        $this->assertSame('cursor', $r->json('error.details.parameter'));
+    }
+
     public function test_3_per_page_may_change_between_pages()
     {
         $all = [];

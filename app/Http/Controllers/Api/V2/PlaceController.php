@@ -38,6 +38,8 @@ class PlaceController extends Controller
             $sample = Sample::parse($p, (int) config('api_v2.sample_max'));
 
             $query = self::echoQuery($filters, $summaryOnly, $sort, $paging, $sample);
+            $hash = Cursor::queryHash($query);
+            PlaceSearch::assertCursor($paging->cursor, $hash, $sort);
 
             RecordQuery::prepareFuzzy($filters);
             $summary = Summary::compute(RecordQuery::build($filters), true);
@@ -46,7 +48,7 @@ class PlaceController extends Controller
                 return Json::response(['query' => $query, 'summary' => $summary]);
             }
 
-            $result = PlaceSearch::run($filters, $sort, $paging, $sample, Cursor::queryHash($query));
+            $result = PlaceSearch::run($filters, $sort, $paging, $sample, $hash);
 
             $keyById = Sources::keyById();
             $features = [];
