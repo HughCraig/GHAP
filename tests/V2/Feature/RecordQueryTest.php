@@ -518,6 +518,134 @@ class RecordQueryTest extends TestCase
         $this->assertIds([$both], ['extended_data' => 'Years > 50 AND Name textmatch bridge']);
     }
 
+    // The extended_data pre-filter: raw text that reads differently once parsed still matches.
+
+    private function rawRecord(string $data): int
+    {
+        return Fixtures::record(['extended_data' => '<ExtendedData>' . $data . '</ExtendedData>']);
+    }
+
+    public function testExtendedDataEntityReferencesStillMatch(): void
+    {
+        $amp = $this->rawRecord('<Data name="Fish &amp; Chips"><value>Salt &amp; Vinegar &lt;fine&gt;</value></Data>');
+        $this->rawRecord('<Data name="Fish &amp; Chips"><value>Salt</value></Data>');
+
+        $this->assertIds([$amp], ['extended_data' => '"Fish & Chips" = "Salt & Vinegar <fine>"']);
+        $this->assertIds([$amp], ['extended_data' => '"Fish & Chips" textmatch "VINEGAR <F"']);
+    }
+
+    public function testExtendedDataNumericCharacterReferencesStillMatch(): void
+    {
+        $name = $this->rawRecord('<Data name="R&#101;gion"><value>NSW</value></Data>');
+        $value = $this->rawRecord('<Data name="Region"><value>&#78;S&#x57;</value></Data>');
+        $cr = $this->rawRecord('<Data name="Note"><value>line&#x0d;break</value></Data>');
+        $number = $this->rawRecord('<Data name="C&#111;unt"><value>&#52;2</value></Data>');
+        $this->rawRecord('<Data name="Region"><value>VIC</value></Data>');
+
+        $this->assertIds([$name, $value], ['extended_data' => 'Region = NSW']);
+        $this->assertIds([$name, $value], ['extended_data' => 'Region textmatch nsw']);
+        $this->assertIds([$cr], ['extended_data' => 'Note textmatch "LINE"']);
+        $this->assertIds([$number], ['extended_data' => 'Count > 41']);
+        $this->assertIds([$number], ['extended_data' => 'Count < 43']);
+    }
+
+    public function testExtendedDataWhitespaceInTheNameAttributeStillMatches(): void
+    {
+        $tab = $this->rawRecord("<Data name=\"Place\tType\"><value>Inn</value></Data>");
+        $crlf = $this->rawRecord("<Data name=\"Place\r\nType\"><value>Inn</value></Data>");
+        $this->rawRecord('<Data name="PlaceType"><value>Inn</value></Data>');
+
+        $this->assertIds([$tab, $crlf], ['extended_data' => '"Place Type" = Inn']);
+        $this->assertIds([$tab, $crlf], ['extended_data' => '"Place Type" textmatch INN']);
+    }
+
+    public function testExtendedDataSingleQuotedAttributesStillMatch(): void
+    {
+        $single = $this->rawRecord("<Data name='Kind'><value>Hotel</value></Data>");
+        $quotes = $this->rawRecord("<Data name='Say \"hi\"'><value>It's here</value></Data>");
+
+        $this->assertIds([$single], ['extended_data' => 'Kind = Hotel']);
+        $this->assertIds([$quotes], ['extended_data' => '\'Say "hi"\' = "It\'s here"']);
+    }
+
+    public function testExtendedDataCdataAndMarkupInsideAValueStillMatch(): void
+    {
+        $cdata = $this->rawRecord('<Data name="Note"><value><![CDATA[a <b> & "c"]]></value></Data>');
+        $split = $this->rawRecord('<Data name="State"><value><![CDATA[N]]><![CDATA[SW]]></value></Data>');
+        $mixed = $this->rawRecord('<Data name="State"><value>N<![CDATA[SW]]></value></Data>');
+        $nested = $this->rawRecord('<Data name="State"><value>N<b>S</b>W</value></Data>');
+        $comment = $this->rawRecord('<Data name="State"><value>N<!-- a comment -->SW</value></Data>');
+        $this->rawRecord('<Data name="State"><value><![CDATA[NS]]></value></Data>');
+
+        $this->assertIds([$cdata], ['extended_data' => 'Note = \'a <b> & "c"\'']);
+        $this->assertIds([$split, $mixed, $nested, $comment], ['extended_data' => 'State = NSW']);
+        $this->assertIds([$split, $mixed, $nested, $comment], ['extended_data' => 'State textmatch nsw']);
+    }
+
+    public function testExtendedDataTextmatchIgnoresCaseIncludingNonAscii(): void
+    {
+        $bridge = Fixtures::record(['extended_data' => $this->extended([['Name', 'Old BRIDGE Inn']])]);
+        $accented = Fixtures::record(['extended_data' => $this->extended([['Name', 'ÖLBERG Café']])]);
+        Fixtures::record(['extended_data' => $this->extended([['Name', 'Ferry']])]);
+
+        $this->assertIds([$bridge], ['extended_data' => 'Name textmatch "bridge inn"']);
+        $this->assertIds([$accented], ['extended_data' => 'Name textmatch "ölberg CAFÉ"']);
+        $this->assertIds([], ['extended_data' => 'Name = "old bridge inn"']);
+    }
+
+    public function testExtendedDataSqlCarriesTheRawTextPrefilter(): void
+    {
+        $f = $this->filters(['extended_data' => 'State = "N_S W" AND Name textmatch "Old 100%" AND Years > 5']);
+        $q = RecordQuery::build($f);
+        $sql = $q->toSql();
+
+        $this->assertSame(1, substr_count($sql, 'i.extended_data ILIKE CAST(? AS text) ' . RecordQuery::ESCAPE));
+        $this->assertSame(4, substr_count($sql, 'i.extended_data LIKE CAST(? AS text) ' . RecordQuery::ESCAPE));
+        // The first pre-filter comes before the first parse.
+        $this->assertLessThan(strpos($sql, 'tlcmap.v2_extended_value'), strpos($sql, 'i.extended_data LIKE'));
+        foreach (['%State%', '%N\\_S%', '%Name%', '%100\\%%', '%Years%'] as $pattern) {
+            $this->assertContains($pattern, $q->getBindings());
+        }
+    }
+
+    /**
+     * The pre-filters can be answered from the indexes alone, the fallback for records not written
+     * as they read included, so no extended_data clause needs to read every record. Sequential and
+     * plain index scans are switched off, since on a near-empty table the planner prefers them.
+     */
+    public function testExtendedDataPrefiltersAreServedByTheIndexes(): void
+    {
+        DB::statement('SET LOCAL enable_seqscan = off');
+        DB::statement('SET LOCAL enable_indexscan = off');
+        foreach (['State = NSW', 'Name textmatch "Old Inn"', 'Years > 5', 'Built before 1850'] as $expression) {
+            $q = DB::table('tlcmap.dataitem as i')->select('i.id');
+            foreach ($this->filters(['extended_data' => $expression])->extendedData->clauses() as $clause) {
+                foreach (RecordQuery::prefilter($clause) as list($sql, $bindings)) {
+                    $q->whereRaw($sql, $bindings);
+                }
+            }
+            $plan = implode("\n", array_map(function ($row) {
+                return $row->{'QUERY PLAN'};
+            }, DB::select('EXPLAIN ' . $q->toSql(), $q->getBindings())));
+
+            $this->assertStringContainsString('v2_dataitem_extended_data_trgm', $plan, $expression);
+            $this->assertStringContainsString('v2_dataitem_extended_data_unliteral', $plan, $expression);
+            $this->assertStringNotContainsString('Seq Scan on dataitem', $plan, $expression);
+        }
+    }
+
+    public function testLiteralRunIsTheLongestRunWithoutWhitespaceOrMarkupCharacters(): void
+    {
+        $this->assertSame('Chips', RecordQuery::literalRun('Fish & Chips'));
+        $this->assertSame('Fish', RecordQuery::literalRun('Fish &amp'));
+        $this->assertSame('quoted', RecordQuery::literalRun('a "quoted" one'));
+        $this->assertSame('Types', RecordQuery::literalRun("Pl\tTypes"));
+        $this->assertSame('Place', RecordQuery::literalRun("Place\nType"));
+        $this->assertSame('Ölberg', RecordQuery::literalRun('<Ölberg>'));
+        $this->assertSame('100%', RecordQuery::literalRun('100%'));
+        $this->assertSame('', RecordQuery::literalRun("& <> ' \""));
+    }
+
     // Combination.
 
     public function testSeveralFiltersAreCombinedWithAnd(): void

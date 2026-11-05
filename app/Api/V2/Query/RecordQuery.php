@@ -96,6 +96,33 @@ class RecordQuery
     /** A record's extended-data field by name; the name is bound. */
     private const FIELD = 'tlcmap.v2_extended_value(i.extended_data, CAST(? AS text))';
 
+    /*
+     * Raw extended data whose Data names (or values) may not be written as v2_extended_value reads
+     * them, apart from the characters a literal run never contains (see literalRun). A pre-filter
+     * always lets such a record through, to be parsed.
+     *
+     * Parsing changes a Data name only by decoding references, by turning a tab, carriage return or
+     * line feed into a space, and by what a DTD can declare (entities, default attributes). Without
+     * a character reference (`&#`) or a DTD (`<!DOCTYPE`), what remains is the five predefined
+     * entities, which decode to & < > " ', and whitespace: a run of the name is in the raw text as
+     * written.
+     *
+     * A value also passes through any markup inside its element. When, besides, every `<value`
+     * opens `<value><![CDATA[` and every `]]>` is followed by `</value>`, the value element's content
+     * is exactly one CDATA section, read as written but for line endings: a run of the value is in
+     * the raw text as written. (Removing the longer marker cannot hide a shorter one that is not
+     * part of it, and can only join text into a new one, which errs towards parsing.)
+     *
+     * No record in temp_tlcmap matches either (2026-11-05). They are LIKEs, so the planner estimates
+     * them from the column's statistics, or as rare, rather than as near-certain; the partial index
+     * v2_dataitem_extended_data_unliteral has exactly VALUES_NOT_AS_WRITTEN's terms as its
+     * condition, so each term can be answered from it.
+     */
+    private const NAMES_NOT_AS_WRITTEN = "i.extended_data LIKE '%&#%' OR i.extended_data LIKE '%<!DOCTYPE%'";
+    private const VALUES_NOT_AS_WRITTEN = self::NAMES_NOT_AS_WRITTEN
+        . " OR replace(i.extended_data, '<value><![CDATA[', '') LIKE '%<value%'"
+        . " OR replace(i.extended_data, ']]></value>', '') LIKE '%]]>%'";
+
     /**
      * Backslash as the LIKE escape character. PDO reads a backslash in a string literal as escaping
      * the next character, so a plain '\' would swallow the placeholders after it; E'\\' is one
@@ -284,6 +311,60 @@ class RecordQuery
         );
     }
 
+    /**
+     * The longest run of $operand with no whitespace and none of & < > " ' (the first, if several
+     * are as long), or '' when there is none. In raw text that NAMES_NOT_AS_WRITTEN (for a name) or
+     * VALUES_NOT_AS_WRITTEN (for a value) does not match, parsing changes only those characters, so
+     * text that reads as $operand once parsed contains its run as written.
+     */
+    public static function literalRun(string $operand): string
+    {
+        $longest = '';
+        foreach (preg_split('/[\s&<>"\']+/u', $operand) as $run) {
+            if (strlen($run) > strlen($longest)) {
+                $longest = $run;
+            }
+        }
+        return $longest;
+    }
+
+    /**
+     * Necessary conditions on the raw extended data for a clause to match, as [sql, bindings] each:
+     * it contains the field name's literal run, and for `=` and `textmatch` the value's, compared
+     * as the clause compares (`=` exactly, `textmatch` ignoring case: ILIKE lower-cases character by
+     * character, so the lower-cased run lies in the lower-cased raw text wherever the lower-cased
+     * value lies in the lower-cased field). A record whose text may not be written as it reads
+     * always passes, and the partial index v2_dataitem_extended_data_unliteral finds those without
+     * reading every record. They spare the XML parse of a record that cannot match and never
+     * exclude one that can; a `>`, `<`, `before` or `after` value is not looked for, since the text
+     * of a matching value is unknown.
+     *
+     * @param array $clause one of ExtendedDataFilter::clauses()
+     * @return array[]
+     */
+    public static function prefilter(array $clause): array
+    {
+        $conditions = [];
+        $name = self::literalRun($clause['field']);
+        if ($name !== '') {
+            $conditions[] = [
+                '(i.extended_data LIKE CAST(? AS text) ' . self::ESCAPE . ' OR ' . self::NAMES_NOT_AS_WRITTEN . ')',
+                ['%' . self::escapeLike($name) . '%'],
+            ];
+        }
+        if ($clause['op'] === '=' || $clause['op'] === 'textmatch') {
+            $value = self::literalRun($clause['value']);
+            if ($value !== '') {
+                $like = $clause['op'] === '=' ? 'LIKE' : 'ILIKE';
+                $conditions[] = [
+                    "(i.extended_data $like CAST(? AS text) " . self::ESCAPE . ' OR ' . self::VALUES_NOT_AS_WRITTEN . ')',
+                    ['%' . self::escapeLike($value) . '%'],
+                ];
+            }
+        }
+        return $conditions;
+    }
+
     /** A value with LIKE's `\`, `%` and `_` escaped, for use with ESCAPE. */
     public static function escapeLike(string $value): string
     {
@@ -291,12 +372,17 @@ class RecordQuery
     }
 
     /**
-     * One extended_data clause (spec §7.8). The field is read once; a field that is absent, empty,
-     * malformed or of the wrong kind yields false or NULL, so the record does not match. Casts are
-     * guarded by CASE, since PostgreSQL does not evaluate AND left to right.
+     * One extended_data clause (spec §7.8), after its pre-filters. The field is read once (for `>`
+     * and `<`, OFFSET 0 keeps the derived value from being copied into each use); a field that is
+     * absent, empty, malformed or of the wrong kind yields false or NULL, so the record does not
+     * match. Casts are guarded by CASE, since PostgreSQL does not evaluate AND left to right.
      */
     private static function extendedClause(Builder $q, array $clause): void
     {
+        foreach (self::prefilter($clause) as list($sql, $bindings)) {
+            $q->whereRaw($sql, $bindings);
+        }
+
         $field = self::FIELD;
         switch ($clause['op']) {
             case '=':
@@ -313,7 +399,7 @@ class RecordQuery
                 $op = $clause['op'];
                 $q->whereRaw(
                     '(SELECT CASE WHEN ' . self::DECIMAL . " THEN x.v::numeric $op CAST(? AS numeric) ELSE false END"
-                    . " FROM (SELECT btrim($field, E' \\t\\r\\n') AS v) AS x)",
+                    . " FROM (SELECT btrim($field, E' \\t\\r\\n') AS v OFFSET 0) AS x)",
                     [$clause['value'], $clause['field']]
                 );
                 break;

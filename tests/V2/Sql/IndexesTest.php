@@ -13,6 +13,8 @@ class IndexesTest extends TestCase
             'geom' => ['v2_dataitem_geom_gist', ['gist', '(geom)']],
             'title' => ['v2_dataitem_title_trgm', ['gin', 'gin_trgm_ops', '(title ']],
             'placename' => ['v2_dataitem_placename_trgm', ['gin', 'gin_trgm_ops', '(placename ']],
+            'extended_data' => ['v2_dataitem_extended_data_trgm', ['gin', 'gin_trgm_ops', '(extended_data ']],
+            'extended_data_unliteral' => ['v2_dataitem_extended_data_unliteral', ['btree', '(id)', 'WHERE', 'replace']],
         ];
     }
 
@@ -50,6 +52,15 @@ class IndexesTest extends TestCase
         $source = file_get_contents($file);
         $this->assertSame(3, substr_count($source, 'CREATE INDEX CONCURRENTLY IF NOT EXISTS'));
         $this->assertSame(3, substr_count($source, 'DROP INDEX CONCURRENTLY IF EXISTS'));
+        $this->assertStringNotContainsString("'CREATE INDEX IF", $source);
+
+        $file = database_path('migrations/2026_11_10_000004_add_v2_extended_data_index.php');
+        require_once $file;
+        $this->assertFalse((new \AddV2ExtendedDataIndex())->withinTransaction);
+
+        $source = file_get_contents($file);
+        $this->assertSame(2, substr_count($source, 'CREATE INDEX CONCURRENTLY IF NOT EXISTS'));
+        $this->assertSame(2, substr_count($source, 'DROP INDEX CONCURRENTLY IF EXISTS'));
         $this->assertStringNotContainsString("'CREATE INDEX IF", $source);
     }
 }
