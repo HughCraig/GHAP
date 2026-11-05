@@ -33,8 +33,9 @@ class RecordQuery
     /** Sort key for `end`: the first instant of dateend, else of datestart. */
     public const END_KEY = 'coalesce(' . self::E . ', ' . self::S . ')';
 
-    private const START_BLANK = "nullif(btrim(i.datestart), '') IS NULL";
-    private const END_BLANK = "nullif(btrim(i.dateend), '') IS NULL";
+    /** Null or blank, trimming the same whitespace as v2_udate (spaces, tabs, CR, LF). */
+    private const START_BLANK = 'nullif(btrim(i.datestart, E\' \t\r\n\'), \'\') IS NULL';
+    private const END_BLANK = 'nullif(btrim(i.dateend, E\' \t\r\n\'), \'\') IS NULL';
 
     /** Both datestart and dateend are null or blank (spec §6.3). */
     public const NO_DATE = '(' . self::START_BLANK . ' AND ' . self::END_BLANK . ')';

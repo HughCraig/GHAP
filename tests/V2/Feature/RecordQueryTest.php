@@ -298,6 +298,39 @@ class RecordQueryTest extends TestCase
         }, 400, 'INVALID_PARAMETER', ['parameter' => 'date_from', 'rule' => 'order']);
     }
 
+    public function testDateFromWithinDateToPeriodIsAccepted(): void
+    {
+        $august = Fixtures::record(['datestart' => '1860-08']);
+        Fixtures::record(['datestart' => '1860-03']);
+
+        $f = $this->filters(['date_from' => '1860-06', 'date_to' => '1860']);
+        $this->assertSame('1860-06', $f->toEcho()['date_from']);
+        $this->assertSame('1860', $f->toEcho()['date_to']);
+        $this->assertIds([$august], ['date_from' => '1860-06', 'date_to' => '1860', 'include_undated' => 'false']);
+    }
+
+    public function testWhitespaceOnlyDateSidesAreBlank(): void
+    {
+        $tab = Fixtures::record(['datestart' => "\t", 'dateend' => "\t"]);
+        $cr = Fixtures::record(['datestart' => "\r"]);
+        $mixed = Fixtures::record(['datestart' => "\n", 'dateend' => " \r\n\t"]);
+        $halfCr = Fixtures::record(['datestart' => '1850', 'dateend' => "\r"]);
+        $junk = Fixtures::record(['datestart' => "\tjunk\r"]);
+
+        $where = function (string $condition): array {
+            $ids = array_map('intval', DB::table('tlcmap.dataitem as i')->whereRaw($condition)->pluck('i.id')->all());
+            sort($ids);
+            return $ids;
+        };
+        $this->assertSame([$tab, $cr, $mixed], $where(RecordQuery::NO_DATE));
+        $this->assertSame([$junk], $where(RecordQuery::UNPARSEABLE_SIDE));
+
+        // The half-dated record is dated from its start; the blank records are undated.
+        $this->assertIds([$halfCr], ['date_to' => '1850', 'include_undated' => 'false']);
+        $this->assertIds([$tab, $cr, $mixed, $junk], ['date_from' => '1851']);
+        $this->assertIds([], ['date_from' => '1851', 'include_undated' => 'false']);
+    }
+
     public function testDateConstants(): void
     {
         $r = $this->datedFixtures();
