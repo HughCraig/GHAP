@@ -341,4 +341,58 @@ class LayerCatalogueTest extends TestCase
         $this->assertNotNull($r->json('page.next_cursor'));
         $this->assertStringStartsWith('http://localhost/api/v2/layers?', $r->json('page.next'));
     }
+
+    public function test_figures_are_computed_for_the_returned_page_only()
+    {
+        $ids = [];
+        foreach ([[1850, -33.0], [1860, -32.0], [1870, -31.0]] as $n => [$year, $lat]) {
+            $ids[$n] = Fixtures::layer();
+            Fixtures::record(['dataset_id' => $ids[$n], 'lat' => $lat, 'lon' => 151.0, 'datestart' => (string) $year]);
+            Fixtures::record(['dataset_id' => $ids[$n]]);
+        }
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $r = $this->catalogue('per_page=1');
+        $log = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        // Date functions run in one query only, over the records of the page's one layer.
+        $dated = array_values(array_filter($log, function (array $q) {
+            return strpos($q['query'], 'v2_udate') !== false;
+        }));
+        $this->assertCount(1, $dated);
+        $this->assertStringContainsString('"i"."dataset_id" in (?)', $dated[0]['query']);
+        $this->assertContains($ids[0], $dated[0]['bindings']);
+        $this->assertNotContains($ids[1], $dated[0]['bindings']);
+        $this->assertSame(3, $r->json('total'));
+
+        // Each page carries its own layer's figures.
+        foreach ($ids as $n => $id) {
+            $this->assertSame([$id], $this->ids($r));
+            $layer = $r->json('layers.0');
+            $this->assertSame(2, $layer['record_count']);
+            $this->assertSame([151, -33 + $n, 151, -33 + $n], $layer['bbox']);
+            $this->assertSame(['start' => Civil::udate(1850 + 10 * $n), 'end' => Civil::udate(1851 + 10 * $n) - 1], $layer['date_range']);
+            $this->assertSame(['total' => 1, 'no_date' => 1, 'unparseable_date' => 0], $layer['undated']);
+            if ($n < 2) {
+                $r = $this->get($r->json('page.next'));
+                $r->assertStatus(200);
+            }
+        }
+    }
+
+    public function test_min_records_counts_without_date_functions_and_keeps_empty_layers_at_zero()
+    {
+        $empty = Fixtures::layer();
+        $one = Fixtures::layer();
+        Fixtures::record(['dataset_id' => $one, 'datestart' => '1850']);
+
+        $this->assertSame([$empty, $one], $this->ids($this->catalogue('min_records=0')));
+        $r = $this->catalogue('min_records=1');
+        $this->assertSame([$one], $this->ids($r));
+        $this->assertSame(1, $r->json('total'));
+        $this->assertSame(1, $r->json('layers.0.record_count'));
+        $this->assertSame(0, $this->catalogue('min_records=2')->json('total'));
+    }
 }

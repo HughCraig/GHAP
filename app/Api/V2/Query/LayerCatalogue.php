@@ -10,7 +10,8 @@ use TLCMap\Api\V2\Params\Sort;
 /**
  * The catalogue of public layers (spec §10.2). Record-level filters reach a layer only through
  * RecordQuery, grouped by layer, so the catalogue lists exactly the layers the equivalent place
- * search draws records from (spec §3.2). A layer's own figures are computed from all its records.
+ * search draws records from (spec §3.2). A layer's own figures are computed from all its visible
+ * records.
  */
 class LayerCatalogue
 {
@@ -41,7 +42,9 @@ class LayerCatalogue
     private const HAS_WARNING = 'nullif(btrim(d.warning, E\' \t\r\n\'), \'\') IS NOT NULL';
 
     /**
-     * Runs inside the caller's transaction.
+     * Runs inside the caller's transaction. The layers are filtered and paged first, from what
+     * needs no date functions; the figures are then computed for the returned page alone, so the
+     * cost of a request follows the size of its page, not of the catalogue.
      *
      * @param array $layerFilters q, record_type, creator, has_license, has_warning, min_records;
      *                            null or absent when not given
@@ -58,26 +61,22 @@ class LayerCatalogue
         // with no rows has none to read it from, and counts separately.
         $total = $page['rows'] === [] ? (clone $layers)->count() : (int) $page['rows'][0]->_total;
 
+        $page['rows'] = self::withFigures($page['rows']);
+
         return ['total' => $total] + $page;
     }
 
-    /** One row per matching public layer, with its whole-layer figures and its matching count. */
+    /** One row per matching public layer, with its matching count; the figures are added later. */
     private static function layers(array $filters, RecordFilters $records): Builder
     {
         $withMatching = $records->hasRecordLevelFilter();
 
         $q = DB::table('tlcmap.dataset as d')
             ->leftJoin('tlcmap.recordtype as rt', 'rt.id', '=', 'd.recordtype_id')
-            ->leftJoinSub(self::aggregates(), 'a', 'a.dataset_id', '=', 'd.id')
             ->whereRaw('d.public = true')
             ->selectRaw(implode(', ', [
                 'd.id', 'd.name', 'd.description', 'd.creator', 'rt.type as record_type',
-                'coalesce(a.record_count, 0) as record_count',
                 ($withMatching ? 'm.matching_count' : 'CAST(NULL AS bigint)') . ' as matching_count',
-                'a.min_lon', 'a.min_lat', 'a.max_lon', 'a.max_lat', 'a.date_start', 'a.date_end',
-                'coalesce(a.undated_total, 0) as undated_total',
-                'coalesce(a.no_date, 0) as no_date',
-                'coalesce(a.unparseable_date, 0) as unparseable_date',
                 '(' . self::HAS_LICENSE . ') as has_license',
                 '(' . self::HAS_WARNING . ') as has_warning',
                 // A window over the unpaged set. Pushing the outer keyset condition below it would
@@ -94,20 +93,41 @@ class LayerCatalogue
             $q->joinSub($matching, 'm', 'm.dataset_id', '=', 'd.id');
         }
 
+        if (($filters['min_records'] ?? null) !== null) {
+            // Each layer's visible records counted, with no date functions.
+            $counts = RecordQuery::build(RecordFilters::visible())
+                ->whereNotNull('i.dataset_id')
+                ->groupBy('i.dataset_id')
+                ->selectRaw('i.dataset_id, count(*) as record_count');
+            $q->leftJoinSub($counts, 'c', 'c.dataset_id', '=', 'd.id')
+                ->whereRaw('coalesce(c.record_count, 0) >= CAST(? AS bigint)', [$filters['min_records']]);
+        }
+
         self::applyLayerFilters($q, $filters);
 
         return $q;
     }
 
     /**
-     * Each public layer's figures over all its visible records (spec §10.2) — the set layer detail
-     * summarises — defined as the summary's (§8), each date function called once per record.
+     * The page's rows with each layer's figures over all its visible records (spec §10.2) — the
+     * set layer detail summarises — defined as the summary's (§8), each date function called once
+     * per record. One query, reading the records of the page's layers only.
+     *
+     * @param \stdClass[] $rows
+     * @return \stdClass[]
      */
-    private static function aggregates(): Builder
+    private static function withFigures(array $rows): array
     {
-        $records = RecordQuery::build(RecordFilters::visible())->whereNotNull('i.dataset_id');
+        if ($rows === []) {
+            return $rows;
+        }
+        $ids = [];
+        foreach ($rows as $row) {
+            $ids[] = (int) $row->id;
+        }
 
-        return RecordQuery::withDates($records, ['i.dataset_id', 'i.geom'])
+        $records = RecordQuery::build(RecordFilters::visible())->whereIn('i.dataset_id', $ids);
+        $figures = RecordQuery::withDates($records, ['i.dataset_id', 'i.geom'])
             ->groupBy('r.dataset_id')
             ->selectRaw(implode(', ', [
                 'r.dataset_id',
@@ -121,7 +141,23 @@ class LayerCatalogue
                 'count(*) filter (where ' . RecordQuery::R_LO . ' is null) as undated_total',
                 'count(*) filter (where ' . RecordQuery::R_NO_DATE . ') as no_date',
                 'count(*) filter (where ' . RecordQuery::R_LO . ' is null and not ' . RecordQuery::R_NO_DATE . ') as unparseable_date',
-            ]));
+            ]))
+            ->get()
+            ->keyBy('dataset_id');
+
+        // A layer with no visible records has no row here: no records, no extent, no dates.
+        $empty = (object) [
+            'record_count' => 0, 'min_lon' => null, 'min_lat' => null, 'max_lon' => null, 'max_lat' => null,
+            'date_start' => null, 'date_end' => null, 'undated_total' => 0, 'no_date' => 0, 'unparseable_date' => 0,
+        ];
+        foreach ($rows as $row) {
+            $f = $figures->get($row->id, $empty);
+            foreach ((array) $empty as $column => $unused) {
+                $row->$column = $f->$column;
+            }
+        }
+
+        return $rows;
     }
 
     private static function applyLayerFilters(Builder $q, array $filters): void
@@ -151,10 +187,6 @@ class LayerCatalogue
             if (($filters[$name] ?? null) !== null) {
                 $q->whereRaw($filters[$name] ? $present : "NOT ($present)");
             }
-        }
-
-        if (($filters['min_records'] ?? null) !== null) {
-            $q->whereRaw('coalesce(a.record_count, 0) >= CAST(? AS bigint)', [$filters['min_records']]);
         }
     }
 }
