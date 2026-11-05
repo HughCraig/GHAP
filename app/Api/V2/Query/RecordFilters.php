@@ -74,8 +74,16 @@ class RecordFilters
         return $f;
     }
 
-    public static function fromParams(ParameterSet $p): self
+    /**
+     * @param string[]|null $only the names to read as record filters, the rest left at their
+     *                            defaults; null reads them all. The catalogue passes its
+     *                            record-level names, since its `record_type` is a layer filter.
+     */
+    public static function fromParams(ParameterSet $p, ?array $only = null): self
     {
+        if ($only !== null) {
+            $p = $p->only($only);
+        }
         $f = new self();
 
         $f->name = $p->string('name');

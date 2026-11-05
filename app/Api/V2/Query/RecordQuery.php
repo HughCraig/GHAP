@@ -51,7 +51,7 @@ class RecordQuery
      * the next character, so a plain '\' would swallow the placeholders after it; E'\\' is one
      * backslash to PostgreSQL and a closed string to PDO.
      */
-    private const ESCAPE = 'ESCAPE E\'\\\\\'';
+    public const ESCAPE = 'ESCAPE E\'\\\\\'';
 
     /** A decimal number, as the request side accepts it. `{0,1}` rather than `?`, which would read as a placeholder. */
     private const DECIMAL = "'^-{0,1}[0-9]+([.][0-9]+){0,1}\$'";
@@ -200,7 +200,8 @@ class RecordQuery
         );
     }
 
-    private static function escapeLike(string $value): string
+    /** A value with LIKE's `\`, `%` and `_` escaped, for use with ESCAPE. */
+    public static function escapeLike(string $value): string
     {
         return strtr($value, ['\\' => '\\\\', '%' => '\\%', '_' => '\\_']);
     }

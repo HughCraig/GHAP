@@ -42,6 +42,35 @@ class LayerSerialiser
         ];
     }
 
+    /**
+     * One catalogue entry (spec §10.2) from a LayerCatalogue row. The figures describe the whole
+     * layer; `matching_count` is null unless record-level filters were given.
+     */
+    public static function catalogueEntry(\stdClass $row, bool $withMatching): array
+    {
+        return [
+            'id' => (int) $row->id,
+            'name' => self::text($row->name),
+            'description' => self::text($row->description),
+            'creator' => self::text($row->creator),
+            'record_type' => self::text($row->record_type),
+            'record_count' => (int) $row->record_count,
+            'matching_count' => $withMatching ? (int) $row->matching_count : null,
+            'bbox' => $row->min_lon === null ? null
+                : [(float) $row->min_lon, (float) $row->min_lat, (float) $row->max_lon, (float) $row->max_lat],
+            'date_range' => $row->date_start === null ? null
+                : ['start' => (int) $row->date_start, 'end' => (int) $row->date_end],
+            'undated' => [
+                'total' => (int) $row->undated_total,
+                'no_date' => (int) $row->no_date,
+                'unparseable_date' => (int) $row->unparseable_date,
+            ],
+            'has_license' => (bool) $row->has_license,
+            'has_warning' => (bool) $row->has_warning,
+            'url' => url('layers/' . (int) $row->id),
+        ];
+    }
+
     /** Null for null or blank (only whitespace); anything else verbatim, never trimmed. */
     private static function text($value): ?string
     {

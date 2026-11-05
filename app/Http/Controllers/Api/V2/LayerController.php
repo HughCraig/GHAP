@@ -10,6 +10,7 @@ use TLCMap\Api\V2\Params\Paging;
 use TLCMap\Api\V2\Params\ParameterSet;
 use TLCMap\Api\V2\Params\Sort;
 use TLCMap\Api\V2\Query\KeysetPager;
+use TLCMap\Api\V2\Query\LayerCatalogue;
 use TLCMap\Api\V2\Query\RecordFilters;
 use TLCMap\Api\V2\Query\RecordQuery;
 use TLCMap\Api\V2\Query\Summary;
@@ -19,7 +20,7 @@ use TLCMap\Api\V2\Serialise\LayerSerialiser;
 use TLCMap\Api\V2\Support\Json;
 use TLCMap\Http\Controllers\Controller;
 
-/** GET /api/v2/layers/{id} and /features — one layer (spec §10.3, §10.4). */
+/** GET /api/v2/layers — the catalogue — and /layers/{id} and /features — one layer (spec §10.2–10.4). */
 class LayerController extends Controller
 {
     public const FEATURES_ALLOWED = ['sort', 'direction', 'nulls', 'limit', 'cursor', 'per_page'];
@@ -34,6 +35,72 @@ class LayerController extends Controller
     ];
 
     private const ID = 'i.id';
+
+    /** GET /api/v2/layers — the catalogue (spec §10.2). */
+    public function index(Request $request): JsonResponse
+    {
+        return DB::transaction(function () use ($request) {
+            $p = ParameterSet::fromRequest($request, LayerCatalogue::ALLOWED);
+            $records = RecordFilters::fromParams($p, LayerCatalogue::RECORD_LEVEL);
+            $layerFilters = [
+                'q' => $p->string('q'),
+                'record_type' => $p->string('record_type'),
+                'creator' => $p->string('creator'),
+                'has_license' => $p->has('has_license') ? $p->bool('has_license', false) : null,
+                'has_warning' => $p->has('has_warning') ? $p->bool('has_warning', false) : null,
+                'min_records' => $p->int('min_records', 0, PHP_INT_MAX, null),
+            ];
+            $sort = Sort::parse($p, array_keys(LayerCatalogue::SORT_KEYS), LayerCatalogue::DEFAULT_SORT);
+            $paging = Paging::parse(
+                $p,
+                (int) config('api_v2.layers_per_page'),
+                (int) config('api_v2.layers_per_page_max')
+            );
+
+            $query = self::catalogueQuery($records, $layerFilters, $sort, $paging);
+            $hash = Cursor::queryHash(['endpoint' => 'layers'] + $query);
+            FeatureCollection::assertCursor($paging->cursor, $hash, LayerCatalogue::SORT_KEYS[$sort->key][1]);
+
+            $result = LayerCatalogue::run($layerFilters, $records, $sort, $paging, $hash);
+            $withMatching = $records->hasRecordLevelFilter();
+            $layers = [];
+            foreach ($result['rows'] as $row) {
+                $layers[] = LayerSerialiser::catalogueEntry($row, $withMatching);
+            }
+
+            return Json::response([
+                'query' => $query,
+                'total' => $result['total'],
+                'page' => [
+                    'returned' => count($layers),
+                    'per_page' => $result['per_page'],
+                    'next_cursor' => $result['next_cursor'],
+                    'next' => Paging::nextUrl($request, $result['next_cursor']),
+                ],
+                'layers' => $layers,
+            ]);
+        });
+    }
+
+    /** Every parameter of the catalogue with its effective value, null when not given (spec §5.2). */
+    private static function catalogueQuery(RecordFilters $records, array $layerFilters, Sort $sort, Paging $paging): array
+    {
+        $query = [];
+        $recordEcho = $records->toEcho();
+        foreach (LayerCatalogue::ALLOWED as $name) {
+            if (in_array($name, LayerCatalogue::RECORD_LEVEL, true)) {
+                $query[$name] = $recordEcho[$name];
+            } elseif (array_key_exists($name, $layerFilters)) {
+                $query[$name] = $layerFilters[$name];
+            }
+        }
+        $query['sort'] = $sort->key;
+        $query['direction'] = $sort->direction;
+        $query['cursor'] = $paging->cursor;
+        $query['per_page'] = $paging->perPage;
+
+        return $query;
+    }
 
     public function show(Request $request, int $id): JsonResponse
     {

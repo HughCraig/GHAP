@@ -90,6 +90,12 @@ class ParameterSet
         return $this->values;
     }
 
+    /** The same parameters restricted to the given names; the others read as absent. */
+    public function only(array $names): self
+    {
+        return new self(array_intersect_key($this->values, array_flip($names)));
+    }
+
     public function string(string $name, ?int $maxLength = null): ?string
     {
         if (!$this->has($name)) {
