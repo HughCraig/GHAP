@@ -16,6 +16,14 @@
         <testsuite name="Feature">
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
+
+        <testsuite name="V2">
+            <directory suffix="Test.php">./tests/V2</directory>
+        </testsuite>
+
+        <testsuite name="V1Guard">
+            <directory suffix="Test.php">./tests/V1Guard</directory>
+        </testsuite>
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
@@ -23,6 +31,8 @@
         </whitelist>
     </filter>
     <php>
+        <env name="DB_DATABASE" value="tlcmap_test" force="true"/>
+        <env name="APP_URL" value="http://localhost" force="true"/>
         <server name="APP_ENV" value="testing"/>
         <server name="BCRYPT_ROUNDS" value="4"/>
         <server name="CACHE_DRIVER" value="array"/>
