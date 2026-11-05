@@ -117,6 +117,48 @@ class FeatureSerialiserTest extends TestCase
         $this->assertSame('{"0":"z"}', json_encode($p['extended_data']));
     }
 
+    public function testNestedDataAndNonStandardRootAreFields(): void
+    {
+        $nested = '<ExtendedData><Wrap><Data name="k"><value>v</value></Data></Wrap></ExtendedData>';
+        $this->assertSame(['k' => 'v'], $this->feature(['extended_data' => $nested])['properties']['extended_data']);
+        $root = '<Data name="r"><value>x</value></Data>';
+        $this->assertSame(['r' => 'x'], $this->feature(['extended_data' => $root])['properties']['extended_data']);
+        $other = '<Other><Data name="o"><value>y</value></Data></Other>';
+        $this->assertSame(['o' => 'y'], $this->feature(['extended_data' => $other])['properties']['extended_data']);
+    }
+
+    public function testDataWithoutNameIsNotAField(): void
+    {
+        $p = $this->feature(['extended_data' => self::xml(
+            '<Data><value>a</value></Data><Data name=""><value>b</value></Data><Data name="k"><value>c</value></Data>'
+        )])['properties'];
+        $this->assertSame(['k' => 'c'], $p['extended_data']);
+    }
+
+    public function testCharacterReferenceCarriageReturnDecodes(): void
+    {
+        $p = $this->feature(['extended_data' => self::xml('<Data name="k"><value>a&#13;b</value></Data>')])['properties'];
+        $this->assertSame("a\rb", $p['extended_data']['k']);
+    }
+
+    public function testParityWithSqlExtendedValue(): void
+    {
+        $docs = [
+            self::xml('<Data name="a"><value>1</value></Data><Data name="a"><value>2</value></Data>'),
+            '<ExtendedData><Wrap><Data name="k"><value><![CDATA[v]]></value></Data></Wrap></ExtendedData>',
+            '<Data name="r"><value>x&#13;y &amp; z</value></Data>',
+            self::xml('<Data name="b"><value>http://x</value></Data><Data><value>q</value></Data>'),
+        ];
+        foreach ($docs as $doc) {
+            $fields = $this->feature(['extended_data' => $doc])['properties']['extended_data'];
+            $this->assertNotEmpty((array) $fields);
+            foreach ((array) $fields as $name => $value) {
+                $sql = \DB::selectOne('select tlcmap.v2_extended_value(?, ?) as v', [$doc, (string) $name])->v;
+                $this->assertSame($sql, $value, "field '$name' of $doc");
+            }
+        }
+    }
+
     public function testGeometry(): void
     {
         $this->assertNull($this->feature(['latitude' => null])['geometry']);

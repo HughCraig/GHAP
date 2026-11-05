@@ -116,8 +116,11 @@ class FeatureSerialiser
             return [[], true];
         }
         $fields = [];
-        foreach ($xml->Data as $data) {
+        foreach ($xml->xpath('descendant-or-self::Data') ?: [] as $data) {
             $name = (string) $data['name'];
+            if ($name === '') {
+                continue;
+            }
             if (!array_key_exists($name, $fields)) {
                 $fields[$name] = (string) $data->value;
             }
