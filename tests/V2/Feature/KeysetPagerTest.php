@@ -444,4 +444,32 @@ class KeysetPagerTest extends TestCase
         $this->assertSame((int) $row->id, (int) $row->_id);
         $this->assertSame($row->dataset_order, $row->_k);
     }
+
+    /** The SQL of each query the pager runs for one page and the page after it. */
+    private function pagerSql(array $params): array
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $first = $this->page($params + ['per_page' => 3]);
+        $this->page($params + ['per_page' => 3, 'cursor' => $first['next_cursor']]);
+        $sql = array_column(DB::getQueryLog(), 'query');
+        DB::disableQueryLog();
+
+        return $sql;
+    }
+
+    public function testOnlyNullableKeysCarryTheNullPlacement(): void
+    {
+        foreach (['id', 'title'] as $key) {
+            foreach ($this->pagerSql(['sort' => $key]) as $sql) {
+                $this->assertStringNotContainsString('IS NULL', $sql, $key);
+                $this->assertStringNotContainsString('IS NOT NULL', $sql, $key);
+            }
+        }
+        foreach (['order', 'placename'] as $key) {
+            [$first, $next] = $this->pagerSql(['sort' => $key]);
+            $this->assertStringContainsString('IS NULL ASC, ', $first, $key);
+            $this->assertStringContainsString('IS NOT NULL AND', $next, $key);
+        }
+    }
 }

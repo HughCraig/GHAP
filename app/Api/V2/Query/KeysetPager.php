@@ -9,9 +9,9 @@ use TLCMap\Api\V2\Params\Paging;
 use TLCMap\Api\V2\Params\Sort;
 
 /**
- * Keyset paging over any query (spec §5.3–5.5). The order is total: nulls placed by
- * `nulls`, then the key, then the id, both in the sort direction. A cursor holds the last
- * row's key and id, so each page continues strictly after it, and its values are bound.
+ * Keyset paging over any query (spec §5.3–5.5). The order is total: a nullable key's nulls
+ * placed by `nulls`, then the key, then the id, both in the sort direction. A cursor holds the
+ * last row's key and id, so each page continues strictly after it, and its values are bound.
  */
 class KeysetPager
 {
@@ -54,9 +54,10 @@ class KeysetPager
             $q->whereRaw($sql, $bindings);
         }
 
-        $q->orderByRaw(
-            "$key IS NULL " . ($sort->nulls === 'last' ? 'ASC' : 'DESC') . ", $key $dir, $id $dir"
-        );
+        // Only a nullable key needs the null placement; without it, an order by id or title can be
+        // read from an index.
+        $nullOrder = self::nullable($keyType) ? "$key IS NULL " . ($sort->nulls === 'last' ? 'ASC' : 'DESC') . ', ' : '';
+        $q->orderByRaw("$nullOrder$key $dir, $id $dir");
         $q->limit($n + 1);
 
         $rows = $q->get()->all();
@@ -112,8 +113,13 @@ class KeysetPager
         $cmp = $sort->direction === 'desc' ? '<' : '>';
         $idParam = 'CAST(? AS bigint)';
 
+        $keyParam = str_replace('nullable_', '', $keyType) === 'int' ? 'CAST(? AS bigint)' : '?';
+        if (!self::nullable($keyType)) {
+            // Cursor::decode refuses a null key for a key type that is not nullable.
+            return ["(($key, $id) $cmp ($keyParam, $idParam))", [$after->lastKey, $after->lastId]];
+        }
+
         if ($after->lastKey !== null) {
-            $keyParam = str_replace('nullable_', '', $keyType) === 'int' ? 'CAST(? AS bigint)' : '?';
             $sql = "$key IS NOT NULL AND ($key, $id) $cmp ($keyParam, $idParam)";
             if ($sort->nulls === 'last') {
                 $sql = "($sql) OR $key IS NULL";
@@ -128,11 +134,16 @@ class KeysetPager
         return ["($sql)", [$after->lastId]];
     }
 
+    private static function nullable(string $keyType): bool
+    {
+        return strpos($keyType, 'nullable_') === 0;
+    }
+
     /** @return int|string|null */
     private static function typedKey($value, string $keyType)
     {
         if ($value === null) {
-            if (strpos($keyType, 'nullable_') !== 0) {
+            if (!self::nullable($keyType)) {
                 throw new \LogicException("The sort key of type '$keyType' returned null.");
             }
             return null;
