@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\Route;
 | Routes, the four of spec section 3.1:
 |   GET /api/v2/places                  PlaceController@search
 |   GET /api/v2/layers                  LayerController@index
-|   GET /api/v2/layers/{id}             LayerController@show      ({id} digits only)
-|   GET /api/v2/layers/{id}/features    LayerController@features  ({id} digits only)
+|   GET /api/v2/layers/{id}             LayerController@show      ({id} 1 to 18 digits)
+|   GET /api/v2/layers/{id}/features    LayerController@features  ({id} 1 to 18 digits)
+|
+| Eighteen digits always fit in a 64-bit integer; a longer id names no layer, and is a 404.
 */
 $v2get = function (string $uri, $action, array $where = []) {
     Route::options($uri, function () {
@@ -23,5 +25,5 @@ $v2get = function (string $uri, $action, array $where = []) {
 
 $v2get('places', 'PlaceController@search');
 $v2get('layers', 'LayerController@index');
-$v2get('layers/{id}', 'LayerController@show', ['id' => '[0-9]+']);
-$v2get('layers/{id}/features', 'LayerController@features', ['id' => '[0-9]+']);
+$v2get('layers/{id}', 'LayerController@show', ['id' => '[0-9]{1,18}']);
+$v2get('layers/{id}/features', 'LayerController@features', ['id' => '[0-9]{1,18}']);

@@ -11,6 +11,8 @@ use TLCMap\Api\V2\Errors\ApiException;
  */
 class ParameterSet
 {
+    private const ENCODING = 'UTF-8 text without NUL characters';
+
     /** @var array<string,string> */
     private $values;
 
@@ -21,11 +23,16 @@ class ParameterSet
 
     public static function fromRequest(Request $request, array $allowed): self
     {
-        $counts = self::countNames((string) $request->server('QUERY_STRING', ''));
+        $counts = self::scanQueryString((string) $request->server('QUERY_STRING', ''));
         $values = [];
 
+        // The raw query string has been checked, but PHP's parsed copy is checked as well, in case
+        // a request reaches here without one.
         foreach ($request->query->all() as $name => $value) {
             $name = (string) $name;
+            if (!self::isText($name)) {
+                throw self::nameNotText($name);
+            }
             if (!in_array($name, $allowed, true)) {
                 throw ApiException::invalidParameter(
                     $name,
@@ -50,14 +57,23 @@ class ParameterSet
                     "The parameter '$name' must not be empty."
                 );
             }
-            $values[$name] = (string) $value;
+            $value = (string) $value;
+            if (!self::isText($value)) {
+                throw self::valueNotText($name);
+            }
+            $values[$name] = $value;
         }
 
         return new self($values);
     }
 
-    /** Count each parameter name in the raw query string, normalised the way PHP does. */
-    private static function countNames(string $queryString): array
+    /**
+     * Checks every name and value in the raw query string, and counts each name, normalised the
+     * way PHP does. The raw string is read because PHP's parsed copy can no longer show every
+     * fault: PHP cuts a name at a NUL, and the global TrimStrings middleware trims a trailing NUL
+     * from a value.
+     */
+    private static function scanQueryString(string $queryString): array
     {
         $counts = [];
         if ($queryString === '') {
@@ -67,12 +83,54 @@ class ParameterSet
             if ($part === '') {
                 continue;
             }
-            $name = urldecode(explode('=', $part, 2)[0]);
+            $pair = explode('=', $part, 2);
+            $name = urldecode($pair[0]);
+            if (!self::isText($name)) {
+                throw self::nameNotText($name);
+            }
             $name = preg_replace('/\[.*$/s', '', $name);
             $name = str_replace(['.', ' '], '_', $name);
+            if (!self::isText(urldecode($pair[1] ?? ''))) {
+                throw self::valueNotText($name);
+            }
             $counts[$name] = ($counts[$name] ?? 0) + 1;
         }
         return $counts;
+    }
+
+    /**
+     * Valid UTF-8 with no NUL. Anything else would fail in PostgreSQL or in the JSON echo, and a NUL
+     * would be cut off by the database driver, silently changing the query.
+     */
+    private static function isText(string $text): bool
+    {
+        return strpos($text, "\0") === false && mb_check_encoding($text, 'UTF-8');
+    }
+
+    /** The error for a name that is not text, naming it with each fault replaced by U+FFFD. */
+    private static function nameNotText(string $name): ApiException
+    {
+        $previous = mb_substitute_character();
+        mb_substitute_character(0xFFFD);
+        $shown = str_replace("\0", "\u{FFFD}", mb_convert_encoding($name, 'UTF-8', 'UTF-8'));
+        mb_substitute_character($previous);
+
+        return ApiException::invalidParameter(
+            $shown,
+            'encoding',
+            self::ENCODING,
+            "The parameter name '$shown' must be UTF-8 text without NUL characters."
+        );
+    }
+
+    private static function valueNotText(string $name): ApiException
+    {
+        return ApiException::invalidParameter(
+            $name,
+            'encoding',
+            self::ENCODING,
+            "The parameter '$name' must be UTF-8 text without NUL characters."
+        );
     }
 
     public function has(string $name): bool
