@@ -55,7 +55,8 @@ class DateFunctionsTest extends TestCase
         $inputs = ['', '   ', '0', '-0', '0000', '1856-13', '1856-04-31', '1900-02-29', '-16112-11-31',
             '1856-03-04T24:00', '1856-03-04T12:60', '13/13/1856', '1856/03/04', 'about 1856', 'c.1856',
             str_repeat('9', 30), '300000', '00/00/0000', '0000-00-00', '1856-03-04T12:30:60', '1/1/856',
-            '-1856-03-04T', '8000000'];
+            '-1856-03-04T', '8000000',
+            "\u{0661}\u{0669}\u{0665}\u{0660}", "\u{FF11}\u{FF18}\u{FF15}\u{FF16}"];
         $out = [];
         foreach ($inputs as $i) {
             $out['[' . $i . ']'] = [$i];
@@ -72,6 +73,27 @@ class DateFunctionsTest extends TestCase
         $r = DB::selectOne('select tlcmap.v2_udate(?) s, tlcmap.v2_udate_end(?) e', [$in, $in]);
         $this->assertNull($r->s);
         $this->assertNull($r->e);
+    }
+
+    public function test_spec_reference_values_as_literals()
+    {
+        $expected = [
+            '1970' => 0,
+            '1856' => -3597523200000,
+            '1856-03' => -3592339200000,
+            '1856-03-04' => -3592080000000,
+            '4/3/1856' => -3592080000000,
+            '400' => -49544438400000,
+            '1' => -62135596800000,
+            '-1' => -62167219200000,
+            '-400' => -74758377600000,
+            '-51021' => -1672202880000000,
+            '2000-02-29' => 951782400000,
+        ];
+        foreach ($expected as $in => $ms) {
+            $r = DB::selectOne('select tlcmap.v2_udate(?) s', [(string) $in]);
+            $this->assertSame($ms, (int) $r->s, "v2_udate('$in')");
+        }
     }
 
     public function test_safe_integer_boundary()

@@ -46,19 +46,19 @@ DECLARE
     ny bigint;
     nm integer;
 BEGIN
-    m := regexp_match(s, '^(-?)(\d+)-00-00$');
+    m := regexp_match(s, '^(-?)([0-9]+)-00-00$');
     IF m IS NOT NULL THEN
         sign := m[1]; ydigits := m[2]; prec := 1;
     ELSE
-        m := regexp_match(s, '^00/00/(\d+)$');
+        m := regexp_match(s, '^00/00/([0-9]+)$');
         IF m IS NOT NULL THEN
             ydigits := m[1]; prec := 1;
         ELSE
-            m := regexp_match(s, '^(\d{1,2})/(\d{1,2})/(\d{4})$');
+            m := regexp_match(s, '^([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})$');
             IF m IS NOT NULL THEN
                 dom := m[1]::integer; mon := m[2]::integer; ydigits := m[3]; prec := 3;
             ELSE
-                m := regexp_match(s, '^(-?)(\d+)(?:-(\d{2})(?:-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?)?)?)?$');
+                m := regexp_match(s, '^(-?)([0-9]+)(?:-([0-9]{2})(?:-([0-9]{2})(?:T([0-9]{2}):([0-9]{2})(?::([0-9]{2})(?:\.([0-9]+))?)?)?)?)?$');
                 IF m IS NULL THEN
                     RETURN NULL;
                 END IF;
