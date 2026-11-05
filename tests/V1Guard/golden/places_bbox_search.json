@@ -1,0 +1,193 @@
+{
+    "type": "FeatureCollection",
+    "metadata": {
+        "name": "TLCMap Gazetteer Query",
+        "url": "<url>"
+    },
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    151,
+                    -33
+                ]
+            },
+            "properties": {
+                "name": "Fixture Place Alpha",
+                "placename": "Fixture Place Alpha",
+                "description": "Alpha contributor text",
+                "id": "tdbba4",
+                "state": "NSW",
+                "feature_term": "Hill",
+                "lga": "Fixture LGA",
+                "source": "Fixture source",
+                "original_data_source": "Fixture source",
+                "datestart": "1856",
+                "dateend": "1856",
+                "udatestart": -3597559492000,
+                "udateend": -3597559492000,
+                "latitude": "-33",
+                "longitude": "151",
+                "linkback": "http://example.org/alpha",
+                "TLCMapLinkBack": "http://localhost/search?id=tdbba4",
+                "TLCMapDataset": "http://localhost/publicdatasets/900001",
+                "Parish": "St Mary"
+            },
+            "display": {
+                "popup": {
+                    "links": [
+                        {
+                            "text": "TLCMap Record: tdbba4",
+                            "link": "http://localhost/search?id=tdbba4"
+                        },
+                        {
+                            "text": "TLCMap Layer",
+                            "link": "http://localhost/publicdatasets/900001"
+                        }
+                    ]
+                },
+                "source": {
+                    "TLCMapID": {
+                        "id": "tdbba4",
+                        "url": "http://localhost/search?id=tdbba4"
+                    },
+                    "Layer": {
+                        "name": "Fixture Layer One (community contributed)",
+                        "url": "http://localhost/publicdatasets/900001"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    151.5,
+                    -33.5
+                ]
+            },
+            "properties": {
+                "name": "Fixture Place",
+                "placename": "Fixture Place Beta",
+                "description": "Beta contributor text",
+                "id": "tdbba5",
+                "state": "NSW",
+                "datestart": "1856-03-04",
+                "dateend": "1856-03-04",
+                "udatestart": -3592116292000,
+                "udateend": -3592116292000,
+                "latitude": "-33.5",
+                "longitude": "151.5",
+                "TLCMapLinkBack": "http://localhost/search?id=tdbba5",
+                "TLCMapDataset": "http://localhost/publicdatasets/900001",
+                "Parish": "St Mary"
+            },
+            "display": {
+                "popup": {
+                    "links": [
+                        {
+                            "text": "TLCMap Record: tdbba5",
+                            "link": "http://localhost/search?id=tdbba5"
+                        },
+                        {
+                            "text": "TLCMap Layer",
+                            "link": "http://localhost/publicdatasets/900001"
+                        }
+                    ]
+                },
+                "source": {
+                    "TLCMapID": {
+                        "id": "tdbba5",
+                        "url": "http://localhost/search?id=tdbba5"
+                    },
+                    "Layer": {
+                        "name": "Fixture Layer One (community contributed)",
+                        "url": "http://localhost/publicdatasets/900001"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    151.1,
+                    -33.1
+                ]
+            },
+            "properties": {
+                "name": "Fixture Place",
+                "placename": "Fixture Place ANPS One",
+                "id": "adbba8",
+                "state": "NSW",
+                "feature_term": "Creek",
+                "latitude": "-33.1",
+                "longitude": "151.1",
+                "TLCMapLinkBack": "http://localhost/search?id=adbba8",
+                "TLCMapDataset": "http://localhost"
+            },
+            "display": {
+                "popup": {
+                    "links": [
+                        {
+                            "text": "TLCMap Record: adbba8",
+                            "link": "http://localhost/search?id=adbba8"
+                        },
+                        {
+                            "text": "TLCMap Layer",
+                            "link": "http://localhost"
+                        }
+                    ]
+                },
+                "source": {
+                    "TLCMapID": {
+                        "id": "adbba8",
+                        "url": "http://localhost/search?id=adbba8"
+                    },
+                    "Layer": {
+                        "name": "Australian National Placenames Survey Gazetteer",
+                        "url": "https://www.anps.org.au/"
+                    }
+                }
+            }
+        }
+    ],
+    "display": {
+        "popup": {
+            "blockedFields": [
+                "OBJECTID",
+                "id",
+                "title",
+                "name",
+                "udatestart",
+                "udateend",
+                "layer",
+                "TLCMapLinkBack",
+                "TLCMapDataset"
+            ],
+            "fieldLabels": {
+                "placename": "Place Name",
+                "StartDate": "Date Start",
+                "EndDate": "Date End",
+                "datestart": "Date Start",
+                "dateend": "Date End",
+                "latitude": "Latitude",
+                "longitude": "Longitude",
+                "state": "State",
+                "lga": "LGA",
+                "feature_term": "Feature Term",
+                "source": "Source",
+                "original_data_source": "Original Data Source",
+                "linkback": "Link Back",
+                "type": "Type",
+                "description": "Description",
+                "parish": "Parish",
+                "warning": "Warning"
+            }
+        }
+    }
+}

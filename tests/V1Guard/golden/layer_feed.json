@@ -1,0 +1,173 @@
+{
+    "type": "FeatureCollection",
+    "metadata": {
+        "layer_id": 900001,
+        "name": "Fixture Layer One",
+        "description": "First public layer",
+        "creator": "A. Creator",
+        "publisher": "A. Publisher",
+        "contact": "contact@example.org",
+        "license": "CC BY 4.0 licence text",
+        "rights": "Rights held by the creator",
+        "citation": "Creator (2020) Fixture Layer One",
+        "language": "en",
+        "latitude_from": "-34",
+        "longitude_from": "150",
+        "latitude_to": "-32",
+        "longitude_to": "152",
+        "temporal_from": "1850",
+        "temporal_to": "1900",
+        "created_at": "2025-12-31T13:00:00.000000Z",
+        "updated_at": "2025-12-31T13:00:00.000000Z",
+        "ghap_url": "http://localhost/layers/900001"
+    },
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    151,
+                    -33
+                ]
+            },
+            "properties": {
+                "name": "Fixture Place Alpha",
+                "placename": "Fixture Place Alpha",
+                "description": "Alpha contributor text",
+                "id": "tdbba4",
+                "state": "NSW",
+                "feature_term": "Hill",
+                "lga": "Fixture LGA",
+                "source": "Fixture source",
+                "datestart": "1856",
+                "dateend": "1856",
+                "udatestart": -3597559492000,
+                "udateend": -3597559492000,
+                "latitude": "-33",
+                "longitude": "151",
+                "linkback": "http://example.org/alpha",
+                "Parish": "St Mary",
+                "TLCMapLinkBack": "http://localhost/search?id=tdbba4",
+                "TLCMapDataset": "http://localhost/layers/900001"
+            },
+            "display": {
+                "popup": {
+                    "links": [
+                        {
+                            "text": "TLCMap Record: tdbba4",
+                            "link": "http://localhost/search?id=tdbba4"
+                        },
+                        {
+                            "text": "TLCMap Layer",
+                            "link": "http://localhost/layers/900001"
+                        }
+                    ]
+                },
+                "source": {
+                    "TLCMapID": {
+                        "id": "tdbba4",
+                        "url": "http://localhost/search?id=tdbba4"
+                    },
+                    "Layer": {
+                        "name": "Fixture Layer One (community contributed)",
+                        "url": "http://localhost/layers/900001"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    151.5,
+                    -33.5
+                ]
+            },
+            "properties": {
+                "name": "Fixture Place",
+                "placename": "Fixture Place Beta",
+                "description": "Beta contributor text",
+                "id": "tdbba5",
+                "state": "NSW",
+                "datestart": "1856-03-04",
+                "dateend": "1856-03-04",
+                "udatestart": -3592116292000,
+                "udateend": -3592116292000,
+                "latitude": "-33.5",
+                "longitude": "151.5",
+                "Parish": "St Mary",
+                "TLCMapLinkBack": "http://localhost/search?id=tdbba5",
+                "TLCMapDataset": "http://localhost/layers/900001"
+            },
+            "display": {
+                "popup": {
+                    "links": [
+                        {
+                            "text": "TLCMap Record: tdbba5",
+                            "link": "http://localhost/search?id=tdbba5"
+                        },
+                        {
+                            "text": "TLCMap Layer",
+                            "link": "http://localhost/layers/900001"
+                        }
+                    ]
+                },
+                "source": {
+                    "TLCMapID": {
+                        "id": "tdbba5",
+                        "url": "http://localhost/search?id=tdbba5"
+                    },
+                    "Layer": {
+                        "name": "Fixture Layer One (community contributed)",
+                        "url": "http://localhost/layers/900001"
+                    }
+                }
+            }
+        }
+    ],
+    "display": {
+        "popup": {
+            "blockedFields": [
+                "OBJECTID",
+                "id",
+                "title",
+                "name",
+                "udatestart",
+                "udateend",
+                "layer",
+                "TLCMapLinkBack",
+                "TLCMapDataset"
+            ],
+            "fieldLabels": {
+                "placename": "Place Name",
+                "StartDate": "Date Start",
+                "EndDate": "Date End",
+                "datestart": "Date Start",
+                "dateend": "Date End",
+                "latitude": "Latitude",
+                "longitude": "Longitude",
+                "state": "State",
+                "lga": "LGA",
+                "feature_term": "Feature Term",
+                "source": "Source",
+                "original_data_source": "Original Data Source",
+                "linkback": "Link Back",
+                "type": "Type",
+                "description": "Description",
+                "parish": "Parish",
+                "warning": "Warning"
+            }
+        },
+        "info": {
+            "title": {
+                "text": "Fixture Layer One",
+                "link": "http://localhost/layers/900001"
+            },
+            "content": "<div>First public layer</div><p><a href=\"/help/guides/guide/\" target=\"_blank\">Help</a></p>",
+            "enableShareWidget": true
+        }
+    },
+    "dataset_id": 900001
+}
