@@ -50,7 +50,7 @@ class KeysetPager
         $q->addSelect(new Expression("$keyExpr as _k"), new Expression("$idExpr as _id"));
 
         if ($after !== null) {
-            [$sql, $bindings] = self::predicate($key, $id, $sort, $after);
+            [$sql, $bindings] = self::predicate($key, $id, $keyType, $sort, $after);
             $q->whereRaw($sql, $bindings);
         }
 
@@ -102,20 +102,26 @@ class KeysetPager
         return $q;
     }
 
-    /** The condition for rows strictly after the cursor in this order; values are bound. */
-    private static function predicate(string $key, string $id, Sort $sort, Cursor $after): array
+    /**
+     * The condition for rows strictly after the cursor in this order; values are bound.
+     * Integer values are bound as bigint, the range the cursor validates, so a tampered
+     * value beyond a narrower column's range compares instead of failing the query.
+     */
+    private static function predicate(string $key, string $id, string $keyType, Sort $sort, Cursor $after): array
     {
         $cmp = $sort->direction === 'desc' ? '<' : '>';
+        $idParam = 'CAST(? AS bigint)';
 
         if ($after->lastKey !== null) {
-            $sql = "$key IS NOT NULL AND ($key, $id) $cmp (?, ?)";
+            $keyParam = str_replace('nullable_', '', $keyType) === 'int' ? 'CAST(? AS bigint)' : '?';
+            $sql = "$key IS NOT NULL AND ($key, $id) $cmp ($keyParam, $idParam)";
             if ($sort->nulls === 'last') {
                 $sql = "($sql) OR $key IS NULL";
             }
             return ["($sql)", [$after->lastKey, $after->lastId]];
         }
 
-        $sql = "$key IS NULL AND $id $cmp ?";
+        $sql = "$key IS NULL AND $id $cmp $idParam";
         if ($sort->nulls === 'first') {
             $sql = "($sql) OR $key IS NOT NULL";
         }

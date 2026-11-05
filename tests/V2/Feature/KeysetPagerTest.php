@@ -366,6 +366,57 @@ class KeysetPagerTest extends TestCase
         $this->assertNotEmpty($result['rows']);
     }
 
+    /**
+     * A tampered cursor may carry any 64-bit integer, beyond the int4 range of dataset_order or
+     * of any id column; it must page (possibly to an empty page), never fail the query.
+     */
+    public function testIntegerCursorValuesBeyondTheColumnRangeStillPage(): void
+    {
+        $cursors = [
+            [3000000000, 900001],
+            [-3000000000, 900001],
+            [3, PHP_INT_MAX],
+            [null, PHP_INT_MAX],
+            [null, -PHP_INT_MAX],
+        ];
+        foreach (['asc', 'desc'] as $direction) {
+            foreach (['first', 'last'] as $nulls) {
+                $params = ['sort' => 'order', 'direction' => $direction, 'nulls' => $nulls];
+                $hash = Cursor::queryHash($params);
+                $order = $this->unpaged('order', $direction, $nulls);
+
+                foreach ($cursors as [$k, $i]) {
+                    $label = "direction=$direction nulls=$nulls k=" . var_export($k, true) . " i=$i";
+                    $result = $this->page(
+                        $params + ['per_page' => 100, 'cursor' => Cursor::encode($hash, $k, $i, 0)],
+                        null,
+                        $hash
+                    );
+
+                    $after = array_values(array_filter($order, function ($row) use ($k, $i, $direction, $nulls) {
+                        return self::compareOrder([$row['key'], $row['id']], [$k, $i], $direction, $nulls) > 0;
+                    }));
+                    $this->assertSame(array_column($after, 'id'), self::ids($result['rows']), $label);
+                    $this->assertNull($result['next_cursor'], $label);
+                }
+            }
+        }
+    }
+
+    /** Compare two [int|null key, int id] positions in the given order, in PHP. */
+    private static function compareOrder(array $a, array $b, string $direction, string $nulls): int
+    {
+        if (($a[0] === null) !== ($b[0] === null)) {
+            $aFirst = ($a[0] === null) === ($nulls === 'first');
+            return $aFirst ? -1 : 1;
+        }
+        $sign = $direction === 'asc' ? 1 : -1;
+        if ($a[0] !== null && $a[0] !== $b[0]) {
+            return $sign * ($a[0] <=> $b[0]);
+        }
+        return $sign * ($a[1] <=> $b[1]);
+    }
+
     public function testCallerOrConditionsStayGroupedAndTheBuilderIsNotModified(): void
     {
         $base = $this->base()->where(function ($q) {

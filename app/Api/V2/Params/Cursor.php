@@ -94,7 +94,12 @@ class Cursor
         }
         $base = str_replace('nullable_', '', $keyType);
 
-        return $base === 'int' ? is_int($key) : is_string($key);
+        if ($base === 'int') {
+            return is_int($key);
+        }
+
+        // pdo_pgsql truncates a bound string at NUL, and no stored key contains one.
+        return is_string($key) && strpos($key, "\0") === false;
     }
 
     private static function invalid(): ApiException

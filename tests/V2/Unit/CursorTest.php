@@ -153,6 +153,9 @@ class CursorTest extends TestCase
         $this->assertRejected(self::raw(self::payload(['k' => ['a' => 1]])), 'nullable_string');
         $this->assertRejected(self::raw(self::payload(['k' => 'abc'])), 'nullable_int');
         $this->assertRejected(self::raw(self::payload(['k' => true])), 'nullable_int');
+        $this->assertRejected(self::raw(self::payload(['k' => "B\0eta"])), 'string');
+        $this->assertRejected(self::raw(self::payload(['k' => "\0"])), 'nullable_string');
+        $this->assertRejected(self::b64('{"v":1,"h":"0123456789abcdef","k":"Beta\u0000x","i":900001,"n":4}'), 'string');
     }
 
     public function testRejectsNegativeOrNonIntegerServed(): void
