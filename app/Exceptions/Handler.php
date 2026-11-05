@@ -4,6 +4,8 @@ namespace TLCMap\Exceptions;
 
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use TLCMap\Api\V2\Errors\ApiException;
+use TLCMap\Api\V2\Errors\ErrorRenderer;
 
 class Handler extends ExceptionHandler
 {
@@ -13,7 +15,7 @@ class Handler extends ExceptionHandler
      * @var array
      */
     protected $dontReport = [
-        //
+        ApiException::class,
     ];
 
     /**
@@ -46,6 +48,10 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+        if ($request->is('api/v2', 'api/v2/*')) {
+            return ErrorRenderer::render($request, $exception);
+        }
+
         //return response()->view('errors.generic', [], 403);
 
         //If 403 will load errors/403, etc

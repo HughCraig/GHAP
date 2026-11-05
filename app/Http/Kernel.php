@@ -44,6 +44,12 @@ class Kernel extends HttpKernel
             'throttle:60,1',
             'bindings',
         ],
+
+        'api_v2' => [
+            \TLCMap\Http\Middleware\ApiV2Cors::class,
+            'throttle.v2',
+            'bindings',
+        ],
     ];
 
     /**
@@ -62,6 +68,7 @@ class Kernel extends HttpKernel
         'guest' => \TLCMap\Http\Middleware\RedirectIfAuthenticated::class,
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'throttle.v2' => \TLCMap\Http\Middleware\ApiV2Throttle::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'checkmaxpaging' => \TLCMap\Http\Middleware\CheckMaxPaging::class,
         'cors' => \TLCMap\Http\Middleware\Cors::class,
