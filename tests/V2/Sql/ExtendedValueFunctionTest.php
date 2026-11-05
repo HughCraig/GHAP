@@ -47,6 +47,30 @@ class ExtendedValueFunctionTest extends TestCase
         $this->assertSame('Fish & Chips', $this->value($xml, 'A'));
     }
 
+    public function testCharacterReferencesAndQuoteEntitiesAreDecoded()
+    {
+        $xml = '<ExtendedData><Data name="A"><value>&#233; &quot;q&quot; &apos;s&apos;</value></Data></ExtendedData>';
+        $this->assertSame("\u{e9} \"q\" 's'", $this->value($xml, 'A'));
+    }
+
+    public function testCarriageReturnReferenceIsDecoded()
+    {
+        $xml = '<ExtendedData><Data name="A"><value>a&#13;b</value></Data></ExtendedData>';
+        $this->assertSame("a\rb", $this->value($xml, 'A'));
+    }
+
+    public function testLiteralEscapedCarriageReturnTextIsNotDecoded()
+    {
+        $xml = '<ExtendedData><Data name="A"><value>a&amp;#x0d;b</value></Data></ExtendedData>';
+        $this->assertSame('a&#x0d;b', $this->value($xml, 'A'));
+    }
+
+    public function testFieldNameContainingCarriageReturnMatches()
+    {
+        $xml = '<ExtendedData><Data name="a&#13;b"><value>ok</value></Data></ExtendedData>';
+        $this->assertSame('ok', $this->value($xml, "a\rb"));
+    }
+
     public function nullProvider()
     {
         return [
