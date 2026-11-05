@@ -3,6 +3,7 @@
 namespace TLCMap\Api\V2\Query;
 
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 use TLCMap\Api\V2\Errors\ApiException;
 use TLCMap\Api\V2\Params\ExtendedDataFilter;
@@ -44,12 +45,37 @@ class RecordQuery
     public const UNPARSEABLE_SIDE = '((NOT ' . self::START_BLANK . ' AND ' . self::S . ' IS NULL)'
         . ' OR (NOT ' . self::END_BLANK . ' AND ' . self::E . ' IS NULL))';
 
+    /** Both bounds of datestart, {S, SE}, from one parse; NULL when it does not parse. */
+    public const START_RANGE = 'tlcmap.v2_udate_range(i.datestart)';
+    /** Both bounds of dateend, {E, EE}, from one parse. */
+    public const END_RANGE = 'tlcmap.v2_udate_range(i.dateend)';
+
     /**
-     * Each row's date values, computed once (see withDates): s, e, se, ee are S, E, SE, EE, and
-     * sb, eb are START_BLANK, END_BLANK.
+     * The two ranges of the row `i`, joined as the one-row lateral table `x` when a date filter
+     * needs them, each computed once: OFFSET 0 keeps PostgreSQL from flattening it, which would
+     * copy the calls into every use. A lateral join rather than a subquery in the condition, which
+     * measured twice as slow.
      */
-    public const ROW_DATE_COLUMNS = self::S . ' as s, ' . self::E . ' as e, ' . self::SE . ' as se, '
-        . self::EE . ' as ee, ' . self::START_BLANK . ' as sb, ' . self::END_BLANK . ' as eb';
+    private const X_RANGES = 'LATERAL (SELECT ' . self::START_RANGE . ' AS sr, ' . self::END_RANGE . ' AS er OFFSET 0) AS x';
+
+    /** LO and HI over `x`; with X_COLUMNS substituted, each is its counterpart exactly (RecordQueryTest). */
+    public const X_LO = 'least(coalesce(x.sr[1], x.er[1]), coalesce(x.er[1], x.sr[1]))';
+    public const X_HI = 'greatest(coalesce(x.er[2], x.sr[2]), coalesce(x.sr[2], x.er[2]))';
+
+    /** Each bound read from `x` and the expression it equals. */
+    public const X_COLUMNS = ['x.sr[1]' => self::S, 'x.er[1]' => self::E, 'x.sr[2]' => self::SE, 'x.er[2]' => self::EE];
+
+    /*
+     * Each row's date values, computed once (see withDates): the ranges sr, er and the blank flags
+     * sb, eb are START_RANGE, END_RANGE, START_BLANK and END_BLANK; s, e, se, ee are read from the
+     * ranges, and equal S, E, SE, EE.
+     */
+    public const ROW_RANGE_COLUMNS = self::START_RANGE . ' as sr, ' . self::END_RANGE . ' as er, '
+        . self::START_BLANK . ' as sb, ' . self::END_BLANK . ' as eb';
+    /** The same, when the date filter has already joined the ranges as `x`. */
+    public const ROW_RANGE_COLUMNS_FROM_X = 'x.sr as sr, x.er as er, '
+        . self::START_BLANK . ' as sb, ' . self::END_BLANK . ' as eb';
+    public const ROW_BOUND_COLUMNS = 'q.*, q.sr[1] as s, q.er[1] as e, q.sr[2] as se, q.er[2] as ee';
 
     /*
      * LO, HI, NO_DATE and UNPARSEABLE_SIDE over those columns of the derived table `r`. Each is its
@@ -129,16 +155,18 @@ class RecordQuery
             $conditions = [];
             $bindings = [];
             if ($f->dateTo !== null) {
-                $conditions[] = self::LO . ' <= CAST(? AS bigint)';
+                $conditions[] = self::X_LO . ' <= CAST(? AS bigint)';
                 $bindings[] = $f->dateTo->end;
             }
             if ($f->dateFrom !== null) {
-                $conditions[] = self::HI . ' >= CAST(? AS bigint)';
+                $conditions[] = self::X_HI . ' >= CAST(? AS bigint)';
                 $bindings[] = $f->dateFrom->start;
             }
             $dated = implode(' AND ', $conditions);
             // A record is undated exactly when LO is null; the dated conditions are null for it.
-            $q->whereRaw($f->includeUndated ? '(' . self::LO . " IS NULL OR ($dated))" : "($dated)", $bindings);
+            // Each side is parsed once, for both its bounds.
+            $q->crossJoin(DB::raw(self::X_RANGES));
+            $q->whereRaw($f->includeUndated ? '(' . self::X_LO . " IS NULL OR ($dated))" : "($dated)", $bindings);
         }
 
         foreach (['i.state' => $f->state, 'i.lga' => $f->lga, 'i.feature_term' => $f->featureTerm,
@@ -158,19 +186,27 @@ class RecordQuery
     }
 
     /**
-     * The rows of $records as the derived table `r`: the given columns plus ROW_DATE_COLUMNS, so
-     * an aggregate over R_LO, R_HI and the rest calls each date function once per row rather than
-     * once per use. OFFSET 0 keeps PostgreSQL from flattening the subquery, which would copy the
-     * calls back into every expression that reads them.
+     * The rows of $records as the derived table `r`: the given columns plus ROW_RANGE_COLUMNS and
+     * ROW_BOUND_COLUMNS, so an aggregate over R_LO, R_HI and the rest parses each date once per row
+     * rather than once per bound and use. OFFSET 0 keeps PostgreSQL from flattening the inner
+     * subquery, which would copy the calls back into every expression that reads them. When a date
+     * filter has joined the ranges, they are read from it rather than parsed again.
      *
      * @param Builder  $records an unselected RecordQuery builder; cloned, never mutated
      * @param string[] $columns trusted column expressions over `i`
      */
     public static function withDates(Builder $records, array $columns): Builder
     {
-        $rows = (clone $records)->select($columns)->selectRaw(self::ROW_DATE_COLUMNS)->offset(0);
+        $ranges = self::ROW_RANGE_COLUMNS;
+        foreach ((array) $records->joins as $join) {
+            if ($join->table instanceof Expression && $join->table->getValue() === self::X_RANGES) {
+                $ranges = self::ROW_RANGE_COLUMNS_FROM_X;
+            }
+        }
+        $rows = (clone $records)->select($columns)->selectRaw($ranges)->offset(0);
+        $bounds = DB::query()->fromSub($rows, 'q')->selectRaw(self::ROW_BOUND_COLUMNS);
 
-        return DB::query()->fromSub($rows, 'r');
+        return DB::query()->fromSub($bounds, 'r');
     }
 
     /**

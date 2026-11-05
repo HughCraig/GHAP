@@ -77,11 +77,32 @@ class RecordQueryTest extends TestCase
         ] as $expression => $overColumns) {
             $this->assertSame($expression, strtr($overColumns, RecordQuery::R_COLUMNS));
         }
-        $selected = [];
-        foreach (RecordQuery::R_COLUMNS as $column => $expression) {
-            $selected[] = $expression . ' as ' . substr($column, 2);
+        $this->assertSame(RecordQuery::LO, strtr(RecordQuery::X_LO, RecordQuery::X_COLUMNS));
+        $this->assertSame(RecordQuery::HI, strtr(RecordQuery::X_HI, RecordQuery::X_COLUMNS));
+    }
+
+    /** Each column withDates computes from the ranges holds what R_COLUMNS says it holds. */
+    public function testWithDatesColumnsEqualTheirExpressions(): void
+    {
+        $this->datedFixtures();
+        foreach (['1850', '1870', '-5-02-29', '1856-03-04T14:30', '4/3/1856', 'junk', '', " \t", null] as $start) {
+            foreach (['1850-06', '1849', '-0001', '00/00/1856', 'later', null] as $end) {
+                Fixtures::record(['datestart' => $start, 'dateend' => $end]);
+            }
         }
-        $this->assertSame(implode(', ', $selected), RecordQuery::ROW_DATE_COLUMNS);
+
+        $columns = array_map(function ($column) {
+            return substr($column, 2);
+        }, array_keys(RecordQuery::R_COLUMNS));
+        $derived = RecordQuery::withDates(RecordQuery::build(RecordFilters::visible()), ['i.id'])
+            ->select(array_merge(['r.id'], array_keys(RecordQuery::R_COLUMNS)))->orderBy('r.id')->get();
+        $direct = RecordQuery::build(RecordFilters::visible())->select('i.id')
+            ->selectRaw(implode(', ', array_map(function ($column, $expression) {
+                return "$expression as $column";
+            }, $columns, array_values(RecordQuery::R_COLUMNS))))->orderBy('i.id')->get();
+
+        $this->assertGreaterThan(54, count($direct));
+        $this->assertEquals($direct->all(), $derived->all());
     }
 
     public function testVisibilityExcludesPrivateLayersAndKeepsGazetteerRecords(): void
