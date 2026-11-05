@@ -10,12 +10,11 @@ use TLCMap\Api\V2\Params\Paging;
 use TLCMap\Api\V2\Params\ParameterSet;
 use TLCMap\Api\V2\Params\Sample;
 use TLCMap\Api\V2\Params\Sort;
-use TLCMap\Api\V2\Params\Sources;
 use TLCMap\Api\V2\Query\PlaceSearch;
 use TLCMap\Api\V2\Query\RecordFilters;
 use TLCMap\Api\V2\Query\RecordQuery;
 use TLCMap\Api\V2\Query\Summary;
-use TLCMap\Api\V2\Serialise\FeatureSerialiser;
+use TLCMap\Api\V2\Serialise\FeatureCollection;
 use TLCMap\Api\V2\Support\Json;
 use TLCMap\Http\Controllers\Controller;
 
@@ -39,7 +38,7 @@ class PlaceController extends Controller
 
             $query = self::echoQuery($filters, $summaryOnly, $sort, $paging, $sample);
             $hash = Cursor::queryHash($query);
-            PlaceSearch::assertCursor($paging->cursor, $hash, $sort);
+            FeatureCollection::assertCursor($paging->cursor, $hash, PlaceSearch::SORT_KEYS[$sort->key][1]);
 
             RecordQuery::prepareFuzzy($filters);
             $summary = Summary::compute(RecordQuery::build($filters), true);
@@ -50,23 +49,14 @@ class PlaceController extends Controller
 
             $result = PlaceSearch::run($filters, $sort, $paging, $sample, $hash);
 
-            $keyById = Sources::keyById();
-            $features = [];
-            foreach ($result['rows'] as $row) {
-                $features[] = FeatureSerialiser::feature($row, $keyById);
-            }
+            $collection = FeatureCollection::build($request, $result);
 
             return Json::response([
                 'type' => 'FeatureCollection',
                 'query' => $query,
                 'summary' => $summary,
-                'page' => [
-                    'returned' => count($features),
-                    'per_page' => $result['per_page'],
-                    'next_cursor' => $result['next_cursor'],
-                    'next' => Paging::nextUrl($request, $result['next_cursor']),
-                ],
-                'features' => $features,
+                'page' => $collection['page'],
+                'features' => $collection['features'],
             ]);
         });
     }

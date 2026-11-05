@@ -2,7 +2,6 @@
 
 namespace TLCMap\Api\V2\Query;
 
-use TLCMap\Api\V2\Params\Cursor;
 use TLCMap\Api\V2\Params\Paging;
 use TLCMap\Api\V2\Params\Sample;
 use TLCMap\Api\V2\Params\Sort;
@@ -29,17 +28,6 @@ class PlaceSearch
     public const DEFAULT_SORT = 'id';
 
     private const ID = 'i.id';
-
-    /**
-     * Rejects a cursor that does not decode or belongs to another query, before any query runs,
-     * so a summary-only request cannot ignore one silently (spec §5.1, §5.3).
-     */
-    public static function assertCursor(?string $cursor, string $hash, Sort $sort): void
-    {
-        if ($cursor !== null) {
-            Cursor::decode($cursor, $hash, self::SORT_KEYS[$sort->key][1]);
-        }
-    }
 
     /**
      * Runs inside the caller's transaction, after RecordQuery::prepareFuzzy.
