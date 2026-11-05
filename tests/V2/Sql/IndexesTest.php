@@ -29,5 +29,27 @@ class IndexesTest extends TestCase
         foreach ($fragments as $fragment) {
             $this->assertStringContainsString($fragment, $row->indexdef);
         }
+        $valid = DB::selectOne(
+            "select i.indisvalid from pg_index i join pg_class c on c.oid = i.indexrelid"
+            . " join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'tlcmap' and c.relname = ?",
+            [$name]
+        );
+        $this->assertTrue($valid->indisvalid, "Index $name is not valid.");
+    }
+
+    /**
+     * CONCURRENTLY, so writes to dataitem go on while the indexes build; PostgreSQL refuses it
+     * inside a transaction.
+     */
+    public function testIndexesAreBuiltConcurrentlyOutsideATransaction()
+    {
+        $file = database_path('migrations/2026_11_10_000003_add_v2_indexes.php');
+        require_once $file;
+        $this->assertFalse((new \AddV2Indexes())->withinTransaction);
+
+        $source = file_get_contents($file);
+        $this->assertSame(3, substr_count($source, 'CREATE INDEX CONCURRENTLY IF NOT EXISTS'));
+        $this->assertSame(3, substr_count($source, 'DROP INDEX CONCURRENTLY IF EXISTS'));
+        $this->assertStringNotContainsString("'CREATE INDEX IF", $source);
     }
 }
