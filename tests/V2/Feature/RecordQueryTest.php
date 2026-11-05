@@ -432,6 +432,21 @@ class RecordQueryTest extends TestCase
         $this->assertIds([$fifty], ['extended_data' => 'Years < 50.5']);
     }
 
+    public function testExtendedDataNumbersTooLongForNumericDoNotMatch(): void
+    {
+        // numeric holds at most 131,072 digits before the point and 16,383 after; a cast beyond
+        // either fails the whole query.
+        $longest = Fixtures::record(['extended_data' => $this->extended([['n', str_repeat('7', 1000) . '.' . str_repeat('1', 1000)]])]);
+        Fixtures::record(['extended_data' => $this->extended([['n', str_repeat('1', 140000)]])]);
+        Fixtures::record(['extended_data' => $this->extended([['n', '0.' . str_repeat('1', 20000)]])]);
+        Fixtures::record(['extended_data' => $this->extended([['n', '-' . str_repeat('1', 1001)]])]);
+        Fixtures::record(['extended_data' => $this->extended([['n', '1.' . str_repeat('1', 1001)]])]);
+        $six = Fixtures::record(['extended_data' => $this->extended([['n', '6']])]);
+
+        $this->assertIds([$longest, $six], ['extended_data' => 'n > 5']);
+        $this->assertIds([], ['extended_data' => 'n < 5']);
+    }
+
     public function testExtendedDataBefore(): void
     {
         $y1849 = Fixtures::record(['extended_data' => $this->extended([['Built', '1849']])]);

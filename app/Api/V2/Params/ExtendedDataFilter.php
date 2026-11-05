@@ -13,6 +13,9 @@ class ExtendedDataFilter
 {
     private const WORD_OPERATORS = ['textmatch', 'before', 'after'];
 
+    /** The most digits a `>` or `<` number may have on either side of the point. */
+    public const MAX_DIGITS = 1000;
+
     /** @var string */
     private $expression;
     /** @var array */
@@ -154,6 +157,11 @@ class ExtendedDataFilter
                 $this->reject($i, 'an operator');
             }
         } else {
+            // A field cannot begin with the word AND: `AND x = 1` and `a = 1 AND AND b = 2` each
+            // lack a clause before it.
+            if ($this->text($start, $start + 3) === 'AND' && $this->isSpace($start + 3)) {
+                $this->reject($start, 'a field name');
+            }
             $op = null;
             for ($i = $start; $i < $this->n; $i++) {
                 $op = $this->operatorAt($i, false);
@@ -205,7 +213,8 @@ class ExtendedDataFilter
 
         $date = null;
         if ($op === '>' || $op === '<') {
-            if (preg_match('/^-?[0-9]+(\.[0-9]+)?$/', $value) !== 1) {
+            $digits = '[0-9]{1,' . self::MAX_DIGITS . '}';
+            if (preg_match("/^-?$digits(\.$digits)?\$/D", $value) !== 1) {
                 $this->reject($vstart, 'a number');
             }
         } elseif ($op === 'before' || $op === 'after') {

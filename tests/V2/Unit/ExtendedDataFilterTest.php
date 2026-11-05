@@ -57,6 +57,18 @@ class ExtendedDataFilterTest extends TestCase
         $this->assertSame(Civil::udate(1850, 3), $c['date']->start);
     }
 
+    public function testFieldMayBeginWithTheLettersAnd(): void
+    {
+        $this->assertSame('ANDROID', $this->one('ANDROID = 1')['field']);
+        $this->assertSame('ANDx', $this->one('ANDx > 2')['field']);
+    }
+
+    public function testNumberOfAThousandDigitsEitherSideIsAccepted(): void
+    {
+        $value = '-' . str_repeat('9', 1000) . '.' . str_repeat('1', 1000);
+        $this->assertSame($value, $this->one("k < $value")['value']);
+    }
+
     public function testNegativeDecimal(): void
     {
         $this->assertSame('-2.5', $this->one('Years > -2.5')['value']);
@@ -79,6 +91,14 @@ class ExtendedDataFilterTest extends TestCase
             ['"Years > 50', 0, 'a closing quote'],
             ['Years > 50 and Size < 3', 8, 'a number'],
             ['Años > x', 7, 'a number'],
+            ['AND x = 1', 0, 'a field name'],
+            ['AND = 1', 0, 'a field name'],
+            ['a = 1 AND AND b = 2', 10, 'a field name'],
+            ["k > \"5
+\"", 4, 'a number'],
+            ["k > \"5	\"", 4, 'a number'],
+            ['k > ' . str_repeat('1', 1001), 4, 'a number'],
+            ['k > 0.' . str_repeat('1', 1001), 4, 'a number'],
         ];
     }
 

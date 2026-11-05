@@ -5,6 +5,7 @@ namespace TLCMap\Api\V2\Query;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use TLCMap\Api\V2\Errors\ApiException;
+use TLCMap\Api\V2\Params\ExtendedDataFilter;
 use TLCMap\Api\V2\Params\Polygon;
 
 /**
@@ -76,8 +77,16 @@ class RecordQuery
      */
     public const ESCAPE = 'ESCAPE E\'\\\\\'';
 
-    /** A decimal number, as the request side accepts it. `{0,1}` rather than `?`, which would read as a placeholder. */
-    private const DECIMAL = "'^-{0,1}[0-9]+([.][0-9]+){0,1}\$'";
+    /**
+     * Whether x.v is a decimal number as the request side accepts it, with at most
+     * ExtendedDataFilter::MAX_DIGITS digits either side of the point: numeric cannot hold every
+     * longer value, and one it cannot hold would fail the query. A longer value does not match, as
+     * a value that is not a number does not. PostgreSQL bounds repetition at 255, so the digits are
+     * counted by length. `{0,1}` rather than `?`, which would read as a placeholder.
+     */
+    private const DECIMAL = "x.v ~ '^-{0,1}[0-9]+([.][0-9]+){0,1}\$'"
+        . " AND length(ltrim(split_part(x.v, '.', 1), '-')) <= " . ExtendedDataFilter::MAX_DIGITS
+        . " AND length(split_part(x.v, '.', 2)) <= " . ExtendedDataFilter::MAX_DIGITS;
 
     /** The visible records matching every given filter. Selects nothing; callers select. */
     public static function build(RecordFilters $f): Builder
@@ -267,7 +276,7 @@ class RecordQuery
             case '<':
                 $op = $clause['op'];
                 $q->whereRaw(
-                    '(SELECT CASE WHEN x.v ~ ' . self::DECIMAL . " THEN x.v::numeric $op CAST(? AS numeric) ELSE false END"
+                    '(SELECT CASE WHEN ' . self::DECIMAL . " THEN x.v::numeric $op CAST(? AS numeric) ELSE false END"
                     . " FROM (SELECT btrim($field, E' \\t\\r\\n') AS v) AS x)",
                     [$clause['value'], $clause['field']]
                 );
