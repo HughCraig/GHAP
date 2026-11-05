@@ -5,14 +5,12 @@ use Illuminate\Support\Facades\DB;
 
 class CreateV2DateFunctions extends Migration
 {
-    public function up()
-    {
-        // The single parse. is_end = false gives the first instant of the period named, true the last.
-        // The ISO form is tried first, since most stored values are Y-MM-DD.
-        DB::unprepared(<<<'SQL'
-CREATE FUNCTION tlcmap.v2_udate_parts(input text, is_end boolean) RETURNS bigint
-LANGUAGE plpgsql IMMUTABLE STRICT PARALLEL SAFE AS $fn$
-DECLARE
+    /**
+     * The declarations after DECLARE, the parse and the calendar validation that the two parsing
+     * functions share, as one text so they cannot drift apart. After it, a valid input has set y,
+     * mon, dom, prec, hh, mi, ss and ms; any other input has returned NULL.
+     */
+    private const PARSE = <<<'SQL'
     s text := btrim(input, E' \t\r\n');
     p integer;
     r text;
@@ -100,7 +98,16 @@ BEGIN
     IF dom > mlen THEN
         RETURN NULL;
     END IF;
+SQL;
 
+    public function up()
+    {
+        // The single parse. is_end = false gives the first instant of the period named, true the last.
+        // The ISO form is tried first, since most stored values are Y-MM-DD.
+        DB::unprepared(
+            "CREATE FUNCTION tlcmap.v2_udate_parts(input text, is_end boolean) RETURNS bigint\n"
+            . "LANGUAGE plpgsql IMMUTABLE STRICT PARALLEL SAFE AS \$fn\$\nDECLARE\n"
+            . self::PARSE . "\n\n" . <<<'SQL'
     -- The instant as a civil date's midnight plus an offset.
     IF prec = 4 THEN
         cy := y; cm := mon; cd := dom;
@@ -135,6 +142,47 @@ $fn$
 SQL
         );
 
+        // Both bounds from one parse: {first instant, last instant}, each exactly what v2_udate and
+        // v2_udate_end return (either may be NULL alone, outside the safe-integer range), or NULL
+        // when the input does not parse. Half the parses for a query that needs both.
+        DB::unprepared(
+            "CREATE FUNCTION tlcmap.v2_udate_range(input text) RETURNS bigint[]\n"
+            . "LANGUAGE plpgsql IMMUTABLE STRICT PARALLEL SAFE AS \$fn\$\nDECLARE\n"
+            . "    k integer;\n    bounds bigint[] := ARRAY[NULL, NULL]::bigint[];\n"
+            . self::PARSE . "\n\n" . <<<'SQL'
+    -- The first instant, then the last, each as a civil date's midnight plus an offset and each
+    -- computed as v2_udate_parts computes it. A time names one instant, so both are the same.
+    FOR k IN 1..2 LOOP
+        IF prec = 4 THEN
+            cy := y; cm := mon; cd := dom;
+            offs := hh * 3600000::bigint + mi * 60000 + ss * 1000 + ms;
+        ELSIF k = 1 THEN
+            cy := y; cm := mon; cd := dom; offs := 0;
+        ELSIF prec = 3 THEN
+            cy := y; cm := mon; cd := dom; offs := 86400000 - 1;
+        ELSIF prec = 2 THEN
+            cy := CASE WHEN mon = 12 THEN y + 1 ELSE y END;
+            cm := CASE WHEN mon = 12 THEN 1 ELSE mon + 1 END;
+            cd := 1; offs := -1;
+        ELSE
+            cy := y + 1; cm := 1; cd := 1; offs := -1;
+        END IF;
+
+        yy := cy - CASE WHEN cm <= 2 THEN 1 ELSE 0 END;
+        era := (CASE WHEN yy >= 0 THEN yy ELSE yy - 399 END) / 400;
+        yoe := yy - era * 400;
+        doe := yoe * 365 + yoe / 4 - yoe / 100
+            + (153 * (cm + CASE WHEN cm > 2 THEN -3 ELSE 9 END) + 2) / 5 + cd - 1;
+        result := (era * 146097 + doe - 719468) * 86400000 + offs;
+
+        bounds[k] := CASE WHEN abs(result) > 9007199254740991 THEN NULL ELSE result END;
+    END LOOP;
+    RETURN bounds;
+END
+$fn$
+SQL
+        );
+
         // SQL wrappers, so the planner can inline them.
         DB::unprepared(<<<'SQL'
 CREATE FUNCTION tlcmap.v2_udate(input text) RETURNS bigint
@@ -155,6 +203,7 @@ SQL
 
     public function down()
     {
+        DB::unprepared('DROP FUNCTION IF EXISTS tlcmap.v2_udate_range(text)');
         DB::unprepared('DROP FUNCTION IF EXISTS tlcmap.v2_udate_end(text)');
         DB::unprepared('DROP FUNCTION IF EXISTS tlcmap.v2_udate(text)');
         DB::unprepared('DROP FUNCTION IF EXISTS tlcmap.v2_udate_parts(text, boolean)');

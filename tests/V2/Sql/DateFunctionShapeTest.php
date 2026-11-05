@@ -23,6 +23,7 @@ class DateFunctionShapeTest extends TestCase
         $this->assertSame('sql', $this->language('v2_udate'));
         $this->assertSame('sql', $this->language('v2_udate_end'));
         $this->assertSame('plpgsql', $this->language('v2_udate_parts'));
+        $this->assertSame('plpgsql', $this->language('v2_udate_range'));
     }
 
     public function test_civil_day_arithmetic_is_inlined()
@@ -35,9 +36,9 @@ class DateFunctionShapeTest extends TestCase
         $rows = DB::select(
             "select p.proname, p.provolatile, p.proisstrict, p.proparallel from pg_proc p"
             . " join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'tlcmap'"
-            . " and p.proname in ('v2_udate', 'v2_udate_end', 'v2_udate_parts') order by p.proname"
+            . " and p.proname in ('v2_udate', 'v2_udate_end', 'v2_udate_parts', 'v2_udate_range') order by p.proname"
         );
-        $this->assertCount(3, $rows);
+        $this->assertCount(4, $rows);
         foreach ($rows as $row) {
             $this->assertSame(['i', true, 's'], [$row->provolatile, $row->proisstrict, $row->proparallel], $row->proname);
         }
