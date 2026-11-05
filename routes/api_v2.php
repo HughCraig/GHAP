@@ -20,3 +20,5 @@ $v2get = function (string $uri, $action) {
 
     return Route::get($uri, $action);
 };
+
+$v2get('places', 'PlaceController@search');

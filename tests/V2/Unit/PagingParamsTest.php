@@ -125,4 +125,35 @@ class PagingParamsTest extends TestCase
             $this->assertRejected(function () use ($other) { Sample::parse($this->set("sample=3&$other"), 5000); }, 'sample', 'conflicts', $accepts);
         }
     }
+
+    public function testNextUrlIsNullWithoutACursor(): void
+    {
+        $this->assertNull(Paging::nextUrl(Request::create('/api/v2/places?per_page=2'), null));
+    }
+
+    public function testNextUrlAddsTheCursor(): void
+    {
+        $request = Request::create('/api/v2/places?name=Two%20words&sources=anps,ncg&per_page=2');
+        $this->assertSame(
+            'http://localhost/api/v2/places?name=Two%20words&sources=anps%2Cncg&per_page=2&cursor=abc_-9',
+            Paging::nextUrl($request, 'abc_-9')
+        );
+    }
+
+    public function testNextUrlReplacesTheCursorInPlace(): void
+    {
+        $request = Request::create('/api/v2/places?cursor=old&per_page=2');
+        $this->assertSame(
+            'http://localhost/api/v2/places?cursor=new&per_page=2',
+            Paging::nextUrl($request, 'new')
+        );
+    }
+
+    public function testNextUrlWithoutOtherParameters(): void
+    {
+        $this->assertSame(
+            'http://localhost/api/v2/layers/7/features?cursor=xyz',
+            Paging::nextUrl(Request::create('/api/v2/layers/7/features'), 'xyz')
+        );
+    }
 }
