@@ -4,6 +4,8 @@ namespace TLCMap\Api\V2\Query;
 
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use TLCMap\Api\V2\Params\Paging;
+use TLCMap\Api\V2\Params\Sort;
 use TLCMap\Api\V2\Params\VocabularyField;
 
 /**
@@ -12,6 +14,13 @@ use TLCMap\Api\V2\Params\VocabularyField;
  */
 class Vocabulary
 {
+    /** Sort name => [key expression, cursor key type] over `grouped` as g; trusted SQL, no bindings. */
+    public const SORT_KEYS = [
+        'value' => ['g.key COLLATE "C"', 'string'],
+        'record_count' => ['g.count_key COLLATE "C"', 'string'],
+    ];
+
+    public const DEFAULT_SORT = 'value';
     /**
      * One row per key among the matching records that have a value: `key`, `record_count`,
      * `count_key` (the count, zero-padded to 19 digits, then the key: under COLLATE "C" it orders
@@ -66,5 +75,19 @@ class Vocabulary
             ->orderByRaw('record_count desc, key COLLATE "C"')
             ->get()
             ->all();
+    }
+
+    /**
+     * One page of grouped, keyset-paged. The key is unique, so the id expression is the constant 0, cast so ORDER BY does not read it as a column position.
+     * Runs inside the caller's transaction, after RecordQuery::prepareFuzzy.
+     *
+     * @return array{rows: array, next_cursor: ?string, per_page: int}
+     */
+    public static function page(RecordFilters $f, VocabularyField $field, Sort $sort, Paging $paging, string $hash): array
+    {
+        $query = DB::query()->fromSub(self::grouped($f, $field), 'g')->select('g.*');
+        list($keyExpr, $keyType) = self::SORT_KEYS[$sort->key];
+
+        return KeysetPager::page($query, $keyExpr, $keyType, $sort, $paging, $hash, '0::bigint');
     }
 }
