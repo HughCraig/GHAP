@@ -13,7 +13,7 @@ class PlaceSearch
     /** The parameters of spec §10.1, in echo order. */
     public const ALLOWED = [
         'name', 'match', 'sources', 'layers', 'bbox', 'polygon', 'date_from', 'date_to',
-        'include_undated', 'state', 'lga', 'feature_term', 'record_type', 'extended_data',
+        'include_undated', 'state', 'lga', 'parish', 'feature_term', 'record_type', 'extended_data',
         'summary_only', 'sort', 'direction', 'nulls', 'limit', 'sample', 'seed', 'cursor', 'per_page',
     ];
 

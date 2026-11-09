@@ -196,10 +196,10 @@ class RecordQuery
             $q->whereRaw($f->includeUndated ? '(' . self::X_LO . " IS NULL OR ($dated))" : "($dated)", $bindings);
         }
 
-        foreach (['i.state' => $f->state, 'i.lga' => $f->lga, 'i.feature_term' => $f->featureTerm,
-                     'rt.type' => $f->recordType] as $column => $value) {
+        foreach (['i.state' => $f->state, 'i.lga' => $f->lga, 'i.parish' => $f->parish,
+                     'i.feature_term' => $f->featureTerm, 'rt.type' => $f->recordType] as $column => $value) {
             if ($value !== null) {
-                $q->whereRaw("lower($column) = lower(CAST(? AS text))", [$value]);
+                $q->whereRaw(self::vocabularyKey($column) . ' = lower(CAST(? AS text))', [$value]);
             }
         }
 
@@ -249,6 +249,12 @@ class RecordQuery
                 [(string) config('api_v2.fuzzy_threshold')]
             );
         }
+    }
+
+    /** The comparison key of a vocabulary column: lower case, without surrounding space, tab, CR or LF. */
+    public static function vocabularyKey(string $column): string
+    {
+        return 'lower(btrim(' . $column . ', E\' \t\r\n\'))';
     }
 
     /** Rejects a polygon PostGIS does not consider valid, with its reason. One query. */

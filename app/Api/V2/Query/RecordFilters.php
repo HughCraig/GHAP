@@ -45,6 +45,8 @@ class RecordFilters
     /** @var string|null */
     public $lga;
     /** @var string|null */
+    public $parish;
+    /** @var string|null */
     public $featureTerm;
     /** @var string|null */
     public $recordType;
@@ -146,6 +148,7 @@ class RecordFilters
 
         $f->state = $p->string('state');
         $f->lga = $p->string('lga');
+        $f->parish = $p->string('parish');
         $f->featureTerm = $p->string('feature_term');
         $f->recordType = $p->string('record_type');
 
@@ -181,6 +184,7 @@ class RecordFilters
             'include_undated' => $this->includeUndated,
             'state' => $this->state,
             'lga' => $this->lga,
+            'parish' => $this->parish,
             'feature_term' => $this->featureTerm,
             'record_type' => $this->recordType,
             'extended_data' => $this->extendedData === null ? null : $this->extendedData->toEcho(),

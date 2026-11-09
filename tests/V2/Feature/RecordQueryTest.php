@@ -16,7 +16,7 @@ class RecordQueryTest extends TestCase
 {
     private const ALLOWED = [
         'name', 'match', 'sources', 'layers', 'bbox', 'polygon', 'date_from', 'date_to',
-        'include_undated', 'state', 'lga', 'feature_term', 'record_type', 'extended_data',
+        'include_undated', 'state', 'lga', 'parish', 'feature_term', 'record_type', 'extended_data',
     ];
 
     private function filters(array $params): RecordFilters
@@ -681,6 +681,7 @@ class RecordQueryTest extends TestCase
             'include_undated' => true,
             'state' => null,
             'lga' => null,
+            'parish' => null,
             'feature_term' => null,
             'record_type' => null,
             'extended_data' => null,
@@ -695,7 +696,7 @@ class RecordQueryTest extends TestCase
             'name' => 'Wollombi', 'sources' => 'text,anps,anps', 'layers' => (string) $layer,
             'bbox' => '150,-33,151.5,-32', 'polygon' => '150 -33,152 -33,151 -31',
             'date_from' => '1820', 'date_to' => '1860-06', 'include_undated' => 'false',
-            'state' => 'NSW', 'lga' => 'Cessnock', 'feature_term' => 'town', 'record_type' => 'Site',
+            'state' => 'NSW', 'lga' => 'Cessnock', 'parish' => 'Wollombi', 'feature_term' => 'town', 'record_type' => 'Site',
             'extended_data' => 'Years > 50',
         ]);
         $this->assertSame([
@@ -710,6 +711,7 @@ class RecordQueryTest extends TestCase
             'include_undated' => false,
             'state' => 'NSW',
             'lga' => 'Cessnock',
+            'parish' => 'Wollombi',
             'feature_term' => 'town',
             'record_type' => 'Site',
             'extended_data' => 'Years > 50',

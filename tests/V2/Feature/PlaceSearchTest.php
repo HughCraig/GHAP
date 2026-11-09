@@ -16,7 +16,7 @@ class PlaceSearchTest extends TestCase
     /** Every parameter of spec §10.1, in echo order. */
     private const ECHO_KEYS = [
         'name', 'match', 'sources', 'layers', 'bbox', 'polygon', 'date_from', 'date_to',
-        'include_undated', 'state', 'lga', 'feature_term', 'record_type', 'extended_data',
+        'include_undated', 'state', 'lga', 'parish', 'feature_term', 'record_type', 'extended_data',
         'summary_only', 'sort', 'direction', 'nulls', 'limit', 'sample', 'seed', 'cursor', 'per_page',
     ];
 
@@ -432,6 +432,7 @@ class PlaceSearchTest extends TestCase
             'include_undated' => true,
             'state' => null,
             'lga' => null,
+            'parish' => null,
             'feature_term' => null,
             'record_type' => null,
             'extended_data' => null,
