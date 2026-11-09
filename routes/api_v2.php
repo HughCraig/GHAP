@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 |   GET /api/v2/layers                  LayerController@index
 |   GET /api/v2/layers/{id}             LayerController@show      ({id} 1 to 18 digits)
 |   GET /api/v2/layers/{id}/features    LayerController@features  ({id} 1 to 18 digits)
+|   GET /api/v2/layers/{id}/statistics LayerController@statistics ({id} 1 to 18 digits)
 |   GET /api/v2/vocabulary              VocabularyController@index
 |
 | Eighteen digits always fit in a 64-bit integer; a longer id names no layer, and is a 404.
@@ -28,4 +29,5 @@ $v2get('places', 'PlaceController@search');
 $v2get('layers', 'LayerController@index');
 $v2get('layers/{id}', 'LayerController@show', ['id' => '[0-9]{1,18}']);
 $v2get('layers/{id}/features', 'LayerController@features', ['id' => '[0-9]{1,18}']);
+$v2get('layers/{id}/statistics', 'LayerController@statistics', ['id' => '[0-9]{1,18}']);
 $v2get('vocabulary', 'VocabularyController@index');

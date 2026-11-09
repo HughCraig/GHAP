@@ -11,12 +11,14 @@ use TLCMap\Api\V2\Params\ParameterSet;
 use TLCMap\Api\V2\Params\Sort;
 use TLCMap\Api\V2\Query\KeysetPager;
 use TLCMap\Api\V2\Query\LayerCatalogue;
+use TLCMap\Api\V2\Query\LayerStatistics;
 use TLCMap\Api\V2\Query\RecordFilters;
 use TLCMap\Api\V2\Query\RecordQuery;
 use TLCMap\Api\V2\Query\Summary;
 use TLCMap\Api\V2\Serialise\FeatureCollection;
 use TLCMap\Api\V2\Serialise\FeatureSerialiser;
 use TLCMap\Api\V2\Serialise\LayerSerialiser;
+use TLCMap\Api\V2\Serialise\StatisticsSerialiser;
 use TLCMap\Api\V2\Support\Json;
 use TLCMap\Http\Controllers\Controller;
 
@@ -111,6 +113,24 @@ class LayerController extends Controller
             return Json::response([
                 'layer' => self::layer($id),
                 'summary' => Summary::compute(RecordQuery::build($filters), false),
+            ]);
+        });
+    }
+
+    /** GET /api/v2/layers/{id}/statistics (spec §6). */
+    public function statistics(Request $request, int $id): JsonResponse
+    {
+        return DB::transaction(function () use ($request, $id) {
+            ParameterSet::fromRequest($request, []);
+            $filters = RecordFilters::forLayer($id);
+            $row = LayerStatistics::compute($filters);
+            $dataset = DB::table('tlcmap.dataset')->where('id', $id)->first();
+            // Task 6 computes the feature terms; until then none are reported.
+            $featureTerms = ['with_value' => 0, 'without_value' => 0, 'values' => []];
+
+            return Json::response([
+                'layer' => LayerSerialiser::identity($dataset),
+                'statistics' => StatisticsSerialiser::statistics($row, $featureTerms),
             ]);
         });
     }

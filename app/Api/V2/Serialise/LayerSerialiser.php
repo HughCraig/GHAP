@@ -42,6 +42,17 @@ class LayerSerialiser
         ];
     }
 
+    /** The layer as the statistics response names it (spec ง6.2). */
+    public static function identity(\stdClass $dataset): array
+    {
+        return [
+            'id' => (int) $dataset->id,
+            'name' => self::text($dataset->name ?? null),
+            'warning' => self::text($dataset->warning ?? null),
+            'url' => url('layers/' . (int) $dataset->id),
+        ];
+    }
+
     /**
      * One catalogue entry (spec ยง10.2) from a LayerCatalogue row. The figures describe the whole
      * layer; `matching_count` is null unless record-level filters were given.
