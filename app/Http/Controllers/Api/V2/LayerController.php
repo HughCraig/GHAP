@@ -9,16 +9,19 @@ use TLCMap\Api\V2\Params\Cursor;
 use TLCMap\Api\V2\Params\Paging;
 use TLCMap\Api\V2\Params\ParameterSet;
 use TLCMap\Api\V2\Params\Sort;
+use TLCMap\Api\V2\Params\VocabularyField;
 use TLCMap\Api\V2\Query\KeysetPager;
 use TLCMap\Api\V2\Query\LayerCatalogue;
 use TLCMap\Api\V2\Query\LayerStatistics;
 use TLCMap\Api\V2\Query\RecordFilters;
 use TLCMap\Api\V2\Query\RecordQuery;
 use TLCMap\Api\V2\Query\Summary;
+use TLCMap\Api\V2\Query\Vocabulary;
 use TLCMap\Api\V2\Serialise\FeatureCollection;
 use TLCMap\Api\V2\Serialise\FeatureSerialiser;
 use TLCMap\Api\V2\Serialise\LayerSerialiser;
 use TLCMap\Api\V2\Serialise\StatisticsSerialiser;
+use TLCMap\Api\V2\Serialise\VocabularySerialiser;
 use TLCMap\Api\V2\Support\Json;
 use TLCMap\Http\Controllers\Controller;
 
@@ -117,16 +120,25 @@ class LayerController extends Controller
         });
     }
 
-    /** GET /api/v2/layers/{id}/statistics (spec ง6). */
+    /** GET /api/v2/layers/{id}/statistics (spec ยง6). */
     public function statistics(Request $request, int $id): JsonResponse
     {
         return DB::transaction(function () use ($request, $id) {
             ParameterSet::fromRequest($request, []);
             $filters = RecordFilters::forLayer($id);
             $row = LayerStatistics::compute($filters);
-            $dataset = DB::table('tlcmap.dataset')->where('id', $id)->first();
-            // Task 6 computes the feature terms; until then none are reported.
-            $featureTerms = ['with_value' => 0, 'without_value' => 0, 'values' => []];
+            $dataset = self::dataset($id);
+            $field = VocabularyField::named('feature_term');
+            $records = Vocabulary::records($filters, $field);
+            $values = [];
+            foreach (Vocabulary::all($filters, $field) as $entry) {
+                $values[] = VocabularySerialiser::entry($entry);
+            }
+            $featureTerms = [
+                'with_value' => $records['with_value'],
+                'without_value' => $records['without_value'],
+                'values' => $values,
+            ];
 
             return Json::response([
                 'layer' => LayerSerialiser::identity($dataset),
@@ -178,10 +190,15 @@ class LayerController extends Controller
         });
     }
 
+    private static function dataset(int $id): \stdClass
+    {
+        return DB::table('tlcmap.dataset')->where('id', $id)->first();
+    }
+
     /** The layer object; the gate has already shown the layer exists. */
     private static function layer(int $id): array
     {
-        $dataset = DB::table('tlcmap.dataset')->where('id', $id)->first();
+        $dataset = self::dataset($id);
         $keywords = DB::table('tlcmap.dataset_subject_keyword as dk')
             ->join('tlcmap.subject_keyword as k', 'k.id', '=', 'dk.subject_keyword_id')
             ->where('dk.dataset_id', $id)

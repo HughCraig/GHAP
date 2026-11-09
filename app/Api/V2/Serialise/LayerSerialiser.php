@@ -42,7 +42,7 @@ class LayerSerialiser
         ];
     }
 
-    /** The layer as the statistics response names it (spec ง6.2). */
+    /** The layer as the statistics response names it (spec ยง6.2). */
     public static function identity(\stdClass $dataset): array
     {
         return [

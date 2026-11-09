@@ -2,6 +2,7 @@
 
 namespace Tests\V2\Feature;
 
+use Tests\V2\Support\Civil;
 use Tests\V2\Support\Fixtures;
 use Tests\V2\TestCase;
 
@@ -98,10 +99,6 @@ class LayerStatisticsTest extends TestCase
         $this->assertSame(['151,-33', '151,-33.01', '151.01,-33', '151.01,-33.01'], $corners);
 
         $expected = $this->cellKm2(0.01, 0.01, -33.005);
-        fwrite(STDERR, sprintf(
-            "\nstatistics area_km2 computed=%.9F expected=%.9F centroid=[%.9F, %.9F]\n",
-            $s['area_km2'], $expected, $s['centroid'][0], $s['centroid'][1]
-        ));
         $this->assertEqualsWithDelta($expected, $s['area_km2'], $expected * 0.001);
         $this->assertEqualsWithDelta(151.005, $s['centroid'][0], 1e-4);
         $this->assertEqualsWithDelta(-33.005, $s['centroid'][1], 1e-4);
@@ -125,9 +122,6 @@ class LayerStatisticsTest extends TestCase
         $expLat = rad2deg(atan2($z, sqrt($x * $x + $y * $y)));
 
         $c = $this->get('/api/v2/layers/' . $id . '/statistics')->json('statistics.centroid');
-        fwrite(STDERR, sprintf(
-            "\ncentroid computed=[%.9F, %.9F] expected(sphere)=[%.9F, %.9F]\n", $c[0], $c[1], $expLon, $expLat
-        ));
         $this->assertEqualsWithDelta($expLon, $c[0], 0.1);
         $this->assertEqualsWithDelta($expLat, $c[1], 0.1);
         $this->assertLessThan(-31.0, $c[1]);
@@ -178,5 +172,139 @@ class LayerStatisticsTest extends TestCase
         $this->assertSame(['total' => 0, 'no_date' => 0, 'unparseable_date' => 0], $s['undated']);
         $this->assertSame(0, $s['unparseable_dates']);
         $this->assertSame(['with_value' => 0, 'without_value' => 0, 'values' => []], $s['feature_terms']);
+    }
+
+    /** floor(n / d) toward negative infinity; intdiv truncates toward zero. */
+    private static function floorDiv(int $n, int $d): int
+    {
+        $q = intdiv($n, $d);
+
+        return ($n % $d !== 0 && ($n < 0) !== ($d < 0)) ? $q - 1 : $q;
+    }
+
+    /** floor((lo + hi) / 2) for a period's first and last millisecond. */
+    private static function mid(int $lo, int $hi): int
+    {
+        return self::floorDiv($lo + $hi, 2);
+    }
+
+    public function test_midpoints_median_and_mean()
+    {
+        $id = Fixtures::layer();
+        Fixtures::record(['dataset_id' => $id, 'lat' => -33.0, 'lon' => 151.0, 'datestart' => '1856']);
+        Fixtures::record(['dataset_id' => $id, 'lat' => -33.5, 'lon' => 151.5, 'datestart' => '1820', 'dateend' => '1860']);
+        Fixtures::record(['dataset_id' => $id, 'datestart' => '1900-03']);
+        Fixtures::record(['dataset_id' => $id, 'lat' => -34.0, 'lon' => 152.0]);
+        Fixtures::record(['dataset_id' => $id, 'lat' => -34.5, 'lon' => 152.5, 'datestart' => 'circa']);
+
+        $s = $this->get('/api/v2/layers/' . $id . '/statistics')->json('statistics');
+
+        $m1856 = self::mid(Civil::udate(1856), Civil::udate(1857) - 1);
+        $this->assertSame(-3581712000001, $m1856);
+        $mRange = self::mid(Civil::udate(1820), Civil::udate(1861) - 1);
+        $mMarch = self::mid(Civil::udate(1900, 3), Civil::udate(1900, 4) - 1);
+        $mids = [$m1856, $mRange, $mMarch];
+        sort($mids);
+
+        $this->assertSame(5, $s['count']);
+        $this->assertSame(3, $s['basis']['dated']);
+        $this->assertSame(4, $s['basis']['with_coordinates']);
+        $this->assertSame(['start' => Civil::udate(1820), 'end' => Civil::udate(1900, 4) - 1], $s['date_range']);
+        $this->assertSame($mids[1], $s['median_date']);
+        $this->assertSame(self::floorDiv(array_sum($mids), 3), $s['mean_date']);
+        $this->assertSame(['total' => 2, 'no_date' => 1, 'unparseable_date' => 1], $s['undated']);
+        $this->assertSame(1, $s['unparseable_dates']);
+    }
+
+    public function test_even_count_median_floors_the_mean_of_the_two_middle_values()
+    {
+        $id = Fixtures::layer();
+        $mids = [];
+        foreach ([1850, 1851, 1853, 1860] as $year) {
+            Fixtures::record(['dataset_id' => $id, 'datestart' => (string) $year]);
+            $mids[] = self::mid(Civil::udate($year), Civil::udate($year + 1) - 1);
+        }
+        sort($mids);
+
+        $s = $this->get('/api/v2/layers/' . $id . '/statistics')->json('statistics');
+        $this->assertSame(self::floorDiv($mids[1] + $mids[2], 2), $s['median_date']);
+        $this->assertSame(self::floorDiv(array_sum($mids), 4), $s['mean_date']);
+        $this->assertTrue($s['median_date'] > $mids[1] && $s['median_date'] < $mids[2]);
+
+        // One record: the median and the mean are its midpoint.
+        $one = Fixtures::layer();
+        Fixtures::record(['dataset_id' => $one, 'datestart' => '1850']);
+        $s = $this->get('/api/v2/layers/' . $one . '/statistics')->json('statistics');
+        $this->assertSame($mids[0], $s['median_date']);
+        $this->assertSame($mids[0], $s['mean_date']);
+    }
+
+    public function test_bce_reversed_and_large_dates_are_exact_integers()
+    {
+        $id = Fixtures::layer();
+        Fixtures::record(['dataset_id' => $id, 'datestart' => '-400']);
+        Fixtures::record(['dataset_id' => $id, 'datestart' => '1900', 'dateend' => '1850']);
+        Fixtures::record(['dataset_id' => $id, 'datestart' => '-200000']);
+
+        // -400 is astronomical -399; the reversed record spans 1850 to the end of 1900.
+        $mids = [
+            self::mid(Civil::udate(-399), Civil::udate(-398) - 1),
+            self::mid(Civil::udate(1850), Civil::udate(1901) - 1),
+            self::mid(Civil::udate(-199999), Civil::udate(-199998) - 1),
+        ];
+        sort($mids);
+
+        $s = $this->get('/api/v2/layers/' . $id . '/statistics')->json('statistics');
+        $this->assertSame(['start' => Civil::udate(-199999), 'end' => Civil::udate(1901) - 1], $s['date_range']);
+        $this->assertTrue(is_int($s['median_date']));
+        $this->assertTrue(is_int($s['mean_date']));
+        $this->assertSame($mids[1], $s['median_date']);
+        $this->assertSame(self::floorDiv(array_sum($mids), 3), $s['mean_date']);
+        $this->assertLessThan(0, $s['mean_date']);
+    }
+
+    public function test_undated_counts_match_layer_detail()
+    {
+        $id = Fixtures::layer();
+        Fixtures::record(['dataset_id' => $id, 'datestart' => '1850']);
+        Fixtures::record(['dataset_id' => $id]);
+        Fixtures::record(['dataset_id' => $id, 'datestart' => 'circa']);
+        Fixtures::record(['dataset_id' => $id, 'datestart' => 'circa', 'dateend' => 'later']);
+
+        $summary = $this->get('/api/v2/layers/' . $id)->json('summary');
+        $s = $this->get('/api/v2/layers/' . $id . '/statistics')->json('statistics');
+        $this->assertSame($summary['undated'], $s['undated']);
+        $this->assertSame($summary['unparseable_dates'], $s['unparseable_dates']);
+        $this->assertSame($summary['date_range'], $s['date_range']);
+        $this->assertSame(['total' => 3, 'no_date' => 1, 'unparseable_date' => 2], $s['undated']);
+    }
+
+    public function test_feature_terms_equal_the_layer_vocabulary()
+    {
+        $id = Fixtures::layer();
+        foreach (['Hill', 'Hill', 'hill', 'Creek', '', '  '] as $term) {
+            Fixtures::record(['dataset_id' => $id, 'feature_term' => $term]);
+        }
+
+        $terms = $this->get('/api/v2/layers/' . $id . '/statistics')->json('statistics.feature_terms');
+        $this->assertSame(['with_value', 'without_value', 'values'], array_keys($terms));
+        $this->assertSame(4, $terms['with_value']);
+        $this->assertSame(2, $terms['without_value']);
+        $this->assertSame(['hill', 'creek'], array_map('strtolower', array_column($terms['values'], 'value')));
+        $this->assertSame([3, 1], array_column($terms['values'], 'record_count'));
+
+        $walked = [];
+        $base = '/api/v2/vocabulary?field=feature_term&per_page=1&layers=' . $id;
+        $url = $base;
+        for ($i = 0; $i < 10 && $url !== null; $i++) {
+            $page = $this->get($url)->json();
+            $walked = array_merge($walked, $page['values']);
+            $cursor = $page['page']['next_cursor'];
+            $url = $cursor === null ? null : $base . '&cursor=' . rawurlencode($cursor);
+        }
+        usort($walked, function ($a, $b) {
+            return [$b['record_count'], $a['value']] <=> [$a['record_count'], $b['value']];
+        });
+        $this->assertSame($walked, $terms['values']);
     }
 }

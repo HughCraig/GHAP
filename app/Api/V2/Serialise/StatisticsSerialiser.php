@@ -28,11 +28,16 @@ class StatisticsSerialiser
             'convex_hull' => $row->hull === null ? null : json_decode($row->hull, true),
             'area_km2' => $area,
             'density_per_km2' => $area === null || $area == 0 ? null : $withCoordinates / $area,
-            'date_range' => null,
-            'median_date' => null,
-            'mean_date' => null,
-            'undated' => ['total' => 0, 'no_date' => 0, 'unparseable_date' => 0],
-            'unparseable_dates' => 0,
+            'date_range' => $row->date_start === null ? null
+                : ['start' => (int) $row->date_start, 'end' => (int) $row->date_end],
+            'median_date' => $row->median_date === null ? null : (int) $row->median_date,
+            'mean_date' => $row->mean_date === null ? null : (int) $row->mean_date,
+            'undated' => [
+                'total' => (int) $row->undated_total,
+                'no_date' => (int) $row->no_date,
+                'unparseable_date' => (int) $row->unparseable_date,
+            ],
+            'unparseable_dates' => (int) $row->unparseable_dates,
             'feature_terms' => $featureTerms,
         ];
     }
