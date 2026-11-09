@@ -159,6 +159,8 @@ class VocabularySearchInvariantTest extends TestCase
         foreach (self::FIELDS as $field) {
             list($entries, $records) = $this->vocabulary($filters, $field);
             $where = "filter set $set, field $field";
+            $this->assertNotEmpty($entries, "$where: the vocabulary has no entries");
+            $this->assertGreaterThan(0, $records['with_value'], "$where: no record has a value");
 
             $this->assertSame($matched, $records['total'], "$where: records.total differs from place search");
             $this->assertSame(
@@ -173,7 +175,7 @@ class VocabularySearchInvariantTest extends TestCase
                 $label = "$where, value " . json_encode($value, JSON_UNESCAPED_UNICODE);
                 $this->assertNotSame('', $value, "$where: an entry has an empty value");
 
-                $searched = $this->total($filters + [$field => $value]);
+                $searched = $this->total([$field => $value] + $filters);
                 $this->assertSame(
                     $searched,
                     $entry['record_count'],
