@@ -11,6 +11,18 @@ use Illuminate\Support\Facades\DB;
  */
 class LayerStatistics
 {
+    /**
+     * The exact floor (toward negative infinity) of the mean of a numeric column, as bigint; null
+     * when no row has a value. avg() and numeric division round at a limited scale, so a mean a
+     * hair below an integer can come back as that integer; div() truncates exactly, and a negative
+     * sum with a remainder is one lower.
+     */
+    public static function meanFloor(string $column): string
+    {
+        return "(div(sum($column), count($column))"
+            . " - case when sum($column) < 0 and mod(sum($column), count($column)) <> 0 then 1 else 0 end)::bigint";
+    }
+
     /** @return \stdClass one row of figures; the serialiser shapes it */
     public static function compute(RecordFilters $f): \stdClass
     {
@@ -27,7 +39,7 @@ class LayerStatistics
             'count(*) filter (where ' . RecordQuery::R_LO . ' is null and not ' . RecordQuery::R_NO_DATE . ') as unparseable_date',
             // Over dated records only (mid is null otherwise). percentile_disc ascending is the lower
             // middle value and descending the upper; they coincide for an odd count.
-            'floor(avg(r.mid))::bigint as mean_date',
+            self::meanFloor('r.mid') . ' as mean_date',
             'floor((percentile_disc(0.5) within group (order by r.mid)'
                 . ' + percentile_disc(0.5) within group (order by r.mid desc))::numeric / 2)::bigint as median_date',
             'ST_XMin(ST_Extent(r.geom)) as min_lon',
@@ -43,7 +55,7 @@ class LayerStatistics
         $dates = RecordQuery::withDates(RecordQuery::build($f), ['i.geom']);
         $withMidpoint = DB::query()->fromSub(
             $dates->select('r.*')->selectRaw(
-                'floor((' . RecordQuery::R_LO . ' + ' . RecordQuery::R_HI . ')::numeric / 2) as mid'
+                'floor(((' . RecordQuery::R_LO . ')::numeric + (' . RecordQuery::R_HI . ')::numeric) / 2) as mid'
             ),
             'r'
         );

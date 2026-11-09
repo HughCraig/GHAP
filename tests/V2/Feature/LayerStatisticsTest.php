@@ -2,6 +2,8 @@
 
 namespace Tests\V2\Feature;
 
+use Illuminate\Support\Facades\DB;
+use TLCMap\Api\V2\Query\LayerStatistics;
 use Tests\V2\Support\Civil;
 use Tests\V2\Support\Fixtures;
 use Tests\V2\TestCase;
@@ -306,5 +308,33 @@ class LayerStatisticsTest extends TestCase
             return [$b['record_count'], $a['value']] <=> [$a['record_count'], $b['value']];
         });
         $this->assertSame($walked, $terms['values']);
+    }
+
+    /** Evaluates LayerStatistics::meanFloor over generated numeric rows: n of $base, one of $base + $odd. */
+    private function meanFloorOf(int $n, int $base, int $odd)
+    {
+        $sql = 'select ' . LayerStatistics::meanFloor('r.mid') . ' as m from (select '
+            . '(case when g = 1 then ?::numeric else ?::numeric end) as mid from generate_series(1, ?) g) r';
+        $m = DB::select($sql, [$base + $odd, $base, $n])[0]->m;
+
+        return $m === null ? null : (int) $m;
+    }
+
+    public function test_mean_floor_is_exact_where_avg_rounds_up()
+    {
+        // 99,999 x 3581712000000 and one 3581711999999: the mean is 3581711999999.99999...
+        $this->assertSame(3581711999999, $this->meanFloorOf(100000, 3581712000000, -1));
+        // 99,999 x -3581712000000 and one -3581712000001: the mean is -3581712000000.00001
+        $this->assertSame(-3581712000001, $this->meanFloorOf(100000, -3581712000000, -1));
+        // Small exact cases: 7 / 2 floors to 3, -7 / 2 to -4, -6 / 2 to -3, an exact mean is itself.
+        $this->assertSame(3, $this->meanFloorOf(2, 3, 1));
+        $this->assertSame(-4, $this->meanFloorOf(2, -3, -1));
+        $this->assertSame(-3, $this->meanFloorOf(2, -3, 0));
+        $none = DB::select('select ' . LayerStatistics::meanFloor('r.mid')
+            . ' as m from (select null::numeric as mid where false) r')[0]->m;
+        $this->assertNull($none);
+        $nulls = DB::select('select ' . LayerStatistics::meanFloor('r.mid')
+            . ' as m from (select null::numeric as mid from generate_series(1, 3)) r')[0]->m;
+        $this->assertNull($nulls);
     }
 }
