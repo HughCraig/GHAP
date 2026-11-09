@@ -156,10 +156,15 @@ class VocabularySearchInvariantTest extends TestCase
             $this->assertLessThan($this->total([]), $matched, "Filter set $set drops nothing.");
         }
 
+        $multiple = $blanks = false;
         foreach (self::FIELDS as $field) {
             list($entries, $records) = $this->vocabulary($filters, $field);
             $where = "filter set $set, field $field";
             $this->assertNotEmpty($entries, "$where: the vocabulary has no entries");
+            foreach ($entries as $e) {
+                $multiple = $multiple || count($e['spellings']) > 1;
+            }
+            $blanks = $blanks || $records['without_value'] > 0;
             $this->assertGreaterThan(0, $records['with_value'], "$where: no record has a value");
 
             $this->assertSame($matched, $records['total'], "$where: records.total differs from place search");
@@ -191,6 +196,11 @@ class VocabularySearchInvariantTest extends TestCase
                 $sum += $entry['record_count'];
             }
             $this->assertSame($records['with_value'], $sum, "$where: entry counts differ from with_value");
+        }
+        if ($filters === []) {
+            // The fixture guarantees both, so the checks above are not vacuous.
+            $this->assertTrue($multiple, "No entry in the unfiltered set has more than one spelling");
+            $this->assertTrue($blanks, "No record in the unfiltered set lacks a value");
         }
     }
 }

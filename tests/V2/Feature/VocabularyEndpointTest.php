@@ -206,6 +206,18 @@ class VocabularyEndpointTest extends TestCase
         $this->assertError($r, 400, 'INVALID_PARAMETER');
         $this->assertSame('one_of', $r->json('error.details.rule'));
 
+        $r = $this->vocab('field=');
+        $this->assertError($r, 400, 'INVALID_PARAMETER');
+        $this->assertSame('empty', $r->json('error.details.rule'));
+
+        $r = $this->vocab('field=lga&field=state');
+        $this->assertError($r, 400, 'INVALID_PARAMETER');
+        $this->assertSame('repeated', $r->json('error.details.rule'));
+
+        $r = $this->vocab('field=lga&direction=sideways');
+        $this->assertError($r, 400, 'INVALID_PARAMETER');
+        $this->assertSame('one_of', $r->json('error.details.rule'));
+
         $r = $this->vocab('field=lga&sort=title');
         $this->assertError($r, 400, 'INVALID_PARAMETER');
         $this->assertSame('one_of', $r->json('error.details.rule'));

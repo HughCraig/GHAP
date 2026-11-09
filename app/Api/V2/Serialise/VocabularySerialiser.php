@@ -2,7 +2,7 @@
 
 namespace TLCMap\Api\V2\Serialise;
 
-/** A vocabulary entry as the API returns it (spec §5.3, §5.6). */
+/** A vocabulary entry as the API returns it (A2 spec §5.3, §5.6). */
 class VocabularySerialiser
 {
     /**

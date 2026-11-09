@@ -9,7 +9,7 @@ use TLCMap\Api\V2\Params\Sort;
 use TLCMap\Api\V2\Params\VocabularyField;
 
 /**
- * How a field's values are grouped (spec §5.3–5.4). The single definition, used by the vocabulary
+ * How a field's values are grouped (A2 spec §5.3–5.4). The single definition, used by the vocabulary
  * endpoint and by a layer's feature terms, so the two cannot group differently.
  */
 class Vocabulary
@@ -24,7 +24,7 @@ class Vocabulary
     /**
      * One row per key among the matching records that have a value: `key`, `record_count`,
      * `count_key` (the count, zero-padded to 19 digits, then the key: under COLLATE "C" it orders
-     * as record_count then key, as one unique string) and `spellings` (json, spec §5.3's order).
+     * as record_count then key, as one unique string) and `spellings` (json, A2 spec §5.3's order).
      * No ORDER BY or LIMIT; the caller orders and pages.
      */
     public static function grouped(RecordFilters $f, VocabularyField $field): Builder
@@ -45,7 +45,7 @@ class Vocabulary
     }
 
     /**
-     * The match set's records (spec §5.4), over the whole set, in one query.
+     * The match set's records (A2 spec §5.4), over the whole set, in one query.
      *
      * @return array{total: int, with_value: int, without_value: int, keys: int}
      */

@@ -120,7 +120,7 @@ class LayerController extends Controller
         });
     }
 
-    /** GET /api/v2/layers/{id}/statistics (spec §6). */
+    /** GET /api/v2/layers/{id}/statistics (A2 spec §6). */
     public function statistics(Request $request, int $id): JsonResponse
     {
         return DB::transaction(function () use ($request, $id) {
@@ -130,19 +130,11 @@ class LayerController extends Controller
             $dataset = self::dataset($id);
             $field = VocabularyField::named('feature_term');
             $records = Vocabulary::records($filters, $field);
-            $values = [];
-            foreach (Vocabulary::all($filters, $field) as $entry) {
-                $values[] = VocabularySerialiser::entry($entry);
-            }
-            $featureTerms = [
-                'with_value' => $records['with_value'],
-                'without_value' => $records['without_value'],
-                'values' => $values,
-            ];
+            $entries = Vocabulary::all($filters, $field);
 
             return Json::response([
                 'layer' => LayerSerialiser::identity($dataset),
-                'statistics' => StatisticsSerialiser::statistics($row, $featureTerms),
+                'statistics' => StatisticsSerialiser::statistics($row, $records, $entries),
             ]);
         });
     }

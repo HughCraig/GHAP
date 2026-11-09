@@ -8,7 +8,7 @@ use Tests\V2\Support\Civil;
 use Tests\V2\Support\Fixtures;
 use Tests\V2\TestCase;
 
-/** GET /api/v2/layers/{id}/statistics (spec §6): shape, errors and the spatial figures. */
+/** GET /api/v2/layers/{id}/statistics (A2 spec §6): shape, errors and the spatial figures. */
 class LayerStatisticsTest extends TestCase
 {
     private const STATISTICS_KEYS = [
@@ -107,7 +107,7 @@ class LayerStatisticsTest extends TestCase
         $this->assertEqualsWithDelta(5 / $s['area_km2'], $s['density_per_km2'], 1e-9);
     }
 
-    public function test_centroid_is_on_the_spheroid()
+    public function test_centroid_is_the_mean_direction_on_the_sphere()
     {
         $id = Fixtures::layer();
         $this->point($id, 100.0, -30.0);
@@ -127,6 +127,38 @@ class LayerStatisticsTest extends TestCase
         $this->assertEqualsWithDelta($expLon, $c[0], 0.1);
         $this->assertEqualsWithDelta($expLat, $c[1], 0.1);
         $this->assertLessThan(-31.0, $c[1]);
+    }
+
+    public function test_hull_vertices_are_not_rounded()
+    {
+        $id = Fixtures::layer();
+        $this->point($id, 151.31777777777776, -32.123456789012345);
+        $this->point($id, 151.41234567890123, -32.987654321098765);
+        $this->point($id, 151.91111111111111, -32.55555555555555);
+
+        $stats = $this->get('/api/v2/layers/' . $id . '/statistics')->json('statistics');
+        $ring = $stats['convex_hull']['coordinates'][0];
+        $lons = array_column($ring, 0);
+        $lats = array_column($ring, 1);
+        $this->assertSame($stats['extent'][0], min($lons));
+        $this->assertSame($stats['extent'][1], min($lats));
+        $this->assertSame($stats['extent'][2], max($lons));
+        $this->assertSame($stats['extent'][3], max($lats));
+        $this->assertSame(151.31777777777776, $stats['extent'][0]);
+    }
+
+    public function test_centroid_and_hull_do_not_depend_on_row_order()
+    {
+        $id = Fixtures::layer();
+        for ($i = 0; $i < 400; $i++) {
+            $this->point($id, 140 + fmod($i * 0.137771, 12), -20 - fmod($i * 0.2113, 18));
+        }
+        $first = $this->get('/api/v2/layers/' . $id . '/statistics')->json('statistics');
+        for ($n = 0; $n < 5; $n++) {
+            $again = $this->get('/api/v2/layers/' . $id . '/statistics')->json('statistics');
+            $this->assertSame($first['centroid'], $again['centroid']);
+            $this->assertSame($first['convex_hull'], $again['convex_hull']);
+        }
     }
 
     public function test_point_and_line_hulls()

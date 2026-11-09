@@ -5,7 +5,7 @@ namespace TLCMap\Api\V2\Query;
 use Illuminate\Support\Facades\DB;
 
 /**
- * A layer's statistics (spec §6), computed in SQL in one aggregate query over all the layer's
+ * A layer's statistics (A2 spec §6), computed in SQL in one aggregate query over all the layer's
  * records. Each record's dates are computed once (RecordQuery::withDates), and its period midpoint
  * once more in a derived level over them, then everything is aggregated in the one select list.
  */
@@ -26,33 +26,30 @@ class LayerStatistics
     /** @return \stdClass one row of figures; the serialiser shapes it */
     public static function compute(RecordFilters $f): \stdClass
     {
-        $hull = 'ST_ConvexHull(ST_Collect(r.geom))';
-        $selects = [
-            'count(*) as records',
-            'count(r.geom) as with_coordinates',
-            'count(*) filter (where ' . RecordQuery::R_LO . ' is not null) as dated',
-            'min(' . RecordQuery::R_LO . ') as date_start',
-            'max(' . RecordQuery::R_HI . ') as date_end',
-            'count(*) filter (where ' . RecordQuery::R_LO . ' is null) as undated_total',
-            'count(*) filter (where ' . RecordQuery::R_NO_DATE . ') as no_date',
-            'count(*) filter (where ' . RecordQuery::R_UNPARSEABLE_SIDE . ') as unparseable_dates',
-            'count(*) filter (where ' . RecordQuery::R_LO . ' is null and not ' . RecordQuery::R_NO_DATE . ') as unparseable_date',
-            // Over dated records only (mid is null otherwise). percentile_disc ascending is the lower
-            // middle value and descending the upper; they coincide for an odd count.
-            self::meanFloor('r.mid') . ' as mean_date',
-            'floor((percentile_disc(0.5) within group (order by r.mid)'
-                . ' + percentile_disc(0.5) within group (order by r.mid desc))::numeric / 2)::bigint as median_date',
-            'ST_XMin(ST_Extent(r.geom)) as min_lon',
-            'ST_YMin(ST_Extent(r.geom)) as min_lat',
-            'ST_XMax(ST_Extent(r.geom)) as max_lon',
-            'ST_YMax(ST_Extent(r.geom)) as max_lat',
-            'ST_X(ST_Centroid(ST_Collect(r.geom)::geography)::geometry) as centroid_lon',
-            'ST_Y(ST_Centroid(ST_Collect(r.geom)::geography)::geometry) as centroid_lat',
-            'ST_AsGeoJSON(' . $hull . ') as hull',
-            'ST_Area(' . $hull . '::geography) as area_m2',
-        ];
-
-        $dates = RecordQuery::withDates(RecordQuery::build($f), ['i.geom']);
+        $set = 'ST_Collect(r.geom ORDER BY r.id)';
+        $hull = 'ST_ConvexHull(' . $set . ')';
+        // Over dated records only (mid is null otherwise). percentile_disc ascending is the lower
+        // middle value and descending the upper; they coincide for an odd count.
+        $selects = array_merge(
+            ['count(*) as records', 'count(r.geom) as with_coordinates',
+                'count(*) filter (where ' . RecordQuery::R_LO . ' is not null) as dated'],
+            RecordQuery::R_DATE_SELECTS,
+            [
+                self::meanFloor('r.mid') . ' as mean_date',
+                'floor((percentile_disc(0.5) within group (order by r.mid)'
+                    . ' + percentile_disc(0.5) within group (order by r.mid desc))::numeric / 2)::bigint as median_date',
+            ],
+            RecordQuery::R_EXTENT_SELECTS,
+            [
+                // Ordered by record id so the sum, and the last digits, are the same on every call.
+                'ST_X(ST_Centroid(' . $set . '::geography)::geometry) as centroid_lon',
+                'ST_Y(ST_Centroid(' . $set . '::geography)::geometry) as centroid_lat',
+                // 15 digits: ST_AsGeoJSON's default 9 would round the vertices (A2 spec §6.4).
+                'ST_AsGeoJSON(' . $hull . ', 15) as hull',
+                'ST_Area(' . $hull . '::geography) as area_m2',
+            ]
+        );
+        $dates = RecordQuery::withDates(RecordQuery::build($f), ['i.id', 'i.geom']);
         $withMidpoint = DB::query()->fromSub(
             $dates->select('r.*')->selectRaw(
                 'floor(((' . RecordQuery::R_LO . ')::numeric + (' . RecordQuery::R_HI . ')::numeric) / 2) as mid'

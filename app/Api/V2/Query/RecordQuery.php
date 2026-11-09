@@ -87,6 +87,24 @@ class RecordQuery
     public const R_NO_DATE = '(r.sb AND r.eb)';
     public const R_UNPARSEABLE_SIDE = '((NOT r.sb AND r.s IS NULL) OR (NOT r.eb AND r.e IS NULL))';
 
+    /** The select expressions for a set's extent, over `r`; shared by A1's summary and A2's statistics. */
+    public const R_EXTENT_SELECTS = [
+        'ST_XMin(ST_Extent(r.geom)) as min_lon',
+        'ST_YMin(ST_Extent(r.geom)) as min_lat',
+        'ST_XMax(ST_Extent(r.geom)) as max_lon',
+        'ST_YMax(ST_Extent(r.geom)) as max_lat',
+    ];
+
+    /** The select expressions for a set's date range and undated counts, over `r`; shared likewise. */
+    public const R_DATE_SELECTS = [
+        'min(' . self::R_LO . ') as date_start',
+        'max(' . self::R_HI . ') as date_end',
+        'count(*) filter (where ' . self::R_LO . ' is null) as undated_total',
+        'count(*) filter (where ' . self::R_NO_DATE . ') as no_date',
+        'count(*) filter (where ' . self::R_UNPARSEABLE_SIDE . ') as unparseable_dates',
+        'count(*) filter (where ' . self::R_LO . ' is null and not ' . self::R_NO_DATE . ') as unparseable_date',
+    ];
+
     /** Each column of `r` and the expression it holds. */
     public const R_COLUMNS = [
         'r.s' => self::S, 'r.e' => self::E, 'r.se' => self::SE, 'r.ee' => self::EE,

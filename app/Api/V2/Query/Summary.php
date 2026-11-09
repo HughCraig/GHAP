@@ -15,20 +15,12 @@ class Summary
     public static function compute(Builder $filtered, bool $withByLayer): array
     {
         $sourceKeys = Sources::keyById();
-        $selects = [
-            'count(*) as total',
-            'ST_XMin(ST_Extent(r.geom)) as min_lon',
-            'ST_YMin(ST_Extent(r.geom)) as min_lat',
-            'ST_XMax(ST_Extent(r.geom)) as max_lon',
-            'ST_YMax(ST_Extent(r.geom)) as max_lat',
-            'count(*) filter (where r.geom is null) as no_coordinates',
-            'min(' . RecordQuery::R_LO . ') as date_start',
-            'max(' . RecordQuery::R_HI . ') as date_end',
-            'count(*) filter (where ' . RecordQuery::R_LO . ' is null) as undated_total',
-            'count(*) filter (where ' . RecordQuery::R_NO_DATE . ') as no_date',
-            'count(*) filter (where ' . RecordQuery::R_UNPARSEABLE_SIDE . ') as unparseable_dates',
-            'count(*) filter (where ' . RecordQuery::R_LO . ' is null and not ' . RecordQuery::R_NO_DATE . ') as unparseable_date',
-        ];
+        $selects = array_merge(
+            ['count(*) as total'],
+            RecordQuery::R_EXTENT_SELECTS,
+            ['count(*) filter (where r.geom is null) as no_coordinates'],
+            RecordQuery::R_DATE_SELECTS
+        );
         foreach ($sourceKeys as $id => $key) {
             $selects[] = 'count(*) filter (where r.datasource_id = ' . (int) $id . ') as source_' . (int) $id;
         }

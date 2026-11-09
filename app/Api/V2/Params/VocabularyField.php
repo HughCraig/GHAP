@@ -6,7 +6,7 @@ use TLCMap\Api\V2\Errors\ApiException;
 use TLCMap\Api\V2\Query\RecordQuery;
 
 /**
- * The field a vocabulary groups (spec §5.2), and the column it reads. The column names come only
+ * The field a vocabulary groups (A2 spec §5.1), and the column it reads. The column names come only
  * from COLUMNS, never from the request.
  */
 class VocabularyField
@@ -58,7 +58,7 @@ class VocabularyField
         return new self($name);
     }
 
-    /** The comparison key of the column (spec §5.3). */
+    /** The comparison key of the column (A2 spec §5.3). */
     public function key(): string
     {
         return RecordQuery::vocabularyKey($this->column);

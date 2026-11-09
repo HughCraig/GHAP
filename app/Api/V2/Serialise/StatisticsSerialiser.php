@@ -2,12 +2,25 @@
 
 namespace TLCMap\Api\V2\Serialise;
 
-/** Shapes a LayerStatistics row into the `statistics` object of spec §6.2; every key is present. */
+/** Shapes a LayerStatistics row into the `statistics` object of A2 spec §6.2; every key is present. */
 class StatisticsSerialiser
 {
-    /** @param array $featureTerms the `feature_terms` object */
-    public static function statistics(\stdClass $row, array $featureTerms): array
+    /**
+     * @param array $records Vocabulary::records for the layer's feature terms
+     * @param iterable $entries the rows of Vocabulary::all for them
+     */
+    public static function statistics(\stdClass $row, array $records, iterable $entries): array
     {
+        $values = [];
+        foreach ($entries as $entry) {
+            $values[] = VocabularySerialiser::entry($entry);
+        }
+        $featureTerms = [
+            'with_value' => $records['with_value'],
+            'without_value' => $records['without_value'],
+            'values' => $values,
+        ];
+
         $hasPoints = $row->min_lon !== null;
         $area = $row->area_m2 === null ? null : (float) $row->area_m2 / 1e6;
         $withCoordinates = (int) $row->with_coordinates;
