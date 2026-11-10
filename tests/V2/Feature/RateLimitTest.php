@@ -91,6 +91,7 @@ class RateLimitTest extends TestCase
         $this->assertSame('INVALID_CREDENTIAL', $r->json('error.code'));
         $r->assertHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
         $r->assertHeader('Access-Control-Allow-Origin', '*');
+        $r->assertHeader('X-RateLimit-Limit', 2);
     }
 
     public function wrongCredentials()
@@ -107,8 +108,8 @@ class RateLimitTest extends TestCase
     public function test_wrong_credential_counts_against_the_address()
     {
         $wrong = ['Authorization' => 'Bearer tlcmap_' . str_repeat('C', 43)];
-        $this->get(self::OK, $wrong)->assertStatus(401);
-        $this->get(self::OK, $wrong)->assertStatus(401);
+        $this->get(self::OK, $wrong)->assertStatus(401)->assertHeader('X-RateLimit-Remaining', 1);
+        $this->get(self::OK, $wrong)->assertStatus(401)->assertHeader('X-RateLimit-Remaining', 0);
         $this->get(self::OK)->assertStatus(429);
     }
 
@@ -129,9 +130,18 @@ class RateLimitTest extends TestCase
             $this->assertSame('INTERNAL_ERROR', $r->json('error.code'));
             $this->assertStringNotContainsString(hash('sha256', self::KEY), $r->getContent());
         }
+        $fragment = substr(hash('sha256', self::KEY), 0, 12);
         Log::shouldHaveReceived('error')->withArgs(function ($message) {
             return strpos($message, 'API_V2_CLIENTS entry 1') === 0
                 && strpos($message, hash('sha256', self::KEY)) === false;
+        });
+        Log::shouldHaveReceived('error')->withArgs(function ($message, $context = []) use ($fragment) {
+            $logged = $message;
+            if (isset($context['exception']) && $context['exception'] instanceof \Throwable) {
+                $logged .= $context['exception']->getMessage() . $context['exception']->getTraceAsString();
+            }
+            $this->assertStringNotContainsString($fragment, $logged);
+            return true;
         });
     }
 
