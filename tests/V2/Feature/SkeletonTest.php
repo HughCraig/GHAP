@@ -26,6 +26,9 @@ class SkeletonTest extends TestCase
             Route::get('api/v2/__test/private', function () {
                 throw ApiException::layerPrivate(7);
             });
+            Route::get('api/v2/__test/unauthorised', function () {
+                throw ApiException::invalidCredential();
+            });
         });
     }
 
@@ -74,6 +77,18 @@ class SkeletonTest extends TestCase
         $this->assertSame('LAYER_PRIVATE', $r->json('error.code'));
         $this->assertNotEmpty($r->json('error.message'));
         $this->assertSame(['layer_id' => 7], $r->json('error.details'));
+    }
+
+    public function test_invalid_credential_is_json_401_with_www_authenticate()
+    {
+        $r = $this->get('/api/v2/__test/unauthorised');
+        $r->assertStatus(401);
+        $r->assertHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
+        $r->assertHeader('Access-Control-Allow-Origin', '*');
+        $this->assertSame('INVALID_CREDENTIAL', $r->json('error.code'));
+        $this->assertSame('The credential in the Authorization header is not valid. Send no Authorization header to use the anonymous limit.', $r->json('error.message'));
+        $this->assertSame([], $r->json('error.details'));
+        $this->assertStringContainsString('"details":{}', $r->getContent());
     }
 
     public function test_rate_limited()
