@@ -84,6 +84,7 @@ class ClientRegistryTest extends TestCase
             'zero limit' => ['a:' . $h . ':0,1', '1', 'limit'],
             'limit without minutes' => ['a:' . $h . ':60', '1', 'limit'],
             'too many fields' => ['a:' . $h . ':60,1:x', '1', 'name:hash or name:hash:limit'],
+            'hash with trailing newline' => ['a:' . $h . "\n" . ':1,1', '1', 'hash'],
             'one field' => ['a', '1', 'name:hash or name:hash:limit'],
             'duplicate name' => ['a:' . $h . ';a:' . $h2, '2', 'duplicate name'],
             'duplicate hash' => ['a:' . $h . ';b:' . $h, '2', 'duplicate hash'],

@@ -8,8 +8,8 @@ namespace TLCMap\Api\V2\Clients;
  */
 final class ClientRegistry
 {
-    private const NAME = '/^[a-z0-9-]{1,40}$/';
-    private const HASH = '/^[0-9a-f]{64}$/';
+    private const NAME = '/^[a-z0-9-]{1,40}$/D';
+    private const HASH = '/^[0-9a-f]{64}$/D';
 
     /** @var array hash => Client */
     private $byHash = [];
