@@ -25,6 +25,7 @@ class ErrorRenderer
             $code = $e->errorCode();
             $message = $e->getMessage();
             $details = $e->details();
+            $headers = $e->headers();
         } elseif ($e instanceof ThrottleRequestsException) {
             $status = 429;
             $code = 'RATE_LIMITED';

@@ -2,6 +2,8 @@
 
 return [
     'rate_limit' => env('API_V2_RATE_LIMIT', '60,1'),
+    'clients' => env('API_V2_CLIENTS'),
+    'client_rate_limit' => env('API_V2_CLIENT_RATE_LIMIT', '600,1'),
     'features_per_page' => 500,
     'features_per_page_max' => 5000,
     'layers_per_page' => 100,

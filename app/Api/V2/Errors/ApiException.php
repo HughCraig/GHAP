@@ -13,12 +13,16 @@ class ApiException extends \RuntimeException
     /** @var array */
     private $details;
 
-    public function __construct(int $status, string $code, string $message, array $details = [])
+    /** @var array */
+    private $headers;
+
+    public function __construct(int $status, string $code, string $message, array $details = [], array $headers = [])
     {
         parent::__construct($message);
         $this->status = $status;
         $this->errorCode = $code;
         $this->details = $details;
+        $this->headers = $headers;
     }
 
     public function status(): int
@@ -34,6 +38,11 @@ class ApiException extends \RuntimeException
     public function details(): array
     {
         return $this->details;
+    }
+
+    public function headers(): array
+    {
+        return $this->headers;
     }
 
     public static function invalidParameter(string $parameter, string $rule, string $accepts, string $message): self
@@ -59,6 +68,13 @@ class ApiException extends \RuntimeException
             'expression' => $expression,
             'position' => $position,
             'expected' => $expected,
+        ]);
+    }
+
+    public static function invalidCredential(): self
+    {
+        return new self(401, 'INVALID_CREDENTIAL', 'The credential in the Authorization header is not valid. Send no Authorization header to use the anonymous limit.', [], [
+            'WWW-Authenticate' => 'Bearer error="invalid_token"',
         ]);
     }
 
